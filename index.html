@@ -1,0 +1,701 @@
+import React, { useState, useEffect } from 'react';
+import { 
+  Droplets, 
+  Bike, 
+  Briefcase, 
+  Settings, 
+  Plus, 
+  CheckCircle, 
+  TrendingUp, 
+  Clock, 
+  Check, 
+  Zap, 
+  Activity, 
+  User, 
+  MessageSquare, 
+  LayoutDashboard, 
+  ExternalLink, 
+  Trash2,
+  AlertCircle,
+  ClipboardList,
+  Target, 
+  ChevronRight,
+  ChevronDown,
+  RefreshCw,
+  Calendar,
+  UserPlus,
+  Map,
+  Fuel,
+  Wrench,
+  Navigation,
+  Car,
+  Save,
+  ShieldCheck,
+  History,
+  DollarSign,
+  CloudUpload,
+  MapPin,
+  Search
+} from 'lucide-react';
+
+const App = () => {
+  const appName = "PULSE";
+
+  // --- CONFIGURAÇÕES E ESTADOS ---
+  const [settings, setSettings] = useState(() => {
+    const saved = localStorage.getItem('pulse_settings');
+    const defaultSettings = {
+      copoEscritorio: 473,
+      copoCasa: 250,
+      precoMonster: 13.50,
+      mlMonster: 473,
+      mgCafeinaMonster: 160,
+      peso: 80,
+      idade: 30,
+      cidadeBase: 'Fortaleza',
+      npsApiUrl: "", 
+      saasSyncUrl: "", 
+      autoSave: true, 
+      precoGasolina: 6.20,
+      veiculoTipo: 'moto', 
+      veiculoMontadora: 'Yamaha',
+      veiculoModelo: 'Fazer 250',
+      veiculoConsumo: 29,
+      kmAtual: 5000,
+      ultimaTrocaOleo: 4500
+    };
+    return saved ? { ...defaultSettings, ...JSON.parse(saved) } : defaultSettings;
+  });
+
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [showSavedToast, setShowSavedToast] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+  
+  // Estados Makro Tasks
+  const [makroTasks, setMakroTasks] = useState(() => {
+    const saved = localStorage.getItem('pulse_makro_tasks');
+    return saved ? JSON.parse(saved) : [
+      { id: 1, title: 'Checklist Guindaste LTM 11200', status: 'pending', type: 'Inteligência Industrial', requester: 'Operações', deadline: 'Hoje' }
+    ];
+  });
+
+  const [newTaskTitle, setNewTaskTitle] = useState('');
+  const [newTaskCategory, setNewTaskCategory] = useState('Social Media');
+  const [newTaskRequester, setNewTaskRequester] = useState('');
+  
+  const getTodayISO = () => new Date().toISOString().split('T')[0];
+  const [newTaskDeadline, setNewTaskDeadline] = useState(getTodayISO());
+  
+  const [showCompletedTasks, setShowCompletedTasks] = useState(false);
+  
+  // Estados Veículo
+  const [bikeTrips, setBikeTrips] = useState(() => {
+    const saved = localStorage.getItem('pulse_bike_trips');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [newTripDest, setNewTripDest] = useState('');
+  const [newTripKm, setNewTripKm] = useState('');
+  const [isCalculatingRoute, setIsCalculatingRoute] = useState(false);
+  const [routeError, setRouteError] = useState('');
+
+  const [maintenanceLogs, setMaintenanceLogs] = useState(() => {
+    const saved = localStorage.getItem('pulse_maintenance_logs');
+    return saved ? JSON.parse(saved) : [
+      { id: 1, service: 'Troca de Óleo Yamalube', km: 4500, cost: 45.00, date: '2026-01-10' }
+    ];
+  });
+  const [newServiceDesc, setNewServiceDesc] = useState('');
+  const [newServiceKm, setNewServiceKm] = useState('');
+  const [newServiceCost, setNewServiceCost] = useState('');
+
+  // Saúde
+  const [waterLogs, setWaterLogs] = useState(() => {
+    const saved = localStorage.getItem('pulse_water_logs');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [monsterLogs, setMonsterLogs] = useState(() => {
+    const saved = localStorage.getItem('pulse_monster_logs');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  const [npsScore, setNpsScore] = useState(50);
+  const [isNpsLoading, setIsNpsLoading] = useState(false);
+
+  const today = new Date().toLocaleDateString();
+
+  // --- PERSISTÊNCIA ---
+  useEffect(() => {
+    if (settings.autoSave) {
+      localStorage.setItem('pulse_settings', JSON.stringify(settings));
+      localStorage.setItem('pulse_makro_tasks', JSON.stringify(makroTasks));
+      localStorage.setItem('pulse_water_logs', JSON.stringify(waterLogs));
+      localStorage.setItem('pulse_monster_logs', JSON.stringify(monsterLogs));
+      localStorage.setItem('pulse_bike_trips', JSON.stringify(bikeTrips));
+      localStorage.setItem('pulse_maintenance_logs', JSON.stringify(maintenanceLogs));
+    }
+  }, [settings, makroTasks, waterLogs, monsterLogs, bikeTrips, maintenanceLogs]);
+
+  // --- CÁLCULOS ---
+  const calculateCaffeineRemaining = () => {
+    if (monsterLogs.length === 0) return 0;
+    const now = new Date();
+    let total = 0;
+    monsterLogs.forEach(log => {
+      if (log.date === today) {
+        const logTime = new Date(log.timestamp);
+        const hoursPassed = (now - logTime) / (1000 * 60 * 60);
+        total += (Number(settings.mgCafeinaMonster) || 160) * Math.pow(0.5, hoursPassed / 5);
+      }
+    });
+    return Math.round(total);
+  };
+
+  const kmProximaTroca = (Number(settings.ultimaTrocaOleo) || 0) + (settings.veiculoTipo === 'moto' ? 3000 : 10000);
+  const kmFaltantesOleo = kmProximaTroca - (Number(settings.kmAtual) || 0);
+  const waterToday = waterLogs.filter(l => l.date === today).reduce((acc, curr) => acc + curr.amount, 0);
+  const waterPercentage = Math.min(Math.round((waterToday / 3500) * 100), 100);
+  const pendingTasksCount = makroTasks.filter(t => t.status === 'pending').length;
+  const caffeineCurrent = calculateCaffeineRemaining();
+
+  // --- FUNÇÕES ---
+  const addWater = (amount) => {
+    if (!amount) return;
+    setWaterLogs([{ id: Date.now(), amount: Number(amount), time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), date: today }, ...waterLogs]);
+  };
+
+  const addMonster = () => {
+    setMonsterLogs([{ id: Date.now(), amount: settings.mlMonster, timestamp: new Date().toISOString(), date: today }, ...monsterLogs]);
+  };
+
+  const addTask = (e) => {
+    e.preventDefault();
+    if (!newTaskTitle.trim()) return;
+    const newTask = { 
+       id: Date.now(), 
+       title: newTaskTitle, 
+       status: 'pending', 
+       type: newTaskCategory, 
+       requester: newTaskRequester || 'Makro', 
+       deadline: newTaskDeadline || getTodayISO() 
+    };
+    setMakroTasks([newTask, ...makroTasks]);
+    setNewTaskTitle(''); setNewTaskRequester(''); setNewTaskDeadline(getTodayISO());
+  };
+
+  const toggleTask = (id) => {
+    setMakroTasks(makroTasks.map(t => t.id === id ? { ...t, status: t.status === 'done' ? 'pending' : 'done' } : t));
+  };
+
+  const deleteTask = (id) => {
+    setMakroTasks(makroTasks.filter(t => t.id !== id));
+  };
+
+  const addTrip = (e) => {
+    e.preventDefault();
+    if (!newTripDest || !newTripKm) return;
+    const km = parseFloat(newTripKm);
+    const consumption = parseFloat(settings.veiculoConsumo) || 1;
+    const price = parseFloat(settings.precoGasolina) || 0;
+    const fuel = (km / consumption).toFixed(2);
+    const cost = (fuel * price).toFixed(2);
+    setBikeTrips([{ id: Date.now(), destination: newTripDest, km, fuel, cost, date: new Date().toISOString().split('T')[0] }, ...bikeTrips]);
+    setNewTripDest(''); setNewTripKm('');
+  };
+
+  const handleAutoCalculateKm = async () => {
+    if (!newTripDest || !settings.cidadeBase) {
+       setRouteError('Preencha o destino antes de calcular.');
+       setTimeout(() => setRouteError(''), 3000);
+       return;
+    }
+    
+    setIsCalculatingRoute(true);
+    setRouteError('');
+    
+    try {
+      // 1. Busca coordenadas da Origem (Cidade Base)
+      const resOrigin = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(settings.cidadeBase)}`);
+      const dataOrigin = await resOrigin.json();
+      if (!dataOrigin || dataOrigin.length === 0) throw new Error("Origem não encontrada na API");
+
+      // 2. Busca coordenadas do Destino
+      const resDest = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(newTripDest)}`);
+      const dataDest = await resDest.json();
+      if (!dataDest || dataDest.length === 0) throw new Error("Destino não encontrado na API");
+
+      const lon1 = dataOrigin[0].lon;
+      const lat1 = dataOrigin[0].lat;
+      const lon2 = dataDest[0].lon;
+      const lat2 = dataDest[0].lat;
+
+      // 3. Calcula rota viária via OSRM
+      const resRoute = await fetch(`https://router.project-osrm.org/route/v1/driving/${lon1},${lat1};${lon2},${lat2}?overview=false`);
+      const dataRoute = await resRoute.json();
+
+      if (dataRoute.routes && dataRoute.routes.length > 0) {
+        const distanceKm = (dataRoute.routes[0].distance / 1000).toFixed(1);
+        setNewTripKm(distanceKm);
+      } else {
+         throw new Error("Rota de direção não encontrada");
+      }
+    } catch (error) {
+      console.error(error);
+      setRouteError('Erro ao buscar rota. Insira manualmente.');
+      setTimeout(() => setRouteError(''), 3000);
+    } finally {
+      setIsCalculatingRoute(false);
+    }
+  };
+
+  const addMaintenance = (e) => {
+    e.preventDefault();
+    if (!newServiceDesc || !newServiceKm) return;
+    const newLog = {
+      id: Date.now(),
+      service: newServiceDesc,
+      km: parseFloat(newServiceKm),
+      cost: parseFloat(newServiceCost) || 0,
+      date: new Date().toISOString().split('T')[0]
+    };
+    setMaintenanceLogs([newLog, ...maintenanceLogs]);
+    setNewServiceDesc(''); setNewServiceKm(''); setNewServiceCost('');
+  };
+
+  const deleteMaintenance = (id) => {
+    setMaintenanceLogs(maintenanceLogs.filter(m => m.id !== id));
+  };
+
+  const syncWithSaaS = async () => {
+    if (!settings.saasSyncUrl) return;
+    setIsSyncing(true);
+    setTimeout(() => {
+      setIsSyncing(false);
+      setShowSavedToast(true);
+      setTimeout(() => setShowSavedToast(false), 2000);
+    }, 1500);
+  };
+
+  const updateSetting = (key, value) => {
+    let val = value;
+    const numericKeys = ['peso', 'idade', 'kmAtual', 'ultimaTrocaOleo', 'veiculoConsumo', 'copoEscritorio', 'copoCasa', 'precoMonster', 'mgCafeinaMonster', 'precoGasolina'];
+    if (numericKeys.includes(key)) {
+      val = value === "" ? "" : parseFloat(value);
+      if (value !== "" && isNaN(val)) return; 
+    }
+    setSettings(prev => ({ ...prev, [key]: val }));
+  };
+
+  return (
+    <div className="min-h-screen bg-[#F8FAFC] text-slate-900 font-sans flex overflow-hidden">
+      {/* Sidebar */}
+      <aside className="h-screen w-20 md:w-64 bg-slate-900 text-white flex flex-col z-30 transition-all border-r border-white/5">
+        <div className="p-6 mb-2 text-center md:text-left">
+          <div className="flex items-center gap-3 justify-center md:justify-start">
+            <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
+              <span className="font-bold text-xl text-white italic">{appName.charAt(0)}</span>
+            </div>
+            <div className="hidden md:block leading-none">
+              <span className="font-black text-lg tracking-tighter uppercase block">{appName}</span>
+              <span className="text-[9px] text-slate-500 font-bold tracking-widest uppercase italic">Personal OS</span>
+            </div>
+          </div>
+        </div>
+        
+        <nav className="flex-1 px-3 space-y-1">
+          <NavItem icon={<LayoutDashboard size={20} />} label="Dashboard" active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} />
+          <NavItem icon={<Activity size={20} />} label="Saúde" active={activeTab === 'health'} onClick={() => setActiveTab('health')} />
+          <div className="pt-4 pb-2 px-4 italic opacity-30 text-[10px] uppercase font-bold tracking-widest hidden md:block">Corporativo</div>
+          <NavItem icon={<Briefcase size={20} />} label="Makro" active={activeTab === 'makro'} onClick={() => setActiveTab('makro')} />
+          <NavItem icon={settings.veiculoTipo === 'moto' ? <Bike size={20} /> : <Car size={20} />} label={settings.veiculoModelo || "Veículo"} active={activeTab === 'bike'} onClick={() => setActiveTab('bike')} />
+        </nav>
+
+        <div className="p-3 mt-auto border-t border-white/5">
+          <NavItem icon={<Settings size={20} />} label="Ajustes" active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} />
+        </div>
+      </aside>
+
+      <main className="flex-1 h-screen overflow-y-auto relative scroll-smooth">
+        <header className="sticky top-0 bg-[#F8FAFC]/90 backdrop-blur-md z-20 px-6 py-6 md:px-10 flex items-center justify-between border-b border-slate-200">
+          <div>
+            <h1 className="text-2xl font-black uppercase italic text-slate-900 leading-none">{activeTab}</h1>
+            <p className="text-slate-400 font-bold text-[10px] uppercase tracking-widest mt-1 italic">Fortaleza • {today}</p>
+          </div>
+          <div className="flex items-center gap-3">
+             <button onClick={addMonster} className="bg-slate-900 text-white px-5 py-2.5 rounded-xl hover:bg-blue-600 transition flex items-center gap-3 active:scale-95 shadow-lg">
+                <Zap size={18} fill="currentColor" className="text-green-400" />
+                <span className="font-black text-[10px] uppercase tracking-widest text-white italic">Energy</span>
+             </button>
+          </div>
+        </header>
+
+        <div className="p-6 md:p-10 max-w-6xl mx-auto space-y-6">
+          {activeTab === 'dashboard' && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <section onClick={() => window.open('https://weversonf.github.io/pesquisa-nps-02/', '_blank')} className="bg-blue-600 p-6 rounded-3xl text-white shadow-lg cursor-pointer hover:bg-blue-700 transition group relative">
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="p-2.5 bg-white/10 rounded-xl"><MessageSquare size={20} /></div>
+                    <div className="text-right"><span className="font-black text-4xl italic leading-none">{npsScore}</span></div>
+                  </div>
+                  <p className="font-black text-[10px] uppercase tracking-widest mb-1 italic">NPS Makro Engenharia</p>
+                  <div className="flex items-center justify-between opacity-80">
+                    <p className="text-[9px] font-bold uppercase tracking-tighter italic">Satisfação Global de Clientes</p>
+                    <ExternalLink size={12} />
+                  </div>
+                </section>
+
+                <section onClick={() => setActiveTab('makro')} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm cursor-pointer hover:border-blue-500 transition-all group">
+                  <div className="flex justify-between items-center mb-6">
+                     <h4 className="font-black text-[10px] text-slate-400 uppercase tracking-widest italic">Jobs em Aberto</h4>
+                     <ClipboardList size={18} className="text-slate-400 group-hover:text-blue-500" />
+                  </div>
+                  <div className="flex items-baseline gap-2 mb-4">
+                    <span className="text-5xl font-black italic tracking-tighter text-slate-900 leading-none">{pendingTasksCount}</span>
+                    <span className="text-sm font-bold text-slate-300 uppercase italic">Pendentes</span>
+                  </div>
+                  <div className="flex items-center justify-between mt-auto">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter italic">Pipeline de Engenharia</p>
+                    <ChevronRight size={14} className="text-slate-300 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </section>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <section className="lg:col-span-2 bg-white p-8 rounded-3xl border border-slate-200 shadow-sm">
+                  <div className="flex items-center justify-between mb-8">
+                    <div>
+                      <h3 className="font-black text-lg text-slate-800 uppercase tracking-tighter flex items-center gap-2 italic"><Droplets className="text-blue-500" size={20} /> Hidratação</h3>
+                      <p className="text-[11px] font-bold text-slate-400 italic">Target: 3.500ml ({waterPercentage}%)</p>
+                    </div>
+                    <span className="text-5xl font-black text-slate-900 italic">{(waterToday / 1000).toFixed(2)}<span className="text-xl text-slate-200 ml-1 italic">L</span></span>
+                  </div>
+                  <div className="w-full bg-slate-50 h-5 rounded-full mb-8 overflow-hidden border border-slate-100 shadow-inner">
+                    <div className="bg-blue-500 h-full transition-all duration-1000" style={{ width: `${waterPercentage}%` }} />
+                  </div>
+                </section>
+
+                <section onClick={() => setActiveTab('bike')} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm cursor-pointer hover:border-blue-500 transition-all group overflow-hidden relative flex flex-col justify-center">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 relative z-10 italic leading-none">{settings.veiculoModelo}</p>
+                    <p className="text-4xl font-black italic text-slate-900 relative z-10 leading-none">{settings.veiculoConsumo}<span className="text-xl text-slate-200 ml-1 italic">km/L</span></p>
+                    <div className="mt-4 flex items-center gap-2 relative z-10">
+                      <div className={`w-2 h-2 rounded-full ${kmFaltantesOleo < 500 ? 'bg-red-500 animate-pulse' : 'bg-green-500'}`} />
+                      <p className="text-[10px] font-bold text-slate-500 uppercase italic">Troca Óleo em {kmFaltantesOleo}km</p>
+                    </div>
+                    <div className="absolute -right-4 -bottom-4 text-slate-50 group-hover:text-blue-50 transition-all opacity-20">
+                      <Bike size={120} />
+                    </div>
+                </section>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'health' && (
+            <div className="space-y-8 animate-in fade-in duration-500 pb-20">
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="bg-white p-10 rounded-3xl border border-slate-200 shadow-sm text-center">
+                    <h3 className="font-black text-2xl tracking-tighter mb-10 uppercase italic flex flex-col items-center gap-2 leading-none text-blue-600"><Droplets size={32} /> Hidratação</h3>
+                    <p className="text-[8rem] font-black italic tracking-tighter text-slate-900 leading-none">{(waterToday/1000).toFixed(2)}</p>
+                    <p className="text-2xl font-black text-slate-200 uppercase italic mb-8 italic">Litros Hoje</p>
+                    <div className="flex justify-center gap-4">
+                       <button onClick={() => addWater(settings.copoEscritorio)} className="bg-blue-50 text-blue-600 px-6 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest border border-blue-100 hover:bg-blue-600 hover:text-white transition-all italic">Copo Makro ({settings.copoEscritorio}ml)</button>
+                       <button onClick={() => addWater(settings.copoCasa)} className="bg-blue-50 text-blue-600 px-6 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest border border-blue-100 hover:bg-blue-600 hover:text-white transition-all italic">Vaso Casa ({settings.copoCasa}ml)</button>
+                    </div>
+                  </div>
+                  <div className="bg-slate-900 p-10 rounded-3xl shadow-xl text-white text-center flex flex-col justify-between">
+                    <div>
+                      <h3 className="font-black text-2xl tracking-tighter mb-10 uppercase italic flex flex-col items-center gap-2 leading-none text-green-400"><Zap size={32} fill="currentColor" /> Cafeína Bio</h3>
+                      <p className={`text-[8rem] font-black italic tracking-tighter leading-none ${caffeineCurrent > 200 ? 'text-red-500' : 'text-green-400'}`}>{caffeineCurrent}</p>
+                      <p className="text-2xl font-black text-slate-700 uppercase italic mb-8 italic">mg no organismo</p>
+                    </div>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic opacity-50">Baseado na meia-vida de 5h</p>
+                  </div>
+               </div>
+
+               <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+                  <div className="p-6 border-b border-slate-50 bg-slate-50/50 flex items-center justify-between">
+                     <h4 className="font-black uppercase text-xs italic text-slate-800">Log de Hidratação</h4>
+                     <History size={16} className="text-slate-400" />
+                  </div>
+                  <div className="max-h-60 overflow-y-auto">
+                     {waterLogs.filter(l => l.date === today).map(log => (
+                       <div key={log.id} className="p-4 border-b border-slate-50 flex justify-between items-center italic font-bold text-sm">
+                          <div className="flex items-center gap-3"><Droplets size={14} className="text-blue-400" /> {log.amount}ml</div>
+                          <div className="text-slate-300 text-xs">{log.time}</div>
+                       </div>
+                     ))}
+                  </div>
+               </div>
+            </div>
+          )}
+
+          {activeTab === 'makro' && (
+            <div className="space-y-6 animate-in fade-in duration-500 pb-20">
+               <div className="bg-white rounded-[2rem] border border-slate-200 shadow-xl overflow-hidden">
+                <div className="p-8 border-b border-slate-100 bg-slate-50/50">
+                  <h3 className="font-black text-xl uppercase italic mb-6 flex items-center gap-3 text-slate-800 leading-none"><Briefcase className="text-blue-600" size={24} /> Makro Engenharia Pipeline</h3>
+                  <form onSubmit={addTask} className="space-y-4">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                      <input type="text" placeholder="Job / Atividade..." value={newTaskTitle} onChange={(e) => setNewTaskTitle(e.target.value)} className="w-full bg-white border border-slate-200 rounded-xl p-4 font-bold text-sm outline-none shadow-sm focus:border-blue-500" />
+                      <input type="text" placeholder="Solicitante..." value={newTaskRequester} onChange={(e) => setNewTaskRequester(e.target.value)} className="w-full bg-white border border-slate-200 rounded-xl p-4 font-bold text-sm outline-none shadow-sm focus:border-blue-500" />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <select value={newTaskCategory} onChange={(e) => setNewTaskCategory(e.target.value)} className="bg-white border border-slate-200 rounded-xl px-4 py-4 font-black text-[10px] uppercase outline-none italic tracking-widest shadow-sm">
+                        <option value="Social Media">Social Media</option>
+                        <option value="Endomarketing">Endomarketing</option>
+                        <option value="Inteligência Industrial">Inteligência Industrial</option>
+                        <option value="Campanha Makro">Campanha Makro</option>
+                      </select>
+                      <input type="date" value={newTaskDeadline} onChange={(e) => setNewTaskDeadline(e.target.value)} className="w-full bg-white border border-slate-200 rounded-xl p-4 font-bold text-sm outline-none shadow-sm focus:border-blue-500 text-slate-500" />
+                      <button type="submit" className="bg-slate-900 text-white rounded-xl px-8 font-black uppercase text-[10px] tracking-widest hover:bg-blue-600 transition shadow-lg italic leading-none h-full">Adicionar</button>
+                    </div>
+                  </form>
+                </div>
+                
+                {/* Tabela de Pendentes */}
+                <div className="overflow-x-auto italic">
+                   <div className="p-4 bg-slate-50/80 border-b border-slate-100">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Jobs Pendentes</p>
+                   </div>
+                   <table className="w-full text-left">
+                      <thead>
+                        <tr className="bg-white border-b border-slate-100">
+                          <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase italic">Atividade</th>
+                          <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase italic">Tipo</th>
+                          <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase italic">Solicitante</th>
+                          <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase italic">Deadline</th>
+                          <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase italic text-right">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 font-bold text-sm">
+                        {makroTasks.filter(t => t.status === 'pending').map(task => (
+                          <tr key={task.id} className="group hover:bg-slate-50 transition-all">
+                            <td className="px-8 py-5 flex items-center gap-4">
+                               <button onClick={() => toggleTask(task.id)} className="transition-all text-slate-200 hover:text-green-500">
+                                  <CheckCircle size={20} fill="none" />
+                               </button>
+                               <span className="text-slate-800 uppercase tracking-tighter">{task.title}</span>
+                            </td>
+                            <td className="px-8 py-5 text-[10px] uppercase text-slate-400">{task.type}</td>
+                            <td className="px-8 py-5 text-slate-500">{task.requester}</td>
+                            <td className="px-8 py-5 text-blue-600 text-xs">
+                               {task.deadline === getTodayISO() ? 'Hoje' : new Date(task.deadline).toLocaleDateString('pt-BR', {timeZone: 'UTC'})}
+                            </td>
+                            <td className="px-8 py-5 text-right">
+                               <button onClick={() => deleteTask(task.id)} className="p-2 text-slate-200 hover:text-red-500 transition-all opacity-0 group-hover:opacity-100">
+                                  <Trash2 size={18} />
+                                </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                   </table>
+                </div>
+
+                {/* Tabela de Concluídos */}
+                {makroTasks.filter(t => t.status === 'done').length > 0 && (
+                  <div className="border-t border-slate-200">
+                     <button 
+                        onClick={() => setShowCompletedTasks(!showCompletedTasks)}
+                        className="w-full p-4 bg-slate-50/80 flex items-center justify-between hover:bg-slate-100 transition-colors"
+                     >
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Histórico de Concluídos</p>
+                        <ChevronDown size={16} className={`text-slate-400 transition-transform ${showCompletedTasks ? 'rotate-180' : ''}`} />
+                     </button>
+                     
+                     {showCompletedTasks && (
+                       <div className="overflow-x-auto italic animate-in slide-in-from-top-2 duration-200">
+                         <table className="w-full text-left">
+                            <tbody className="divide-y divide-slate-100 font-bold text-sm">
+                              {makroTasks.filter(t => t.status === 'done').map(task => (
+                                <tr key={task.id} className="group hover:bg-slate-50 transition-all bg-slate-50/30">
+                                  <td className="px-8 py-5 flex items-center gap-4">
+                                     <button onClick={() => toggleTask(task.id)} className="transition-all text-green-500">
+                                        <CheckCircle size={20} fill="currentColor" className="text-white" />
+                                     </button>
+                                     <span className="text-slate-400 line-through uppercase tracking-tighter">{task.title}</span>
+                                  </td>
+                                  <td className="px-8 py-5 text-[10px] uppercase text-slate-300">{task.type}</td>
+                                  <td className="px-8 py-5 text-slate-300">{task.requester}</td>
+                                  <td className="px-8 py-5 text-green-500 text-xs line-through">
+                                     {task.deadline === getTodayISO() ? 'Hoje' : new Date(task.deadline).toLocaleDateString('pt-BR', {timeZone: 'UTC'})}
+                                  </td>
+                                  <td className="px-8 py-5 text-right">
+                                     <button onClick={() => deleteTask(task.id)} className="p-2 text-slate-200 hover:text-red-500 transition-all opacity-0 group-hover:opacity-100">
+                                        <Trash2 size={18} />
+                                      </button>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                         </table>
+                       </div>
+                     )}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'bike' && (
+            <div className="space-y-6 animate-in fade-in duration-500 pb-20">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6 italic">
+                <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm text-center">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 italic">Hodômetro</p>
+                  <p className="text-4xl font-black italic text-slate-900 leading-none">{settings.kmAtual}km</p>
+                </div>
+                <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm text-center">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 italic">Gasolina Ref.</p>
+                  <p className="text-4xl font-black italic text-slate-900 leading-none">R$ {settings.precoGasolina}</p>
+                </div>
+                <div className="bg-slate-900 p-6 rounded-3xl shadow-xl col-span-1 md:col-span-2 flex items-center gap-6 text-white relative overflow-hidden">
+                   <Wrench className="text-blue-500 relative z-10" size={40} />
+                   <div className="relative z-10">
+                      <p className="text-[10px] font-black text-slate-500 uppercase italic mb-2 leading-none">Próxima Revisão</p>
+                      <p className="text-sm font-bold text-white uppercase italic tracking-tighter">Troca de Óleo em {kmFaltantesOleo}km</p>
+                   </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 italic">
+                {/* LOG DE SERVIÇOS */}
+                <div className="bg-white rounded-[2rem] border border-slate-200 shadow-xl overflow-hidden flex flex-col">
+                   <div className="p-8 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
+                      <h3 className="font-black text-xl uppercase italic text-slate-800 leading-none">Manutenção</h3>
+                      <History size={20} className="text-blue-600" />
+                   </div>
+                   <div className="p-8">
+                      <form onSubmit={addMaintenance} className="space-y-3 mb-6">
+                         <input type="text" placeholder="Serviço (ex: Troca Filtro)..." value={newServiceDesc} onChange={(e) => setNewServiceDesc(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 font-bold text-sm outline-none" />
+                         <div className="flex gap-2">
+                            <input type="number" placeholder="KM" value={newServiceKm} onChange={(e) => setNewServiceKm(e.target.value)} className="flex-1 bg-slate-50 border border-slate-200 rounded-xl p-4 font-bold text-sm outline-none" />
+                            <input type="number" placeholder="Custo R$" value={newServiceCost} onChange={(e) => setNewServiceCost(e.target.value)} className="flex-1 bg-slate-50 border border-slate-200 rounded-xl p-4 font-bold text-sm outline-none" />
+                            <button type="submit" className="bg-slate-900 text-white px-6 rounded-xl hover:bg-blue-600 transition"><Plus size={18} /></button>
+                         </div>
+                      </form>
+                      <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
+                         {maintenanceLogs.map(log => (
+                           <div key={log.id} className="p-4 bg-slate-50 rounded-2xl flex justify-between items-center group">
+                              <div className="font-bold">
+                                 <p className="text-xs uppercase text-slate-800">{log.service}</p>
+                                 <p className="text-[9px] text-slate-300 uppercase">{log.km} KM • R$ {log.cost}</p>
+                              </div>
+                              <button onClick={() => deleteMaintenance(log.id)} className="text-slate-200 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"><Trash2 size={16} /></button>
+                           </div>
+                         ))}
+                      </div>
+                   </div>
+                </div>
+
+                {/* LOG DE VIAGENS */}
+                <div className="bg-white rounded-[2rem] border border-slate-200 shadow-xl overflow-hidden flex flex-col">
+                   <div className="p-8 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
+                      <h3 className="font-black text-xl uppercase italic text-slate-800 leading-none">Planejador de Trips</h3>
+                      <Map size={20} className="text-blue-600" />
+                   </div>
+                   <div className="p-8">
+                      <form onSubmit={addTrip} className="flex flex-col gap-3 mb-6">
+                         <div className="flex gap-3">
+                           <input type="text" placeholder="Destino..." value={newTripDest} onChange={(e) => setNewTripDest(e.target.value)} className="flex-1 bg-slate-50 border border-slate-200 rounded-xl p-4 font-bold text-sm outline-none shadow-sm" />
+                           
+                           <div className="relative w-32">
+                             <input type="number" step="0.1" placeholder="KM" value={newTripKm} onChange={(e) => setNewTripKm(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 pr-10 font-bold text-sm outline-none shadow-sm" />
+                             <button type="button" onClick={handleAutoCalculateKm} disabled={isCalculatingRoute} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-blue-600 transition-colors" title="Calcular distância via GPS">
+                               {isCalculatingRoute ? <RefreshCw size={16} className="animate-spin text-blue-600" /> : <MapPin size={16} />}
+                             </button>
+                           </div>
+                           
+                           <button type="submit" className="bg-slate-900 text-white p-4 rounded-xl hover:bg-blue-600 transition shadow-lg"><Plus size={18} /></button>
+                         </div>
+                         <div className="flex justify-between items-center px-2">
+                           {routeError ? <p className="text-[10px] font-bold text-red-500 uppercase italic tracking-widest">{routeError}</p> : <div />}
+                           <p className="text-[9px] font-bold text-slate-400 uppercase italic tracking-widest text-right">Partindo de: {settings.cidadeBase || 'Fortaleza'}</p>
+                         </div>
+                      </form>
+                      <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
+                         {bikeTrips.map(trip => (
+                           <div key={trip.id} className="p-4 bg-slate-50 rounded-2xl flex justify-between items-center italic font-bold">
+                              <div>
+                                 <p className="text-xs uppercase text-slate-800">{trip.destination}</p>
+                                 <p className="text-[9px] text-slate-300">{trip.date}</p>
+                              </div>
+                              <div className="text-right">
+                                 <p className="text-blue-600 text-sm tracking-tighter">{trip.km} KM • {trip.fuel}L</p>
+                                 <p className="text-green-600 text-[10px]">Custo: R$ {trip.cost}</p>
+                              </div>
+                           </div>
+                         ))}
+                      </div>
+                   </div>
+                </div>
+              </div>
+
+              {settings.saasSyncUrl && (
+                <button onClick={syncWithSaaS} className={`w-full py-5 rounded-3xl font-black uppercase text-[11px] tracking-widest transition-all italic flex items-center justify-center gap-3 border shadow-sm ${isSyncing ? 'bg-slate-50 text-slate-400 border-slate-100' : 'bg-white text-blue-600 border-blue-100 hover:bg-blue-50'}`}>
+                   <CloudUpload size={20} className={isSyncing ? 'animate-bounce' : ''} /> {isSyncing ? 'Transmitindo Dados para SaaS...' : 'Sincronizar com SaaS'}
+                </button>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'settings' && (
+            <div className="max-w-2xl mx-auto space-y-6 pb-40 animate-in fade-in duration-500 italic">
+              <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm relative overflow-hidden">
+                 <h3 className="font-black text-xl uppercase italic mb-8 flex items-center gap-4 text-slate-900 leading-none"><Save size={24} className="text-blue-600" /> Sistema PULSE</h3>
+                 <div className="space-y-4">
+                    <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                        <div>
+                          <p className="font-black text-sm uppercase italic text-slate-800 leading-none mb-1">Auto Save</p>
+                          <p className="text-[10px] font-bold text-slate-400 uppercase italic tracking-tighter">Persistência Local Ativa</p>
+                        </div>
+                        <button onClick={() => updateSetting('autoSave', !settings.autoSave)} className={`w-14 h-8 rounded-full transition-all relative ${settings.autoSave ? 'bg-blue-600' : 'bg-slate-300'}`}><div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all shadow-sm ${settings.autoSave ? 'left-7' : 'left-1'}`} /></button>
+                    </div>
+                    <div className="p-4 bg-blue-50/50 rounded-2xl border border-blue-100">
+                       <label className="block text-[9px] font-black text-blue-400 uppercase mb-2 ml-2 tracking-widest italic leading-none">SaaS Sync Endpoint (URL)</label>
+                       <input type="text" value={settings.saasSyncUrl || ""} onChange={(e) => updateSetting('saasSyncUrl', e.target.value)} placeholder="https://..." className="w-full bg-white border border-blue-100 rounded-xl p-3 font-bold text-xs text-blue-700 outline-none shadow-sm" />
+                    </div>
+                 </div>
+              </div>
+
+              <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm">
+                 <h3 className="font-black text-xl uppercase italic mb-8 flex items-center gap-4 text-slate-900 leading-none"><Wrench size={24} className="text-orange-500" /> Veículo: {settings.veiculoModelo}</h3>
+                 <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-[10px] font-black text-slate-400 uppercase mb-2 ml-2 tracking-widest leading-none">Hodômetro Atual</label>
+                      <input type="number" value={settings.kmAtual ?? ""} onChange={(e) => updateSetting('kmAtual', e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 font-black text-xl outline-none" />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black text-slate-400 uppercase mb-2 ml-2 tracking-widest leading-none">Última Troca Óleo</label>
+                      <input type="number" value={settings.ultimaTrocaOleo ?? ""} onChange={(e) => updateSetting('ultimaTrocaOleo', e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 font-black text-xl outline-none" />
+                    </div>
+                 </div>
+              </div>
+
+              <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm">
+                 <h3 className="font-black text-xl uppercase italic mb-8 flex items-center gap-4 text-slate-900 leading-none"><MapPin size={24} className="text-red-500" /> Localização & Rotas</h3>
+                 <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                    <label className="block text-[10px] font-black text-slate-400 uppercase mb-2 ml-2 tracking-widest italic leading-none">Cidade Base (Origem Padrão)</label>
+                    <input type="text" value={settings.cidadeBase || ""} onChange={(e) => updateSetting('cidadeBase', e.target.value)} placeholder="Ex: Fortaleza, CE" className="w-full bg-white border border-slate-200 rounded-xl p-4 font-bold text-sm outline-none shadow-sm" />
+                 </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </main>
+
+      {showSavedToast && (
+        <div className="fixed bottom-10 right-10 bg-green-500 text-white px-6 py-3 rounded-xl shadow-2xl font-black uppercase text-[10px] tracking-widest flex items-center gap-3 animate-in slide-in-from-right-10">
+           <Check size={16} /> {appName} Synced
+        </div>
+      )}
+    </div>
+  );
+};
+
+const NavItem = ({ icon, label, active = false, onClick }) => (
+  <button onClick={onClick} className={`w-full flex items-center gap-4 p-4 rounded-xl cursor-pointer transition-all relative group ${active ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20 scale-[1.02]' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`}>
+    <div className={`${active ? 'text-white' : 'text-slate-500 group-hover:text-white'}`}>{icon}</div>
+    <span className={`font-black hidden md:block text-[11px] uppercase tracking-widest italic ${active ? 'text-white' : 'text-slate-500 group-hover:text-white'}`}>{label}</span>
+  </button>
+);
+
+export default App;
