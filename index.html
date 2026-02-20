@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PULSE OS v05</title>
+    <title>PULSE OS</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
@@ -13,259 +13,355 @@
         .tab-content.active { display: block; animation: fadeIn 0.4s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         ::-webkit-scrollbar { width: 0px; background: transparent; }
+        .pulse-check input:checked + div { background-color: #2563eb; border-color: #2563eb; }
+        .pulse-check input:checked + div svg { opacity: 1; }
+        input[type=range] { -webkit-appearance: none; background: transparent; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 20px; width: 20px; border-radius: 50%; background: #3b82f6; cursor: pointer; margin-top: -8px; box-shadow: 0 0 10px rgba(59, 130, 246, 0.5); }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: #1e293b; border-radius: 2px; }
+        ::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; opacity: 0.5; }
+        
+        /* Estilos do Login */
         .pulse-input { background: #0f172a; border: 1px solid rgba(255,255,255,0.05); border-radius: 1rem; padding: 1rem; font-size: 0.85rem; font-weight: 700; color: #f8fafc; outline: none; width: 100%; transition: all 0.2s; }
         .pulse-input:focus { border-color: #3b82f6; box-shadow: 0 0 15px rgba(59, 130, 246, 0.1); }
         .loader { width: 20px; height: 20px; border: 3px solid #FFF; border-bottom-color: transparent; border-radius: 50%; display: inline-block; box-sizing: border-box; animation: rotation 1s linear infinite; }
         @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 italic selection:bg-blue-500/30 overflow-x-hidden">
+<body class="bg-slate-950 text-slate-100 italic selection:bg-blue-500/30">
 
     <!-- TELA DE LOGIN -->
     <div id="login-screen" class="fixed inset-0 z-[200] bg-slate-950 flex flex-col items-center justify-center p-6 transition-all duration-500">
         <div class="w-full max-w-sm space-y-8 text-center">
             <div class="space-y-2">
                 <h1 class="text-5xl font-black tracking-tighter text-blue-500 leading-none">PULSE</h1>
-                <p class="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500">SaaS Pessoal</p>
+                <p class="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500">SaaS Operacional • Pessoal</p>
             </div>
             
             <div class="bg-slate-900/50 p-8 rounded-[3rem] border border-white/5 space-y-4 shadow-2xl relative overflow-hidden">
                 <div class="space-y-4 relative z-10">
                     <input type="text" id="login-user" placeholder="USUÁRIO" class="pulse-input text-center uppercase">
                     <input type="password" id="login-pass" placeholder="SENHA" class="pulse-input text-center">
-                    <button onclick="window.handleLogin()" id="btn-login" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase text-xs tracking-widest shadow-lg shadow-blue-500/20 active:scale-95 transition-all flex items-center justify-center gap-2">
-                        <span>Autenticar</span>
+                    <button onclick="window.handleLogin()" id="btn-login-action" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase text-xs tracking-widest shadow-lg shadow-blue-500/20 active:scale-95 transition-all flex items-center justify-center gap-2">
+                        <span>Entrar</span>
                     </button>
                 </div>
                 <div class="absolute -bottom-10 -right-10 w-32 h-32 bg-blue-500/5 rounded-full blur-3xl"></div>
             </div>
-            <p id="login-error" class="text-[10px] text-red-500 font-bold uppercase hidden"></p>
+            <p id="login-error" class="text-[10px] text-red-500 font-bold uppercase hidden bg-red-500/10 p-3 rounded-xl border border-red-500/20"></p>
         </div>
     </div>
 
-    <!-- MODAL FORÇAR TROCA DE SENHA -->
+    <!-- MODAL TROCA DE SENHA -->
     <div id="modal-change-pass" class="fixed inset-0 z-[300] bg-black/95 backdrop-blur-xl hidden flex-col items-center justify-center p-6">
         <div class="bg-slate-900 border border-orange-500/30 p-8 rounded-[3rem] w-full max-w-sm shadow-2xl space-y-6">
             <div class="text-center">
                 <div class="w-16 h-16 bg-orange-500/10 text-orange-500 rounded-3xl flex items-center justify-center mx-auto mb-4">
                     <i data-lucide="shield-alert" class="w-8 h-8"></i>
                 </div>
-                <h3 class="text-xl font-black text-white uppercase tracking-tighter leading-tight">Segurança Exigida</h3>
-                <p class="text-[10px] text-slate-400 mt-2 uppercase tracking-widest">A senha "123456" é apenas temporária.</p>
+                <h3 class="text-xl font-black text-white uppercase tracking-tighter leading-tight">Segurança Obrigatória</h3>
+                <p class="text-[10px] text-slate-400 mt-2 uppercase tracking-widest">Altere a senha padrão "123456" para prosseguir.</p>
             </div>
             <div class="space-y-3">
                 <input type="password" id="new-pass" placeholder="NOVA SENHA" class="pulse-input border-orange-500/20">
                 <input type="password" id="confirm-pass" placeholder="CONFIRMAR SENHA" class="pulse-input border-orange-500/20">
-                <button onclick="window.submitNewPassword()" id="btn-change-pass" class="w-full bg-orange-600 text-white py-4 rounded-2xl font-black uppercase text-xs tracking-widest active:scale-95 transition-all">Atualizar Acesso</button>
+                <button onclick="window.submitNewPassword()" id="btn-change-pass" class="w-full bg-orange-600 text-white py-4 rounded-2xl font-black uppercase text-xs tracking-widest active:scale-95 transition-all">Atualizar e Entrar</button>
             </div>
         </div>
     </div>
 
-    <!-- ESTRUTURA PRINCIPAL -->
-    <div id="app-content" class="hidden min-h-screen flex flex-col md:flex-row">
+    <!-- APP PRINCIPAL (Oculto até o login) -->
+    <div id="app-content" class="hidden flex min-h-screen relative">
         
         <!-- SIDEBAR -->
         <aside class="hidden md:flex flex-col w-64 bg-slate-900 border-r border-white/5 fixed h-full z-50 p-6">
             <div class="mb-10">
-                <h1 class="text-3xl font-black tracking-tighter text-blue-500">PULSE</h1>
-                <p class="text-[9px] font-black uppercase tracking-[0.3em] text-slate-500">Makro Engenharia</p>
+                <h1 class="text-3xl font-black tracking-tighter text-blue-500 leading-none">PULSE</h1>
+                <p class="text-[9px] font-black uppercase tracking-[0.3em] text-slate-500 mt-2">OS • Enterprise</p>
             </div>
 
             <nav class="flex-1 space-y-2">
-                <button onclick="window.openTab('dashboard')" class="nav-item w-full flex items-center gap-4 px-4 py-4 rounded-2xl transition-all text-blue-500 bg-blue-500/10 font-black uppercase text-[10px] tracking-widest" id="side-dashboard">
+                <button onclick="window.openTab('dashboard')" class="side-nav-btn w-full flex items-center gap-4 px-4 py-4 rounded-2xl transition-all text-blue-500 bg-blue-500/10 font-black uppercase text-[10px] tracking-widest" id="side-btn-dashboard">
                     <i data-lucide="layout-dashboard" class="w-5 h-5"></i> Dashboard
                 </button>
-                <button onclick="window.openTab('saude')" class="nav-item w-full flex items-center gap-4 px-4 py-4 rounded-2xl transition-all text-slate-500 hover:bg-white/5 font-black uppercase text-[10px] tracking-widest">
+                <button onclick="window.openTab('saude')" class="side-nav-btn w-full flex items-center gap-4 px-4 py-4 rounded-2xl transition-all text-slate-500 hover:bg-white/5 font-black uppercase text-[10px] tracking-widest" id="side-btn-saude">
                     <i data-lucide="activity" class="w-5 h-5"></i> Saúde
                 </button>
-                <button onclick="window.openTab('bike')" class="nav-item w-full flex items-center gap-4 px-4 py-4 rounded-2xl transition-all text-slate-500 hover:bg-white/5 font-black uppercase text-[10px] tracking-widest">
+                <button onclick="window.openTab('bike')" class="side-nav-btn w-full flex items-center gap-4 px-4 py-4 rounded-2xl transition-all text-slate-500 hover:bg-white/5 font-black uppercase text-[10px] tracking-widest" id="side-btn-bike">
                     <i data-lucide="bike" class="w-5 h-5"></i> <span class="side-bike-name">Veículo</span>
                 </button>
-                <button onclick="window.openTab('work')" class="nav-item w-full flex items-center gap-4 px-4 py-4 rounded-2xl transition-all text-slate-500 hover:bg-white/5 font-black uppercase text-[10px] tracking-widest">
-                    <i data-lucide="briefcase" class="w-5 h-5"></i> Work
+                <button onclick="window.openTab('work')" class="side-nav-btn w-full flex items-center gap-4 px-4 py-4 rounded-2xl transition-all text-slate-500 hover:bg-white/5 font-black uppercase text-[10px] tracking-widest" id="side-btn-work">
+                    <i data-lucide="briefcase" class="w-5 h-5"></i> WORK
                 </button>
-                <button onclick="window.openTab('financas')" class="nav-item w-full flex items-center gap-4 px-4 py-4 rounded-2xl transition-all text-slate-500 hover:bg-white/5 font-black uppercase text-[10px] tracking-widest">
+                <button onclick="window.openTab('financas')" class="side-nav-btn w-full flex items-center gap-4 px-4 py-4 rounded-2xl transition-all text-slate-500 hover:bg-white/5 font-black uppercase text-[10px] tracking-widest" id="side-btn-financas">
                     <i data-lucide="wallet" class="w-5 h-5"></i> Finanças
                 </button>
             </nav>
 
-            <div class="mt-auto pt-6 border-t border-white/5 space-y-4">
+            <div class="mt-auto pt-6 border-t border-white/5 space-y-3 text-center">
                 <div class="flex flex-col gap-2 p-4 bg-slate-950 rounded-2xl border border-white/5">
-                    <div class="flex items-center gap-2">
-                        <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                        <span id="display-user-name" class="text-[8px] font-black uppercase tracking-widest text-emerald-500">Conectado</span>
+                    <div id="cloud-status" class="flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
+                        <span class="text-[8px] font-black uppercase tracking-widest text-slate-500">Offline</span>
                     </div>
-                    <div class="pt-2 border-t border-white/5">
-                        <p class="text-[9px] font-black text-blue-500 uppercase tracking-tighter">Fortaleza, CE</p>
+                    <div class="space-y-1 border-t border-white/5 pt-2">
+                        <p id="side-location" class="text-[9px] font-black uppercase text-blue-500 tracking-tighter">FORTALEZA, CE</p>
                         <p id="side-weather" class="text-[10px] font-bold text-slate-400">30°C • Ensolarado</p>
                     </div>
                 </div>
-                <button onclick="window.logout()" class="w-full text-[8px] font-black uppercase text-red-500/50 hover:text-red-500">Sair do Sistema</button>
+                <div class="flex flex-col gap-1">
+                    <button onclick="window.openTab('config')" class="w-full flex items-center gap-4 px-4 py-3 rounded-2xl transition-all text-slate-500 hover:text-white hover:bg-white/5 font-black uppercase text-[9px] tracking-widest" id="side-btn-config">
+                        <i data-lucide="settings" class="w-4 h-4"></i> Ajustes
+                    </button>
+                    <button onclick="location.reload()" class="w-full text-[8px] font-black uppercase text-red-500/50 hover:text-red-500 py-2">Sair do Sistema</button>
+                </div>
             </div>
         </aside>
 
-        <!-- CONTEÚDO -->
-        <main class="flex-1 md:ml-64 p-6 md:p-12 pb-24 md:pb-12 max-w-5xl mx-auto w-full">
-            
-            <!-- DASHBOARD -->
-            <section id="dashboard" class="tab-content active space-y-6">
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-emerald-900/20 border border-emerald-500/10 p-6 rounded-[2.5rem] flex flex-col justify-end min-h-[140px]">
-                        <p class="text-3xl font-black text-emerald-400">R$ <span id="dash-saldo">0</span></p>
-                        <p class="text-[8px] font-black uppercase tracking-widest text-emerald-500/60 mt-2 leading-none">Saldo Atual</p>
-                    </div>
-                    <div class="bg-indigo-900/20 border border-indigo-500/10 p-6 rounded-[2.5rem] flex flex-col justify-end min-h-[140px]">
-                        <p class="text-3xl font-black text-indigo-400">R$ <span id="dash-fundo">0</span></p>
-                        <p class="text-[8px] font-black uppercase tracking-widest text-indigo-500/60 mt-2 leading-none">Fundo Rota</p>
-                    </div>
+        <!-- Main Content -->
+        <div class="flex-1 md:ml-64 transition-all duration-300">
+            <header class="bg-slate-900/80 backdrop-blur-xl sticky top-0 z-40 px-6 py-5 flex items-center justify-between border-b border-white/5">
+                <div class="md:hidden">
+                    <h1 class="text-2xl font-black tracking-tighter text-blue-500 leading-none">PULSE</h1>
+                    <h2 id="current-location" class="text-[9px] font-black uppercase tracking-[0.3em] text-slate-500 mt-1 leading-none">FORTALEZA • 30°C</h2>
                 </div>
+                <div class="hidden md:block">
+                    <h2 class="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500 flex items-center gap-2">
+                        SaaS Operacional • <span id="desktop-loc">FORTALEZA</span> 
+                        <span class="text-slate-700">|</span> 
+                        <span id="header-weather-info" class="text-blue-500">30°C <i data-lucide="sun" class="inline w-3 h-3"></i></span>
+                    </h2>
+                </div>
+                <button onclick="window.addMonster()" class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 active:scale-90 transition-all">
+                    <i data-lucide="zap" class="w-6 h-6"></i>
+                </button>
+            </header>
 
-                <div class="bg-slate-900 border border-white/5 p-8 rounded-[3rem] relative overflow-hidden" onclick="window.openTab('bike')">
-                    <div class="flex justify-between items-start">
+            <main class="max-w-4xl mx-auto p-4 md:p-8 space-y-6 pb-28 md:pb-12">
+                
+                <!-- DASHBOARD -->
+                <section id="dashboard" class="tab-content active space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-emerald-950/40 border border-emerald-500/20 p-5 rounded-[2rem] flex flex-col justify-end min-h-[140px]">
+                            <p class="text-3xl font-black tracking-tighter leading-none mb-1 text-emerald-400">R$ <span id="dash-saldo">0</span></p>
+                            <p class="text-[9px] font-black uppercase tracking-widest text-emerald-500/60 leading-none">Saldo</p>
+                        </div>
+                        <div class="bg-indigo-950/40 border border-indigo-500/20 p-5 rounded-[2rem] flex flex-col justify-end min-h-[140px]">
+                            <p class="text-3xl font-black tracking-tighter leading-none mb-1 text-indigo-400">R$ <span id="dash-fundo">0</span></p>
+                            <p class="text-[9px] font-black uppercase tracking-widest text-indigo-500/60 leading-none">Fundo Rota</p>
+                        </div>
+                    </div>
+                    <div class="bg-slate-900 border border-white/5 p-6 rounded-[2.5rem]" onclick="window.openTab('bike')">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="p-2.5 bg-blue-500/10 rounded-xl text-blue-500"><i data-lucide="bike" class="w-5 h-5"></i></div>
+                            <p class="text-[10px] font-black uppercase tracking-widest text-blue-400"><span id="dash-consumo-moto">29</span> KM/L</p>
+                        </div>
+                        <p class="text-4xl font-black tracking-tighter leading-none mb-2 text-white"><span id="dash-km-atual">0</span><span class="text-xs ml-1 text-slate-600 font-bold uppercase">KM</span></p>
+                        <div class="w-full bg-slate-950 h-1.5 rounded-full overflow-hidden mb-2">
+                            <div id="dash-oil-bar" class="bg-orange-500 h-full transition-all" style="width: 0%"></div>
+                        </div>
+                        <p id="dash-oil-text" class="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500">ÓLEO EM 5000 KM</p>
+                    </div>
+                    <div class="bg-slate-900/40 p-6 rounded-[2.5rem] border border-white/5">
+                        <p class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 mb-4 flex items-center gap-2"><i data-lucide="bell" class="w-3 h-3 text-red-500"></i> Alertas Ativos</p>
+                        <ul class="space-y-3" id="dash-docs-list"></ul>
+                    </div>
+                </section>
+
+                <!-- SAÚDE -->
+                <section id="saude" class="tab-content space-y-4">
+                    <div class="bg-slate-900 border border-white/5 p-6 rounded-[2.5rem]">
+                        <div class="mb-6">
+                            <div class="flex justify-between text-[9px] font-black uppercase tracking-widest text-blue-500 mb-2 leading-none">
+                                <span>Hidratação (Meta 3500ml)</span>
+                                <span id="water-percent-text">0%</span>
+                            </div>
+                            <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden shadow-inner">
+                                <div id="water-bar" class="bg-blue-500 h-full transition-all duration-1000" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <button onclick="window.addWaterWork()" class="bg-blue-600 p-4 rounded-3xl active:scale-95 transition-all text-center">
+                                <p class="text-lg font-black leading-none">473ml</p>
+                                <p class="text-[8px] font-black uppercase opacity-60 mt-1 leading-none">Makro Eng.</p>
+                                <p id="water-work-count" class="text-[9px] mt-2 font-bold text-blue-200">0/6</p>
+                            </button>
+                            <button onclick="window.addWaterHome()" class="bg-slate-800 p-4 rounded-3xl border border-white/5 active:scale-95 transition-all text-center">
+                                <p class="text-lg font-black leading-none">250ml</p>
+                                <p class="text-[8px] font-black uppercase opacity-60 mt-1 leading-none">Home</p>
+                                <p id="water-home-count" class="text-[9px] mt-2 font-bold text-slate-400">0/2</p>
+                            </button>
+                        </div>
+                        <button onclick="window.resetWater()" class="w-full mt-4 text-[9px] uppercase tracking-widest text-slate-500 font-bold">Zerar dia</button>
+                    </div>
+                    <div class="bg-slate-900 p-6 rounded-[2.5rem] border border-white/5 flex flex-col items-center">
+                        <p class="text-5xl font-black tracking-tighter text-white" id="clean-days-count">0</p>
+                        <p class="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 mt-2">Dias Limpo</p>
+                        <div class="w-full mt-6 space-y-2">
+                            <div class="flex justify-between text-[9px] font-black uppercase tracking-widest"><span class="text-slate-500">Meta: <span id="clean-goal-text">30</span> Dias</span><span class="text-indigo-400" id="clean-percent-text">0%</span></div>
+                            <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden"><div id="clean-bar" class="bg-indigo-500 h-full transition-all duration-1000" style="width: 0%"></div></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- VEÍCULO -->
+                <section id="bike" class="tab-content space-y-4">
+                    <div class="bg-blue-600 p-6 rounded-[2.5rem] flex items-center justify-between">
                         <div>
-                            <p class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Odômetro Fazer 250</p>
-                            <h2 class="text-4xl font-black text-white leading-none"><span id="dash-km">0</span> <small class="text-xs text-slate-600">KM</small></h2>
+                            <h3 id="bike-header-name" class="font-black text-2xl uppercase tracking-tighter text-white">Fazer 250</h3>
+                            <p class="text-[10px] font-black uppercase tracking-[0.2em] text-blue-200 mt-1">Status do Veículo</p>
                         </div>
-                        <p class="text-[10px] font-black uppercase tracking-widest text-blue-400">29 KM/L</p>
+                        <i data-lucide="bike" class="w-12 h-12 text-blue-200 opacity-50"></i>
                     </div>
-                    <div class="mt-8 space-y-2">
-                        <div class="w-full bg-slate-950 h-1.5 rounded-full overflow-hidden">
-                            <div id="dash-oil-bar" class="bg-orange-500 h-full w-0 transition-all duration-1000"></div>
-                        </div>
-                        <p id="dash-oil-txt" class="text-[9px] font-black uppercase text-slate-500 tracking-widest text-center">Status do Óleo...</p>
-                    </div>
-                </div>
-
-                <div id="alerts-container" class="space-y-3"></div>
-            </section>
-
-            <!-- SAÚDE -->
-            <section id="saude" class="tab-content space-y-6">
-                <div class="bg-blue-600 p-8 rounded-[3rem] shadow-xl">
-                    <div class="flex justify-between items-end mb-6">
-                        <div>
-                            <p class="text-[10px] font-black uppercase text-blue-200 tracking-widest">Hidratação • Meta 3.5L</p>
-                            <h3 class="text-3xl font-black text-white"><span id="total-water-ml">0</span> <small class="text-xs">ML</small></h3>
-                        </div>
-                        <p id="water-perc" class="text-xl font-black text-white opacity-60">0%</p>
-                    </div>
-                    <div class="w-full bg-blue-900/30 h-3 rounded-full overflow-hidden">
-                        <div id="water-bar" class="bg-white h-full w-0 transition-all duration-1000"></div>
-                    </div>
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <button onclick="window.addWater('work')" class="bg-slate-900 border border-white/5 p-6 rounded-[2.5rem] text-center active:scale-95 transition-all">
-                        <p class="text-xl font-black">473ml</p>
-                        <p class="text-[8px] font-black uppercase text-slate-500">Makro Engenharia</p>
-                        <div class="mt-2 text-blue-500 font-black text-xs"><span id="cnt-work">0</span>/6</div>
-                    </button>
-                    <button onclick="window.addWater('home')" class="bg-slate-900 border border-white/5 p-6 rounded-[2.5rem] text-center active:scale-95 transition-all">
-                        <p class="text-xl font-black">250ml</p>
-                        <p class="text-[8px] font-black uppercase text-slate-500">Casa / Home</p>
-                        <div class="mt-2 text-indigo-500 font-black text-xs"><span id="cnt-home">0</span>/2</div>
-                    </button>
-                </div>
-                <button onclick="window.resetWater()" class="w-full py-4 text-[9px] font-black uppercase text-slate-600 tracking-widest border border-dashed border-white/10 rounded-2xl">Zerar Contador</button>
-            </section>
-
-            <!-- VEÍCULO -->
-            <section id="bike" class="tab-content space-y-6">
-                <div class="bg-slate-900 border border-white/5 p-6 rounded-[2.5rem] space-y-4">
-                    <h3 class="text-[10px] font-black uppercase text-orange-500 tracking-widest">Lançar Atividade</h3>
-                    <div class="grid grid-cols-2 gap-3">
-                        <input type="number" id="v-km" placeholder="KM ATUAL" class="pulse-input">
-                        <input type="number" id="v-val" placeholder="VALOR R$" class="pulse-input">
-                    </div>
-                    <select id="v-tipo" class="pulse-input">
-                        <option value="ABASTECIMENTO">⛽ ABASTECIMENTO</option>
-                        <option value="OLEO">🛢️ TROCA DE ÓLEO</option>
-                        <option value="GERAL">🔧 REVISÃO GERAL</option>
-                    </select>
-                    <button onclick="window.lancarVeiculo()" class="w-full bg-blue-600/10 text-blue-500 border border-blue-500/20 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest">Registrar no Google Sheets</button>
-                </div>
-            </section>
-
-            <!-- ABA WORK -->
-            <section id="work" class="tab-content space-y-6">
-                <div class="bg-slate-900 border border-white/5 p-6 rounded-[2.5rem] space-y-4">
-                    <h3 class="text-[10px] font-black uppercase text-blue-500 tracking-widest">Tarefa Makro Eng.</h3>
-                    <input type="text" id="w-task" placeholder="QUAL A ATIVIDADE?" class="pulse-input uppercase">
-                    <input type="text" id="w-req" placeholder="QUEM SOLICITOU?" class="pulse-input uppercase">
-                    <button onclick="window.addWorkTask()" class="w-full bg-blue-600 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest">Adicionar Tarefa</button>
-                </div>
-                <div id="task-list" class="space-y-3"></div>
-            </section>
-
-            <!-- FINANÇAS -->
-            <section id="financas" class="tab-content space-y-6">
-                <div class="bg-slate-900 border border-white/5 p-6 rounded-[2.5rem] space-y-4">
-                    <div class="grid grid-cols-2 gap-3">
-                        <input type="number" id="f-val" placeholder="VALOR R$" class="pulse-input">
-                        <select id="f-cat" class="pulse-input">
-                            <option value="MAKRO">MAKRO ENG.</option>
-                            <option value="VEICULO">YAMAHA FAZER</option>
-                            <option value="ALIMENTACAO">ALIMENTAÇÃO</option>
+                    <div class="bg-slate-900 p-6 rounded-[2.5rem] border border-white/5 space-y-3">
+                        <select id="servico-tipo" onchange="window.toggleServicoFields()" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold outline-none text-slate-300">
+                            <option value="Abastecimento">⛽ Abastecimento</option>
+                            <option value="Troca de Óleo">🛢️ Troca de Óleo</option>
+                            <option value="Manutenção">🔧 Manutenção Geral</option>
                         </select>
+                        <div class="grid grid-cols-2 gap-3">
+                            <input type="number" id="servico-km" placeholder="KM Atual" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold text-slate-300 outline-none">
+                            <input type="number" id="servico-valor" placeholder="Valor Total" oninput="window.calcCombustivel()" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold text-slate-300 outline-none">
+                        </div>
+                        <div id="campos-abastecimento" class="hidden grid grid-cols-2 gap-3 transition-all">
+                            <input type="number" id="servico-preco-litro" placeholder="R$/Litro" oninput="window.calcCombustivel()" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold outline-none text-slate-300">
+                            <input type="number" id="servico-litros" placeholder="Total Litros" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold outline-none text-slate-300" readonly>
+                        </div>
+                        <button onclick="window.lancarServico()" class="w-full bg-slate-800 text-slate-300 py-4 rounded-2xl font-black uppercase tracking-widest text-[10px]">Registrar</button>
                     </div>
-                    <input type="text" id="f-desc" placeholder="DESCRIÇÃO" class="pulse-input uppercase">
-                    <div class="grid grid-cols-2 gap-3">
-                        <button onclick="window.movimento('IN')" class="bg-emerald-500/20 text-emerald-500 py-4 rounded-2xl font-black uppercase text-[10px]">Entrada</button>
-                        <button onclick="window.movimento('OUT')" class="bg-red-500/20 text-red-500 py-4 rounded-2xl font-black uppercase text-[10px]">Saída</button>
+                    <div class="bg-slate-900 p-6 rounded-[2.5rem] border border-white/5">
+                        <div class="flex justify-between items-end mb-4"><label class="text-[9px] font-black uppercase text-slate-500 tracking-[0.2em]">Planeador de Rota</label><span class="font-black text-2xl text-white"><span id="trip-dist-display">100</span><small class="text-xs text-slate-500 ml-1">KM</small></span></div>
+                        <input type="range" id="trip-slider" min="1" max="1000" value="100" oninput="window.calcularViagemPulse()" class="w-full">
+                        <div class="grid grid-cols-2 gap-4 p-5 bg-indigo-500/10 rounded-3xl mt-4 border border-indigo-500/20">
+                            <div><p class="text-[8px] font-black text-slate-400 uppercase">Litros</p><p class="text-xl font-black text-indigo-400"><span id="trip-litros">3.4</span> L</p></div>
+                            <div><p class="text-[8px] font-black text-slate-400 uppercase">Custo Est.</p><p class="text-xl font-black text-emerald-400">R$ <span id="trip-custo">0</span></p></div>
+                        </div>
                     </div>
-                </div>
-                <div id="fin-history" class="space-y-2"></div>
-            </section>
+                </section>
 
-        </main>
+                <!-- WORK -->
+                <section id="work" class="tab-content space-y-4">
+                    <div class="bg-slate-900 p-6 rounded-[2.5rem] border border-white/5 space-y-3">
+                        <h3 class="text-[10px] font-black uppercase tracking-[0.3em] text-blue-500 flex items-center gap-2"><i data-lucide="briefcase" class="w-4 h-4"></i> Makro Atividades</h3>
+                        <input type="text" id="work-task-title" placeholder="Atividade..." class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold text-slate-300 outline-none">
+                        <div class="grid grid-cols-2 gap-3">
+                            <input type="text" id="work-task-requester" placeholder="Solicitante" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold text-slate-300 outline-none">
+                            <input type="date" id="work-task-deadline" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold text-slate-400 outline-none">
+                        </div>
+                        <button onclick="window.addWorkTask()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase text-[10px]">Lançar</button>
+                        <div class="overflow-x-auto pt-4">
+                            <table class="w-full text-left">
+                                <thead class="text-[8px] font-black uppercase text-slate-500 tracking-widest border-b border-white/5">
+                                    <tr><th class="pb-3 px-2">Tarefa</th><th class="pb-3 px-2">Solicitante</th><th class="pb-3 px-2 text-right">Ação</th></tr>
+                                </thead>
+                                <tbody id="work-task-active-list" class="divide-y divide-white/5"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <button onclick="window.toggleArchive()" class="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-slate-600 hover:text-slate-400 ml-4"><i id="archive-toggle-icon" data-lucide="chevron-right" class="w-3 h-3"></i> Arquivados (<span id="archive-count">0</span>)</button>
+                    <div id="work-archive-section" class="hidden bg-slate-900/50 p-6 rounded-[2.5rem] border border-dashed border-white/5 overflow-x-auto">
+                        <table class="w-full text-left opacity-60"><tbody id="work-task-archived-list" class="divide-y divide-white/5"></tbody></table>
+                    </div>
+                </section>
+
+                <!-- FINANÇAS -->
+                <section id="financas" class="tab-content space-y-4">
+                    <div class="bg-slate-900 border border-white/5 p-6 rounded-[2.5rem]"><p class="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-500 mb-2 leading-none">Saldo em Conta</p><p class="text-4xl font-black tracking-tighter text-white">R$ <span id="fin-saldo-atual-pag">0</span></p></div>
+                    <div class="bg-slate-900/40 p-6 rounded-[2.5rem] border border-white/5 space-y-3">
+                        <div class="grid grid-cols-2 gap-2"><select id="fin-categoria" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold text-slate-300 outline-none"></select><input type="number" id="fin-valor" placeholder="R$ 0,00" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold text-slate-300 outline-none"></div>
+                        <input type="text" id="fin-desc" placeholder="Descrição..." class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold text-slate-300 outline-none">
+                        <div class="grid grid-cols-2 gap-3"><button onclick="window.lancarFinanca('receita')" class="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 py-4 rounded-2xl font-black uppercase text-[10px]">Entrada</button><button onclick="window.lancarFinanca('despesa')" class="bg-red-500/10 text-red-500 border border-red-500/20 py-4 rounded-2xl font-black uppercase text-[10px]">Saída</button></div>
+                    </div>
+                    <div class="bg-slate-900 p-6 rounded-[2.5rem] border border-white/5 space-y-3" id="fin-history-list"></div>
+                </section>
+
+                <!-- AJUSTES -->
+                <section id="config" class="tab-content space-y-4">
+                    <div class="bg-slate-900 p-6 rounded-[2.5rem] border border-white/5 text-xs font-bold text-slate-400 space-y-4">
+                        <h3 class="text-[10px] font-black uppercase tracking-[0.3em] text-blue-500 flex items-center gap-2"><i data-lucide="bike" class="w-4 h-4"></i> Veículo (Yamaha Fazer)</h3>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div><label class="block mb-1 uppercase text-[8px]">Tipo</label><select id="veiculo-tipo" class="w-full p-3 bg-slate-950 border border-white/5 rounded-xl text-slate-300"><option value="Moto">Moto</option><option value="Carro">Carro</option></select></div>
+                            <div><label class="block mb-1 uppercase text-[8px]">Montadora</label><select id="veiculo-montadora" onchange="window.updateModelDropdown()" class="w-full p-3 bg-slate-950 border border-white/5 rounded-xl text-slate-300"><option value="Yamaha">Yamaha</option><option value="Honda">Honda</option><option value="BMW">BMW</option></select></div>
+                        </div>
+                        <div><label class="block mb-1 uppercase text-[8px]">Modelo</label><select id="veiculo-modelo" class="w-full p-3 bg-slate-950 border border-white/5 rounded-xl text-slate-300"></select></div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div><label class="block mb-1 uppercase text-[8px]">KM Atual</label><input type="number" id="veiculo-km-atual" class="w-full p-3 bg-slate-950 border border-white/5 rounded-xl text-slate-300"></div>
+                            <div><label class="block mb-1 uppercase text-[8px]">KM Óleo</label><input type="number" id="veiculo-km-oleo" class="w-full p-3 bg-slate-950 border border-white/5 rounded-xl text-slate-300"></div>
+                        </div>
+                    </div>
+                    <div class="bg-slate-900 p-6 rounded-[2.5rem] border border-white/5 text-xs font-bold text-slate-400 space-y-4">
+                        <h3 class="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-500 flex items-center gap-2"><i data-lucide="shield-check" class="w-4 h-4"></i> Disciplina</h3>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div><label class="block mb-1 uppercase text-[8px]">Início</label><input type="date" id="clean-start-date" class="w-full p-3 bg-slate-950 border border-white/5 rounded-xl text-slate-300"></div>
+                            <div><label class="block mb-1 uppercase text-[8px]">Meta (Dias)</label><input type="number" id="clean-goal-days" class="w-full p-3 bg-slate-950 border border-white/5 rounded-xl text-slate-300"></div>
+                        </div>
+                    </div>
+                    <button onclick="window.saveConfig()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase text-[10px]">Salvar no Cloud</button>
+                </section>
+            </main>
+        </div>
     </div>
 
-    <!-- MOBILE NAV -->
-    <nav class="md:hidden fixed bottom-0 left-0 right-0 h-20 bg-slate-900/90 backdrop-blur-2xl border-t border-white/5 z-[100] flex items-center justify-around">
-        <button onclick="window.openTab('dashboard')" class="flex flex-col items-center gap-1 text-blue-500"><i data-lucide="layout-dashboard" class="w-5 h-5"></i><span class="text-[7px] font-black uppercase tracking-widest">Home</span></button>
-        <button onclick="window.openTab('saude')" class="flex flex-col items-center gap-1 text-slate-500"><i data-lucide="activity" class="w-5 h-5"></i><span class="text-[7px] font-black uppercase tracking-widest">Saúde</span></button>
-        <button onclick="window.openTab('bike')" class="flex flex-col items-center gap-1 text-slate-500"><i data-lucide="bike" class="w-5 h-5"></i><span class="text-[7px] font-black uppercase tracking-widest">Fazer</span></button>
-        <button onclick="window.openTab('work')" class="flex flex-col items-center gap-1 text-slate-500"><i data-lucide="briefcase" class="w-5 h-5"></i><span class="text-[7px] font-black uppercase tracking-widest">Work</span></button>
-        <button onclick="window.openTab('financas')" class="flex flex-col items-center gap-1 text-slate-500"><i data-lucide="wallet" class="w-5 h-5"></i><span class="text-[7px] font-black uppercase tracking-widest">Money</span></button>
+    <!-- Navigation Mobile -->
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 h-20 bg-slate-900/90 backdrop-blur-2xl border-t border-white/5 z-50">
+        <div class="flex justify-around items-center h-full max-w-lg mx-auto">
+            <button onclick="window.openTab('dashboard')" class="nav-btn flex flex-col items-center gap-1 text-blue-500"><i data-lucide="layout-dashboard" class="w-5 h-5"></i><span class="text-[7px] font-black uppercase">Home</span></button>
+            <button onclick="window.openTab('saude')" class="nav-btn flex flex-col items-center gap-1 text-slate-500"><i data-lucide="activity" class="w-5 h-5"></i><span class="text-[7px] font-black uppercase">Saúde</span></button>
+            <button onclick="window.openTab('bike')" class="nav-btn flex flex-col items-center gap-1 text-slate-500"><i data-lucide="bike" class="w-5 h-5"></i><span class="text-[7px] font-black uppercase">Fazer</span></button>
+            <button onclick="window.openTab('work')" class="nav-btn flex flex-col items-center gap-1 text-slate-500"><i data-lucide="briefcase" class="w-5 h-5"></i><span class="text-[7px] font-black uppercase">Work</span></button>
+            <button onclick="window.openTab('financas')" class="nav-btn flex flex-col items-center gap-1 text-slate-500"><i data-lucide="wallet" class="w-5 h-5"></i><span class="text-[7px] font-black uppercase">Finanças</span></button>
+        </div>
     </nav>
 
     <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwVDkNFRuFNyTh3We_8qvlrSDIa3G_y1Owo_l8K47qmw_tlwv3I-EMBfRplkYX6EkMUQw/exec";
 
-        let state = {
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'pulse-os-v2';
+
+        const categories = ["Makro Eng.", "Salário", "Alimentação", "Veículo", "Lazer", "Contas", "Outros"];
+        const modelsByBrand = {
+            "Yamaha": ["Fazer 250", "MT-03", "Lander 250"],
+            "Honda": ["CB 300F", "XRE 300", "CG 160"],
+            "BMW": ["G 310 GS", "F 850 GS"]
+        };
+
+        let appState = {
             user: null,
-            saldo: 0,
-            fundo: 0,
-            km: 0,
-            kmOleo: 0,
+            saldo: 0, fundoRota: 0, transacoes: [], tarefas: [],
             water: { work: 0, home: 0 },
-            tasks: [],
-            finHistory: []
-        };
-
-        const loadLocal = () => {
-            const saved = localStorage.getItem('pulse_os_state');
-            if(saved) state = JSON.parse(saved);
-            updateUI();
-        };
-
-        const syncLocal = () => {
-            localStorage.setItem('pulse_os_state', JSON.stringify(state));
-            updateUI();
+            veiculo: { km: 0, oleo: 0, consumo: 29, montadora: 'Yamaha', modelo: 'Fazer 250', tipo: 'Moto' }
         };
 
         // GOOGLE SHEETS COMMS
         const gRequest = async (payload) => {
-            return fetch(SCRIPT_URL, {
-                method: 'POST',
-                body: JSON.stringify(payload)
-            }).then(r => r.json());
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'cors',
+                    cache: 'no-cache',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                return await response.json();
+            } catch (error) {
+                console.error("GRequest Error:", error);
+                throw error;
+            }
         };
 
         // LOGIN LÓGICA
         window.handleLogin = async () => {
             const login = document.getElementById('login-user').value;
             const pass = document.getElementById('login-pass').value;
-            const btn = document.getElementById('btn-login');
+            const btn = document.getElementById('btn-login-action');
             const error = document.getElementById('login-error');
 
             if(!login || !pass) return;
@@ -276,7 +372,7 @@
             try {
                 const res = await gRequest({ action: 'login', login, pass });
                 if(res.success) {
-                    state.user = { login, name: res.name };
+                    appState.user = { login, name: res.name };
                     if(res.forceChange) {
                         document.getElementById('modal-change-pass').classList.remove('hidden');
                         document.getElementById('modal-change-pass').classList.add('flex');
@@ -284,14 +380,14 @@
                         enterApp(res.name);
                     }
                 } else {
-                    error.innerText = res.message;
+                    error.innerText = res.message || "Credenciais inválidas";
                     error.classList.remove('hidden');
                 }
             } catch(e) {
                 error.innerText = "Erro de conexão com servidor Google";
                 error.classList.remove('hidden');
             } finally {
-                btn.innerHTML = "Autenticar";
+                btn.innerHTML = "Entrar";
                 btn.disabled = false;
             }
         };
@@ -301,21 +397,21 @@
             const confirm = document.getElementById('confirm-pass').value;
             const btn = document.getElementById('btn-change-pass');
 
-            if(newPass !== confirm || newPass.length < 4) return alert("Verifique a senha informada");
+            if(newPass !== confirm || newPass.length < 4) return alert("Verifique as senhas informadas");
             
             btn.innerHTML = `<span class="loader"></span>`;
             btn.disabled = true;
 
             try {
-                const res = await gRequest({ action: 'updatePassword', login: state.user.login, newPass });
+                const res = await gRequest({ action: 'updatePassword', login: appState.user.login, newPass });
                 if(res.success) {
                     document.getElementById('modal-change-pass').classList.add('hidden');
-                    enterApp(state.user.name);
+                    enterApp(appState.user.name);
                 }
             } catch(e) {
                 alert("Falha ao atualizar senha no servidor");
             } finally {
-                btn.innerText = "Atualizar Acesso";
+                btn.innerText = "Atualizar e Entrar";
                 btn.disabled = false;
             }
         };
@@ -325,130 +421,184 @@
             setTimeout(() => {
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('app-content').classList.remove('hidden');
-                document.getElementById('display-user-name').innerText = name;
                 lucide.createIcons();
+                updateUI();
             }, 500);
-            syncLocal();
         };
 
-        window.logout = () => { localStorage.clear(); location.reload(); };
+        const initAuth = async () => {
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                await signInWithCustomToken(auth, __initial_auth_token);
+            } else { await signInAnonymously(auth); }
+        };
+
+        onAuthStateChanged(auth, user => {
+            const statusEl = document.getElementById('cloud-status');
+            if (user) {
+                statusEl.innerHTML = `<div class="w-2 h-2 rounded-full bg-emerald-500"></div><span class="text-[8px] font-black uppercase tracking-widest text-emerald-500">Online</span>`;
+                loadCloudData(user.uid);
+            }
+        });
+
+        const loadCloudData = (userId) => {
+            const path = doc(db, 'artifacts', appId, 'users', userId, 'data', 'main');
+            onSnapshot(path, snapshot => {
+                if (snapshot.exists()) { 
+                    const data = snapshot.data();
+                    appState = { ...appState, ...data }; 
+                    if(appState.user) updateUI(); 
+                }
+            }, err => console.error("Sync Error:", err));
+        };
+
+        const saveCloudData = async () => {
+            if (!auth.currentUser) return;
+            const path = doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'data', 'main');
+            await setDoc(path, appState, { merge: true });
+        };
+
+        const updateUI = () => {
+            if(!appState.user) return;
+            
+            document.getElementById('dash-saldo').innerText = appState.saldo.toFixed(0);
+            document.getElementById('dash-fundo').innerText = appState.fundoRota.toFixed(0);
+            document.getElementById('fin-saldo-atual-pag').innerText = appState.saldo.toFixed(0);
+            document.getElementById('dash-km-atual').innerText = appState.veiculo.km;
+            
+            const oilDiff = appState.veiculo.km - appState.veiculo.oleo;
+            document.getElementById('dash-oil-bar').style.width = Math.min((oilDiff/5000)*100, 100) + '%';
+            document.getElementById('dash-oil-text').innerText = `ÓLEO EM ${Math.max(0, 5000 - oilDiff)} KM`;
+            
+            const totalWater = (appState.water.work * 473) + (appState.water.home * 250);
+            const waterPerc = Math.min((totalWater / 3500) * 100, 100);
+            document.getElementById('water-percent-text').innerText = waterPerc.toFixed(0) + '%';
+            document.getElementById('water-bar').style.width = waterPerc + '%';
+            document.getElementById('water-work-count').innerText = `${appState.water.work}/6`;
+            document.getElementById('water-home-count').innerText = `${appState.water.home}/2`;
+
+            const start = localStorage.getItem('cleanStartDate');
+            let days = start ? Math.floor((new Date() - new Date(start)) / 86400000) : 0;
+            const goal = parseInt(localStorage.getItem('cleanGoalDays')) || 30;
+            document.getElementById('clean-days-count').innerText = days;
+            document.getElementById('clean-bar').style.width = Math.min((days/goal)*100, 100) + '%';
+            document.getElementById('clean-percent-text').innerText = Math.min((days/goal)*100, 100).toFixed(0) + '%';
+
+            renderFinances(); renderWork(); renderAlerts();
+            lucide.createIcons();
+        };
 
         window.openTab = (id) => {
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             document.getElementById(id).classList.add('active');
-            document.querySelectorAll('.nav-item').forEach(i => {
-                i.classList.remove('text-blue-500', 'bg-blue-500/10');
-                i.classList.add('text-slate-500');
+            document.querySelectorAll('.nav-btn, .side-nav-btn').forEach(b => {
+                b.classList.remove('text-blue-500', 'bg-blue-500/10'); b.classList.add('text-slate-500');
             });
             lucide.createIcons();
         };
 
-        const updateUI = () => {
-            document.getElementById('dash-saldo').innerText = state.saldo.toLocaleString('pt-BR');
-            document.getElementById('dash-fundo').innerText = state.fundo.toLocaleString('pt-BR');
-            document.getElementById('dash-km').innerText = state.km;
-            
-            const oilDiff = state.km - state.kmOleo;
-            const oilPerc = Math.min((oilDiff / 5000) * 100, 100);
-            document.getElementById('dash-oil-bar').style.width = oilPerc + '%';
-            document.getElementById('dash-oil-txt').innerText = `TROCA EM ${Math.max(0, 5000 - oilDiff)} KM`;
-
-            const totalWater = (state.water.work * 473) + (state.water.home * 250);
-            const waterPerc = Math.min((totalWater / 3500) * 100, 100);
-            document.getElementById('total-water-ml').innerText = totalWater;
-            document.getElementById('water-perc').innerText = waterPerc.toFixed(0) + '%';
-            document.getElementById('water-bar').style.width = waterPerc + '%';
-            document.getElementById('cnt-work').innerText = state.water.work;
-            document.getElementById('cnt-home').innerText = state.water.home;
-
-            renderTasks();
-            renderFinances();
-            renderAlerts();
+        window.updateModelDropdown = () => {
+            const brand = document.getElementById('veiculo-montadora').value;
+            const modelSelect = document.getElementById('veiculo-modelo');
+            const models = modelsByBrand[brand] || [];
+            modelSelect.innerHTML = models.map(m => `<option value="${m}">${m}</option>`).join('');
         };
 
-        window.addWater = (type) => {
-            if(type === 'work' && state.water.work < 6) state.water.work++;
-            if(type === 'home' && state.water.home < 2) state.water.home++;
-            syncLocal();
+        window.lancarServico = () => {
+            const km = parseInt(document.getElementById('servico-km').value);
+            const val = parseFloat(document.getElementById('servico-valor').value);
+            const tipo = document.getElementById('servico-tipo').value;
+            if (isNaN(km) || isNaN(val)) return;
+            appState.veiculo.km = km;
+            if (tipo === 'Troca de Óleo') appState.veiculo.oleo = km;
+            appState.saldo -= val;
+            appState.transacoes.push({ id: Date.now(), tipo: 'despesa', cat: 'Veículo', desc: tipo, valor: val, data: new Date().toLocaleDateString('pt-BR') });
+            saveCloudData();
         };
 
-        window.resetWater = () => { state.water = { work: 0, home: 0 }; syncLocal(); };
-
-        window.lancarVeiculo = async () => {
-            const km = parseInt(document.getElementById('v-km').value);
-            const val = parseFloat(document.getElementById('v-val').value);
-            const tipo = document.getElementById('v-tipo').value;
-            if(!km || isNaN(val)) return;
-
-            state.km = km;
-            if(tipo === 'OLEO') state.kmOleo = km;
-            state.saldo -= val;
-            
-            // Sincroniza com Google Sheets aba "Veiculo_Log"
-            await gRequest({ action: 'syncData', userId: state.user?.login, data: { targetSheet: "Veiculo_Log", values: [new Date().toLocaleDateString(), km, tipo, "", "", val] } });
-            
-            state.finHistory.push({ tipo: 'OUT', cat: 'VEÍCULO', desc: tipo, val, data: new Date().toLocaleDateString() });
-            syncLocal();
-            document.getElementById('v-km').value = '';
-            document.getElementById('v-val').value = '';
+        window.calcularViagemPulse = () => {
+            const dist = parseFloat(document.getElementById('trip-slider').value);
+            document.getElementById('trip-dist-display').innerText = dist;
+            const litros = dist / appState.veiculo.consumo;
+            document.getElementById('trip-litros').innerText = litros.toFixed(1);
+            document.getElementById('trip-custo').innerText = (litros * 6.10).toFixed(0);
         };
 
         window.addWorkTask = () => {
-            const titulo = document.getElementById('w-task').value;
-            if(!titulo) return;
-            state.tasks.push({ id: Date.now(), titulo, solicitante: document.getElementById('w-req').value, done: false });
-            syncLocal();
-            document.getElementById('w-task').value = '';
+            const t = document.getElementById('work-task-title').value; if (!t) return;
+            appState.tarefas.push({ id: Date.now(), titulo: t, solicitante: document.getElementById('work-task-requester').value || 'Makro Eng.', data: document.getElementById('work-task-deadline').value, arquivada: false });
+            document.getElementById('work-task-title').value = ''; saveCloudData();
         };
 
-        window.finishTask = (id) => {
-            const task = state.tasks.find(t => t.id === id);
-            if(task) task.done = true;
-            syncLocal();
+        window.concluirTarefa = (id) => { const t = appState.tarefas.find(x => x.id === id); if (t) t.arquivada = true; saveCloudData(); };
+        window.deletarTarefa = (id) => { appState.tarefas = appState.tarefas.filter(t => t.id !== id); saveCloudData(); };
+        window.toggleArchive = () => { document.getElementById('work-archive-section').classList.toggle('hidden'); };
+
+        window.lancarFinanca = (tipo) => {
+            const val = parseFloat(document.getElementById('fin-valor').value); if (isNaN(val)) return;
+            appState.transacoes.push({ id: Date.now(), tipo, cat: document.getElementById('fin-categoria').value, desc: document.getElementById('fin-desc').value || 'Geral', valor: val, data: new Date().toLocaleDateString('pt-BR') });
+            appState.saldo += (tipo === 'receita' ? val : -val); saveCloudData();
         };
 
-        window.movimento = (tipo) => {
-            const val = parseFloat(document.getElementById('f-val').value);
-            if(isNaN(val)) return;
-            state.saldo += (tipo === 'IN' ? val : -val);
-            state.finHistory.push({ tipo, cat: document.getElementById('f-cat').value, desc: document.getElementById('f-desc').value, val, data: new Date().toLocaleDateString() });
-            syncLocal();
-            document.getElementById('f-val').value = '';
-        };
+        window.addWaterWork = () => { if(appState.water.work < 6) { appState.water.work++; saveCloudData(); } };
+        window.addWaterHome = () => { if(appState.water.home < 2) { appState.water.home++; saveCloudData(); } };
+        window.resetWater = () => { appState.water = { work: 0, home: 0 }; saveCloudData(); };
+        window.addMonster = () => { appState.saldo -= 10; window.lancarFinanca('despesa'); saveCloudData(); };
 
-        const renderTasks = () => {
-            const list = document.getElementById('task-list');
-            list.innerHTML = state.tasks.filter(t => !t.done).map(t => `
-                <div class="bg-slate-900 border border-white/5 p-4 rounded-2xl flex justify-between items-center">
-                    <div><p class="text-xs font-black uppercase text-slate-300">${t.titulo}</p><p class="text-[7px] text-slate-600 font-bold uppercase">${t.solicitante || 'Makro'}</p></div>
-                    <button onclick="window.finishTask(${t.id})" class="text-emerald-500"><i data-lucide="check-circle" class="w-5 h-5"></i></button>
-                </div>
-            `).join('');
-            lucide.createIcons();
+        window.saveConfig = () => {
+            appState.veiculo.montadora = document.getElementById('veiculo-montadora').value;
+            appState.veiculo.modelo = document.getElementById('veiculo-modelo').value;
+            appState.veiculo.tipo = document.getElementById('veiculo-tipo').value;
+            appState.veiculo.km = parseInt(document.getElementById('veiculo-km-atual').value) || 0;
+            appState.veiculo.oleo = parseInt(document.getElementById('veiculo-km-oleo').value) || 0;
+            localStorage.setItem('cleanStartDate', document.getElementById('clean-start-date').value);
+            localStorage.setItem('cleanGoalDays', document.getElementById('clean-goal-days').value);
+            saveCloudData(); window.openTab('dashboard');
         };
 
         const renderFinances = () => {
-            document.getElementById('fin-history').innerHTML = state.finHistory.slice(-4).reverse().map(t => `
-                <div class="bg-slate-950 p-4 rounded-2xl flex justify-between items-center border border-white/5">
-                    <div><p class="text-[9px] font-black uppercase text-slate-300">${t.desc || 'Geral'}</p><p class="text-[7px] text-slate-600 font-bold">${t.cat} • ${t.data}</p></div>
-                    <span class="text-[10px] font-black ${t.tipo === 'IN' ? 'text-emerald-500' : 'text-red-500'}">${t.tipo === 'IN' ? '+' : '-'} R$ ${t.val.toFixed(0)}</span>
-                </div>
-            `).join('');
+            const list = document.getElementById('fin-history-list');
+            const catSelect = document.getElementById('fin-categoria');
+            if(!list || !catSelect) return;
+            catSelect.innerHTML = categories.map(c => `<option value="${c}">${c}</option>`).join('');
+            list.innerHTML = appState.transacoes.slice().reverse().map(t => `<div class="flex justify-between items-center p-4 bg-slate-950 rounded-2xl border border-white/5"><div><p class="text-xs font-bold text-slate-300">${t.desc}</p><p class="text-[8px] font-black uppercase text-slate-600">${t.cat} • ${t.data}</p></div><p class="text-xs font-black ${t.tipo === 'receita' ? 'text-emerald-400' : 'text-red-400'}">${t.tipo === 'receita' ? '+' : '-'} R$ ${t.valor.toFixed(0)}</p></div>`).join('');
+        };
+
+        const renderWork = () => {
+            const active = appState.tarefas.filter(t => !t.arquivada);
+            const archived = appState.tarefas.filter(t => t.arquivada);
+            const archCount = document.getElementById('archive-count');
+            const actList = document.getElementById('work-task-active-list');
+            const archList = document.getElementById('work-task-archived-list');
+            if(archCount) archCount.innerText = archived.length;
+            if(actList) actList.innerHTML = active.map(t => `<tr class="text-[10px] font-bold"><td class="py-4 px-2 text-slate-300">${t.titulo}</td><td class="py-4 px-2 text-slate-500">${t.solicitante}</td><td class="py-4 px-2 text-right"><button onclick="window.concluirTarefa(${t.id})" class="text-emerald-500"><i data-lucide="check-circle" class="w-4 h-4"></i></button></td></tr>`).join('');
+            if(archList) archList.innerHTML = archived.map(t => `<tr class="text-[9px] opacity-60"><td class="py-2 px-2 line-through">${t.titulo}</td><td class="py-2 px-2">${t.solicitante}</td><td class="py-2 px-2 text-right"><button onclick="window.deletarTarefa(${t.id})" class="text-red-500"><i data-lucide="trash" class="w-3 h-3"></i></button></td></tr>`).join('');
         };
 
         const renderAlerts = () => {
-            const container = document.getElementById('alerts-container');
-            container.innerHTML = '';
-            const tCount = state.tasks.filter(t => !t.done).length;
-            if(tCount > 0) container.innerHTML += `<div class="p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl flex items-center gap-3"><i data-lucide="briefcase" class="w-4 h-4 text-blue-500"></i><p class="text-[9px] font-bold text-blue-200">${tCount} Pendências na Makro Eng.</p></div>`;
-            const oil = state.km - state.kmOleo;
-            if(oil > 4500) container.innerHTML += `<div class="p-3 bg-orange-500/10 border border-orange-500/20 rounded-xl flex items-center gap-3"><i data-lucide="alert-triangle" class="w-4 h-4 text-orange-500"></i><p class="text-[9px] font-bold text-orange-200">Revisão de óleo obrigatória</p></div>`;
-            lucide.createIcons();
+            const list = document.getElementById('dash-docs-list'); 
+            if(!list) return;
+            list.innerHTML = '';
+            const tasksCount = appState.tarefas.filter(t => !t.arquivada).length;
+            if (tasksCount > 0) list.innerHTML += `<li class="p-3 bg-blue-500/10 border border-blue-500/20 rounded-2xl flex items-center gap-3"><i data-lucide="briefcase" class="w-4 h-4 text-blue-500"></i><p class="text-[10px] font-bold text-blue-200">${tasksCount} pendências Makro</p></li>`;
         };
 
-        window.onload = () => {
-            loadLocal();
-            lucide.createIcons();
+        window.toggleServicoFields = () => { 
+            const campos = document.getElementById('campos-abastecimento');
+            const tipo = document.getElementById('servico-tipo').value;
+            if(campos) campos.classList.toggle('hidden', tipo !== 'Abastecimento'); 
+        };
+        
+        window.calcCombustivel = () => { 
+            const v = parseFloat(document.getElementById('servico-valor').value); 
+            const p = parseFloat(document.getElementById('servico-preco-litro').value); 
+            const lit = document.getElementById('servico-litros');
+            if(v && p && lit) lit.value = (v/p).toFixed(2); 
+        };
+
+        window.onload = async () => {
+            await initAuth();
+            window.updateModelDropdown();
+            // A interface só atualiza após o login via handleLogin
         };
     </script>
 </body>
