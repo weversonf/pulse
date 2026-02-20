@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PULSE v02</title>
+    <title>PULSE OS v03</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
@@ -25,215 +25,284 @@
         ::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; opacity: 0.5; }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 italic selection:bg-blue-500/30 pb-28">
+<body class="bg-slate-950 text-slate-100 italic selection:bg-blue-500/30">
 
-    <!-- Cabeçalho Principal -->
-    <header class="bg-slate-900/80 backdrop-blur-xl sticky top-0 z-50 px-6 py-5 flex items-center justify-between border-b border-white/5">
-        <div>
-            <h1 class="text-2xl font-black tracking-tighter text-blue-500 leading-none">PULSE</h1>
-            <h2 id="current-location" class="text-[9px] font-black uppercase tracking-[0.3em] text-slate-500 mt-1 leading-none">FORTALEZA • ACTIVO</h2>
-        </div>
-        <div class="flex items-center gap-3">
-            <button onclick="addMonster()" class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 active:scale-90 transition-all shadow-[0_0_15px_rgba(16,185,129,0.2)]">
-                <i data-lucide="zap" class="w-6 h-6"></i>
-            </button>
-            <button onclick="openTab('config')" class="w-12 h-12 rounded-2xl bg-slate-800 border border-white/5 flex items-center justify-center text-slate-400 active:scale-90 transition-all">
-                <i data-lucide="settings" class="w-5 h-5"></i>
-            </button>
-        </div>
-    </header>
-
-    <main class="max-w-lg mx-auto p-4 space-y-6">
-
-        <!-- 1. DASHBOARD -->
-        <section id="dashboard" class="tab-content active space-y-4">
-            <div class="grid grid-cols-2 gap-4">
-                <div class="bg-emerald-950/40 border border-emerald-500/20 p-5 rounded-[2rem] relative overflow-hidden flex flex-col justify-end min-h-[140px] shadow-[0_0_15px_rgba(16,185,129,0.1)]">
-                    <p class="text-3xl font-black tracking-tighter leading-none mb-1 text-emerald-400"><span class="text-sm">R$</span><span id="dash-saldo">0</span></p>
-                    <p class="text-[9px] font-black uppercase tracking-widest text-emerald-500/60 leading-none">Saldo</p>
-                    <i data-lucide="wallet" class="absolute -right-4 -top-4 w-24 h-24 text-emerald-500 opacity-10"></i>
-                </div>
-                <div class="bg-indigo-950/40 border border-indigo-500/20 p-5 rounded-[2rem] relative overflow-hidden flex flex-col justify-end min-h-[140px]">
-                    <p class="text-3xl font-black tracking-tighter leading-none mb-1 text-indigo-400"><span class="text-sm">R$</span><span id="dash-fundo">0</span></p>
-                    <p class="text-[9px] font-black uppercase tracking-widest text-indigo-500/60 leading-none">Fundo Rota</p>
-                    <i data-lucide="map" class="absolute -right-4 -top-4 w-24 h-24 text-indigo-500 opacity-10"></i>
-                </div>
+    <!-- Layout Wrapper -->
+    <div class="flex min-h-screen relative">
+        
+        <!-- SIDEBAR (Desktop Only) -->
+        <aside class="hidden md:flex flex-col w-64 bg-slate-900 border-r border-white/5 fixed h-full z-50 p-6">
+            <div class="mb-10">
+                <h1 class="text-3xl font-black tracking-tighter text-blue-500 leading-none">PULSE</h1>
+                <p class="text-[9px] font-black uppercase tracking-[0.3em] text-slate-500 mt-2">OS • Enterprise</p>
             </div>
 
-            <div class="bg-slate-900 border border-white/5 p-6 rounded-[2.5rem] shadow-lg cursor-pointer" onclick="openTab('bike')">
-                <div class="flex justify-between items-start mb-4">
-                    <div class="p-2.5 bg-blue-500/10 rounded-xl text-blue-500"><i data-lucide="bike" class="w-5 h-5"></i></div>
-                    <p class="text-[10px] font-black uppercase tracking-widest text-blue-400"><span id="dash-consumo-moto">29</span> KM/L</p>
-                </div>
-                <p class="text-4xl font-black tracking-tighter leading-none mb-2 text-white"><span id="dash-km-atual">0</span><span class="text-xs ml-1 text-slate-600 font-bold uppercase">KM</span></p>
-                <div class="w-full bg-slate-950 h-1.5 rounded-full overflow-hidden mb-2">
-                    <div id="dash-oil-bar" class="bg-orange-500 h-full transition-all" style="width: 0%"></div>
-                </div>
-                <p id="dash-oil-text" class="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500">ÓLEO EM 5000 KM</p>
-            </div>
+            <nav class="flex-1 space-y-2">
+                <button onclick="openTab('dashboard')" class="side-nav-btn w-full flex items-center gap-4 px-4 py-4 rounded-2xl transition-all text-blue-500 bg-blue-500/10 font-black uppercase text-[10px] tracking-widest" id="side-btn-dashboard">
+                    <i data-lucide="layout-dashboard" class="w-5 h-5"></i> Dashboard
+                </button>
+                <button onclick="openTab('saude')" class="side-nav-btn w-full flex items-center gap-4 px-4 py-4 rounded-2xl transition-all text-slate-500 hover:bg-white/5 font-black uppercase text-[10px] tracking-widest" id="side-btn-saude">
+                    <i data-lucide="activity" class="w-5 h-5"></i> Biometria
+                </button>
+                <button onclick="openTab('bike')" class="side-nav-btn w-full flex items-center gap-4 px-4 py-4 rounded-2xl transition-all text-slate-500 hover:bg-white/5 font-black uppercase text-[10px] tracking-widest" id="side-btn-bike">
+                    <i data-lucide="bike" class="w-5 h-5"></i> <span class="side-bike-name">Veículo</span>
+                </button>
+                <button onclick="openTab('makro')" class="side-nav-btn w-full flex items-center gap-4 px-4 py-4 rounded-2xl transition-all text-slate-500 hover:bg-white/5 font-black uppercase text-[10px] tracking-widest" id="side-btn-makro">
+                    <i data-lucide="hard-hat" class="w-5 h-5"></i> Makro Eng.
+                </button>
+                <button onclick="openTab('financas')" class="side-nav-btn w-full flex items-center gap-4 px-4 py-4 rounded-2xl transition-all text-slate-500 hover:bg-white/5 font-black uppercase text-[10px] tracking-widest" id="side-btn-financas">
+                    <i data-lucide="wallet" class="w-5 h-5"></i> Finanças
+                </button>
+            </nav>
 
-            <div class="bg-slate-900/40 p-6 rounded-[2.5rem] border border-white/5">
-                <p class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 mb-4 flex items-center gap-2">
-                    <i data-lucide="bell" class="w-3 h-3 text-red-500"></i> Alertas do Sistema
-                </p>
-                <ul class="space-y-3" id="dash-docs-list"></ul>
+            <div class="mt-auto pt-6 border-t border-white/5 space-y-3">
+                <div class="p-4 bg-slate-950 rounded-2xl border border-white/5">
+                    <div class="flex justify-between items-start mb-1">
+                        <p class="text-[8px] font-black text-slate-600 uppercase tracking-widest">Clima Local</p>
+                        <i id="side-weather-icon" data-lucide="sun" class="w-3 h-3 text-yellow-500"></i>
+                    </div>
+                    <p class="text-[10px] font-bold text-slate-300 flex flex-col">
+                        <span id="side-weather-temp">30°C • Ensolarado</span>
+                        <span class="text-slate-500 text-[8px] uppercase tracking-tighter" id="side-weather-city">Fortaleza, CE</span>
+                    </p>
+                </div>
+                <button onclick="openTab('config')" class="w-full flex items-center gap-4 px-4 py-4 rounded-2xl transition-all text-slate-500 hover:text-white hover:bg-white/5 font-black uppercase text-[10px] tracking-widest">
+                    <i data-lucide="settings" class="w-5 h-5"></i> Ajustes
+                </button>
             </div>
-        </section>
+        </aside>
 
-        <!-- 2. BIOMETRIA -->
-        <section id="saude" class="tab-content space-y-4">
-            <div class="bg-slate-900 border border-white/5 p-6 rounded-[2.5rem] flex flex-col justify-between min-h-[160px]">
-                <div class="space-y-4 mb-6">
-                    <div>
-                        <div class="flex justify-between text-[9px] font-black uppercase tracking-widest text-blue-500 mb-2 leading-none">
-                            <span>Hidratação Total (<span id="water-goal-text">0</span>ml)</span>
-                            <span id="water-percent-text">0%</span>
+        <!-- Main Content Area -->
+        <div class="flex-1 md:ml-64 transition-all duration-300">
+            
+            <!-- Cabeçalho -->
+            <header class="bg-slate-900/80 backdrop-blur-xl sticky top-0 z-40 px-6 py-5 flex items-center justify-between border-b border-white/5">
+                <div class="md:hidden">
+                    <h1 class="text-2xl font-black tracking-tighter text-blue-500 leading-none">PULSE</h1>
+                    <h2 id="current-location" class="text-[9px] font-black uppercase tracking-[0.3em] text-slate-500 mt-1 leading-none">FORTALEZA • 30°C <i data-lucide="sun" class="inline w-2 h-2 mb-0.5"></i></h2>
+                </div>
+                <div class="hidden md:block">
+                    <h2 class="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500 flex items-center gap-2">
+                        SaaS Operacional • <span id="desktop-loc">FORTALEZA</span> 
+                        <span class="text-slate-700">|</span> 
+                        <span id="header-weather-info" class="text-blue-500">30°C <i data-lucide="sun" class="inline w-3 h-3 mb-1"></i></span>
+                    </h2>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button onclick="addMonster()" class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 active:scale-90 transition-all shadow-[0_0_15px_rgba(16,185,129,0.2)]">
+                        <i data-lucide="zap" class="w-6 h-6"></i>
+                    </button>
+                    <button onclick="openTab('config')" class="md:hidden w-12 h-12 rounded-2xl bg-slate-800 border border-white/5 flex items-center justify-center text-slate-400 active:scale-90 transition-all">
+                        <i data-lucide="settings" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </header>
+
+            <main class="max-w-3xl mx-auto p-4 md:p-8 space-y-6 pb-28 md:pb-12">
+
+                <!-- 1. DASHBOARD -->
+                <section id="dashboard" class="tab-content active space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-emerald-950/40 border border-emerald-500/20 p-5 rounded-[2rem] relative overflow-hidden flex flex-col justify-end min-h-[140px] shadow-[0_0_15px_rgba(16,185,129,0.1)]">
+                            <p class="text-3xl font-black tracking-tighter leading-none mb-1 text-emerald-400"><span class="text-sm">R$</span><span id="dash-saldo">0</span></p>
+                            <p class="text-[9px] font-black uppercase tracking-widest text-emerald-500/60 leading-none">Saldo</p>
+                            <i data-lucide="wallet" class="absolute -right-4 -top-4 w-24 h-24 text-emerald-500 opacity-10"></i>
                         </div>
-                        <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden shadow-inner">
-                            <div id="water-bar" class="bg-blue-500 h-full transition-all duration-1000" style="width: 0%"></div>
+                        <div class="bg-indigo-950/40 border border-indigo-500/20 p-5 rounded-[2rem] relative overflow-hidden flex flex-col justify-end min-h-[140px]">
+                            <p class="text-3xl font-black tracking-tighter leading-none mb-1 text-indigo-400"><span class="text-sm">R$</span><span id="dash-fundo">0</span></p>
+                            <p class="text-[9px] font-black uppercase tracking-widest text-indigo-500/60 leading-none">Fundo Rota</p>
+                            <i data-lucide="map" class="absolute -right-4 -top-4 w-24 h-24 text-indigo-500 opacity-10"></i>
                         </div>
                     </div>
-                </div>
-                <div class="grid grid-cols-2 gap-3">
-                    <button onclick="addWaterWork()" class="bg-blue-600 p-4 rounded-3xl active:scale-95 transition-all shadow-xl text-center text-xs font-black uppercase">Trabalho</button>
-                    <button onclick="addWaterHome()" class="bg-slate-800 p-4 rounded-3xl border border-white/5 active:scale-95 transition-all text-xs font-black uppercase">Casa</button>
-                </div>
-                <button onclick="resetWater()" class="w-full mt-4 text-[9px] uppercase tracking-widest text-slate-500 font-bold">Reset diário</button>
-            </div>
 
-            <div class="bg-slate-900/40 p-6 rounded-[2.5rem] border border-white/5 relative overflow-hidden">
-                <div class="flex justify-between items-center mb-4 relative z-10">
-                    <p class="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-500">Nível Cafeína</p>
-                    <p class="font-black text-xl"><span id="monster-count">0</span><span class="text-[10px] text-slate-500 uppercase ml-1">Latas</span></p>
-                </div>
-                <div class="w-full bg-slate-950 h-1.5 rounded-full overflow-hidden mb-2 relative z-10">
-                    <div id="caf-bar" class="bg-emerald-500 h-full transition-all duration-500" style="width: 0%"></div>
-                </div>
-            </div>
-        </section>
-
-        <!-- 3. VEÍCULO (FAZER 250) -->
-        <section id="bike" class="tab-content space-y-4">
-            <div class="bg-blue-600 p-6 rounded-[2.5rem] shadow-lg shadow-blue-500/20 relative overflow-hidden flex items-center justify-between">
-                <div class="z-10 relative">
-                    <h3 id="bike-header-name" class="font-black text-2xl uppercase tracking-tighter text-white leading-none">Fazer 250</h3>
-                    <p class="text-[10px] font-black uppercase tracking-[0.2em] text-blue-200 mt-1 leading-none">Gestão de Veículo</p>
-                </div>
-                <i data-lucide="bike" class="absolute -right-2 -bottom-2 w-24 h-24 text-blue-800 opacity-30"></i>
-            </div>
-
-            <div class="bg-slate-900 p-6 rounded-[2.5rem] border border-white/5">
-                <h3 class="text-[10px] font-black uppercase tracking-[0.3em] text-orange-500 mb-4 flex items-center gap-2"><i data-lucide="wrench" class="w-4 h-4 text-orange-500"></i> Lançar Serviço</h3>
-                <div class="space-y-3">
-                    <select id="servico-tipo" onchange="toggleServicoFields()" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold outline-none text-slate-300">
-                        <option value="Abastecimento">⛽ Abastecimento</option>
-                        <option value="Troca de Óleo">🛢️ Troca de Óleo</option>
-                        <option value="Manutenção">🔧 Manutenção Geral</option>
-                    </select>
-                    <div class="grid grid-cols-2 gap-3">
-                        <input type="number" id="servico-km" placeholder="KM Atual" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold outline-none text-slate-300">
-                        <input type="number" id="servico-valor" placeholder="Valor Total" oninput="calcCombustivel('valor')" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold outline-none text-slate-300">
+                    <div class="bg-slate-900 border border-white/5 p-6 rounded-[2.5rem] shadow-lg cursor-pointer" onclick="openTab('bike')">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="p-2.5 bg-blue-500/10 rounded-xl text-blue-500"><i data-lucide="bike" class="w-5 h-5"></i></div>
+                            <p class="text-[10px] font-black uppercase tracking-widest text-blue-400"><span id="dash-consumo-moto">29</span> KM/L</p>
+                        </div>
+                        <p class="text-4xl font-black tracking-tighter leading-none mb-2 text-white"><span id="dash-km-atual">0</span><span class="text-xs ml-1 text-slate-600 font-bold uppercase">KM</span></p>
+                        <div class="w-full bg-slate-950 h-1.5 rounded-full overflow-hidden mb-2">
+                            <div id="dash-oil-bar" class="bg-orange-500 h-full transition-all" style="width: 0%"></div>
+                        </div>
+                        <p id="dash-oil-text" class="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500">ÓLEO EM 5000 KM</p>
                     </div>
-                    <div id="campos-abastecimento" class="grid grid-cols-2 gap-3 transition-all">
-                        <select id="servico-combustivel" class="w-full col-span-2 p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold outline-none text-slate-300">
-                            <option value="Gasolina Comum">Gasolina Comum</option>
-                            <option value="Gasolina Aditivada">Gasolina Aditivada</option>
-                        </select>
-                        <input type="number" id="servico-preco-litro" placeholder="R$/Litro" oninput="calcCombustivel('preco')" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold outline-none text-slate-300">
-                        <input type="number" id="servico-litros" placeholder="Total Litros" oninput="calcCombustivel('litros')" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold outline-none text-slate-300">
+
+                    <div class="bg-slate-900/40 p-6 rounded-[2.5rem] border border-white/5">
+                        <p class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 mb-4 flex items-center gap-2">
+                            <i data-lucide="bell" class="w-3 h-3 text-red-500"></i> Alertas do Sistema
+                        </p>
+                        <ul class="space-y-3" id="dash-docs-list"></ul>
                     </div>
-                    <button onclick="lancarServico()" class="w-full bg-slate-800 text-slate-300 py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl">Registrar</button>
-                </div>
-            </div>
+                </section>
 
-            <div class="bg-slate-900/40 p-6 rounded-[2.5rem] border border-white/5">
-                <p class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 mb-4 flex items-center gap-2"><i data-lucide="history" class="w-4 h-4 text-slate-500"></i> Histórico de Serviços</p>
-                <div class="space-y-3" id="bike-history-list"></div>
-            </div>
-        </section>
-
-        <!-- 4. MAKRO ENG. (TRABALHO) -->
-        <section id="makro" class="tab-content space-y-4">
-            <div class="bg-slate-900 p-6 rounded-[2.5rem] border border-white/5">
-                <h3 class="text-[10px] font-black uppercase tracking-[0.3em] text-blue-500 mb-6 flex items-center gap-2">
-                    <i data-lucide="hard-hat" class="w-4 h-4"></i> Makro Engenharia (08h-18h)
-                </h3>
-                <div class="space-y-4">
-                    <div class="flex gap-2">
-                        <input type="text" id="makro-tarefa" placeholder="Nova ordem de serviço..." class="flex-1 p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold text-slate-300 outline-none">
-                        <button onclick="addMakroTask()" class="bg-blue-600 px-5 rounded-2xl active:scale-95 transition"><i data-lucide="plus" class="w-5 h-5"></i></button>
-                    </div>
-                    <div id="makro-task-list" class="space-y-2"></div>
-                </div>
-            </div>
-
-            <div class="bg-slate-900/40 p-6 rounded-[2.5rem] border border-white/5">
-                <p class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 mb-4 flex items-center gap-2"><i data-lucide="file-text" class="w-4 h-4"></i> Notas de Campo</p>
-                <textarea id="makro-notes" oninput="saveMakroNotes()" placeholder="Escreva aqui apontamentos rápidos do dia de trabalho..." class="w-full h-40 bg-slate-950 border border-white/5 rounded-2xl p-4 text-xs italic text-slate-400 outline-none resize-none"></textarea>
-            </div>
-        </section>
-
-        <!-- 5. FINANÇAS -->
-        <section id="financas" class="tab-content space-y-4">
-            <div class="bg-slate-900 border border-white/5 p-6 rounded-[2.5rem]">
-                <p class="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-500 mb-2 flex items-center gap-2"><i data-lucide="pie-chart" class="w-4 h-4"></i> Fluxo de Caixa</p>
-                <p class="text-4xl font-black tracking-tighter text-white py-2"><span class="text-lg">R$</span> <span id="fin-saldo-atual">0</span></p>
-            </div>
-
-            <div class="bg-slate-900/40 p-6 rounded-[2.5rem] border border-white/5">
-                <h3 class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 mb-4 flex items-center gap-2"><i data-lucide="plus-circle" class="w-4 h-4 text-emerald-500"></i> Novo Lançamento</h3>
-                <div class="space-y-3">
-                    <select id="fin-categoria" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold text-slate-300 outline-none appearance-none"></select>
-                    <input type="text" id="fin-desc" placeholder="Descrição..." class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold text-slate-300 outline-none">
-                    <input type="number" id="fin-valor" placeholder="Valor Total" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold text-slate-300 outline-none">
-                    
-                    <div class="flex gap-2 mt-2">
-                        <label class="pulse-check flex-1 flex items-center p-3 sm:p-4 bg-slate-950 border border-white/5 rounded-2xl cursor-pointer">
-                            <input type="checkbox" class="hidden" id="fin-planejado" onchange="toggleDataVencimento()">
-                            <div class="w-5 h-5 border-2 border-slate-700 rounded-lg flex items-center justify-center mr-2 transition-colors flex-shrink-0">
-                                <svg class="w-3 h-3 text-white opacity-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                <!-- 2. BIOMETRIA -->
+                <section id="saude" class="tab-content space-y-4">
+                    <div class="bg-slate-900 border border-white/5 p-6 rounded-[2.5rem] flex flex-col justify-between min-h-[160px]">
+                        <div class="space-y-4 mb-6">
+                            <div>
+                                <div class="flex justify-between text-[9px] font-black uppercase tracking-widest text-blue-500 mb-2 leading-none">
+                                    <span>Hidratação Total (<span id="water-goal-text">0</span>ml)</span>
+                                    <span id="water-percent-text">0%</span>
+                                </div>
+                                <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden shadow-inner">
+                                    <div id="water-bar" class="bg-blue-500 h-full transition-all duration-1000" style="width: 0%"></div>
+                                </div>
                             </div>
-                            <span class="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-300 transition-colors">Agendar</span>
-                        </label>
-                        <input type="date" id="fin-data-vencimento" class="hidden flex-1 p-3 sm:p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold text-slate-400 outline-none">
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <button onclick="addWaterWork()" class="bg-blue-600 p-4 rounded-3xl active:scale-95 transition-all shadow-xl text-center">
+                                <p class="text-lg font-black leading-none">473ml</p>
+                                <p class="text-[8px] font-black uppercase opacity-60 mt-1 leading-none">Makro Eng.</p>
+                                <p id="water-work-count" class="text-[9px] mt-2 font-bold text-blue-200">0/6</p>
+                            </button>
+                            <button onclick="addWaterHome()" class="bg-slate-800 p-4 rounded-3xl border border-white/5 active:scale-95 transition-all text-center">
+                                <p class="text-lg font-black leading-none">250ml</p>
+                                <p class="text-[8px] font-black uppercase opacity-60 mt-1 leading-none">Home</p>
+                                <p id="water-home-count" class="text-[9px] mt-2 font-bold text-slate-400">0/2</p>
+                            </button>
+                        </div>
+                        <button onclick="resetWater()" class="w-full mt-4 text-[9px] uppercase tracking-widest text-slate-500 font-bold">Reset diário</button>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-3 pt-2">
-                        <button onclick="lancarFinanca('receita')" class="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 py-4 rounded-2xl font-black uppercase text-[10px] active:scale-95 transition-all">Entrada</button>
-                        <button onclick="lancarFinanca('despesa')" class="bg-red-500/10 text-red-500 border border-red-500/20 py-4 rounded-2xl font-black uppercase text-[10px] active:scale-95 transition-all">Saída</button>
+                    <div class="bg-slate-900/40 p-6 rounded-[2.5rem] border border-white/5 relative overflow-hidden">
+                        <div class="flex justify-between items-center mb-4 relative z-10">
+                            <div>
+                                <p class="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-500">Nível Cafeína</p>
+                                <p class="text-[8px] font-black uppercase text-slate-500 tracking-widest mt-1">Limite: <span id="caf-limit-text">400</span>mg</p>
+                            </div>
+                            <p class="font-black text-xl"><span id="monster-count">0</span><span class="text-[10px] text-slate-500 uppercase ml-1">Latas</span></p>
+                        </div>
+                        <div class="w-full bg-slate-950 h-1.5 rounded-full overflow-hidden mb-2 relative z-10">
+                            <div id="caf-bar" class="bg-emerald-500 h-full transition-all duration-500" style="width: 0%"></div>
+                        </div>
                     </div>
-                </div>
-            </div>
+                </section>
 
-            <div class="bg-slate-900 p-6 rounded-[2.5rem] border border-white/5">
-                <h3 class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 mb-4 flex items-center gap-2"><i data-lucide="history" class="w-4 h-4 text-slate-500"></i> Linha do Tempo</h3>
-                <div class="space-y-3" id="fin-history-list"></div>
-            </div>
-        </section>
+                <!-- 3. VEÍCULO (FAZER 250) -->
+                <section id="bike" class="tab-content space-y-4">
+                    <div class="bg-blue-600 p-6 rounded-[2.5rem] shadow-lg shadow-blue-500/20 relative overflow-hidden flex items-center justify-between">
+                        <div class="z-10 relative">
+                            <h3 id="bike-header-name" class="font-black text-2xl uppercase tracking-tighter text-white leading-none">Fazer 250</h3>
+                            <p class="text-[10px] font-black uppercase tracking-[0.2em] text-blue-200 mt-1 leading-none">Gestão de Veículo</p>
+                        </div>
+                        <i data-lucide="bike" class="absolute -right-2 -bottom-2 w-24 h-24 text-blue-800 opacity-30"></i>
+                    </div>
 
-        <!-- 6. CONFIGURAÇÕES -->
-        <section id="config" class="tab-content space-y-4">
-            <div class="bg-slate-900 p-6 rounded-[2.5rem] border border-white/5 text-xs font-bold text-slate-400">
-                <h3 class="text-[10px] font-black uppercase tracking-[0.3em] text-blue-500 mb-6 flex items-center gap-2"><i data-lucide="activity" class="w-4 h-4"></i> Biometria</h3>
-                <div class="grid grid-cols-2 gap-4">
-                    <div><label class="block mb-1 uppercase tracking-widest text-[8px]">Peso (KG)</label><input type="number" id="peso-user" class="w-full p-3 bg-slate-950 border border-white/5 rounded-xl outline-none text-slate-300"></div>
-                    <div><label class="block mb-1 uppercase tracking-widest text-[8px]">Altura (CM)</label><input type="number" id="altura-user" class="w-full p-3 bg-slate-950 border border-white/5 rounded-xl outline-none text-slate-300"></div>
-                </div>
-            </div>
+                    <div class="bg-slate-900 p-6 rounded-[2.5rem] border border-white/5">
+                        <h3 class="text-[10px] font-black uppercase tracking-[0.3em] text-orange-500 mb-4 flex items-center gap-2"><i data-lucide="wrench" class="w-4 h-4 text-orange-500"></i> Lançar Serviço</h3>
+                        <div class="space-y-3">
+                            <select id="servico-tipo" onchange="toggleServicoFields()" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold outline-none text-slate-300">
+                                <option value="Abastecimento">⛽ Abastecimento</option>
+                                <option value="Troca de Óleo">🛢️ Troca de Óleo</option>
+                                <option value="Manutenção">🔧 Manutenção Geral</option>
+                            </select>
+                            <div class="grid grid-cols-2 gap-3">
+                                <input type="number" id="servico-km" placeholder="KM Atual" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold outline-none text-slate-300">
+                                <input type="number" id="servico-valor" placeholder="Valor Total" oninput="calcCombustivel('valor')" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold outline-none text-slate-300">
+                            </div>
+                            <div id="campos-abastecimento" class="grid grid-cols-2 gap-3 transition-all">
+                                <select id="servico-combustivel" class="w-full col-span-2 p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold outline-none text-slate-300">
+                                    <option value="Gasolina Comum">Gasolina Comum</option>
+                                    <option value="Gasolina Aditivada">Gasolina Aditivada</option>
+                                </select>
+                                <input type="number" id="servico-preco-litro" placeholder="R$/Litro" oninput="calcCombustivel('preco')" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold outline-none text-slate-300">
+                                <input type="number" id="servico-litros" placeholder="Total Litros" oninput="calcCombustivel('litros')" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold outline-none text-slate-300">
+                            </div>
+                            <button onclick="lancarServico()" class="w-full bg-slate-800 text-slate-300 py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl">Registrar</button>
+                        </div>
+                    </div>
 
-            <div class="bg-slate-900 p-6 rounded-[2.5rem] border border-white/5 text-xs font-bold text-slate-400">
-                <h3 class="text-[10px] font-black uppercase tracking-[0.3em] text-blue-500 mb-6 flex items-center gap-2"><i data-lucide="bike" class="w-4 h-4"></i> Setup Operacional</h3>
-                <div class="grid grid-cols-2 gap-4">
-                    <div><label class="block mb-1 uppercase tracking-widest text-[8px]">Estado</label><select id="estado" onchange="changeEstado()" class="w-full p-3 bg-slate-950 border border-white/5 rounded-xl outline-none"></select></div>
-                    <div><label class="block mb-1 uppercase tracking-widest text-[8px]">Cidade</label><select id="cidade" class="w-full p-3 bg-slate-950 border border-white/5 rounded-xl outline-none"></select></div>
-                </div>
-            </div>
+                    <div class="bg-slate-900/40 p-6 rounded-[2.5rem] border border-white/5">
+                        <p class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 mb-4 flex items-center gap-2"><i data-lucide="history" class="w-4 h-4 text-slate-500"></i> Histórico de Serviços</p>
+                        <div class="space-y-3" id="bike-history-list"></div>
+                    </div>
+                </section>
 
-            <button onclick="saveConfig()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase text-[10px] shadow-xl">Guardar Settings</button>
-        </section>
+                <!-- 4. MAKRO ENG. (TRABALHO) -->
+                <section id="makro" class="tab-content space-y-4">
+                    <div class="bg-slate-900 p-6 rounded-[2.5rem] border border-white/5">
+                        <h3 class="text-[10px] font-black uppercase tracking-[0.3em] text-blue-500 mb-6 flex items-center gap-2">
+                            <i data-lucide="hard-hat" class="w-4 h-4"></i> Makro Engenharia (08h-18h)
+                        </h3>
+                        <div class="space-y-4">
+                            <div class="flex gap-2">
+                                <input type="text" id="makro-tarefa" placeholder="Nova ordem de serviço..." class="flex-1 p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold text-slate-300 outline-none">
+                                <button onclick="addMakroTask()" class="bg-blue-600 px-5 rounded-2xl active:scale-95 transition"><i data-lucide="plus" class="w-5 h-5"></i></button>
+                            </div>
+                            <div id="makro-task-list" class="space-y-2"></div>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-900/40 p-6 rounded-[2.5rem] border border-white/5">
+                        <p class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 mb-4 flex items-center gap-2"><i data-lucide="file-text" class="w-4 h-4"></i> Notas de Campo</p>
+                        <textarea id="makro-notes" oninput="saveMakroNotes()" placeholder="Escreva aqui apontamentos rápidos do dia de trabalho..." class="w-full h-40 bg-slate-950 border border-white/5 rounded-2xl p-4 text-xs italic text-slate-400 outline-none resize-none"></textarea>
+                    </div>
+                </section>
+
+                <!-- 5. FINANÇAS -->
+                <section id="financas" class="tab-content space-y-4">
+                    <div class="bg-slate-900 border border-white/5 p-6 rounded-[2.5rem]">
+                        <p class="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-500 mb-2 flex items-center gap-2"><i data-lucide="pie-chart" class="w-4 h-4"></i> Fluxo de Caixa</p>
+                        <p class="text-4xl font-black tracking-tighter text-white py-2"><span class="text-lg">R$</span> <span id="fin-saldo-atual">0</span></p>
+                    </div>
+
+                    <div class="bg-slate-900/40 p-6 rounded-[2.5rem] border border-white/5">
+                        <h3 class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 mb-4 flex items-center gap-2"><i data-lucide="plus-circle" class="w-4 h-4 text-emerald-500"></i> Novo Lançamento</h3>
+                        <div class="space-y-3">
+                            <select id="fin-categoria" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold text-slate-300 outline-none appearance-none"></select>
+                            <input type="text" id="fin-desc" placeholder="Descrição..." class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold text-slate-300 outline-none">
+                            <input type="number" id="fin-valor" placeholder="Valor Total" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold text-slate-300 outline-none">
+                            
+                            <div class="flex gap-2 mt-2">
+                                <label class="pulse-check flex-1 flex items-center p-3 sm:p-4 bg-slate-950 border border-white/5 rounded-2xl cursor-pointer">
+                                    <input type="checkbox" class="hidden" id="fin-planejado" onchange="toggleDataVencimento()">
+                                    <div class="w-5 h-5 border-2 border-slate-700 rounded-lg flex items-center justify-center mr-2 transition-colors flex-shrink-0">
+                                        <svg class="w-3 h-3 text-white opacity-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                    </div>
+                                    <span class="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-300 transition-colors">Agendar</span>
+                                </label>
+                                <input type="date" id="fin-data-vencimento" class="hidden flex-1 p-3 sm:p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold text-slate-400 outline-none">
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-3 pt-2">
+                                <button onclick="lancarFinanca('receita')" class="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 py-4 rounded-2xl font-black uppercase text-[10px] active:scale-95 transition-all">Entrada</button>
+                                <button onclick="lancarFinanca('despesa')" class="bg-red-500/10 text-red-500 border border-red-500/20 py-4 rounded-2xl font-black uppercase text-[10px] active:scale-95 transition-all">Saída</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-900 p-6 rounded-[2.5rem] border border-white/5">
+                        <h3 class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 mb-4 flex items-center gap-2"><i data-lucide="history" class="w-4 h-4 text-slate-500"></i> Linha do Tempo</h3>
+                        <div class="space-y-3" id="fin-history-list"></div>
+                    </div>
+                </section>
+
+                <!-- 6. CONFIGURAÇÕES -->
+                <section id="config" class="tab-content space-y-4">
+                    <div class="bg-slate-900 p-6 rounded-[2.5rem] border border-white/5 text-xs font-bold text-slate-400">
+                        <h3 class="text-[10px] font-black uppercase tracking-[0.3em] text-blue-500 mb-6 flex items-center gap-2"><i data-lucide="activity" class="w-4 h-4"></i> Biometria</h3>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div><label class="block mb-1 uppercase tracking-widest text-[8px]">Peso (KG)</label><input type="number" id="peso-user" class="w-full p-3 bg-slate-950 border border-white/5 rounded-xl outline-none text-slate-300"></div>
+                            <div><label class="block mb-1 uppercase tracking-widest text-[8px]">Altura (CM)</label><input type="number" id="altura-user" class="w-full p-3 bg-slate-950 border border-white/5 rounded-xl outline-none text-slate-300"></div>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-900 p-6 rounded-[2.5rem] border border-white/5 text-xs font-bold text-slate-400">
+                        <h3 class="text-[10px] font-black uppercase tracking-[0.3em] text-blue-500 mb-6 flex items-center gap-2"><i data-lucide="bike" class="w-4 h-4"></i> Setup Operacional</h3>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div><label class="block mb-1 uppercase tracking-widest text-[8px]">Estado</label><select id="estado" onchange="changeEstado()" class="w-full p-3 bg-slate-950 border border-white/5 rounded-xl outline-none"></select></div>
+                            <div><label class="block mb-1 uppercase tracking-widest text-[8px]">Cidade</label><select id="cidade" class="w-full p-3 bg-slate-950 border border-white/5 rounded-xl outline-none"></select></div>
+                        </div>
+                    </div>
+
+                    <button onclick="saveConfig()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase text-[10px] shadow-xl">Guardar Settings</button>
+                </section>
+
+            </main>
+        </div>
 
         <!-- UI MODAL NATIVO -->
-        <div id="pulse-modal" class="fixed inset-0 z-[999] bg-black/80 hidden flex-col items-center justify-center backdrop-blur-sm p-4 transition-opacity opacity-0">
+        <div id="pulse-modal" class="fixed inset-0 z-[100] bg-black/80 hidden flex-col items-center justify-center backdrop-blur-sm p-4 transition-opacity opacity-0">
             <div id="pulse-modal-content" class="bg-slate-900 border border-white/10 p-6 rounded-[2.5rem] w-full max-w-sm shadow-2xl scale-95 transition-transform duration-300">
                 <div class="flex items-center gap-3 mb-4">
                     <div id="pulse-modal-icon" class="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center"></div>
@@ -249,10 +318,10 @@
                 </div>
             </div>
         </div>
-    </main>
+    </div>
 
-    <!-- Navegação -->
-    <nav class="fixed bottom-0 left-0 right-0 h-20 bg-slate-900/90 backdrop-blur-2xl border-t border-white/5 z-50">
+    <!-- Navegação Mobile -->
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 h-20 bg-slate-900/90 backdrop-blur-2xl border-t border-white/5 z-50">
         <div class="flex justify-around items-center h-full max-w-lg mx-auto">
             <button onclick="openTab('dashboard')" id="btn-dashboard" class="nav-btn flex flex-col items-center gap-1 transition-all text-blue-500"><i data-lucide="layout-dashboard" class="w-5 h-5"></i><span class="text-[7px] font-black uppercase">Home</span></button>
             <button onclick="openTab('saude')" id="btn-saude" class="nav-btn flex flex-col items-center gap-1 transition-all text-slate-500"><i data-lucide="activity" class="w-5 h-5"></i><span class="text-[7px] font-black uppercase">Saúde</span></button>
@@ -308,7 +377,34 @@
         const locaisBR = { "CE": ["Fortaleza", "Caucaia"], "SP": ["São Paulo", "Santos"] };
         const defaultCategorias = ["Salário", "Alimentação", "Veículo", "Contas", "Outros"];
 
-        // --- FUNÇÕES ---
+        // --- CLIMA ---
+        const weatherMocks = {
+            "Fortaleza": { temp: 30, state: "Ensolarado", icon: "sun" },
+            "Caucaia": { temp: 29, state: "Parcialmente Nublado", icon: "cloud-sun" },
+            "São Paulo": { temp: 22, state: "Nublado", icon: "cloud" },
+            "Santos": { temp: 25, state: "Chuvoso", icon: "cloud-rain" }
+        };
+
+        function updateWeather() {
+            const city = localStorage.getItem('cidade') || 'Fortaleza';
+            const data = weatherMocks[city] || { temp: 28, state: "Estável", icon: "sun" };
+            
+            // Header Desktop
+            document.getElementById('header-weather-info').innerHTML = `${data.temp}°C <i data-lucide="${data.icon}" class="inline w-3 h-3 mb-1"></i>`;
+            document.getElementById('desktop-loc').innerText = city.toUpperCase();
+
+            // Header Mobile
+            document.getElementById('current-location').innerHTML = `${city.toUpperCase()} • ${data.temp}°C <i data-lucide="${data.icon}" class="inline w-2 h-2 mb-0.5"></i>`;
+
+            // Sidebar
+            document.getElementById('side-weather-temp').innerText = `${data.temp}°C • ${data.state}`;
+            document.getElementById('side-weather-city').innerText = `${city}, ${localStorage.getItem('estado') || 'CE'}`;
+            document.getElementById('side-weather-icon').setAttribute('data-lucide', data.icon);
+            
+            lucide.createIcons();
+        }
+
+        // --- FUNÇÕES OPERACIONAIS ---
         function updateFinancas() {
             document.getElementById('dash-saldo').innerText = saldoAtual.toFixed(0);
             document.getElementById('fin-saldo-atual').innerText = saldoAtual.toFixed(0);
@@ -332,7 +428,7 @@
                 </div>`).join('');
             document.getElementById('fin-history-list').innerHTML = html || '<p class="text-center text-[9px] text-slate-600">Nenhum lançamento.</p>';
             const bikeTx = transacoes.filter(t => t.cat === 'Veículo').reverse().slice(0, 5).map(t => `<div class="p-3 bg-slate-950 rounded-xl border border-white/5 flex justify-between items-center"><span class="text-[10px] font-bold">${t.desc}</span><span class="text-[10px] font-black text-red-400">R$ ${t.valor.toFixed(0)}</span></div>`).join('');
-            document.getElementById('bike-history-list').innerHTML = bikeTx || '<p class="text-center text-[9px] text-slate-600">Nenhum serviço.</p>';
+            document.getElementById('bike-history-list').innerHTML = bikeHtml = bikeTx || '<p class="text-center text-[9px] text-slate-600">Nenhum serviço.</p>';
             lucide.createIcons();
         }
 
@@ -384,6 +480,42 @@
             document.getElementById('fin-desc').value = ''; document.getElementById('fin-valor').value = '';
         }
 
+        // --- LÓGICA BIOMETRIA ---
+        let waterWork = parseInt(localStorage.getItem('waterWork')) || 0;
+        let waterHome = parseInt(localStorage.getItem('waterHome')) || 0;
+        let monsterCount = parseInt(localStorage.getItem('monster')) || 0;
+
+        function updateSaude() {
+            const peso = parseFloat(localStorage.getItem('pesoUser')) || 80;
+            const metaAgua = 3500; // Meta fixa conforme perfil
+            const totalAgua = (waterWork * 473) + (waterHome * 250);
+            const percAgua = Math.min((totalAgua / metaAgua) * 100, 100);
+            
+            document.getElementById('water-goal-text').innerText = metaAgua;
+            document.getElementById('water-percent-text').innerText = percAgua.toFixed(0) + '%';
+            document.getElementById('water-bar').style.width = percAgua + '%';
+            document.getElementById('water-work-count').innerText = `${waterWork}/6`;
+            document.getElementById('water-home-count').innerText = `${waterHome}/2`;
+
+            const limiteCaf = (peso * 5.7).toFixed(0);
+            const totalCaf = monsterCount * 160;
+            const percCaf = Math.min((totalCaf / limiteCaf) * 100, 100);
+            
+            document.getElementById('caf-limit-text').innerText = limiteCaf;
+            document.getElementById('monster-count').innerText = monsterCount;
+            document.getElementById('caf-bar').style.width = percCaf + '%';
+            document.getElementById('caf-bar').className = `h-full transition-all duration-500 ${percCaf > 90 ? 'bg-red-500' : 'bg-emerald-500'}`;
+
+            localStorage.setItem('waterWork', waterWork);
+            localStorage.setItem('waterHome', waterHome);
+            localStorage.setItem('monster', monsterCount);
+        }
+
+        function addWaterWork() { if(waterWork < 6) { waterWork++; updateSaude(); } }
+        function addWaterHome() { if(waterHome < 2) { waterHome++; updateSaude(); } }
+        function resetWater() { waterWork = 0; waterHome = 0; updateSaude(); }
+        function addMonster() { monsterCount++; updateSaude(); }
+
         // --- LÓGICA MAKRO ---
         function renderMakroTasks() {
             document.getElementById('makro-task-list').innerHTML = makroTasks.map((t, i) => `
@@ -403,6 +535,17 @@
         function saveMakroNotes() { localStorage.setItem('makroNotes', document.getElementById('makro-notes').value); }
 
         // --- LÓGICA VEÍCULO ---
+        function toggleServicoFields() {
+            const tipo = document.getElementById('servico-tipo').value;
+            document.getElementById('campos-abastecimento').classList.toggle('hidden', tipo !== 'Abastecimento');
+        }
+        function calcCombustivel(origem) {
+            const v = parseFloat(document.getElementById('servico-valor').value);
+            const p = parseFloat(document.getElementById('servico-preco-litro').value);
+            const l = parseFloat(document.getElementById('servico-litros').value);
+            if(origem === 'valor' && v && p) document.getElementById('servico-litros').value = (v/p).toFixed(2);
+            else if(origem === 'litros' && l && p) document.getElementById('servico-valor').value = (l*p).toFixed(2);
+        }
         function lancarServico() {
             const t = document.getElementById('servico-tipo').value; const k = parseInt(document.getElementById('servico-km').value); const v = parseFloat(document.getElementById('servico-valor').value);
             if(!k || !v) return;
@@ -417,7 +560,6 @@
             document.getElementById('dash-oil-text').innerText = `ÓLEO EM ${rst} KM`;
             document.getElementById('dash-oil-bar').style.width = `${Math.min((dif/5000)*100, 100)}%`;
         }
-
         function registrarTransacao(tipo, cat, desc, valor) {
             transacoes.push({ id: Date.now(), tipo, cat, desc, valor, data: new Date().toLocaleDateString('pt-BR'), status: 'efetivada' });
             localStorage.setItem('transacoes', JSON.stringify(transacoes));
@@ -427,9 +569,13 @@
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             document.getElementById(id).classList.add('active');
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.replace('text-blue-500', 'text-slate-500'));
-            const btn = document.getElementById('btn-' + (id === 'config' ? 'dashboard' : id));
-            if(btn) btn.classList.replace('text-slate-500', 'text-blue-500');
+            const mobileBtn = document.getElementById('btn-' + (id === 'config' ? 'dashboard' : id));
+            if(mobileBtn) mobileBtn.classList.replace('text-slate-500', 'text-blue-500');
+            document.querySelectorAll('.side-nav-btn').forEach(b => { b.classList.remove('text-blue-500', 'bg-blue-500/10'); b.classList.add('text-slate-500'); });
+            const sideBtn = document.getElementById('side-btn-' + (id === 'config' ? 'config' : id));
+            if(sideBtn) sideBtn.classList.add('text-blue-500', 'bg-blue-500/10');
             if(id === 'dashboard') atualizarDashboard();
+            lucide.createIcons();
         }
 
         function carregarConfig() {
@@ -437,9 +583,8 @@
             const uf = localStorage.getItem('estado') || 'CE';
             document.getElementById('estado').innerHTML = Object.keys(locaisBR).map(k => `<option value="${k}" ${k === uf ? 'selected' : ''}>${k}</option>`).join('');
             changeEstado(); document.getElementById('cidade').value = localStorage.getItem('cidade') || 'Fortaleza';
-            document.getElementById('current-location').innerText = `${document.getElementById('cidade').value.toUpperCase()} • ACTIVO`;
             document.getElementById('makro-notes').value = localStorage.getItem('makroNotes') || '';
-            updateFinancas(); atualizarDashboard(); renderMakroTasks();
+            updateFinancas(); atualizarDashboard(); renderMakroTasks(); updateSaude(); updateWeather(); atualizarNomeVeiculo();
         }
         function changeEstado() { const uf = document.getElementById('estado').value; document.getElementById('cidade').innerHTML = locaisBR[uf].map(c => `<option value="${c}">${c}</option>`).join(''); }
         function saveConfig() {
@@ -448,11 +593,14 @@
             localStorage.setItem('cidade', document.getElementById('cidade').value);
             carregarConfig(); openTab('dashboard');
         }
+        function atualizarNomeVeiculo() {
+            let n = localStorage.getItem('modelo') || 'Fazer 250 (2023)';
+            let c = n.includes('Fazer') ? 'Fazer 250' : n.split(' ')[0];
+            document.getElementById('nav-bike-name').innerText = c;
+            document.querySelectorAll('.side-bike-name').forEach(el => el.innerText = c);
+        }
 
         window.onload = carregarConfig;
-        function addMonster() { const m = (parseInt(localStorage.getItem('monster')) || 0) + 1; localStorage.setItem('monster', m); document.getElementById('monster-count').innerText = m; document.getElementById('caf-bar').style.width = Math.min(m*20, 100)+'%'; }
-        function toggleDataVencimento() { document.getElementById('fin-data-vencimento').classList.toggle('hidden', !document.getElementById('fin-planejado').checked); }
-        function addWaterWork() {} function addWaterHome() {} function resetWater() {} function toggleServicoFields() {} function calcCombustivel() {} function changeTipo() {} function changeMontadora() {} function changeModelo() {} function atualizarNomeVeiculo() {}
     </script>
 </body>
 </html>
