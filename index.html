@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PULSE OS v03</title>
+    <title>PULSE v04</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
@@ -13,24 +13,19 @@
         .tab-content.active { display: block; animation: fadeIn 0.4s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         ::-webkit-scrollbar { width: 0px; background: transparent; }
-        
         .pulse-check input:checked + div { background-color: #2563eb; border-color: #2563eb; }
         .pulse-check input:checked + div svg { opacity: 1; }
-        .pulse-check input:checked ~ p { text-decoration: line-through; color: #64748b; }
-        
         input[type=range] { -webkit-appearance: none; background: transparent; }
         input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 20px; width: 20px; border-radius: 50%; background: #3b82f6; cursor: pointer; margin-top: -8px; box-shadow: 0 0 10px rgba(59, 130, 246, 0.5); }
         input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: #1e293b; border-radius: 2px; }
-        
         ::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; opacity: 0.5; }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 italic selection:bg-blue-500/30">
 
-    <!-- Layout Wrapper -->
     <div class="flex min-h-screen relative">
         
-        <!-- SIDEBAR (Desktop Only) -->
+        <!-- SIDEBAR -->
         <aside class="hidden md:flex flex-col w-64 bg-slate-900 border-r border-white/5 fixed h-full z-50 p-6">
             <div class="mb-10">
                 <h1 class="text-3xl font-black tracking-tighter text-blue-500 leading-none">PULSE</h1>
@@ -38,74 +33,71 @@
             </div>
 
             <nav class="flex-1 space-y-2">
-                <button onclick="openTab('dashboard')" class="side-nav-btn w-full flex items-center gap-4 px-4 py-4 rounded-2xl transition-all text-blue-500 bg-blue-500/10 font-black uppercase text-[10px] tracking-widest" id="side-btn-dashboard">
+                <button onclick="window.openTab('dashboard')" class="side-nav-btn w-full flex items-center gap-4 px-4 py-4 rounded-2xl transition-all text-blue-500 bg-blue-500/10 font-black uppercase text-[10px] tracking-widest" id="side-btn-dashboard">
                     <i data-lucide="layout-dashboard" class="w-5 h-5"></i> Dashboard
                 </button>
-                <button onclick="openTab('saude')" class="side-nav-btn w-full flex items-center gap-4 px-4 py-4 rounded-2xl transition-all text-slate-500 hover:bg-white/5 font-black uppercase text-[10px] tracking-widest" id="side-btn-saude">
-                    <i data-lucide="activity" class="w-5 h-5"></i> Biometria
+                <button onclick="window.openTab('saude')" class="side-nav-btn w-full flex items-center gap-4 px-4 py-4 rounded-2xl transition-all text-slate-500 hover:bg-white/5 font-black uppercase text-[10px] tracking-widest" id="side-btn-saude">
+                    <i data-lucide="activity" class="w-5 h-5"></i> Saúde
                 </button>
-                <button onclick="openTab('bike')" class="side-nav-btn w-full flex items-center gap-4 px-4 py-4 rounded-2xl transition-all text-slate-500 hover:bg-white/5 font-black uppercase text-[10px] tracking-widest" id="side-btn-bike">
+                <button onclick="window.openTab('bike')" class="side-nav-btn w-full flex items-center gap-4 px-4 py-4 rounded-2xl transition-all text-slate-500 hover:bg-white/5 font-black uppercase text-[10px] tracking-widest" id="side-btn-bike">
                     <i data-lucide="bike" class="w-5 h-5"></i> <span class="side-bike-name">Veículo</span>
                 </button>
-                <button onclick="openTab('makro')" class="side-nav-btn w-full flex items-center gap-4 px-4 py-4 rounded-2xl transition-all text-slate-500 hover:bg-white/5 font-black uppercase text-[10px] tracking-widest" id="side-btn-makro">
-                    <i data-lucide="hard-hat" class="w-5 h-5"></i> Makro Eng.
+                <button onclick="window.openTab('work')" class="side-nav-btn w-full flex items-center gap-4 px-4 py-4 rounded-2xl transition-all text-slate-500 hover:bg-white/5 font-black uppercase text-[10px] tracking-widest" id="side-btn-work">
+                    <i data-lucide="briefcase" class="w-5 h-5"></i> WORK
                 </button>
-                <button onclick="openTab('financas')" class="side-nav-btn w-full flex items-center gap-4 px-4 py-4 rounded-2xl transition-all text-slate-500 hover:bg-white/5 font-black uppercase text-[10px] tracking-widest" id="side-btn-financas">
+                <button onclick="window.openTab('financas')" class="side-nav-btn w-full flex items-center gap-4 px-4 py-4 rounded-2xl transition-all text-slate-500 hover:bg-white/5 font-black uppercase text-[10px] tracking-widest" id="side-btn-financas">
                     <i data-lucide="wallet" class="w-5 h-5"></i> Finanças
                 </button>
             </nav>
 
             <div class="mt-auto pt-6 border-t border-white/5 space-y-3">
-                <div class="p-4 bg-slate-950 rounded-2xl border border-white/5">
-                    <div class="flex justify-between items-start mb-1">
-                        <p class="text-[8px] font-black text-slate-600 uppercase tracking-widest">Clima Local</p>
-                        <i id="side-weather-icon" data-lucide="sun" class="w-3 h-3 text-yellow-500"></i>
+                <div class="flex flex-col gap-2 p-4 bg-slate-950 rounded-2xl border border-white/5">
+                    <div id="cloud-status" class="flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
+                        <span class="text-[8px] font-black uppercase tracking-widest text-slate-500">Offline</span>
                     </div>
-                    <p class="text-[10px] font-bold text-slate-300 flex flex-col">
-                        <span id="side-weather-temp">30°C • Ensolarado</span>
-                        <span class="text-slate-500 text-[8px] uppercase tracking-tighter" id="side-weather-city">Fortaleza, CE</span>
-                    </p>
+                    <!-- LOCALIZAÇÃO E CLIMA (SIDEBAR) -->
+                    <div class="space-y-1 border-t border-white/5 pt-2">
+                        <p id="side-location" class="text-[9px] font-black uppercase text-blue-500 tracking-tighter">Fortaleza, CE</p>
+                        <p id="side-weather" class="text-[10px] font-bold text-slate-400">30°C • Ensolarado</p>
+                    </div>
                 </div>
-                <button onclick="openTab('config')" class="w-full flex items-center gap-4 px-4 py-4 rounded-2xl transition-all text-slate-500 hover:text-white hover:bg-white/5 font-black uppercase text-[10px] tracking-widest">
+                <button onclick="window.openTab('config')" class="w-full flex items-center gap-4 px-4 py-4 rounded-2xl transition-all text-slate-500 hover:text-white hover:bg-white/5 font-black uppercase text-[10px] tracking-widest" id="side-btn-config">
                     <i data-lucide="settings" class="w-5 h-5"></i> Ajustes
                 </button>
             </div>
         </aside>
 
-        <!-- Main Content Area -->
+        <!-- Main Area -->
         <div class="flex-1 md:ml-64 transition-all duration-300">
             
-            <!-- Cabeçalho -->
             <header class="bg-slate-900/80 backdrop-blur-xl sticky top-0 z-40 px-6 py-5 flex items-center justify-between border-b border-white/5">
                 <div class="md:hidden">
                     <h1 class="text-2xl font-black tracking-tighter text-blue-500 leading-none">PULSE</h1>
-                    <h2 id="current-location" class="text-[9px] font-black uppercase tracking-[0.3em] text-slate-500 mt-1 leading-none">FORTALEZA • 30°C <i data-lucide="sun" class="inline w-2 h-2 mb-0.5"></i></h2>
+                    <h2 id="current-location" class="text-[9px] font-black uppercase tracking-[0.3em] text-slate-500 mt-1 leading-none">CARREGANDO...</h2>
                 </div>
                 <div class="hidden md:block">
                     <h2 class="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500 flex items-center gap-2">
-                        SaaS Operacional • <span id="desktop-loc">FORTALEZA</span> 
+                        Sistema Operacional • <span id="desktop-loc">FORTALEZA</span> 
                         <span class="text-slate-700">|</span> 
-                        <span id="header-weather-info" class="text-blue-500">30°C <i data-lucide="sun" class="inline w-3 h-3 mb-1"></i></span>
+                        <span id="header-weather-info" class="text-blue-500">--°C</span>
                     </h2>
                 </div>
                 <div class="flex items-center gap-3">
-                    <button onclick="addMonster()" class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 active:scale-90 transition-all shadow-[0_0_15px_rgba(16,185,129,0.2)]">
+                    <button onclick="window.addMonster()" class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 active:scale-90 transition-all">
                         <i data-lucide="zap" class="w-6 h-6"></i>
-                    </button>
-                    <button onclick="openTab('config')" class="md:hidden w-12 h-12 rounded-2xl bg-slate-800 border border-white/5 flex items-center justify-center text-slate-400 active:scale-90 transition-all">
-                        <i data-lucide="settings" class="w-5 h-5"></i>
                     </button>
                 </div>
             </header>
 
-            <main class="max-w-3xl mx-auto p-4 md:p-8 space-y-6 pb-28 md:pb-12">
+            <main class="max-w-4xl mx-auto p-4 md:p-8 space-y-6 pb-28 md:pb-12">
 
                 <!-- 1. DASHBOARD -->
                 <section id="dashboard" class="tab-content active space-y-4">
                     <div class="grid grid-cols-2 gap-4">
-                        <div class="bg-emerald-950/40 border border-emerald-500/20 p-5 rounded-[2rem] relative overflow-hidden flex flex-col justify-end min-h-[140px] shadow-[0_0_15px_rgba(16,185,129,0.1)]">
+                        <div class="bg-emerald-950/40 border border-emerald-500/20 p-5 rounded-[2rem] relative overflow-hidden flex flex-col justify-end min-h-[140px]">
                             <p class="text-3xl font-black tracking-tighter leading-none mb-1 text-emerald-400"><span class="text-sm">R$</span><span id="dash-saldo">0</span></p>
-                            <p class="text-[9px] font-black uppercase tracking-widest text-emerald-500/60 leading-none">Saldo</p>
+                            <p class="text-[9px] font-black uppercase tracking-widest text-emerald-500/60 leading-none">Saldo Atual</p>
                             <i data-lucide="wallet" class="absolute -right-4 -top-4 w-24 h-24 text-emerald-500 opacity-10"></i>
                         </div>
                         <div class="bg-indigo-950/40 border border-indigo-500/20 p-5 rounded-[2rem] relative overflow-hidden flex flex-col justify-end min-h-[140px]">
@@ -115,7 +107,7 @@
                         </div>
                     </div>
 
-                    <div class="bg-slate-900 border border-white/5 p-6 rounded-[2.5rem] shadow-lg cursor-pointer" onclick="openTab('bike')">
+                    <div class="bg-slate-900 border border-white/5 p-6 rounded-[2.5rem] shadow-lg cursor-pointer" onclick="window.openTab('bike')">
                         <div class="flex justify-between items-start mb-4">
                             <div class="p-2.5 bg-blue-500/10 rounded-xl text-blue-500"><i data-lucide="bike" class="w-5 h-5"></i></div>
                             <p class="text-[10px] font-black uppercase tracking-widest text-blue-400"><span id="dash-consumo-moto">29</span> KM/L</p>
@@ -129,478 +121,583 @@
 
                     <div class="bg-slate-900/40 p-6 rounded-[2.5rem] border border-white/5">
                         <p class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 mb-4 flex items-center gap-2">
-                            <i data-lucide="bell" class="w-3 h-3 text-red-500"></i> Alertas do Sistema
+                            <i data-lucide="bell" class="w-3 h-3 text-red-500"></i> Alertas Ativos
                         </p>
                         <ul class="space-y-3" id="dash-docs-list"></ul>
                     </div>
                 </section>
 
-                <!-- 2. BIOMETRIA -->
+                <!-- 2. SAÚDE -->
                 <section id="saude" class="tab-content space-y-4">
-                    <div class="bg-slate-900 border border-white/5 p-6 rounded-[2.5rem] flex flex-col justify-between min-h-[160px]">
-                        <div class="space-y-4 mb-6">
-                            <div>
-                                <div class="flex justify-between text-[9px] font-black uppercase tracking-widest text-blue-500 mb-2 leading-none">
-                                    <span>Hidratação Total (<span id="water-goal-text">0</span>ml)</span>
-                                    <span id="water-percent-text">0%</span>
-                                </div>
-                                <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden shadow-inner">
-                                    <div id="water-bar" class="bg-blue-500 h-full transition-all duration-1000" style="width: 0%"></div>
-                                </div>
+                    <div class="bg-slate-900 border border-white/5 p-6 rounded-[2.5rem]">
+                        <div class="mb-6">
+                            <div class="flex justify-between text-[9px] font-black uppercase tracking-widest text-blue-500 mb-2">
+                                <span>Hidratação (Meta 3500ml)</span>
+                                <span id="water-percent-text">0%</span>
+                            </div>
+                            <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden">
+                                <div id="water-bar" class="bg-blue-500 h-full transition-all duration-1000" style="width: 0%"></div>
                             </div>
                         </div>
                         <div class="grid grid-cols-2 gap-3">
-                            <button onclick="addWaterWork()" class="bg-blue-600 p-4 rounded-3xl active:scale-95 transition-all shadow-xl text-center">
-                                <p class="text-lg font-black leading-none">473ml</p>
-                                <p class="text-[8px] font-black uppercase opacity-60 mt-1 leading-none">Makro Eng.</p>
+                            <button onclick="window.addWaterWork()" class="bg-blue-600 p-4 rounded-3xl active:scale-95 transition-all text-center">
+                                <p class="text-lg font-black">473ml</p>
+                                <p class="text-[8px] font-black uppercase opacity-60">Makro Engenharia</p>
                                 <p id="water-work-count" class="text-[9px] mt-2 font-bold text-blue-200">0/6</p>
                             </button>
-                            <button onclick="addWaterHome()" class="bg-slate-800 p-4 rounded-3xl border border-white/5 active:scale-95 transition-all text-center">
-                                <p class="text-lg font-black leading-none">250ml</p>
-                                <p class="text-[8px] font-black uppercase opacity-60 mt-1 leading-none">Home</p>
+                            <button onclick="window.addWaterHome()" class="bg-slate-800 p-4 rounded-3xl border border-white/5 active:scale-95 transition-all text-center">
+                                <p class="text-lg font-black">250ml</p>
+                                <p class="text-[8px] font-black uppercase opacity-60">Casa</p>
                                 <p id="water-home-count" class="text-[9px] mt-2 font-bold text-slate-400">0/2</p>
                             </button>
                         </div>
-                        <button onclick="resetWater()" class="w-full mt-4 text-[9px] uppercase tracking-widest text-slate-500 font-bold">Reset diário</button>
+                        <button onclick="window.resetWater()" class="w-full mt-4 text-[9px] uppercase tracking-widest text-slate-500 font-bold">Reset Diário</button>
                     </div>
 
-                    <div class="bg-slate-900/40 p-6 rounded-[2.5rem] border border-white/5 relative overflow-hidden">
-                        <div class="flex justify-between items-center mb-4 relative z-10">
-                            <div>
-                                <p class="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-500">Nível Cafeína</p>
-                                <p class="text-[8px] font-black uppercase text-slate-500 tracking-widest mt-1">Limite: <span id="caf-limit-text">400</span>mg</p>
-                            </div>
-                            <p class="font-black text-xl"><span id="monster-count">0</span><span class="text-[10px] text-slate-500 uppercase ml-1">Latas</span></p>
+                    <div class="bg-slate-900 p-6 rounded-[2.5rem] border border-white/5">
+                        <div class="flex flex-col items-center justify-center py-6 bg-slate-950/50 rounded-[2rem] border border-white/5 mb-4">
+                            <p class="text-5xl font-black tracking-tighter text-white" id="clean-days-count">0</p>
+                            <p class="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 mt-2">Dias de Disciplina</p>
                         </div>
-                        <div class="w-full bg-slate-950 h-1.5 rounded-full overflow-hidden mb-2 relative z-10">
-                            <div id="caf-bar" class="bg-emerald-500 h-full transition-all duration-500" style="width: 0%"></div>
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-[9px] font-black uppercase tracking-widest">
+                                <span class="text-slate-500">Meta: <span id="clean-goal-text">30</span> Dias</span>
+                                <span class="text-indigo-400" id="clean-percent-text">0%</span>
+                            </div>
+                            <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden">
+                                <div id="clean-bar" class="bg-indigo-500 h-full transition-all" style="width: 0%"></div>
+                            </div>
                         </div>
                     </div>
                 </section>
 
-                <!-- 3. VEÍCULO (FAZER 250) -->
+                <!-- 3. VEÍCULO -->
                 <section id="bike" class="tab-content space-y-4">
-                    <div class="bg-blue-600 p-6 rounded-[2.5rem] shadow-lg shadow-blue-500/20 relative overflow-hidden flex items-center justify-between">
-                        <div class="z-10 relative">
-                            <h3 id="bike-header-name" class="font-black text-2xl uppercase tracking-tighter text-white leading-none">Fazer 250</h3>
-                            <p class="text-[10px] font-black uppercase tracking-[0.2em] text-blue-200 mt-1 leading-none">Gestão de Veículo</p>
+                    <div class="bg-blue-600 p-6 rounded-[2.5rem] relative overflow-hidden flex items-center justify-between">
+                        <div class="z-10">
+                            <h3 id="bike-header-name" class="font-black text-2xl uppercase tracking-tighter text-white">Fazer 250</h3>
+                            <p class="text-[10px] font-black uppercase tracking-[0.2em] text-blue-200 mt-1">Status Operacional</p>
                         </div>
                         <i data-lucide="bike" class="absolute -right-2 -bottom-2 w-24 h-24 text-blue-800 opacity-30"></i>
                     </div>
 
                     <div class="bg-slate-900 p-6 rounded-[2.5rem] border border-white/5">
-                        <h3 class="text-[10px] font-black uppercase tracking-[0.3em] text-orange-500 mb-4 flex items-center gap-2"><i data-lucide="wrench" class="w-4 h-4 text-orange-500"></i> Lançar Serviço</h3>
+                        <h3 class="text-[10px] font-black uppercase tracking-[0.3em] text-orange-500 mb-4 flex items-center gap-2"><i data-lucide="wrench" class="w-4 h-4"></i> Lançar Serviço</h3>
                         <div class="space-y-3">
-                            <select id="servico-tipo" onchange="toggleServicoFields()" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold outline-none text-slate-300">
+                            <select id="servico-tipo" onchange="window.toggleServicoFields()" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold outline-none text-slate-300">
                                 <option value="Abastecimento">⛽ Abastecimento</option>
                                 <option value="Troca de Óleo">🛢️ Troca de Óleo</option>
                                 <option value="Manutenção">🔧 Manutenção Geral</option>
                             </select>
                             <div class="grid grid-cols-2 gap-3">
-                                <input type="number" id="servico-km" placeholder="KM Atual" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold outline-none text-slate-300">
-                                <input type="number" id="servico-valor" placeholder="Valor Total" oninput="calcCombustivel('valor')" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold outline-none text-slate-300">
+                                <input type="number" id="servico-km" placeholder="KM Atual" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold text-slate-300 outline-none">
+                                <input type="number" id="servico-valor" placeholder="Valor (R$)" oninput="window.calcCombustivel('valor')" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold text-slate-300 outline-none">
                             </div>
-                            <div id="campos-abastecimento" class="grid grid-cols-2 gap-3 transition-all">
-                                <select id="servico-combustivel" class="w-full col-span-2 p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold outline-none text-slate-300">
-                                    <option value="Gasolina Comum">Gasolina Comum</option>
-                                    <option value="Gasolina Aditivada">Gasolina Aditivada</option>
-                                </select>
-                                <input type="number" id="servico-preco-litro" placeholder="R$/Litro" oninput="calcCombustivel('preco')" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold outline-none text-slate-300">
-                                <input type="number" id="servico-litros" placeholder="Total Litros" oninput="calcCombustivel('litros')" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold outline-none text-slate-300">
+                            <div id="campos-abastecimento" class="hidden grid grid-cols-2 gap-3 transition-all">
+                                <input type="number" id="servico-preco-litro" placeholder="R$/Litro" oninput="window.calcCombustivel('preco')" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold outline-none text-slate-300">
+                                <input type="number" id="servico-litros" placeholder="Litros" oninput="window.calcCombustivel('litros')" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold outline-none text-slate-300">
                             </div>
-                            <button onclick="lancarServico()" class="w-full bg-slate-800 text-slate-300 py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl">Registrar</button>
+                            <button onclick="window.lancarServico()" class="w-full bg-slate-800 text-slate-300 py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl">Registrar</button>
                         </div>
                     </div>
 
-                    <div class="bg-slate-900/40 p-6 rounded-[2.5rem] border border-white/5">
-                        <p class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 mb-4 flex items-center gap-2"><i data-lucide="history" class="w-4 h-4 text-slate-500"></i> Histórico de Serviços</p>
-                        <div class="space-y-3" id="bike-history-list"></div>
+                    <div class="bg-slate-900 p-6 rounded-[2.5rem] border border-white/5">
+                        <div class="flex justify-between items-end mb-4">
+                            <label class="text-[9px] font-black uppercase text-slate-500 tracking-[0.2em]">Planeador de Rota (Distância)</label>
+                            <span class="font-black text-2xl text-white"><span id="trip-dist-display">100</span><small class="text-xs text-slate-500 ml-1">KM</small></span>
+                        </div>
+                        <input type="range" id="trip-slider" min="1" max="1000" value="100" oninput="window.calcularViagemPulse()" class="w-full">
+                        <div class="grid grid-cols-2 gap-4 p-5 bg-indigo-500/10 rounded-3xl mt-4 border border-indigo-500/20">
+                            <div><p class="text-[8px] font-black text-slate-400 uppercase">Litros</p><p class="text-xl font-black text-indigo-400"><span id="trip-litros">3.4</span> L</p></div>
+                            <div><p class="text-[8px] font-black text-slate-400 uppercase">Custo Est.</p><p class="text-xl font-black text-emerald-400">R$ <span id="trip-custo">20</span></p></div>
+                        </div>
+                        <div class="mt-4">
+                            <input type="number" id="valor-fundo-bike" placeholder="Alocar R$ no Fundo" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold text-slate-300 outline-none mb-2">
+                            <button onclick="window.adicionarFundo()" class="w-full bg-indigo-600 text-white py-3 rounded-2xl active:scale-95 transition text-[10px] font-black uppercase">Adicionar ao Fundo</button>
+                        </div>
                     </div>
                 </section>
 
-                <!-- 4. MAKRO ENG. (TRABALHO) -->
-                <section id="makro" class="tab-content space-y-4">
+                <!-- 4. WORK -->
+                <section id="work" class="tab-content space-y-4">
                     <div class="bg-slate-900 p-6 rounded-[2.5rem] border border-white/5">
                         <h3 class="text-[10px] font-black uppercase tracking-[0.3em] text-blue-500 mb-6 flex items-center gap-2">
-                            <i data-lucide="hard-hat" class="w-4 h-4"></i> Makro Engenharia (08h-18h)
+                            <i data-lucide="briefcase" class="w-4 h-4"></i> Work Activity Manager
                         </h3>
-                        <div class="space-y-4">
-                            <div class="flex gap-2">
-                                <input type="text" id="makro-tarefa" placeholder="Nova ordem de serviço..." class="flex-1 p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold text-slate-300 outline-none">
-                                <button onclick="addMakroTask()" class="bg-blue-600 px-5 rounded-2xl active:scale-95 transition"><i data-lucide="plus" class="w-5 h-5"></i></button>
+                        <div class="space-y-3 mb-8">
+                            <input type="text" id="work-task-title" placeholder="Nova Atividade..." class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold text-slate-300 outline-none">
+                            <div class="grid grid-cols-2 gap-3">
+                                <input type="text" id="work-task-requester" placeholder="Solicitante" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold text-slate-300 outline-none">
+                                <input type="date" id="work-task-deadline" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold text-slate-400 outline-none">
                             </div>
-                            <div id="makro-task-list" class="space-y-2"></div>
+                            <button onclick="window.addWorkTask()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase text-[10px] shadow-xl">Lançar Atividade</button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead class="text-[8px] font-black uppercase text-slate-500 tracking-widest border-b border-white/5">
+                                    <tr><th class="pb-3 px-2">Tarefa</th><th class="pb-3 px-2">Solicitante</th><th class="pb-3 px-2">Data</th><th class="pb-3 px-2 text-right">Ação</th></tr>
+                                </thead>
+                                <tbody id="work-task-active-list" class="divide-y divide-white/5"></tbody>
+                            </table>
                         </div>
                     </div>
-
-                    <div class="bg-slate-900/40 p-6 rounded-[2.5rem] border border-white/5">
-                        <p class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 mb-4 flex items-center gap-2"><i data-lucide="file-text" class="w-4 h-4"></i> Notas de Campo</p>
-                        <textarea id="makro-notes" oninput="saveMakroNotes()" placeholder="Escreva aqui apontamentos rápidos do dia de trabalho..." class="w-full h-40 bg-slate-950 border border-white/5 rounded-2xl p-4 text-xs italic text-slate-400 outline-none resize-none"></textarea>
+                    
+                    <button onclick="window.toggleArchive()" class="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-slate-600 hover:text-slate-400 ml-4">
+                        <i id="archive-toggle-icon" data-lucide="chevron-right" class="w-3 h-3"></i> Arquivados (<span id="archive-count">0</span>)
+                    </button>
+                    <div id="work-archive-section" class="hidden animate-[fadeIn_0.3s_ease-out]">
+                        <div class="bg-slate-900/50 p-6 rounded-[2.5rem] border border-white/5 border-dashed overflow-x-auto">
+                            <table class="w-full text-left opacity-60">
+                                <tbody id="work-task-archived-list" class="divide-y divide-white/5"></tbody>
+                            </table>
+                        </div>
                     </div>
                 </section>
 
                 <!-- 5. FINANÇAS -->
                 <section id="financas" class="tab-content space-y-4">
                     <div class="bg-slate-900 border border-white/5 p-6 rounded-[2.5rem]">
-                        <p class="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-500 mb-2 flex items-center gap-2"><i data-lucide="pie-chart" class="w-4 h-4"></i> Fluxo de Caixa</p>
-                        <p class="text-4xl font-black tracking-tighter text-white py-2"><span class="text-lg">R$</span> <span id="fin-saldo-atual">0</span></p>
+                        <p class="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-500 mb-2">Fluxo de Caixa</p>
+                        <p class="text-4xl font-black tracking-tighter text-white">R$ <span id="fin-saldo-atual-pag">0</span></p>
                     </div>
-
-                    <div class="bg-slate-900/40 p-6 rounded-[2.5rem] border border-white/5">
-                        <h3 class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 mb-4 flex items-center gap-2"><i data-lucide="plus-circle" class="w-4 h-4 text-emerald-500"></i> Novo Lançamento</h3>
-                        <div class="space-y-3">
-                            <select id="fin-categoria" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold text-slate-300 outline-none appearance-none"></select>
-                            <input type="text" id="fin-desc" placeholder="Descrição..." class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold text-slate-300 outline-none">
-                            <input type="number" id="fin-valor" placeholder="Valor Total" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold text-slate-300 outline-none">
-                            
-                            <div class="flex gap-2 mt-2">
-                                <label class="pulse-check flex-1 flex items-center p-3 sm:p-4 bg-slate-950 border border-white/5 rounded-2xl cursor-pointer">
-                                    <input type="checkbox" class="hidden" id="fin-planejado" onchange="toggleDataVencimento()">
-                                    <div class="w-5 h-5 border-2 border-slate-700 rounded-lg flex items-center justify-center mr-2 transition-colors flex-shrink-0">
-                                        <svg class="w-3 h-3 text-white opacity-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
-                                    </div>
-                                    <span class="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-300 transition-colors">Agendar</span>
-                                </label>
-                                <input type="date" id="fin-data-vencimento" class="hidden flex-1 p-3 sm:p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold text-slate-400 outline-none">
-                            </div>
-
-                            <div class="grid grid-cols-2 gap-3 pt-2">
-                                <button onclick="lancarFinanca('receita')" class="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 py-4 rounded-2xl font-black uppercase text-[10px] active:scale-95 transition-all">Entrada</button>
-                                <button onclick="lancarFinanca('despesa')" class="bg-red-500/10 text-red-500 border border-red-500/20 py-4 rounded-2xl font-black uppercase text-[10px] active:scale-95 transition-all">Saída</button>
-                            </div>
+                    <div class="bg-slate-900/40 p-6 rounded-[2.5rem] border border-white/5 space-y-3">
+                        <div class="grid grid-cols-2 gap-2">
+                            <select id="fin-categoria" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold text-slate-300 outline-none"></select>
+                            <input type="number" id="fin-valor" placeholder="R$" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold text-slate-300 outline-none">
+                        </div>
+                        <input type="text" id="fin-desc" placeholder="Descrição..." class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold text-slate-300 outline-none">
+                        <div class="grid grid-cols-2 gap-3 pt-2">
+                            <button onclick="window.lancarFinanca('receita')" class="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 py-4 rounded-2xl font-black uppercase text-[10px]">Entrada</button>
+                            <button onclick="window.lancarFinanca('despesa')" class="bg-red-500/10 text-red-500 border border-red-500/20 py-4 rounded-2xl font-black uppercase text-[10px]">Saída</button>
                         </div>
                     </div>
-
-                    <div class="bg-slate-900 p-6 rounded-[2.5rem] border border-white/5">
-                        <h3 class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 mb-4 flex items-center gap-2"><i data-lucide="history" class="w-4 h-4 text-slate-500"></i> Linha do Tempo</h3>
-                        <div class="space-y-3" id="fin-history-list"></div>
-                    </div>
+                    <div class="bg-slate-900 p-6 rounded-[2.5rem] border border-white/5 space-y-3" id="fin-history-list"></div>
                 </section>
 
-                <!-- 6. CONFIGURAÇÕES -->
+                <!-- 6. AJUSTES -->
                 <section id="config" class="tab-content space-y-4">
                     <div class="bg-slate-900 p-6 rounded-[2.5rem] border border-white/5 text-xs font-bold text-slate-400">
-                        <h3 class="text-[10px] font-black uppercase tracking-[0.3em] text-blue-500 mb-6 flex items-center gap-2"><i data-lucide="activity" class="w-4 h-4"></i> Biometria</h3>
+                        <h3 class="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-500 mb-6 flex items-center gap-2"><i data-lucide="shield-check" class="w-4 h-4"></i> Disciplina Diária</h3>
                         <div class="grid grid-cols-2 gap-4">
-                            <div><label class="block mb-1 uppercase tracking-widest text-[8px]">Peso (KG)</label><input type="number" id="peso-user" class="w-full p-3 bg-slate-950 border border-white/5 rounded-xl outline-none text-slate-300"></div>
-                            <div><label class="block mb-1 uppercase tracking-widest text-[8px]">Altura (CM)</label><input type="number" id="altura-user" class="w-full p-3 bg-slate-950 border border-white/5 rounded-xl outline-none text-slate-300"></div>
+                            <div><label class="block mb-1 uppercase tracking-widest text-[8px]">Data Início</label><input type="date" id="clean-start-date" class="w-full p-3 bg-slate-950 border border-white/5 rounded-xl outline-none text-slate-300"></div>
+                            <div><label class="block mb-1 uppercase tracking-widest text-[8px]">Meta (Dias)</label><input type="number" id="clean-goal-days" class="w-full p-3 bg-slate-950 border border-white/5 rounded-xl outline-none text-slate-300"></div>
                         </div>
                     </div>
 
                     <div class="bg-slate-900 p-6 rounded-[2.5rem] border border-white/5 text-xs font-bold text-slate-400">
-                        <h3 class="text-[10px] font-black uppercase tracking-[0.3em] text-blue-500 mb-6 flex items-center gap-2"><i data-lucide="bike" class="w-4 h-4"></i> Setup Operacional</h3>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div><label class="block mb-1 uppercase tracking-widest text-[8px]">Estado</label><select id="estado" onchange="changeEstado()" class="w-full p-3 bg-slate-950 border border-white/5 rounded-xl outline-none"></select></div>
-                            <div><label class="block mb-1 uppercase tracking-widest text-[8px]">Cidade</label><select id="cidade" class="w-full p-3 bg-slate-950 border border-white/5 rounded-xl outline-none"></select></div>
+                        <h3 class="text-[10px] font-black uppercase tracking-[0.3em] text-blue-500 mb-6 flex items-center gap-2"><i data-lucide="bike" class="w-4 h-4"></i> Configuração Veículo</h3>
+                        <div class="space-y-4">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block mb-1 uppercase tracking-widest text-[8px]">Tipo</label>
+                                    <select id="veiculo-tipo" class="w-full p-3 bg-slate-950 border border-white/5 rounded-xl outline-none text-slate-300">
+                                        <option value="Moto">Moto</option>
+                                        <option value="Carro">Carro</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block mb-1 uppercase tracking-widest text-[8px]">Montadora</label>
+                                    <select id="veiculo-montadora" onchange="window.updateModelDropdown()" class="w-full p-3 bg-slate-950 border border-white/5 rounded-xl outline-none text-slate-300">
+                                        <option value="Yamaha">Yamaha</option>
+                                        <option value="Honda">Honda</option>
+                                        <option value="BMW">BMW</option>
+                                        <option value="Kawasaki">Kawasaki</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block mb-1 uppercase tracking-widest text-[8px]">Modelo</label>
+                                <select id="veiculo-modelo" class="w-full p-3 bg-slate-950 border border-white/5 rounded-xl outline-none text-slate-300"></select>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div><label class="block mb-1 uppercase tracking-widest text-[8px]">Consumo (KM/L)</label><input type="number" id="veiculo-consumo" class="w-full p-3 bg-slate-950 border border-white/5 rounded-xl outline-none text-slate-300"></div>
+                                <div><label class="block mb-1 uppercase tracking-widest text-[8px]">KM Atual</label><input type="number" id="veiculo-km-atual" class="w-full p-3 bg-slate-950 border border-white/5 rounded-xl outline-none text-slate-300"></div>
+                            </div>
                         </div>
                     </div>
 
-                    <button onclick="saveConfig()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase text-[10px] shadow-xl">Guardar Settings</button>
+                    <div class="bg-slate-900 p-6 rounded-[2.5rem] border border-white/5 space-y-3">
+                        <button onclick="window.saveConfig()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase text-[10px]">Salvar Configurações</button>
+                        <button onclick="window.exportToCSV()" class="w-full bg-slate-800 text-slate-400 py-3 rounded-2xl font-black uppercase text-[8px] flex items-center justify-center gap-2 tracking-widest">
+                            <i data-lucide="download" class="w-3 h-3"></i> Exportar Planilha (CSV)
+                        </button>
+                    </div>
                 </section>
 
             </main>
         </div>
 
-        <!-- UI MODAL NATIVO -->
+        <!-- MODAL -->
         <div id="pulse-modal" class="fixed inset-0 z-[100] bg-black/80 hidden flex-col items-center justify-center backdrop-blur-sm p-4 transition-opacity opacity-0">
-            <div id="pulse-modal-content" class="bg-slate-900 border border-white/10 p-6 rounded-[2.5rem] w-full max-w-sm shadow-2xl scale-95 transition-transform duration-300">
-                <div class="flex items-center gap-3 mb-4">
-                    <div id="pulse-modal-icon" class="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center"></div>
-                    <h3 id="pulse-modal-title" class="text-lg font-black text-white uppercase tracking-tighter leading-none">Aviso</h3>
-                </div>
-                <p id="pulse-modal-msg" class="text-xs text-slate-400 mb-4 font-medium leading-relaxed"></p>
-                <div id="pulse-modal-custom-content" class="space-y-3 mb-6">
-                    <input type="text" id="pulse-modal-input" class="hidden w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold outline-none text-slate-300">
-                </div>
-                <div class="flex gap-3 justify-end">
-                    <button id="pulse-modal-cancel" class="hidden px-5 py-3.5 rounded-2xl text-[10px] font-black text-slate-400 hover:text-white uppercase tracking-widest transition">Cancelar</button>
-                    <button id="pulse-modal-confirm" class="px-5 py-3.5 rounded-2xl text-[10px] font-black bg-blue-600 text-white uppercase tracking-widest shadow-lg shadow-blue-500/20 active:scale-95 transition">Confirmar</button>
-                </div>
+            <div id="pulse-modal-content" class="bg-slate-900 border border-white/10 p-6 rounded-[2.5rem] w-full max-sm shadow-2xl scale-95 transition-all">
+                <div class="flex items-center gap-3 mb-4"><div id="pulse-modal-icon" class="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center"></div><h3 id="pulse-modal-title" class="text-lg font-black text-white uppercase tracking-tighter leading-none">Aviso</h3></div>
+                <p id="pulse-modal-msg" class="text-xs text-slate-400 mb-6"></p>
+                <div class="flex gap-3 justify-end"><button onclick="window.PulseModal.close()" class="px-5 py-3 rounded-2xl text-[10px] font-black bg-blue-600 text-white uppercase tracking-widest">OK</button></div>
             </div>
         </div>
     </div>
 
-    <!-- Navegação Mobile -->
+    <!-- Navigation Mobile -->
     <nav class="md:hidden fixed bottom-0 left-0 right-0 h-20 bg-slate-900/90 backdrop-blur-2xl border-t border-white/5 z-50">
         <div class="flex justify-around items-center h-full max-w-lg mx-auto">
-            <button onclick="openTab('dashboard')" id="btn-dashboard" class="nav-btn flex flex-col items-center gap-1 transition-all text-blue-500"><i data-lucide="layout-dashboard" class="w-5 h-5"></i><span class="text-[7px] font-black uppercase">Home</span></button>
-            <button onclick="openTab('saude')" id="btn-saude" class="nav-btn flex flex-col items-center gap-1 transition-all text-slate-500"><i data-lucide="activity" class="w-5 h-5"></i><span class="text-[7px] font-black uppercase">Saúde</span></button>
-            <button onclick="openTab('bike')" id="btn-bike" class="nav-btn flex flex-col items-center gap-1 transition-all text-slate-500"><i data-lucide="bike" class="w-5 h-5"></i><span id="nav-bike-name" class="text-[7px] font-black uppercase">Veículo</span></button>
-            <button onclick="openTab('makro')" id="btn-makro" class="nav-btn flex flex-col items-center gap-1 transition-all text-slate-500"><i data-lucide="hard-hat" class="w-5 h-5"></i><span class="text-[7px] font-black uppercase">Makro</span></button>
-            <button onclick="openTab('financas')" id="btn-financas" class="nav-btn flex flex-col items-center gap-1 transition-all text-slate-500"><i data-lucide="wallet" class="w-5 h-5"></i><span class="text-[7px] font-black uppercase">Finanças</span></button>
+            <button onclick="window.openTab('dashboard')" class="nav-btn flex flex-col items-center gap-1 text-blue-500"><i data-lucide="layout-dashboard" class="w-5 h-5"></i><span class="text-[7px] font-black uppercase">Home</span></button>
+            <button onclick="window.openTab('saude')" class="nav-btn flex flex-col items-center gap-1 text-slate-500"><i data-lucide="activity" class="w-5 h-5"></i><span class="text-[7px] font-black uppercase">Saúde</span></button>
+            <button onclick="window.openTab('bike')" class="nav-btn flex flex-col items-center gap-1 text-slate-500"><i data-lucide="bike" class="w-5 h-5"></i><span id="nav-bike-name" class="text-[7px] font-black uppercase">Fazer</span></button>
+            <button onclick="window.openTab('work')" class="nav-btn flex flex-col items-center gap-1 text-slate-500"><i data-lucide="briefcase" class="w-5 h-5"></i><span class="text-[7px] font-black uppercase">Work</span></button>
+            <button onclick="window.openTab('financas')" class="nav-btn flex flex-col items-center gap-1 text-slate-500"><i data-lucide="wallet" class="w-5 h-5"></i><span class="text-[7px] font-black uppercase">Finanças</span></button>
         </div>
     </nav>
 
-    <script>
-        lucide.createIcons();
+    <script type="module">
+        // --- IMPORTS FIREBASE ---
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- CONFIGURAÇÃO ---
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'pulse-os-fortaleza';
+        
+        // --- GLOBAIS ---
+        const categories = ["Salário", "Makro Eng.", "Alimentação", "Veículo", "Lazer", "Contas", "Outros"];
+        const modelsByBrand = {
+            "Yamaha": ["Fazer 250", "MT-03", "Lander 250", "Crosser 150"],
+            "Honda": ["CB 300F", "XRE 300", "CG 160 Titan", "PCX"],
+            "BMW": ["G 310 GS", "F 850 GS", "R 1250 GS"],
+            "Kawasaki": ["Ninja 400", "Z400", "Versys 650"]
+        };
+
+        const weatherMocks = {
+            "Fortaleza": { temp: 30, desc: "Ensolarado", icon: "sun" },
+            "Caucaia": { temp: 29, desc: "Nublado", icon: "cloud" },
+            "São Paulo": { temp: 22, desc: "Chuvoso", icon: "cloud-rain" }
+        };
+
+        let appState = {
+            saldo: 0,
+            fundoRota: 0,
+            transacoes: [],
+            tarefas: [],
+            water: { work: 0, home: 0 },
+            veiculo: { km: 0, oleo: 0, consumo: 29, montadora: 'Yamaha', modelo: 'Fazer 250', tipo: 'Moto' }
+        };
 
         // --- MODAL ---
-        const PulseModal = {
-            show({ title, msg, icon = 'bell', type = 'alert', inputVal = '', customHTML = '', confirmText = 'OK', cancelText = 'Cancelar', onConfirm }) {
+        window.PulseModal = {
+            show(title, msg, icon = 'bell') {
                 const modal = document.getElementById('pulse-modal');
-                const content = document.getElementById('pulse-modal-content');
-                const customContainer = document.getElementById('pulse-modal-custom-content');
                 document.getElementById('pulse-modal-title').innerText = title;
-                document.getElementById('pulse-modal-msg').innerHTML = msg;
+                document.getElementById('pulse-modal-msg').innerText = msg;
                 document.getElementById('pulse-modal-icon').innerHTML = `<i data-lucide="${icon}" class="w-4 h-4"></i>`;
                 lucide.createIcons();
-                const inputEl = document.getElementById('pulse-modal-input');
-                const btnCancel = document.getElementById('pulse-modal-cancel');
-                const btnConfirm = document.getElementById('pulse-modal-confirm');
-                btnConfirm.innerText = confirmText; btnCancel.innerText = cancelText;
-                customContainer.innerHTML = '';
-                if(customHTML) { customContainer.innerHTML = customHTML; inputEl.classList.add('hidden'); }
-                else if(type === 'prompt') { customContainer.appendChild(inputEl); inputEl.classList.remove('hidden'); inputEl.value = inputVal; setTimeout(() => inputEl.focus(), 300); }
-                if(type === 'confirm' || type === 'prompt' || customHTML) btnCancel.classList.remove('hidden'); else btnCancel.classList.add('hidden');
                 modal.classList.remove('hidden'); modal.classList.add('flex');
-                setTimeout(() => { modal.classList.replace('opacity-0', 'opacity-100'); content.classList.replace('scale-95', 'scale-100'); }, 10);
-                btnCancel.onclick = () => this.close();
-                btnConfirm.onclick = () => {
-                    let result = true;
-                    if(customHTML) { result = {}; customContainer.querySelectorAll('input, select').forEach(el => result[el.id] = el.value); }
-                    else if(type === 'prompt') { result = inputEl.value; }
-                    this.close(); if(onConfirm) onConfirm(result);
-                };
+                setTimeout(() => modal.classList.replace('opacity-0', 'opacity-100'), 10);
             },
             close() {
                 const modal = document.getElementById('pulse-modal');
-                const content = document.getElementById('pulse-modal-content');
-                modal.classList.replace('opacity-100', 'opacity-0'); content.classList.replace('scale-100', 'scale-95');
-                setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 300);
+                modal.classList.replace('opacity-100', 'opacity-0');
+                setTimeout(() => modal.classList.add('hidden'), 300);
             }
         };
 
-        // --- DADOS ---
-        let saldoAtual = parseFloat(localStorage.getItem('saldoAtual')) || 0;
-        let transacoes = JSON.parse(localStorage.getItem('transacoes')) || [];
-        let makroTasks = JSON.parse(localStorage.getItem('makroTasks')) || [];
-        const locaisBR = { "CE": ["Fortaleza", "Caucaia"], "SP": ["São Paulo", "Santos"] };
-        const defaultCategorias = ["Salário", "Alimentação", "Veículo", "Contas", "Outros"];
-
-        // --- CLIMA ---
-        const weatherMocks = {
-            "Fortaleza": { temp: 30, state: "Ensolarado", icon: "sun" },
-            "Caucaia": { temp: 29, state: "Parcialmente Nublado", icon: "cloud-sun" },
-            "São Paulo": { temp: 22, state: "Nublado", icon: "cloud" },
-            "Santos": { temp: 25, state: "Chuvoso", icon: "cloud-rain" }
+        // --- AUTH & CLOUD ---
+        const initAuth = async () => {
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                await signInWithCustomToken(auth, __initial_auth_token);
+            } else {
+                await signInAnonymously(auth);
+            }
         };
 
-        function updateWeather() {
-            const city = localStorage.getItem('cidade') || 'Fortaleza';
-            const data = weatherMocks[city] || { temp: 28, state: "Estável", icon: "sun" };
-            
-            // Header Desktop
-            document.getElementById('header-weather-info').innerHTML = `${data.temp}°C <i data-lucide="${data.icon}" class="inline w-3 h-3 mb-1"></i>`;
-            document.getElementById('desktop-loc').innerText = city.toUpperCase();
+        onAuthStateChanged(auth, user => {
+            const statusEl = document.getElementById('cloud-status');
+            if (user) {
+                statusEl.innerHTML = `<div class="w-2 h-2 rounded-full bg-emerald-500"></div><span class="text-[8px] font-black uppercase tracking-widest text-emerald-500">Online</span>`;
+                loadCloudData(user.uid);
+            }
+        });
 
-            // Header Mobile
-            document.getElementById('current-location').innerHTML = `${city.toUpperCase()} • ${data.temp}°C <i data-lucide="${data.icon}" class="inline w-2 h-2 mb-0.5"></i>`;
+        const loadCloudData = (userId) => {
+            const path = doc(db, 'artifacts', appId, 'users', userId, 'userdata', 'main');
+            onSnapshot(path, snapshot => {
+                if (snapshot.exists()) {
+                    appState = { ...appState, ...snapshot.data() };
+                    updateUI();
+                }
+            }, err => console.error("Cloud Read Error:", err));
+        };
 
-            // Sidebar
-            document.getElementById('side-weather-temp').innerText = `${data.temp}°C • ${data.state}`;
-            document.getElementById('side-weather-city').innerText = `${city}, ${localStorage.getItem('estado') || 'CE'}`;
-            document.getElementById('side-weather-icon').setAttribute('data-lucide', data.icon);
+        const saveCloudData = async () => {
+            if (!auth.currentUser) return;
+            const path = doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'userdata', 'main');
+            await setDoc(path, appState, { merge: true });
+        };
+
+        // --- UI RENDER ---
+        const updateUI = () => {
+            document.getElementById('dash-saldo').innerText = appState.saldo.toFixed(0);
+            document.getElementById('dash-fundo').innerText = appState.fundoRota.toFixed(0);
+            document.getElementById('fin-saldo-atual-pag').innerText = appState.saldo.toFixed(0);
+            document.getElementById('dash-km-atual').innerText = appState.veiculo.km;
+            document.getElementById('dash-consumo-moto').innerText = appState.veiculo.consumo;
             
+            const oilDiff = appState.veiculo.km - appState.veiculo.oleo;
+            document.getElementById('dash-oil-bar').style.width = Math.min((oilDiff/5000)*100, 100) + '%';
+            document.getElementById('dash-oil-text').innerText = `ÓLEO EM ${Math.max(0, 5000 - oilDiff)} KM`;
+            
+            const totalWater = (appState.water.work * 473) + (appState.water.home * 250);
+            const waterPerc = Math.min((totalWater / 3500) * 100, 100);
+            document.getElementById('water-percent-text').innerText = waterPerc.toFixed(0) + '%';
+            document.getElementById('water-bar').style.width = waterPerc + '%';
+            document.getElementById('water-work-count').innerText = `${appState.water.work}/6`;
+            document.getElementById('water-home-count').innerText = `${appState.water.home}/2`;
+
+            const start = localStorage.getItem('cleanStartDate');
+            let days = start ? Math.floor((new Date() - new Date(start)) / 86400000) : 0;
+            const goal = parseInt(localStorage.getItem('cleanGoalDays')) || 30;
+            document.getElementById('clean-days-count').innerText = days;
+            document.getElementById('clean-bar').style.width = Math.min((days/goal)*100, 100) + '%';
+            document.getElementById('clean-percent-text').innerText = Math.min((days/goal)*100, 100).toFixed(0) + '%';
+            document.getElementById('clean-goal-text').innerText = goal;
+
+            renderFinances();
+            renderWork();
+            renderAlerts();
+            atualizarNomeVeiculo();
+            updateWeatherUI();
             lucide.createIcons();
-        }
+        };
 
-        // --- FUNÇÕES OPERACIONAIS ---
-        function updateFinancas() {
-            document.getElementById('dash-saldo').innerText = saldoAtual.toFixed(0);
-            document.getElementById('fin-saldo-atual').innerText = saldoAtual.toFixed(0);
-            localStorage.setItem('saldoAtual', saldoAtual);
-            renderTransacoes();
-        }
-
-        function renderTransacoes() {
-            const cats = [...defaultCategorias, ...(JSON.parse(localStorage.getItem('customCategorias')) || [])];
-            document.getElementById('fin-categoria').innerHTML = cats.map(c => `<option value="${c}">${c}</option>`).join('');
-            const html = transacoes.slice().reverse().slice(0, 15).map(t => `
-                <div class="flex justify-between items-center p-4 bg-slate-950 rounded-2xl border ${t.status === 'planejada' ? 'border-dashed opacity-70 border-slate-500' : 'border-white/5'} group">
-                    <div class="flex items-center gap-4">
-                        <div class="w-8 h-8 rounded-xl flex items-center justify-center ${t.tipo === 'receita' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}">
-                            <i data-lucide="${t.tipo === 'receita' ? 'arrow-up-right' : 'arrow-down-right'}" class="w-4 h-4"></i>
-                        </div>
-                        <div class="overflow-hidden"><p class="text-xs font-bold text-slate-300 truncate max-w-[120px]">${t.desc}</p><p class="text-[8px] font-black uppercase text-slate-600">${t.cat} • ${t.data}</p></div>
-                    </div>
-                    <div class="flex flex-col items-end gap-1"><p class="text-xs font-black ${t.tipo === 'receita' ? 'text-emerald-400' : 'text-red-400'}">${t.tipo === 'receita' ? '+' : '-'} R$ ${t.valor.toFixed(0)}</p>
-                    <div class="flex gap-3">${t.status === 'planejada' ? `<button onclick="efetivarTransacao(${t.id})" class="text-emerald-500"><i data-lucide="check-circle" class="w-3.5 h-3.5"></i></button>` : ''}<button onclick="editarTransacao(${t.id})" class="text-slate-500"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button><button onclick="excluirTransacao(${t.id})" class="text-slate-500"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button></div></div>
-                </div>`).join('');
-            document.getElementById('fin-history-list').innerHTML = html || '<p class="text-center text-[9px] text-slate-600">Nenhum lançamento.</p>';
-            const bikeTx = transacoes.filter(t => t.cat === 'Veículo').reverse().slice(0, 5).map(t => `<div class="p-3 bg-slate-950 rounded-xl border border-white/5 flex justify-between items-center"><span class="text-[10px] font-bold">${t.desc}</span><span class="text-[10px] font-black text-red-400">R$ ${t.valor.toFixed(0)}</span></div>`).join('');
-            document.getElementById('bike-history-list').innerHTML = bikeHtml = bikeTx || '<p class="text-center text-[9px] text-slate-600">Nenhum serviço.</p>';
-            lucide.createIcons();
-        }
-
-        function editarTransacao(id) {
-            const t = transacoes.find(x => x.id === id);
-            const cats = [...defaultCategorias, ...(JSON.parse(localStorage.getItem('customCategorias')) || [])];
-            const [d,m,y] = t.data.split('/');
-            const customHTML = `
-                <div class="space-y-3">
-                    <input type="text" id="edit-desc" value="${t.desc}" class="w-full p-3 bg-slate-950 border border-white/5 rounded-xl text-xs font-bold text-slate-300">
-                    <div class="grid grid-cols-2 gap-2">
-                        <input type="number" id="edit-valor" value="${t.valor}" class="w-full p-3 bg-slate-950 border border-white/5 rounded-xl text-xs font-bold text-slate-300">
-                        <input type="date" id="edit-data" value="${y}-${m}-${d}" class="w-full p-3 bg-slate-950 border border-white/5 rounded-xl text-xs font-bold text-slate-400">
-                    </div>
-                    <select id="edit-cat" class="w-full p-3 bg-slate-950 border border-white/5 rounded-xl text-xs font-bold text-slate-300">
-                        ${cats.map(c => `<option value="${c}" ${c === t.cat ? 'selected' : ''}>${c}</option>`).join('')}
-                    </select>
-                    <select id="edit-tipo" class="w-full p-3 bg-slate-950 border border-white/5 rounded-xl text-xs font-bold text-slate-300">
-                        <option value="receita" ${t.tipo === 'receita' ? 'selected' : ''}>Entrada</option>
-                        <option value="despesa" ${t.tipo === 'despesa' ? 'selected' : ''}>Saída</option>
-                    </select>
-                </div>`;
-            PulseModal.show({ title: 'Editar', msg: 'Ajuste os dados:', icon: 'edit-2', customHTML, onConfirm: (data) => {
-                if(t.status !== 'planejada') saldoAtual += (t.tipo === 'receita' ? -t.valor : t.valor);
-                t.desc = data['edit-desc']; t.valor = parseFloat(data['edit-valor']); t.cat = data['edit-cat']; t.tipo = data['edit-tipo']; t.data = data['edit-data'].split('-').reverse().join('/');
-                if(t.status !== 'planejada') saldoAtual += (t.tipo === 'receita' ? t.valor : -t.valor);
-                localStorage.setItem('transacoes', JSON.stringify(transacoes)); updateFinancas();
-            }});
-        }
-
-        function excluirTransacao(id) {
-            PulseModal.show({ title: 'Excluir', msg: 'Deseja apagar este registro?', icon: 'trash-2', type: 'confirm', onConfirm: () => {
-                const idx = transacoes.findIndex(x => x.id === id); const t = transacoes[idx];
-                if(t.status !== 'planejada') saldoAtual += (t.tipo === 'receita' ? -t.valor : t.valor);
-                transacoes.splice(idx, 1); localStorage.setItem('transacoes', JSON.stringify(transacoes)); updateFinancas();
-            }});
-        }
-
-        function lancarFinanca(tipo) {
-            const desc = document.getElementById('fin-desc').value || 'Manual';
-            const val = parseFloat(document.getElementById('fin-valor').value);
-            const isP = document.getElementById('fin-planejado').checked;
-            const dataV = document.getElementById('fin-data-vencimento').value;
-            if(!val) return;
-            const dataFinal = isP ? dataV.split('-').reverse().join('/') : new Date().toLocaleDateString('pt-BR');
-            transacoes.push({ id: Date.now(), tipo, cat: document.getElementById('fin-categoria').value, desc, valor: val, data: dataFinal, status: isP ? 'planejada' : 'efetivada' });
-            if(!isP) saldoAtual += (tipo === 'receita' ? val : -val);
-            localStorage.setItem('transacoes', JSON.stringify(transacoes)); updateFinancas();
-            document.getElementById('fin-desc').value = ''; document.getElementById('fin-valor').value = '';
-        }
-
-        // --- LÓGICA BIOMETRIA ---
-        let waterWork = parseInt(localStorage.getItem('waterWork')) || 0;
-        let waterHome = parseInt(localStorage.getItem('waterHome')) || 0;
-        let monsterCount = parseInt(localStorage.getItem('monster')) || 0;
-
-        function updateSaude() {
-            const peso = parseFloat(localStorage.getItem('pesoUser')) || 80;
-            const metaAgua = 3500; // Meta fixa conforme perfil
-            const totalAgua = (waterWork * 473) + (waterHome * 250);
-            const percAgua = Math.min((totalAgua / metaAgua) * 100, 100);
-            
-            document.getElementById('water-goal-text').innerText = metaAgua;
-            document.getElementById('water-percent-text').innerText = percAgua.toFixed(0) + '%';
-            document.getElementById('water-bar').style.width = percAgua + '%';
-            document.getElementById('water-work-count').innerText = `${waterWork}/6`;
-            document.getElementById('water-home-count').innerText = `${waterHome}/2`;
-
-            const limiteCaf = (peso * 5.7).toFixed(0);
-            const totalCaf = monsterCount * 160;
-            const percCaf = Math.min((totalCaf / limiteCaf) * 100, 100);
-            
-            document.getElementById('caf-limit-text').innerText = limiteCaf;
-            document.getElementById('monster-count').innerText = monsterCount;
-            document.getElementById('caf-bar').style.width = percCaf + '%';
-            document.getElementById('caf-bar').className = `h-full transition-all duration-500 ${percCaf > 90 ? 'bg-red-500' : 'bg-emerald-500'}`;
-
-            localStorage.setItem('waterWork', waterWork);
-            localStorage.setItem('waterHome', waterHome);
-            localStorage.setItem('monster', monsterCount);
-        }
-
-        function addWaterWork() { if(waterWork < 6) { waterWork++; updateSaude(); } }
-        function addWaterHome() { if(waterHome < 2) { waterHome++; updateSaude(); } }
-        function resetWater() { waterWork = 0; waterHome = 0; updateSaude(); }
-        function addMonster() { monsterCount++; updateSaude(); }
-
-        // --- LÓGICA MAKRO ---
-        function renderMakroTasks() {
-            document.getElementById('makro-task-list').innerHTML = makroTasks.map((t, i) => `
-                <div class="flex items-center justify-between p-4 bg-slate-950 border border-white/5 rounded-2xl">
-                    <div class="flex items-center gap-3" onclick="toggleMakroTask(${i})">
-                        <div class="w-5 h-5 border-2 rounded ${t.done ? 'bg-blue-600 border-blue-600' : 'border-slate-700'} flex items-center justify-center">${t.done ? '<i data-lucide="check" class="w-3 h-3"></i>' : ''}</div>
-                        <span class="text-xs font-bold uppercase ${t.done ? 'line-through text-slate-600' : ''}">${t.text}</span>
-                    </div>
-                    <button onclick="deleteMakroTask(${i})" class="text-slate-600"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                </div>`).join('');
-            lucide.createIcons();
-            localStorage.setItem('makroTasks', JSON.stringify(makroTasks));
-        }
-        function addMakroTask() { const inp = document.getElementById('makro-tarefa'); if(inp.value) { makroTasks.push({ text: inp.value, done: false }); inp.value = ''; renderMakroTasks(); } }
-        function toggleMakroTask(i) { makroTasks[i].done = !makroTasks[i].done; renderMakroTasks(); }
-        function deleteMakroTask(i) { makroTasks.splice(i, 1); renderMakroTasks(); }
-        function saveMakroNotes() { localStorage.setItem('makroNotes', document.getElementById('makro-notes').value); }
-
-        // --- LÓGICA VEÍCULO ---
-        function toggleServicoFields() {
-            const tipo = document.getElementById('servico-tipo').value;
-            document.getElementById('campos-abastecimento').classList.toggle('hidden', tipo !== 'Abastecimento');
-        }
-        function calcCombustivel(origem) {
-            const v = parseFloat(document.getElementById('servico-valor').value);
-            const p = parseFloat(document.getElementById('servico-preco-litro').value);
-            const l = parseFloat(document.getElementById('servico-litros').value);
-            if(origem === 'valor' && v && p) document.getElementById('servico-litros').value = (v/p).toFixed(2);
-            else if(origem === 'litros' && l && p) document.getElementById('servico-valor').value = (l*p).toFixed(2);
-        }
-        function lancarServico() {
-            const t = document.getElementById('servico-tipo').value; const k = parseInt(document.getElementById('servico-km').value); const v = parseFloat(document.getElementById('servico-valor').value);
-            if(!k || !v) return;
-            localStorage.setItem('kmAtual', k); if(t === 'Troca de Óleo') localStorage.setItem('kmOleo', k);
-            saldoAtual -= v; registrarTransacao('despesa', 'Veículo', t, v); updateFinancas(); atualizarDashboard();
-        }
-        function atualizarDashboard() {
-            document.getElementById('dash-saldo').innerText = saldoAtual.toFixed(0);
-            const kmA = parseInt(localStorage.getItem('kmAtual')) || 0; const kmO = parseInt(localStorage.getItem('kmOleo')) || 0;
-            const dif = Math.max(0, kmA - kmO); const rst = Math.max(0, 5000 - dif);
-            document.getElementById('dash-km-atual').innerText = kmA;
-            document.getElementById('dash-oil-text').innerText = `ÓLEO EM ${rst} KM`;
-            document.getElementById('dash-oil-bar').style.width = `${Math.min((dif/5000)*100, 100)}%`;
-        }
-        function registrarTransacao(tipo, cat, desc, valor) {
-            transacoes.push({ id: Date.now(), tipo, cat, desc, valor, data: new Date().toLocaleDateString('pt-BR'), status: 'efetivada' });
-            localStorage.setItem('transacoes', JSON.stringify(transacoes));
-        }
-
-        function openTab(id) {
+        // --- FUNÇÕES EXPOSTAS AO WINDOW ---
+        window.openTab = (id) => {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             document.getElementById(id).classList.add('active');
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.replace('text-blue-500', 'text-slate-500'));
-            const mobileBtn = document.getElementById('btn-' + (id === 'config' ? 'dashboard' : id));
-            if(mobileBtn) mobileBtn.classList.replace('text-slate-500', 'text-blue-500');
-            document.querySelectorAll('.side-nav-btn').forEach(b => { b.classList.remove('text-blue-500', 'bg-blue-500/10'); b.classList.add('text-slate-500'); });
-            const sideBtn = document.getElementById('side-btn-' + (id === 'config' ? 'config' : id));
-            if(sideBtn) sideBtn.classList.add('text-blue-500', 'bg-blue-500/10');
-            if(id === 'dashboard') atualizarDashboard();
+            document.querySelectorAll('.nav-btn, .side-nav-btn').forEach(b => {
+                b.classList.remove('text-blue-500', 'bg-blue-500/10');
+                b.classList.add('text-slate-500');
+            });
             lucide.createIcons();
-        }
+        };
 
-        function carregarConfig() {
-            document.getElementById('peso-user').value = localStorage.getItem('pesoUser') || 80;
-            const uf = localStorage.getItem('estado') || 'CE';
-            document.getElementById('estado').innerHTML = Object.keys(locaisBR).map(k => `<option value="${k}" ${k === uf ? 'selected' : ''}>${k}</option>`).join('');
-            changeEstado(); document.getElementById('cidade').value = localStorage.getItem('cidade') || 'Fortaleza';
-            document.getElementById('makro-notes').value = localStorage.getItem('makroNotes') || '';
-            updateFinancas(); atualizarDashboard(); renderMakroTasks(); updateSaude(); updateWeather(); atualizarNomeVeiculo();
-        }
-        function changeEstado() { const uf = document.getElementById('estado').value; document.getElementById('cidade').innerHTML = locaisBR[uf].map(c => `<option value="${c}">${c}</option>`).join(''); }
-        function saveConfig() {
-            localStorage.setItem('pesoUser', document.getElementById('peso-user').value);
-            localStorage.setItem('estado', document.getElementById('estado').value);
-            localStorage.setItem('cidade', document.getElementById('cidade').value);
-            carregarConfig(); openTab('dashboard');
-        }
-        function atualizarNomeVeiculo() {
-            let n = localStorage.getItem('modelo') || 'Fazer 250 (2023)';
-            let c = n.includes('Fazer') ? 'Fazer 250' : n.split(' ')[0];
-            document.getElementById('nav-bike-name').innerText = c;
-            document.querySelectorAll('.side-bike-name').forEach(el => el.innerText = c);
-        }
+        window.updateModelDropdown = () => {
+            const brand = document.getElementById('veiculo-montadora').value;
+            const modelSelect = document.getElementById('veiculo-modelo');
+            const models = modelsByBrand[brand] || [];
+            modelSelect.innerHTML = models.map(m => `<option value="${m}">${m}</option>`).join('');
+        };
 
-        window.onload = carregarConfig;
+        window.lancarServico = () => {
+            const km = parseInt(document.getElementById('servico-km').value);
+            const val = parseFloat(document.getElementById('servico-valor').value);
+            const tipo = document.getElementById('servico-tipo').value;
+            if (isNaN(km) || isNaN(val)) return;
+            appState.veiculo.km = km;
+            if (tipo === 'Troca de Óleo') appState.veiculo.oleo = km;
+            appState.saldo -= val;
+            appState.transacoes.push({ id: Date.now(), tipo: 'despesa', cat: 'Veículo', desc: tipo, valor: val, data: new Date().toLocaleDateString('pt-BR') });
+            saveCloudData();
+            window.PulseModal.show("Sucesso", "Serviço registrado!", "check-circle");
+        };
+
+        window.calcularViagemPulse = () => {
+            const dist = parseFloat(document.getElementById('trip-slider').value);
+            document.getElementById('trip-dist-display').innerText = dist;
+            const litros = dist / appState.veiculo.consumo;
+            document.getElementById('trip-litros').innerText = litros.toFixed(1);
+            document.getElementById('trip-custo').innerText = (litros * 6.10).toFixed(0);
+        };
+
+        window.adicionarFundo = () => {
+            const val = parseFloat(document.getElementById('valor-fundo-bike').value);
+            if (val > 0 && val <= appState.saldo) {
+                appState.saldo -= val;
+                appState.fundoRota += val;
+                saveCloudData();
+                document.getElementById('valor-fundo-bike').value = '';
+            }
+        };
+
+        window.addWorkTask = () => {
+            const titulo = document.getElementById('work-task-title').value;
+            if (!titulo) return;
+            appState.tarefas.push({
+                id: Date.now(),
+                titulo,
+                solicitante: document.getElementById('work-task-requester').value || 'Makro Eng.',
+                data: document.getElementById('work-task-deadline').value,
+                arquivada: false
+            });
+            document.getElementById('work-task-title').value = '';
+            saveCloudData();
+        };
+
+        window.concluirTarefa = (id) => {
+            const t = appState.tarefas.find(x => x.id === id);
+            if (t) t.arquivada = true;
+            saveCloudData();
+        };
+
+        window.deletarTarefa = (id) => {
+            appState.tarefas = appState.tarefas.filter(t => t.id !== id);
+            saveCloudData();
+        };
+
+        window.toggleArchive = () => {
+            const sec = document.getElementById('work-archive-section');
+            const ico = document.getElementById('archive-toggle-icon');
+            const hidden = sec.classList.toggle('hidden');
+            ico.style.transform = hidden ? 'rotate(0deg)' : 'rotate(90deg)';
+        };
+
+        window.lancarFinanca = (tipo) => {
+            const val = parseFloat(document.getElementById('fin-valor').value);
+            if (isNaN(val)) return;
+            appState.transacoes.push({
+                id: Date.now(),
+                tipo,
+                cat: document.getElementById('fin-categoria').value,
+                desc: document.getElementById('fin-desc').value || 'Geral',
+                valor: val,
+                data: new Date().toLocaleDateString('pt-BR')
+            });
+            appState.saldo += (tipo === 'receita' ? val : -val);
+            document.getElementById('fin-valor').value = '';
+            saveCloudData();
+        };
+
+        window.addWaterWork = () => { if(appState.water.work < 6) { appState.water.work++; saveCloudData(); } };
+        window.addWaterHome = () => { if(appState.water.home < 2) { appState.water.home++; saveCloudData(); } };
+        window.resetWater = () => { appState.water = { work: 0, home: 0 }; saveCloudData(); };
+        window.addMonster = () => { appState.saldo -= 10; window.lancarFinanca('despesa'); saveCloudData(); };
+
+        window.saveConfig = () => {
+            appState.veiculo.montadora = document.getElementById('veiculo-montadora').value;
+            appState.veiculo.modelo = document.getElementById('veiculo-modelo').value;
+            appState.veiculo.tipo = document.getElementById('veiculo-tipo').value;
+            appState.veiculo.consumo = parseFloat(document.getElementById('veiculo-consumo').value) || 29;
+            appState.veiculo.km = parseInt(document.getElementById('veiculo-km-atual').value) || 0;
+            localStorage.setItem('cleanStartDate', document.getElementById('clean-start-date').value);
+            localStorage.setItem('cleanGoalDays', document.getElementById('clean-goal-days').value);
+            saveCloudData();
+            window.openTab('dashboard');
+        };
+
+        window.exportToCSV = () => {
+            let csv = "Data,Tipo,Categoria,Descricao,Valor\n";
+            appState.transacoes.forEach(t => csv += `${t.data},${t.tipo},${t.cat},${t.desc},${t.valor}\n`);
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = `pulse_financas_${new Date().toLocaleDateString()}.csv`;
+            a.click();
+        };
+
+        window.toggleServicoFields = () => {
+            document.getElementById('campos-abastecimento').classList.toggle('hidden', document.getElementById('servico-tipo').value !== 'Abastecimento');
+        };
+
+        window.calcCombustivel = () => {
+            const val = parseFloat(document.getElementById('servico-valor').value);
+            const prc = parseFloat(document.getElementById('servico-preco-litro').value);
+            if (val && prc) document.getElementById('servico-litros').value = (val / prc).toFixed(2);
+        };
+
+        // --- AUXILIARES ---
+        const renderFinances = () => {
+            const list = document.getElementById('fin-history-list');
+            const catSelect = document.getElementById('fin-categoria');
+            if(!catSelect || !list) return;
+            catSelect.innerHTML = categories.map(c => `<option value="${c}">${c}</option>`).join('');
+            list.innerHTML = appState.transacoes.slice().reverse().map(t => `
+                <div class="flex justify-between items-center p-4 bg-slate-950 rounded-2xl border border-white/5">
+                    <div><p class="text-xs font-bold text-slate-300">${t.desc}</p><p class="text-[8px] font-black uppercase text-slate-600">${t.cat} • ${t.data}</p></div>
+                    <p class="text-xs font-black ${t.tipo === 'receita' ? 'text-emerald-400' : 'text-red-400'}">${t.tipo === 'receita' ? '+' : '-'} R$ ${t.valor.toFixed(0)}</p>
+                </div>
+            `).join('');
+        };
+
+        const renderWork = () => {
+            const activeList = document.getElementById('work-task-active-list');
+            const archivedList = document.getElementById('work-task-archived-list');
+            if(!activeList || !archivedList) return;
+            const active = appState.tarefas.filter(t => !t.arquivada);
+            const archived = appState.tarefas.filter(t => t.arquivada);
+            document.getElementById('archive-count').innerText = archived.length;
+            activeList.innerHTML = active.map(t => `
+                <tr class="text-[10px] font-bold"><td class="py-4 px-2 text-slate-300">${t.titulo}</td><td class="py-4 px-2 text-slate-500">${t.solicitante}</td><td class="py-4 px-2 text-slate-500">${t.data || '--'}</td><td class="py-4 px-2 text-right"><button onclick="window.concluirTarefa(${t.id})" class="text-emerald-500"><i data-lucide="check-circle" class="w-4 h-4"></i></button></td></tr>
+            `).join('');
+            archivedList.innerHTML = archived.map(t => `
+                <tr class="text-[9px] opacity-60"><td class="py-2 px-2 line-through">${t.titulo}</td><td class="py-2 px-2">${t.solicitante}</td><td class="py-2 px-2 text-right"><button onclick="window.deletarTarefa(${t.id})" class="text-red-500"><i data-lucide="trash" class="w-3 h-3"></i></button></td></tr>
+            `).join('');
+            lucide.createIcons();
+        };
+
+        const renderAlerts = () => {
+            const list = document.getElementById('dash-docs-list');
+            if(!list) return;
+            list.innerHTML = '';
+            const tasksCount = appState.tarefas.filter(t => !t.arquivada).length;
+            if (tasksCount > 0) list.innerHTML += `<li class="p-3 bg-blue-500/10 border border-blue-500/20 rounded-2xl flex items-center gap-3"><i data-lucide="briefcase" class="w-4 h-4 text-blue-500"></i><p class="text-[10px] font-bold text-blue-200">${tasksCount} tarefas em aberto</p></li>`;
+            const oil = appState.veiculo.km - appState.veiculo.oleo;
+            if (oil > 4500) list.innerHTML += `<li class="p-3 bg-orange-500/10 border border-orange-500/20 rounded-2xl flex items-center gap-3"><i data-lucide="alert-triangle" class="w-4 h-4 text-orange-500"></i><p class="text-[10px] font-bold text-orange-200">Revisão de óleo pendente</p></li>`;
+        };
+
+        const atualizarNomeVeiculo = () => {
+            const v = appState.veiculo;
+            const h = document.getElementById('bike-header-name');
+            if(h) h.innerText = `${v.montadora} ${v.modelo}`;
+            document.querySelectorAll('.side-bike-name').forEach(el => el.innerText = v.modelo.split(' ')[0]);
+            const mobTxt = document.getElementById('nav-bike-name'); if (mobTxt) mobTxt.innerText = v.modelo.split(' ')[0];
+            document.querySelectorAll('[data-lucide="bike"]').forEach(el => {
+                if(v.tipo === 'Carro') el.setAttribute('data-lucide', 'car');
+                else el.setAttribute('data-lucide', 'bike');
+            });
+            lucide.createIcons();
+        };
+
+        const updateWeatherUI = () => {
+            const city = "Fortaleza"; // Fixado para sua cidade
+            const data = weatherMocks[city];
+            
+            const sideLoc = document.getElementById('side-location');
+            const sideWea = document.getElementById('side-weather');
+            const deskLoc = document.getElementById('desktop-loc');
+            const headWea = document.getElementById('header-weather-info');
+            const mobLoc = document.getElementById('current-location');
+
+            if(sideLoc) sideLoc.innerText = `${city}, CE`;
+            if(sideWea) sideWea.innerHTML = `${data.temp}°C • ${data.desc} <i data-lucide="${data.icon}" class="inline w-2 h-2"></i>`;
+            if(deskLoc) deskLoc.innerText = city.toUpperCase();
+            if(headWea) headWea.innerHTML = `${data.temp}°C <i data-lucide="${data.icon}" class="inline w-3 h-3"></i>`;
+            if(mobLoc) mobLoc.innerHTML = `${city.toUpperCase()} • ${data.temp}°C <i data-lucide="${data.icon}" class="inline w-2 h-2 mb-0.5"></i>`;
+            
+            lucide.createIcons();
+        };
+
+        // --- BOOTSTRAP ---
+        window.onload = async () => {
+            await initAuth();
+            window.updateModelDropdown();
+            
+            const vCons = document.getElementById('veiculo-consumo');
+            const vKm = document.getElementById('veiculo-km-atual');
+            const vMon = document.getElementById('veiculo-montadora');
+            const vMod = document.getElementById('veiculo-modelo');
+            const vTip = document.getElementById('veiculo-tipo');
+
+            if(vCons) vCons.value = appState.veiculo.consumo;
+            if(vKm) vKm.value = appState.veiculo.km;
+            if(vMon) vMon.value = appState.veiculo.montadora;
+            window.updateModelDropdown();
+            if(vMod) vMod.value = appState.veiculo.modelo;
+            if(vTip) vTip.value = appState.veiculo.tipo;
+            
+            updateWeatherUI();
+            updateUI();
+        };
     </script>
 </body>
 </html>
