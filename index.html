@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PULSE v09</title>
+    <title>PULSE v10</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
@@ -34,7 +34,7 @@
                     <i data-lucide="shield-check" class="w-8 h-8"></i>
                 </div>
                 <h1 class="text-5xl font-black tracking-tighter text-white leading-none text-blue-500">PULSE</h1>
-                <p class="text-[9px] font-black uppercase tracking-[0.4em] text-slate-500 mt-3">v09</p>
+                <p class="text-[9px] font-black uppercase tracking-[0.4em] text-slate-500 mt-3">v10</p>
             </div>
 
             <div class="space-y-3 relative z-10" id="login-form">
@@ -151,8 +151,8 @@
                                     <div id="water-bar" class="bg-blue-600 h-full transition-all duration-1000" style="width: 0%"></div>
                                 </div>
                                 <div class="grid grid-cols-2 gap-4">
-                                    <button onclick="window.addWater(473, 'Makro')" class="bg-blue-600 hover:bg-blue-500 p-5 rounded-[2rem] active:scale-95 transition-all">
-                                        <p class="text-xl font-black">473ml</p>
+                                    <button onclick="window.addWater(500, 'Makro')" class="bg-slate-800 hover:bg-slate-700 p-5 rounded-[2rem] border border-white/5 active:scale-95 transition-all">
+                                        <p class="text-xl font-black">500ml</p>
                                         <p class="text-[9px] font-black uppercase opacity-70">Copo Makro</p>
                                     </button>
                                     <button onclick="window.addWater(250, 'Casa')" class="bg-slate-800 hover:bg-slate-700 p-5 rounded-[2rem] border border-white/5 active:scale-95 transition-all">
@@ -200,18 +200,6 @@
                             </div>
                         </div>
                     </section>
-
-                    <!-- AJUSTES -->
-                    <section id="config" class="tab-content space-y-4">
-                        <div class="bg-slate-900 p-6 rounded-[2.5rem] border border-white/5">
-                            <h3 class="text-[10px] font-black uppercase tracking-[0.3em] text-blue-500 mb-6 flex items-center gap-2"><i data-lucide="user" class="w-4 h-4"></i> Bio-Perfil</h3>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div><label class="block mb-2 text-[8px] font-black uppercase text-slate-500">Peso (kg)</label><input type="number" id="bio-peso" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl outline-none text-slate-200 text-sm font-bold"></div>
-                                <div><label class="block mb-2 text-[8px] font-black uppercase text-slate-500">Altura (cm)</label><input type="number" id="bio-altura" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl outline-none text-slate-200 text-sm font-bold"></div>
-                            </div>
-                            <button onclick="window.saveBio()" class="w-full mt-6 bg-blue-600 text-white py-4 rounded-2xl font-black uppercase text-[10px]">Atualizar Perfil</button>
-                        </div>
-                    </section>
                 </main>
             </div>
         </div>
@@ -221,7 +209,8 @@
     <div id="toast" class="fixed bottom-24 left-1/2 -translate-x-1/2 px-6 py-3 bg-blue-600 rounded-full text-[10px] font-black uppercase tracking-widest shadow-2xl transition-all opacity-0 translate-y-10 z-[200]">Ação Realizada</div>
 
     <script>
-        // URL da sua planilha publicada como Web App
+        // --- CONFIGURAÇÃO ---
+        // IMPORTANTE: Substitua pela sua URL de implantação do Google Apps Script
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwVDkNFRuFNyTh3We_8qvlrSDIa3G_y1Owo_l8K47qmw_tlwv3I-EMBfRplkYX6EkMUQw/exec";
 
         let appState = {
@@ -232,6 +221,32 @@
             perfil: { peso: 80, altura: 175 },
             veiculo: { km: 0, oleo: 0 }
         };
+
+        // Função auxiliar para chamadas ao Google Script (Evita problemas de redirecionamento e CORS)
+        async function callGAS(payload) {
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors', // Necessário para Google Apps Script em alguns casos de POST direto
+                    cache: 'no-cache',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                // Como usamos 'no-cors', não podemos ler a resposta diretamente por segurança do navegador.
+                // No entanto, para o Login, precisamos da resposta. 
+                // SOLUÇÃO: Usar o modo padrão e tratar o redirecionamento do Google.
+                
+                const responseNormal = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+                return await responseNormal.json();
+            } catch (err) {
+                console.error("Erro na chamada GAS:", err);
+                throw err;
+            }
+        }
 
         // --- LOGIN ---
         window.handleAuth = async () => {
@@ -245,20 +260,14 @@
             loading.classList.remove('hidden');
 
             try {
-                // Chama a função handleLogin do seu script via POST
-                const response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        action: "login",
-                        login: login,
-                        pass: pass
-                    })
+                const result = await callGAS({
+                    action: "login",
+                    login: login,
+                    pass: pass
                 });
-                const result = await response.json();
 
                 if(result.success) {
                     appState.login = login;
-                    // Se o script retornou dados anteriores, carrega eles
                     if(result.userData) appState = { ...appState, ...result.userData };
                     
                     document.getElementById('user-display-name').innerText = login.toUpperCase();
@@ -269,13 +278,13 @@
                         document.getElementById('login-overlay').classList.add('hidden');
                     }, 600);
                     updateUI();
-                    showToast("Bem-vindo ao Terminal, " + (result.name || login));
+                    showToast("Bem-vindo, " + (result.name || login));
                 } else {
                     errEl.innerText = result.message || "CREDENCIAL NEGADA.";
                     errEl.classList.remove('hidden');
                 }
             } catch (err) {
-                errEl.innerText = "ERRO NA COMUNICAÇÃO COM O BD.";
+                errEl.innerText = "ERRO DE CONEXÃO. VERIFIQUE A URL DO SCRIPT.";
                 errEl.classList.remove('hidden');
             } finally {
                 loading.classList.add('hidden');
@@ -284,16 +293,16 @@
 
         window.logout = () => location.reload();
 
-        // --- SINCRONIZAÇÃO (syncData) ---
+        // --- SINCRONIZAÇÃO ---
         window.saveCloudData = async () => {
             if (!appState.login) return;
             const syncIcon = document.getElementById('sync-status');
             syncIcon.innerHTML = `<div class="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></div><span class="text-[8px] font-black uppercase tracking-widest text-orange-500">Sincronizando...</span>`;
 
             try {
-                // Chama a função saveData do seu script
                 await fetch(SCRIPT_URL, {
                     method: 'POST',
+                    mode: 'no-cors', // Para sincronização em background, no-cors é mais estável
                     body: JSON.stringify({
                         action: 'syncData',
                         userId: appState.login,
@@ -308,36 +317,25 @@
 
         // --- INTERFACE ---
         const updateUI = () => {
-            const p = appState.perfil;
             const waterGoal = 3500;
-            const energyLimit = Math.min(p.peso * 5, 400); 
+            const energyLimit = 400; 
 
             document.getElementById('dash-saldo').innerText = appState.saldo.toLocaleString('pt-BR');
             document.getElementById('dash-water').innerText = appState.water_ml;
             document.getElementById('dash-km-atual').innerText = appState.veiculo.km;
             
-            // Óleo ( Yamaha Fazer 5000km )
             const oilDiff = appState.veiculo.km - appState.veiculo.oleo;
             const oilPerc = Math.min((oilDiff/5000)*100, 100);
             document.getElementById('dash-oil-bar').style.width = oilPerc + '%';
             document.getElementById('dash-oil-text').innerText = `PRÓXIMA REVISÃO EM ${5000 - oilDiff}KM`;
 
-            // Água
             const waterPerc = Math.min((appState.water_ml / waterGoal) * 100, 100);
             document.getElementById('water-ml-display').innerText = appState.water_ml;
             document.getElementById('water-bar').style.width = waterPerc + '%';
 
-            // Cafeína
             const energyPerc = Math.min((appState.energy_mg / energyLimit) * 100, 100);
             document.getElementById('energy-mg').innerText = appState.energy_mg;
-            document.getElementById('energy-limit').innerText = energyLimit.toFixed(0);
             document.getElementById('energy-bar').style.width = energyPerc + '%';
-
-            // Configs
-            if(document.activeElement.tagName !== 'INPUT') {
-                document.getElementById('bio-peso').value = p.peso;
-                document.getElementById('bio-altura').value = p.altura;
-            }
             
             lucide.createIcons();
         };
@@ -353,7 +351,6 @@
             lucide.createIcons();
         };
 
-        // --- AÇÕES DO USUÁRIO ---
         window.addWater = (ml, loc) => { 
             appState.water_ml += ml; 
             updateUI(); 
@@ -365,8 +362,8 @@
             appState.saldo -= 10; 
             appState.energy_mg += 160; 
             updateUI(); 
-            window.saveCloudData(); 
-            showToast("Monster Registrado: R$ 10");
+            window.saveCloudData();
+            showToast("Monster Registrado (-R$ 10)");
         };
 
         window.updateKM = () => {
@@ -377,14 +374,6 @@
                 window.saveCloudData();
                 showToast("KM Sincronizado");
             }
-        };
-
-        window.saveBio = () => {
-            appState.perfil.peso = parseFloat(document.getElementById('bio-peso').value) || 80;
-            appState.perfil.altura = parseFloat(document.getElementById('bio-altura').value) || 175;
-            updateUI();
-            window.saveCloudData();
-            showToast("Bio-Perfil Atualizado");
         };
 
         window.resetDaily = () => {
