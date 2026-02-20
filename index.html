@@ -20,21 +20,47 @@
         input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: #1e293b; border-radius: 2px; }
         ::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; opacity: 0.5; }
         
-        #login-overlay { background: radial-gradient(circle at center, #0f172a 0%, #020617 100%); transition: all 0.5s ease-in-out; }
+        #login-overlay { 
+            background: radial-gradient(circle at center, #0f172a 0%, #020617 100%); 
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1); 
+        }
+        .login-card {
+            backdrop-filter: blur(16px);
+            background: rgba(15, 23, 42, 0.8);
+        }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 italic selection:bg-blue-500/30">
 
     <!-- LOGIN SCREEN -->
     <div id="login-overlay" class="fixed inset-0 z-[100] flex flex-col items-center justify-center p-6 text-center">
-        <div class="mb-8">
-            <h1 class="text-6xl font-black tracking-tighter text-blue-500 leading-none">PULSE</h1>
-            <p class="text-[10px] font-black uppercase tracking-[0.5em] text-slate-500 mt-2">Personal Operating System</p>
-        </div>
-        <div class="w-full max-w-xs space-y-4">
-            <input type="password" id="login-pass" placeholder="CHAVE DE ACESSO" class="w-full bg-slate-900 border border-white/10 p-5 rounded-3xl text-center outline-none focus:border-blue-500 transition-all font-bold tracking-widest">
-            <button onclick="window.tentarLogin()" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-5 rounded-3xl font-black uppercase tracking-widest text-[11px] transition-all shadow-lg shadow-blue-500/20 active:scale-95">Iniciar Sistema</button>
-            <p id="login-error" class="text-[10px] font-black text-red-500 uppercase tracking-widest hidden">Chave incorreta</p>
+        <div class="login-card p-10 rounded-[3rem] border border-white/10 w-full max-w-sm shadow-2xl relative overflow-hidden">
+            <div class="absolute -top-24 -left-24 w-48 h-48 bg-blue-600/10 blur-[100px] rounded-full"></div>
+            <div class="absolute -bottom-24 -right-24 w-48 h-48 bg-emerald-600/10 blur-[100px] rounded-full"></div>
+            
+            <div class="mb-8 relative z-10">
+                <div class="w-16 h-16 bg-blue-600/20 border border-blue-500/30 rounded-2xl flex items-center justify-center mx-auto mb-6 text-blue-500 shadow-lg shadow-blue-500/10">
+                    <i data-lucide="shield-check" class="w-8 h-8"></i>
+                </div>
+                <h1 class="text-5xl font-black tracking-tighter text-white leading-none">PULSE</h1>
+                <p class="text-[9px] font-black uppercase tracking-[0.4em] text-slate-500 mt-3">SISTEMA OPERACIONAL</p>
+            </div>
+
+            <div class="space-y-4 relative z-10">
+                <div class="group">
+                    <input type="password" id="login-pass" placeholder="••••••••" class="w-full bg-slate-950/50 border border-white/5 p-5 rounded-2xl text-center outline-none focus:border-blue-500/50 focus:ring-4 focus:ring-blue-500/5 transition-all font-bold tracking-[0.5em] text-lg text-white placeholder:tracking-normal placeholder:text-slate-700">
+                </div>
+                <button onclick="window.tentarLogin()" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-5 rounded-2xl font-black uppercase tracking-widest text-[11px] transition-all shadow-xl shadow-blue-500/20 active:scale-95 flex items-center justify-center gap-2">
+                    Acessar Console <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                </button>
+                <p id="login-error" class="text-[9px] font-black text-red-500 uppercase tracking-widest hidden flex items-center justify-center gap-1">
+                    <i data-lucide="alert-circle" class="w-3 h-3"></i> Credencial Inválida
+                </p>
+            </div>
+            
+            <div class="mt-8 pt-6 border-t border-white/5 relative z-10">
+                <p class="text-[8px] font-black text-slate-600 uppercase tracking-[0.2em]">PULSE ARCHITECTURE © 2024</p>
+            </div>
         </div>
     </div>
 
@@ -144,7 +170,6 @@
 
                     <!-- 2. SAÚDE -->
                     <section id="saude" class="tab-content space-y-4">
-                        <!-- HIDRATAÇÃO -->
                         <div class="bg-slate-900 border border-white/5 p-6 rounded-[2.5rem]">
                             <div class="mb-6">
                                 <div class="flex justify-between text-[9px] font-black uppercase tracking-widest text-blue-500 mb-2">
@@ -168,7 +193,6 @@
                                 </button>
                             </div>
 
-                            <!-- CAFEÍNA (MONSTER) BARRA DE PROGRESSO -->
                             <div class="pt-6 border-t border-white/5">
                                 <div class="flex justify-between text-[9px] font-black uppercase tracking-widest text-emerald-500 mb-2">
                                     <span>Cafeína (Monster)</span>
@@ -381,9 +405,6 @@
 
                         <div class="bg-slate-900 p-6 rounded-[2.5rem] border border-white/5 space-y-3 text-center">
                             <button onclick="window.saveConfig()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase text-[10px]">Salvar Configurações</button>
-                            <button onclick="window.exportToCSV()" class="w-full bg-slate-800 text-slate-400 py-3 rounded-2xl font-black uppercase text-[8px] flex items-center justify-center gap-2 tracking-widest">
-                                <i data-lucide="download" class="w-3 h-3"></i> Exportar Planilha (CSV)
-                            </button>
                             <button onclick="location.reload()" class="w-full py-3 text-[8px] font-black uppercase text-red-500/50 hover:text-red-500 transition-all">Sair e Bloquear Sistema</button>
                         </div>
                     </section>
@@ -441,7 +462,7 @@
         let appState = {
             saldo: 0,
             fundoRota: 0,
-            energy_mg: 0, // NEW: mg consumido
+            energy_mg: 0,
             transacoes: [],
             tarefas: [],
             perfil: { peso: 80, altura: 175, idade: 25, sexo: 'M' },
@@ -461,7 +482,8 @@
                 }, 500);
             } else {
                 error.classList.remove('hidden');
-                setTimeout(() => error.classList.add('hidden'), 2000);
+                document.getElementById('login-pass').value = '';
+                setTimeout(() => error.classList.add('hidden'), 2500);
             }
         };
 
@@ -512,10 +534,7 @@
 
         const updateUI = () => {
             const p = appState.perfil || { peso: 70 };
-            
-            // Lógica Bio: Meta Água e Limite Cafeína
             const calculatedWaterGoal = p.peso * 35; 
-            // Limite de cafeína seguro (mg): peso * 5mg (FDA sugere 400mg teto para adultos saudáveis)
             const calculatedEnergyLimit = Math.min(p.peso * 5, 400); 
 
             document.getElementById('dash-saldo').innerText = appState.saldo.toFixed(0);
@@ -528,7 +547,6 @@
             document.getElementById('dash-oil-bar').style.width = Math.min((oilDiff/5000)*100, 100) + '%';
             document.getElementById('dash-oil-text').innerText = `ÓLEO EM ${Math.max(0, 5000 - oilDiff)} KM`;
             
-            // UI Água
             const totalWater = (appState.water.work * 473) + (appState.water.home * 250);
             const waterPerc = Math.min((totalWater / calculatedWaterGoal) * 100, 100);
             document.getElementById('water-goal-display').innerText = calculatedWaterGoal;
@@ -537,7 +555,6 @@
             document.getElementById('water-work-count').innerText = `${appState.water.work}/6`;
             document.getElementById('water-home-count').innerText = `${appState.water.home}/2`;
 
-            // UI Cafeína (Monster)
             const energyConsumido = appState.energy_mg || 0;
             const energyPerc = Math.min((energyConsumido / calculatedEnergyLimit) * 100, 100);
             document.getElementById('energy-mg-val').innerText = energyConsumido;
@@ -546,12 +563,10 @@
             
             const energyBar = document.getElementById('energy-bar');
             energyBar.style.width = energyPerc + '%';
-            // Cor dinâmica para cafeína
             if(energyPerc > 90) energyBar.className = "bg-red-500 h-full transition-all duration-1000";
             else if(energyPerc > 70) energyBar.className = "bg-orange-500 h-full transition-all duration-1000";
             else energyBar.className = "bg-emerald-500 h-full transition-all duration-1000";
 
-            // UI Disciplina
             const start = localStorage.getItem('cleanStartDate');
             let days = start ? Math.floor((new Date() - new Date(start)) / 86400000) : 0;
             const goal = parseInt(localStorage.getItem('cleanGoalDays')) || 30;
@@ -560,7 +575,6 @@
             document.getElementById('clean-percent-text').innerText = Math.min((days/goal)*100, 100).toFixed(0) + '%';
             document.getElementById('clean-goal-text').innerText = goal;
 
-            // Preenchimento Configs
             if(document.activeElement.tagName !== 'INPUT') {
                 const bPeso = document.getElementById('bio-peso'); if(bPeso) bPeso.value = p.peso;
                 const bAltura = document.getElementById('bio-altura'); if(bAltura) bAltura.value = p.altura;
@@ -675,14 +689,11 @@
         window.addWaterWork = () => { if(appState.water.work < 6) { appState.water.work++; saveCloudData(); } };
         window.addWaterHome = () => { if(appState.water.home < 2) { appState.water.home++; saveCloudData(); } };
         
-        // NEW ENERGY MG LOGIC
         window.addEnergyPulse = () => { 
             const p = appState.perfil || { peso: 70 };
             const limit = Math.min(p.peso * 5, 400); 
-            
             appState.energy_mg = (appState.energy_mg || 0) + 160; 
             saveCloudData(); 
-            
             if(appState.energy_mg >= limit) {
                 window.PulseModal.show("Alerta Bio-Saturado", `Limite de cafeína atingido (${limit}mg). Evite consumo adicional hoje.`, "zap");
             }
@@ -716,16 +727,6 @@
             localStorage.setItem('cleanGoalDays', document.getElementById('clean-goal-days').value);
             saveCloudData();
             window.openTab('dashboard');
-        };
-
-        window.exportToCSV = () => {
-            let csv = "Data,Tipo,Categoria,Descricao,Valor\n";
-            appState.transacoes.forEach(t => csv += `${t.data},${t.tipo},${t.cat},${t.desc},${t.valor}\n`);
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url; a.download = `pulse_financas_${new Date().toLocaleDateString()}.csv`;
-            a.click();
         };
 
         window.toggleServicoFields = () => {
