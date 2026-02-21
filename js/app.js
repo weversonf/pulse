@@ -21,17 +21,27 @@ let appState = {
 
 // --- SINCRONIZAÇÃO E PERSISTÊNCIA ---
 
-const saveLocalData = () => localStorage.setItem('pulse_state', JSON.stringify(appState));
+const saveLocalData = () => {
+    localStorage.setItem('pulse_state', JSON.stringify(appState));
+};
 
 const loadLocalData = () => {
     const saved = localStorage.getItem('pulse_state');
-    if (saved) appState = { ...appState, ...JSON.parse(saved) };
+    if (saved) {
+        try {
+            const parsed = JSON.parse(saved);
+            appState = { ...appState, ...parsed };
+        } catch (e) {
+            console.error("PULSE: Erro ao carregar dados locais.");
+        }
+    }
 };
 
 const saveCloudBackup = async () => {
     saveLocalData();
     if (!appState.login) return;
     try {
+        // Envio silencioso para a aba "Dados"
         await fetch(SCRIPT_URL, {
             method: 'POST',
             mode: 'no-cors',
@@ -55,14 +65,41 @@ const saveToFinancasSheet = async (transacao) => {
     } catch (e) { console.error("Erro Financas Cloud", e); }
 };
 
+// Força o download dos dados da nuvem para garantir sincronia
+const refreshFromCloud = async () => {
+    if (!appState.login) return;
+    try {
+        const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'login', user: appState.login, pass: "REFRESH" })
+        });
+        const result = await response.json();
+        if (result.success && result.data) {
+            appState = { ...appState, ...result.data };
+            updateGlobalUI();
+        }
+    } catch (e) { console.error("Refresh falhou", e); }
+};
+
 // --- LOGIN ---
 
 window.doLogin = async () => {
-    const user = document.getElementById('login-user')?.value.trim();
-    const pass = document.getElementById('login-pass')?.value.trim();
+    const userField = document.getElementById('login-user');
+    const passField = document.getElementById('login-pass');
     const btn = document.getElementById('btn-login');
-    if (!user || !pass) return;
-    if(btn) { btn.disabled = true; btn.innerText = "AUTENTICANDO..."; }
+    const msg = document.getElementById('login-msg');
+
+    if (!userField || !passField) return;
+
+    const user = userField.value.trim();
+    const pass = passField.value.trim();
+
+    if (!user || !pass) {
+        if (msg) msg.innerText = "Campos obrigatórios!";
+        return;
+    }
+
+    if (btn) { btn.disabled = true; btn.innerText = "AUTENTICANDO..."; }
 
     try {
         const response = await fetch(SCRIPT_URL, {
@@ -76,9 +113,13 @@ window.doLogin = async () => {
             saveLocalData();
             window.location.href = "dashboard.html";
         } else {
-            btn.disabled = false; btn.innerText = "ENTRAR";
+            if (msg) msg.innerText = "Acesso Negado.";
+            if (btn) { btn.disabled = false; btn.innerText = "ENTRAR"; }
         }
-    } catch (e) { if(btn) { btn.disabled = false; btn.innerText = "ENTRAR"; } }
+    } catch (e) { 
+        if (msg) msg.innerText = "Erro na conexão.";
+        if (btn) { btn.disabled = false; btn.innerText = "ENTRAR"; } 
+    }
 };
 
 // --- SAÚDE (ÁGUA E MONSTER) ---
@@ -91,7 +132,14 @@ window.addWater = (ml) => {
 
 window.addMonster = () => { 
     appState.energy_mg += 160; 
-    const t = { id: Date.now(), tipo: 'Despesa', cat: 'Saúde', desc: 'MONSTER ENERGY', valor: 10, data: new Date().toLocaleDateString('pt-BR') };
+    const t = { 
+        id: Date.now(), 
+        tipo: 'Despesa', 
+        cat: 'Saúde', 
+        desc: 'MONSTER ENERGY', 
+        valor: 10, 
+        data: new Date().toLocaleDateString('pt-BR') 
+    };
     appState.transacoes.push(t);
     saveToFinancasSheet(t);
     updateGlobalUI(); 
@@ -112,12 +160,17 @@ window.failChallenge = () => {
 // --- WORK (ATIVIDADES) ---
 
 window.addWorkTask = () => {
-    const title = document.getElementById('work-task-title')?.value.trim();
-    const type = document.getElementById('work-task-type')?.value;
-    const requester = document.getElementById('work-task-requester')?.value.trim() || "N/A";
-    const deadline = document.getElementById('work-task-deadline')?.value;
+    const titleEl = document.getElementById('work-task-title');
+    const typeEl = document.getElementById('work-task-type');
+    const requesterEl = document.getElementById('work-task-requester');
+    const deadlineEl = document.getElementById('work-task-deadline');
 
-    if (!title) return;
+    if (!titleEl || !titleEl.value.trim()) return;
+
+    const title = titleEl.value.trim();
+    const type = typeEl ? typeEl.value : "Operacional";
+    const requester = (requesterEl && requesterEl.value.trim()) ? requesterEl.value.trim() : "EU";
+    const deadline = deadlineEl ? deadlineEl.value : "";
 
     const novaTarefa = {
         id: Date.now(),
@@ -129,7 +182,7 @@ window.addWorkTask = () => {
     };
 
     appState.tarefas.push(novaTarefa);
-    document.getElementById('work-task-title').value = "";
+    titleEl.value = ""; // Limpa o campo
     
     updateGlobalUI();
     saveCloudBackup();
@@ -149,9 +202,13 @@ const renderWorkTasks = () => {
     if (!list) return;
 
     const pendentes = appState.tarefas.filter(t => t.status === 'Pendente');
-    document.getElementById('task-count').innerText = pendentes.length;
+    const countEl = document.getElementById('task-count');
+    if (countEl) countEl.innerText = pendentes.length;
 
-    list.innerHTML = appState.tarefas.map(t => `
+    // Ordena para mostrar pendentes primeiro
+    const sortedTasks = [...appState.tarefas].sort((a, b) => (a.status === 'Concluído' ? 1 : -1));
+
+    list.innerHTML = sortedTasks.map(t => `
         <div class="glass-card p-5 rounded-3xl flex items-center justify-between group transition-all ${t.status === 'Concluído' ? 'opacity-40' : ''}">
             <div class="flex items-center gap-4">
                 <button onclick="window.toggleTask(${t.id})" class="w-6 h-6 rounded-lg border-2 ${t.status === 'Concluído' ? 'bg-blue-500 border-blue-500' : 'border-white/10'} flex items-center justify-center transition-all">
@@ -162,12 +219,18 @@ const renderWorkTasks = () => {
                     <p class="text-[8px] font-bold text-slate-500 uppercase tracking-widest mt-0.5">${t.type} • ${t.requester} • ${t.deadline || 'S/ DATA'}</p>
                 </div>
             </div>
-            <button onclick="appState.tarefas = appState.tarefas.filter(x => x.id !== ${t.id}); updateGlobalUI(); saveCloudBackup();" class="text-slate-700 hover:text-red-500 transition-all">
+            <button onclick="window.deleteTask(${t.id})" class="text-slate-700 hover:text-red-500 transition-all">
                 <i data-lucide="trash-2" class="w-4 h-4"></i>
             </button>
         </div>
     `).join('');
     if (window.lucide) lucide.createIcons();
+};
+
+window.deleteTask = (id) => {
+    appState.tarefas = appState.tarefas.filter(x => x.id !== id);
+    updateGlobalUI();
+    saveCloudBackup();
 };
 
 // --- INTERFACE E UI UPDATE ---
@@ -192,52 +255,73 @@ const updateGlobalUI = () => {
     const waterGoal = 3500;
     const energyLimit = 400;
 
-    // Atualiza Texto
+    // Atualiza Textos de Status
     updateText('dash-water-cur', appState.water_ml);
     updateText('dash-energy-val', appState.energy_mg);
     updateText('water-current-display', appState.water_ml);
     updateText('energy-current-display', appState.energy_mg);
     updateText('bike-km-display', appState.veiculo.km);
-    updateText('dash-tasks-remaining', appState.tarefas.filter(t => t.status === 'Pendente').length);
+    
+    const pendentesCount = appState.tarefas.filter(t => t.status === 'Pendente').length;
+    updateText('dash-tasks-remaining', pendentesCount);
 
-    // Atualiza Barras de Saúde (Página Saúde e Dashboard)
+    // Atualiza Barras de Saúde
     const waterPct = Math.min((appState.water_ml / waterGoal) * 100, 100);
     const energyPct = Math.min((appState.energy_mg / energyLimit) * 100, 100);
 
+    // Itera sobre possíveis IDs de barras (Dashboard e Página Saúde)
     ['dash-water-bar', 'water-bar'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.style.width = waterPct + '%';
     });
-    if (document.getElementById('water-percent-text')) document.getElementById('water-percent-text').innerText = Math.round(waterPct) + '%';
+    
+    const waterPctText = document.getElementById('water-percent-text');
+    if (waterPctText) waterPctText.innerText = Math.round(waterPct) + '%';
 
-    ['energy-bar'].forEach(id => {
+    ['energy-bar', 'dash-energy-bar'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.style.width = energyPct + '%';
     });
-    if (document.getElementById('energy-percent-text')) document.getElementById('energy-percent-text').innerText = Math.round(energyPct) + '%';
+    
+    const energyPctText = document.getElementById('energy-percent-text');
+    if (energyPctText) energyPctText.innerText = Math.round(energyPct) + '%';
 
-    // Gauge do Dashboard
+    // Gauge Circular do Dashboard
     const gauge = document.getElementById('energy-gauge-path');
-    if (gauge) gauge.style.strokeDashoffset = 226.2 - (energyPct / 100) * 226.2;
-
-    // Desafio Álcool
-    if (appState.perfil.alcoholStart) {
-        const start = new Date(appState.perfil.alcoholStart);
-        const diff = Math.floor((new Date() - start) / (1000 * 60 * 60 * 24));
-        const target = appState.perfil.alcoholTarget || 30;
-        updateText('alcohol-days-count', diff);
-        updateText('alcohol-target-display', target);
-        updateText('alcohol-challenge-title', appState.perfil.alcoholTitle);
-        const alcBar = document.getElementById('alcohol-bar');
-        if (alcBar) alcBar.style.width = Math.min((diff / target) * 100, 100) + '%';
+    if (gauge) {
+        // 226.2 é o comprimento do círculo (2 * PI * 36)
+        gauge.style.strokeDashoffset = 226.2 - (energyPct / 100) * 226.2;
     }
 
-    // Renderiza Listas Específicas
+    // Desafio Disciplina (Álcool)
+    if (appState.perfil.alcoholStart) {
+        const start = new Date(appState.perfil.alcoholStart);
+        const now = new Date();
+        const diff = Math.floor((now - start) / (1000 * 60 * 60 * 24));
+        const target = appState.perfil.alcoholTarget || 30;
+        
+        updateText('alcohol-days-count', diff);
+        updateText('alcohol-target-display', target);
+        updateText('alcohol-challenge-title', appState.perfil.alcoholTitle || 'SEM ÁLCOOL');
+        
+        const alcBar = document.getElementById('alcohol-bar');
+        if (alcBar) alcBar.style.width = Math.min((diff / target) * 100, 100) + '%';
+        
+        const statusText = document.getElementById('alcohol-status-text');
+        if (statusText) statusText.innerText = diff >= target ? "CONCLUÍDO" : "EM CURSO";
+    }
+
+    // Somas Financeiras para o Dashboard
+    const saldoTotal = appState.transacoes.reduce((acc, t) => acc + (t.tipo.toLowerCase() === 'receita' ? t.valor : -t.valor), 0);
+    updateText('dash-saldo', saldoTotal.toLocaleString('pt-BR'));
+
+    // Renderiza listas
     renderWorkTasks();
+    
     if (window.lucide) lucide.createIcons();
 };
 
-// --- INICIALIZAÇÃO ---
+// --- INICIALIZAÇÃO DA INTERFACE ---
 
 const injectInterface = () => {
     const navPlaceholder = document.getElementById('sidebar-placeholder');
@@ -307,4 +391,18 @@ window.openTab = (p) => { window.location.href = p + ".html"; };
 window.addEventListener('DOMContentLoaded', () => {
     loadLocalData();
     updateGlobalUI();
+    
+    // Tenta sincronizar com a nuvem após carregar o local
+    if (!window.location.pathname.includes('index')) {
+        refreshFromCloud();
+    }
+});
+
+window.addEventListener('resize', () => {
+    if (window.innerWidth < 768) {
+        const main = document.getElementById('main-content');
+        if (main) main.style.marginLeft = "0";
+    } else {
+        updateGlobalUI();
+    }
 });
