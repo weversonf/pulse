@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PULSE v02</title>
+    <title>PULSE OS - Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="css/style.css">
@@ -22,26 +22,26 @@
 <body class="bg-slate-950 text-slate-100 italic">
     <div class="flex min-h-screen relative">
         
-        <!-- CRÍTICO: O app.js procura por este ID para colocar o menu -->
+        <!-- Placeholder para o menu lateral (Injetado pelo app.js) -->
         <div id="sidebar-placeholder"></div>
 
-        <!-- Este container flex-1 é empurrado pelo menu no Desktop -->
+        <!-- Conteúdo Principal -->
         <div id="main-content" class="flex-1 md:ml-64 transition-all pb-mobile-nav">
             
-            <!-- CRÍTICO: O app.js procura por este ID para o clima e título -->
+            <!-- Cabeçalho Dinâmico (Clima e Título) -->
             <div id="header-placeholder"></div>
 
             <main class="max-w-5xl mx-auto p-4 md:p-8 space-y-6">
-                <!-- LINHA 1: FINANÇAS MAKRO -->
+                <!-- LINHA 1: FINANÇAS MAKRO ENGENHARIA -->
                 <div class="grid grid-cols-2 gap-4 italic">
-                    <div class="bg-emerald-950/20 border border-emerald-500/20 p-6 rounded-[2.5rem] flex flex-col justify-between min-h-[140px] shadow-lg">
+                    <div class="bg-emerald-950/20 border border-emerald-500/20 p-6 rounded-[2.5rem] flex flex-col justify-between min-h-[140px] shadow-lg transition-all hover:bg-emerald-950/30">
                         <i data-lucide="wallet" class="w-5 h-5 text-emerald-500"></i>
                         <div>
                             <p class="text-3xl font-black tracking-tighter leading-none mb-1 text-white italic">R$ <span id="dash-saldo">0</span></p>
                             <p class="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-500/60 italic">Saldo Geral</p>
                         </div>
                     </div>
-                    <div class="bg-blue-950/20 border border-blue-500/20 p-6 rounded-[2.5rem] flex flex-col justify-between min-h-[140px] shadow-lg">
+                    <div class="bg-blue-950/20 border border-blue-500/20 p-6 rounded-[2.5rem] flex flex-col justify-between min-h-[140px] shadow-lg transition-all hover:bg-blue-950/30">
                         <i data-lucide="map-pin" class="w-5 h-5 text-blue-500"></i>
                         <div>
                             <p class="text-3xl font-black tracking-tighter leading-none mb-1 text-white italic">R$ <span id="dash-fundo">0</span></p>
@@ -67,6 +67,7 @@
                         </div>
                     </div>
 
+                    <!-- Velocímetro de Cafeína -->
                     <div class="bg-slate-900 border border-white/5 p-6 rounded-[2.5rem] flex flex-col items-center justify-center relative shadow-xl">
                         <div class="relative w-28 h-28">
                             <svg class="w-full h-full gauge-circle" viewBox="0 0 80 80">
@@ -82,29 +83,30 @@
                     </div>
                 </div>
 
-                <!-- LINHA 3: ATIVIDADES E NPS MAKRO -->
+                <!-- LINHA 3: ATIVIDADES WORK & NPS -->
                 <div class="grid grid-cols-2 md:grid-cols-3 gap-4 italic">
-                    <div class="bg-slate-900/40 border border-white/5 p-6 rounded-[2.5rem] flex flex-col justify-between">
+                    <div class="bg-slate-900/40 border border-white/5 p-6 rounded-[2.5rem] flex flex-col justify-between shadow-md">
                         <p class="text-[9px] font-black uppercase tracking-widest text-slate-500 italic">Atividades WORK</p>
-                        <p class="text-4xl font-black text-blue-500 italic" id="dash-tasks-progress">0</p>
+                        <p class="text-4xl font-black text-blue-500 italic tracking-tighter" id="dash-tasks-progress">0</p>
                     </div>
-                    <div class="bg-slate-900/40 border border-white/5 p-6 rounded-[2.5rem] flex flex-col justify-between">
+                    <div class="bg-slate-900/40 border border-white/5 p-6 rounded-[2.5rem] flex flex-col justify-between shadow-md">
                         <p class="text-[9px] font-black uppercase tracking-widest text-slate-500 italic">Pendências</p>
-                        <p class="text-4xl font-black text-red-500 italic" id="dash-tasks-remaining">0</p>
+                        <p class="text-4xl font-black text-red-500 italic tracking-tighter" id="dash-tasks-remaining">0</p>
                     </div>
+                    
+                    <!-- Card NPS Makro Engenharia -->
                     <div class="col-span-2 md:col-span-1 bg-blue-600 border border-blue-500 p-6 rounded-[2.5rem] flex flex-col justify-between shadow-xl shadow-blue-900/20 group hover:scale-[1.02] transition-all">
                         <div class="flex justify-between items-start italic">
                             <p class="text-[9px] font-black uppercase tracking-widest text-blue-100 italic">NPS Makro Engenharia</p>
                             <i data-lucide="award" class="w-4 h-4 text-white group-hover:rotate-12 transition-transform"></i>
                         </div>
-                        <p class="text-5xl font-black text-white italic" id="dash-nps-val">0</p>
+                        <p class="text-5xl font-black text-white italic tracking-tighter" id="dash-nps-val">0</p>
                     </div>
                 </div>
             </main>
         </div>
     </div>
     
-    <!-- Garante que o app.js é o último a carregar -->
     <script src="js/app.js"></script>
 </body>
 </html>
