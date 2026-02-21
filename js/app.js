@@ -3,6 +3,7 @@
  * Blindagem contra erros de dados e Sincronização GitHub/Google Sheets
  */
 
+// URL Única do Backend (BD_Pulse)
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwVDkNFRuFNyTh3We_8qvlrSDIa3G_y1Owo_l8K47qmw_tlwv3I-EMBfRplkYX6EkMUQw/exec";
 
 // Estado Inicial Padrão
@@ -22,13 +23,11 @@ const getInitialState = () => ({
 let appState = getInitialState();
 
 // --- INJEÇÃO DE INTERFACE (CABECALHO E MENU) ---
-// Movido para o topo para garantir prioridade de carregamento
 
 const injectInterface = () => {
     const sidebar = document.getElementById('sidebar-placeholder');
     const header = document.getElementById('header-placeholder');
     
-    // Lógica de Path robusta para GitHub Pages
     const urlPath = window.location.pathname.split('/').pop().split('.')[0];
     const path = urlPath || 'dashboard';
     
@@ -66,7 +65,6 @@ const injectInterface = () => {
                     </button>
                 </div>
             </aside>
-            <!-- Mobile Nav -->
             <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-xl border-t border-white/10 z-[60] px-2 h-16 flex items-center justify-around italic">
                 ${items.map(i => `
                     <button onclick="window.openTab('${i.id}')" class="flex flex-col items-center transition-all ${path === i.id ? 'text-blue-500' : 'text-slate-500'}">
@@ -103,7 +101,6 @@ const injectInterface = () => {
 // --- UPDATE UI CENTRALIZADO ---
 
 const updateGlobalUI = () => {
-    // Injeção de interface deve ser a primeira coisa
     injectInterface();
     
     const main = document.getElementById('main-content');
@@ -116,26 +113,20 @@ const updateGlobalUI = () => {
         if (el) el.innerText = val !== undefined && val !== null ? val : "0"; 
     };
     
-    // Saúde & Dashboard
     updateText('dash-water-cur', appState.water_ml);
     updateText('dash-energy-val', appState.energy_mg);
     updateText('dash-nps-val', appState.nps_mes);
     updateText('water-current-display', appState.water_ml);
     updateText('energy-current-display', appState.energy_mg);
-    
-    // Veículo
     updateText('bike-km-display', appState.veiculo.km);
     updateText('bike-oil-display', appState.veiculo.oleo);
-    const vName = (appState.veiculo.modelo || "FAZER 250");
-    updateText('bike-name-display', vName.toUpperCase());
+    updateText('bike-name-display', (appState.veiculo.modelo || "FAZER 250").toUpperCase());
 
-    // Tarefas
     const pendentes = appState.tarefas.filter(t => t.status === 'Pendente').length;
     updateText('task-count', pendentes);
     updateText('dash-tasks-remaining', pendentes);
     updateText('dash-tasks-progress', appState.tarefas.filter(t => t.status === 'Concluído').length);
 
-    // Barras de Progresso
     const wPct = Math.min((appState.water_ml / 3500) * 100, 100);
     const ePct = Math.min((appState.energy_mg / 400) * 100, 100);
     
@@ -144,7 +135,6 @@ const updateGlobalUI = () => {
     const eBar = document.getElementById('energy-bar');
     if (eBar) eBar.style.width = ePct + '%';
 
-    // Finanças
     const saldo = appState.transacoes.reduce((acc, t) => acc + (t.tipo === 'Receita' ? t.valor : -t.valor), 0);
     updateText('dash-saldo', saldo.toLocaleString('pt-BR'));
     updateText('fin-saldo-atual-pag', saldo.toLocaleString('pt-BR'));
@@ -152,7 +142,6 @@ const updateGlobalUI = () => {
     renderWorkTasks();
     renderExtratos();
     
-    // Inicializa ícones após injeção
     if (window.lucide) {
         lucide.createIcons();
     }
@@ -266,7 +255,6 @@ window.toggleSidebar = () => {
 };
 
 window.openTab = (p) => { 
-    // Garante compatibilidade com extensões .html e caminhos GitHub
     window.location.href = p + ".html"; 
 };
 
