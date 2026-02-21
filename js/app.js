@@ -95,7 +95,7 @@ const fetchWeather = async () => {
     } catch (e) {}
 };
 
-// --- LIGHTBOX (MODAL) ABASTECIMENTO (Visual Refinado) ---
+// --- LIGHTBOX (MODAL) ABASTECIMENTO ---
 
 window.openFuelModal = () => {
     let modal = document.getElementById('fuel-modal-overlay');
@@ -114,7 +114,6 @@ window.openFuelModal = () => {
             </div>
 
             <div class="space-y-4">
-                <!-- Linha 1: Tipo e Data -->
                 <div class="grid grid-cols-2 gap-3">
                     <select id="m-v-tipo" class="w-full p-4 bg-slate-900 border border-white/5 rounded-2xl text-xs font-bold text-white outline-none uppercase italic">
                         <option value="Abastecimento">Abastecimento</option>
@@ -123,20 +122,17 @@ window.openFuelModal = () => {
                     <input type="date" id="m-v-data" value="${new Date().toISOString().split('T')[0]}" class="w-full p-4 bg-slate-900 border border-white/5 rounded-2xl text-xs font-bold text-slate-400 outline-none italic">
                 </div>
 
-                <!-- Linha 2: KM e Local -->
                 <div class="grid grid-cols-2 gap-3">
                     <input type="number" id="m-v-km-atual" value="${appState.veiculo.km}" placeholder="KM ATUAL" class="w-full p-4 bg-slate-900 border border-white/5 rounded-2xl text-xs font-bold text-white outline-none italic uppercase">
                     <input type="text" id="m-v-desc" placeholder="POSTO OU LOCAL..." class="w-full p-4 bg-slate-900 border border-white/5 rounded-2xl text-xs font-bold text-white outline-none italic uppercase">
                 </div>
 
-                <!-- Linha 3: Tipo Combustível -->
                 <select id="m-v-comb-tipo" class="w-full p-4 bg-slate-900 border border-white/5 rounded-2xl text-xs font-bold text-white outline-none uppercase italic">
                     <option value="Gasolina Comum">Gasolina Comum</option>
                     <option value="Gasolina Aditivada">Gasolina Aditivada</option>
                     <option value="Etanol">Etanol</option>
                 </select>
 
-                <!-- Linha 4: Preço e Litros -->
                 <div class="grid grid-cols-2 gap-3">
                     <div class="space-y-1">
                         <label class="text-[8px] font-black uppercase text-slate-600 px-2 italic">Preço/L</label>
@@ -154,7 +150,6 @@ window.openFuelModal = () => {
                     </div>
                 </div>
 
-                <!-- Linha 5: Total -->
                 <div class="space-y-1">
                     <label class="text-[8px] font-black uppercase text-slate-600 px-2 italic">Valor Total R$</label>
                     <div class="relative">
@@ -204,33 +199,100 @@ window.saveFuelModal = async () => {
 
     const formattedDate = date ? date.split('-').reverse().join('/') : new Date().toLocaleDateString('pt-BR');
     
-    // Log Veículo
-    const log = { 
-        id: Date.now(), 
-        tipo, 
-        data: formattedDate, 
-        km, 
-        valor: val, 
-        detalhes: `${comb} - ${desc.toUpperCase()}` 
-    };
+    const log = { id: Date.now(), tipo, data: formattedDate, km, valor: val, detalhes: `${comb} - ${desc.toUpperCase()}` };
     appState.veiculo.historico.push(log);
     appState.veiculo.km = Math.max(appState.veiculo.km, km);
 
-    // Finanças (Mirror)
-    const fin = { 
-        id: Date.now() + 1, 
-        tipo: 'Despesa', 
-        cat: 'Transporte', 
-        desc: `${tipo.toUpperCase()} (${comb}): ${desc.toUpperCase()} (KM: ${km})`, 
-        valor: val, 
-        data: formattedDate 
-    };
+    const fin = { id: Date.now() + 1, tipo: 'Despesa', cat: 'Transporte', desc: `${tipo.toUpperCase()} (${comb}): ${desc.toUpperCase()} (KM: ${km})`, valor: val, data: formattedDate };
     appState.transacoes.push(fin);
 
     updateGlobalUI();
     await saveToFinancasSheet(fin);
     saveCloudBackup();
     window.closeFuelModal();
+};
+
+// --- MODAL DE RESET DE DADOS ---
+
+window.openResetModal = () => {
+    let modal = document.getElementById('reset-modal-overlay');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'reset-modal-overlay';
+        modal.className = 'fixed inset-0 z-[300] bg-slate-950/80 backdrop-blur-xl flex items-center justify-center p-4 transition-all duration-300 opacity-0 pointer-events-none';
+        document.body.appendChild(modal);
+    }
+
+    modal.innerHTML = `
+        <div class="bg-slate-900 border border-red-500/20 w-full max-w-md p-8 rounded-[3rem] shadow-2xl relative italic">
+            <div class="flex items-center gap-3 mb-6">
+                <i data-lucide="alert-triangle" class="w-6 h-6 text-red-500"></i>
+                <h3 class="text-xl font-black tracking-tighter text-white uppercase italic leading-none">Zerar Dados</h3>
+            </div>
+            
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed mb-8 italic">
+                Atenção: Esta ação é irreversível. Escolha quais informações deseja remover permanentemente do sistema.
+            </p>
+
+            <div class="space-y-3">
+                <button onclick="window.resetData('finance_vehicle')" class="w-full bg-slate-950 border border-white/5 hover:border-orange-500/30 p-5 rounded-3xl flex items-center justify-between transition-all group active:scale-95 italic">
+                    <div class="text-left">
+                        <p class="text-xs font-black uppercase text-white leading-none">Finanças e Veículo</p>
+                        <p class="text-[7px] font-bold text-slate-500 uppercase tracking-tighter mt-1 italic">Limpa extratos, histórico e KM</p>
+                    </div>
+                    <i data-lucide="wallet" class="w-4 h-4 text-orange-500 group-hover:scale-110 transition-transform"></i>
+                </button>
+
+                <button onclick="window.resetData('all')" class="w-full bg-red-600/10 border border-red-500/20 hover:bg-red-600 p-5 rounded-3xl flex items-center justify-between transition-all group active:scale-95 text-red-500 hover:text-white italic">
+                    <div class="text-left">
+                        <p class="text-xs font-black uppercase leading-none">Zerar Tudo</p>
+                        <p class="text-[7px] font-bold opacity-60 uppercase tracking-tighter mt-1 italic">Reseta saúde, tarefas e biometria</p>
+                    </div>
+                    <i data-lucide="trash-2" class="w-4 h-4 group-hover:scale-110 transition-transform"></i>
+                </button>
+
+                <button onclick="window.closeResetModal()" class="w-full py-4 text-[9px] font-black uppercase tracking-[0.4em] text-slate-600 hover:text-slate-200 transition-all italic mt-4">
+                    Cancelar
+                </button>
+            </div>
+        </div>
+    `;
+
+    modal.classList.remove('opacity-0', 'pointer-events-none');
+    if (window.lucide) window.lucide.createIcons();
+};
+
+window.closeResetModal = () => {
+    const modal = document.getElementById('reset-modal-overlay');
+    if (modal) modal.classList.add('opacity-0', 'pointer-events-none');
+};
+
+window.resetData = async (type) => {
+    if (type === 'finance_vehicle') {
+        appState.transacoes = [];
+        appState.veiculo.historico = [];
+        appState.veiculo.km = 35000;
+        appState.veiculo.oleo = 38000;
+    } else if (type === 'all') {
+        appState.energy_mg = 0;
+        appState.water_ml = 0;
+        appState.tarefas = [];
+        appState.transacoes = [];
+        appState.veiculo.historico = [];
+        appState.veiculo.km = 35000;
+        appState.perfil = { peso: 80, altura: 175, cidade: 'Fortaleza', alcoholStart: '', alcoholTarget: 30, alcoholTitle: 'SEM ÁLCOOL' };
+    }
+
+    updateGlobalUI();
+    saveCloudBackup();
+    window.closeResetModal();
+    
+    // Feedback visual rápido
+    const main = document.getElementById('main-content');
+    if (main) {
+        main.style.opacity = '0.3';
+        setTimeout(() => main.style.opacity = '1', 500);
+    }
 };
 
 // --- WORK LOGIC ---
@@ -309,14 +371,18 @@ const injectInterface = () => {
                 ${items.map(i => `
                     <button onclick="window.openTab('${i.id}')" class="w-full flex items-center ${isColl ? 'justify-center' : 'gap-4 px-4'} py-4 rounded-2xl transition-all font-black uppercase text-[10px] tracking-widest ${path === i.id ? 'bg-white/5 text-blue-500' : 'text-slate-500 hover:bg-white/5'}">
                         <i data-lucide="${i.icon}" class="w-5 h-5 ${i.color}"></i>
-                        <span class="${isColl ? 'hidden' : 'block'}">${i.label}</span>
+                        <span class="${isColl ? 'hidden' : 'block'} ml-3">${i.label}</span>
                     </button>
                 `).join('')}
             </nav>
-            <div class="p-3 border-t border-white/5">
+            <div class="p-3 border-t border-white/5 space-y-2">
+                <button onclick="window.openResetModal()" class="w-full flex items-center ${isColl ? 'justify-center' : 'gap-4 px-4'} py-4 rounded-2xl transition-all font-black uppercase text-[10px] tracking-widest text-red-500/60 hover:text-red-500 hover:bg-red-500/5">
+                    <i data-lucide="trash-2" class="w-5 h-5 flex-shrink-0"></i>
+                    <span class="${isColl ? 'hidden' : 'block'} ml-3">Zerar</span>
+                </button>
                 <button onclick="window.openTab('ajustes')" class="w-full flex items-center ${isColl ? 'justify-center' : 'gap-4 px-4'} py-4 rounded-2xl transition-all font-black uppercase text-[10px] tracking-widest ${path === 'ajustes' ? 'text-blue-500' : 'text-slate-500 hover:bg-white/5'}">
                     <i data-lucide="settings" class="w-5 h-5 text-slate-400"></i>
-                    <span class="${isColl ? 'hidden' : 'block'}">Ajustes</span>
+                    <span class="${isColl ? 'hidden' : 'block'} ml-3">Ajustes</span>
                 </button>
             </div>
         </aside>
@@ -328,8 +394,12 @@ const injectInterface = () => {
                     <span class="text-[7px] font-black uppercase tracking-tighter">${i.label}</span>
                 </button>
             `).join('')}
+            <button onclick="window.openResetModal()" class="flex flex-col items-center text-red-500/60">
+                <i data-lucide="trash-2" class="w-5 h-5"></i>
+                <span class="text-[7px] font-black uppercase tracking-tighter">CLR</span>
+            </button>
             <button onclick="window.openTab('ajustes')" class="flex flex-col items-center ${path === 'ajustes' ? 'text-blue-500' : 'text-slate-500'}">
-                <i data-lucide="settings" class="w-5 h-5"></i>
+                <i data-lucide="settings" class="w-5 h-5 text-slate-400"></i>
                 <span class="text-[7px] font-black uppercase tracking-tighter">SET</span>
             </button>
         </nav>
@@ -369,7 +439,6 @@ const updateGlobalUI = () => {
     update('bike-km-display', appState.veiculo.km);
     update('task-count', appState.tarefas.filter(t => t.status === 'Pendente').length);
 
-    // Barras
     const wPct = Math.min((appState.water_ml / 3500) * 100, 100);
     const ePct = Math.min((appState.energy_mg / 400) * 100, 100);
     ['dash-water-bar', 'water-bar'].forEach(id => { if(document.getElementById(id)) document.getElementById(id).style.width = wPct + '%'; });
@@ -383,7 +452,6 @@ const updateGlobalUI = () => {
     update('fin-saldo-atual-pag', saldo.toLocaleString('pt-BR'));
 
     renderWorkTasks();
-    // Re-render vehicle history if on the vehicle page
     const bikeList = document.getElementById('bike-history-list');
     if (bikeList) {
         const history = [...appState.veiculo.historico].sort((a, b) => b.id - a.id);
