@@ -1,37 +1,137 @@
 /**
  * PULSE OS - Central Intelligence
- * Sincronização Total: Google Sheets + Clima + NPS + Sidebar Flexível + Mobile Nav
+ * Sincronização Bidirecional: Google Sheets (Acessos e Dados) + Clima + NPS + PWA
  */
 
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwVDkNFRuFNyTh3We_8qvlrSDIa3G_y1Owo_l8K47qmw_tlwv3I-EMBfRplkYX6EkMUQw/exec";
 const NPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbcsfpw1_uglhD6JtF4jAvjJ4hqgnHTcgKL8CBtb_i6pRmck7POOBvuqYykjIIE9sLdyQ/exec";
 
-// Estado Inicial
+// Estado Inicial do Sistema
 let appState = {
-    login: "USER_PULSE",
+    login: "",
     energy_mg: 0,
     water_ml: 0,
     sidebarCollapsed: false,
-    perfil: { peso: 80, altura: 175, cidade: 'Fortaleza', alcoholStart: '', alcoholTarget: 30 },
-    veiculo: { km: 35000, oleo: 38000, consumo: 29 },
+    perfil: { 
+        peso: 80, altura: 175, idade: 25, sexo: 'M', estado: 'CE', cidade: 'Fortaleza', 
+        alcoholStart: '', alcoholTitle: 'SEM ÁLCOOL', alcoholTarget: 30
+    },
+    veiculo: { 
+        tipo: 'Moto', montadora: 'Yamaha', modelo: 'Fazer 250', consumo: 29, km: 35000, oleo: 38000, historico: [] 
+    },
     tarefas: [],
     transacoes: [],
     nps_mes: "...",
     weather: { temp: "--", icon: "cloud" }
 };
 
-// --- PERSISTÊNCIA ---
-const loadLocalData = () => {
-    const saved = localStorage.getItem('pulse_state');
-    if (saved) appState = JSON.parse(saved);
+// --- SISTEMA DE LOGIN ---
+window.doLogin = async () => {
+    const user = document.getElementById('login-user')?.value.trim();
+    const pass = document.getElementById('login-pass')?.value.trim();
+    const btn = document.getElementById('btn-login');
+    const msg = document.getElementById('login-msg');
+
+    if (!user || !pass) { if(msg) msg.innerText = "Campos obrigatórios!"; return; }
+    
+    if(btn) { btn.disabled = true; btn.innerText = "AUTENTICANDO..."; }
+
+    try {
+        const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'login', user: user, pass: pass })
+        });
+        const result = await response.json();
+
+        if (result.success) {
+            // Se o login for bem-sucedido, carregamos os dados que vieram do Sheets
+            appState.login = user;
+            if (result.data) {
+                appState = { ...appState, ...result.data };
+            }
+            saveLocalData();
+            window.location.href = "dashboard.html";
+        } else {
+            if(msg) msg.innerText = "Usuário ou senha inválidos.";
+            if(btn) { btn.disabled = false; btn.innerText = "ENTRAR"; }
+        }
+    } catch (e) {
+        if(msg) msg.innerText = "Erro de conexão com a Makro Cloud.";
+        if(btn) { btn.disabled = false; btn.innerText = "ENTRAR"; }
+        console.error(e);
+    }
 };
+
+// --- SINCRONIZAÇÃO DE DADOS ---
 const saveLocalData = () => localStorage.setItem('pulse_state', JSON.stringify(appState));
 
-// --- INTERFACE (SIDEBAR + MOBILE NAV + HEADER) ---
+const loadLocalData = () => {
+    const saved = localStorage.getItem('pulse_state');
+    if (saved) {
+        const parsed = JSON.parse(saved);
+        appState = { ...appState, ...parsed };
+    }
+};
+
+// Salva na nuvem e trata resposta
+const saveCloudData = async () => {
+    saveLocalData();
+    if (!appState.login || appState.login === "USER_PULSE") return;
+
+    try {
+        const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({ 
+                action: 'syncData', 
+                userId: appState.login, 
+                data: appState 
+            })
+        });
+        const res = await response.json();
+        console.log("PULSE Cloud: Sincronizado", res);
+    } catch (e) { 
+        console.warn("PULSE Cloud: Offline (Salvo Local)"); 
+    }
+};
+
+// Força o download dos dados da nuvem (útil no refresh)
+const refreshFromCloud = async () => {
+    if (!appState.login || appState.login === "USER_PULSE") return;
+    try {
+        const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'login', user: appState.login, pass: "REFRESH" }) 
+            // Nota: O seu script deve tratar pass "REFRESH" para retornar dados sem validar senha de novo
+        });
+        const result = await response.json();
+        if (result.success && result.data) {
+            appState = { ...appState, ...result.data };
+            updateGlobalUI();
+        }
+    } catch (e) {}
+};
+
+// --- INTERFACE DINÂMICA ---
 window.toggleSidebar = () => {
     appState.sidebarCollapsed = !appState.sidebarCollapsed;
     saveLocalData();
     updateGlobalUI();
+};
+
+const adjustMainContentMargin = () => {
+    const main = document.getElementById('main-content');
+    if (!main) return;
+    if (window.innerWidth < 768) {
+        main.style.marginLeft = "0";
+    } else {
+        if (appState.sidebarCollapsed) {
+            main.classList.remove('md:ml-64');
+            main.classList.add('md:ml-20');
+        } else {
+            main.classList.remove('md:ml-20');
+            main.classList.add('md:ml-64');
+        }
+    }
 };
 
 const injectInterface = () => {
@@ -41,7 +141,6 @@ const injectInterface = () => {
 
     const currentPage = window.location.pathname.split('/').pop().split('.')[0] || 'dashboard';
     const isCollapsed = appState.sidebarCollapsed;
-    
     const menuItems = [
         { id: 'dashboard', label: 'Home', icon: 'layout-dashboard' },
         { id: 'saude', label: 'Saúde', icon: 'activity' },
@@ -51,12 +150,10 @@ const injectInterface = () => {
         { id: 'relatorio', label: 'Relatório', icon: 'bar-chart-3' }
     ];
 
-    // Sidebar para Desktop e Bottom Nav para Mobile
     navPlaceholder.innerHTML = `
-        <!-- Desktop Sidebar -->
-        <aside class="hidden md:flex flex-col ${isCollapsed ? 'w-20' : 'w-64'} bg-slate-900 border-r border-white/5 fixed h-full z-50 transition-all duration-300 overflow-hidden italic">
+        <aside class="hidden md:flex flex-col ${isCollapsed ? 'w-20' : 'w-64'} bg-slate-900 border-r border-white/5 fixed h-full z-50 transition-all duration-300 overflow-hidden">
             <div class="p-6 flex items-center justify-between">
-                <h1 class="text-2xl font-black tracking-tighter text-blue-500 ${isCollapsed ? 'hidden' : 'block'}">PULSE</h1>
+                <h1 class="text-2xl font-black tracking-tighter text-blue-500 italic ${isCollapsed ? 'hidden' : 'block'}">PULSE</h1>
                 <button onclick="window.toggleSidebar()" class="p-2 rounded-xl bg-white/5 text-slate-500 hover:text-white transition-all">
                     <i data-lucide="${isCollapsed ? 'chevron-right' : 'chevron-left'}" class="w-4 h-4"></i>
                 </button>
@@ -77,7 +174,7 @@ const injectInterface = () => {
             </div>
         </aside>
 
-        <!-- Mobile Bottom Nav -->
+        <!-- Mobile Nav -->
         <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-xl border-t border-white/10 z-[60] px-2 pb-safe">
             <div class="flex items-center justify-around h-16">
                 ${menuItems.slice(0, 5).map(item => `
@@ -96,8 +193,8 @@ const injectInterface = () => {
 
     if (headerPlaceholder) {
         headerPlaceholder.innerHTML = `
-            <header class="bg-slate-900/80 backdrop-blur-xl sticky top-0 z-40 px-6 py-5 flex items-center justify-between border-b border-white/5 italic">
-                <h2 class="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500 flex items-center gap-2">
+            <header class="bg-slate-900/80 backdrop-blur-xl sticky top-0 z-40 px-6 py-5 flex items-center justify-between border-b border-white/5">
+                <h2 class="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500 flex items-center gap-2 italic">
                     ${currentPage.toUpperCase()} <span class="text-slate-800">•</span>
                     <span class="text-blue-500">${(appState.perfil.cidade || 'Fortaleza').toUpperCase()}</span> <span class="text-slate-800">•</span>
                     <span id="header-weather-info" class="text-slate-400 flex items-center gap-1">
@@ -114,26 +211,14 @@ const injectInterface = () => {
     }
 };
 
-const adjustMainContentMargin = () => {
-    const main = document.getElementById('main-content');
-    if (main) {
-        // No mobile (telas pequenas), a margem lateral deve ser zero
-        if (window.innerWidth < 768) {
-            main.style.marginLeft = "0";
-            return;
-        }
-        // No desktop, segue a sidebar
-        if (appState.sidebarCollapsed) {
-            main.classList.remove('md:ml-64');
-            main.classList.add('md:ml-20');
-        } else {
-            main.classList.remove('md:ml-20');
-            main.classList.add('md:ml-64');
-        }
-    }
+// --- LOGICA DE SAÚDE ---
+window.addMonster = () => {
+    appState.energy_mg += 160;
+    saveCloudData(); 
+    updateGlobalUI();
 };
 
-// --- LOGICA UI ---
+// --- CORE UI UPDATE ---
 const updateGlobalUI = () => {
     injectInterface();
     adjustMainContentMargin();
@@ -161,7 +246,7 @@ const updateGlobalUI = () => {
     if (window.lucide) lucide.createIcons();
 };
 
-// --- API FETCH ---
+// --- DATA FETCH ---
 const fetchWeather = async () => {
     try {
         const response = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=-3.73&longitude=-38.52&current_weather=true`);
@@ -185,9 +270,10 @@ window.addEventListener('DOMContentLoaded', () => {
     loadLocalData();
     updateGlobalUI();
     
-    if (!window.location.pathname.includes('index')) {
+    if (!window.location.pathname.includes('index') && !window.location.pathname.endsWith('/')) {
         fetchWeather();
         fetchNPSData();
+        refreshFromCloud(); // Tenta atualizar do Sheets ao abrir
     }
 });
 
