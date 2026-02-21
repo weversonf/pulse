@@ -11,10 +11,10 @@ let appState = {
     energy_mg: 0,
     water_ml: 0,
     sidebarCollapsed: false,
-    perfil: { peso: 80, altura: 175, cidade: 'Fortaleza', alcoholStart: '', alcoholTarget: 30 },
+    perfil: { peso: 80, altura: 175, cidade: 'Fortaleza', alcoholStart: '', alcoholTarget: 30, alcoholTitle: 'SEM ÁLCOOL' },
     veiculo: { tipo: 'Moto', modelo: 'Fazer 250', km: 35000, historico: [] },
     tarefas: [],
-    transacoes: [], // Cache local para exibição rápida
+    transacoes: [],
     nps_mes: "...",
     weather: { temp: "--", icon: "cloud" }
 };
@@ -28,7 +28,6 @@ const loadLocalData = () => {
     if (saved) appState = { ...appState, ...JSON.parse(saved) };
 };
 
-// Salva o "Backup" JSON na aba Dados
 const saveCloudBackup = async () => {
     saveLocalData();
     if (!appState.login) return;
@@ -41,7 +40,6 @@ const saveCloudBackup = async () => {
     } catch (e) { console.warn("PULSE: Erro no backup cloud."); }
 };
 
-// SALVAMENTO ESPECÍFICO NA ABA "FINANCAS" (LINHA POR LINHA)
 const saveToFinancasSheet = async (transacao) => {
     if (!appState.login) return;
     try {
@@ -51,28 +49,18 @@ const saveToFinancasSheet = async (transacao) => {
             body: JSON.stringify({ 
                 action: 'appendFinanca', 
                 userId: appState.login, 
-                rowData: [
-                    transacao.id,
-                    transacao.data,
-                    transacao.tipo,
-                    transacao.cat,
-                    transacao.desc,
-                    transacao.valor
-                ]
+                rowData: [transacao.id, transacao.data, transacao.tipo, transacao.cat, transacao.desc, transacao.valor]
             })
         });
-        console.log("PULSE: Transação salva na aba Financas.");
-    } catch (e) { console.error("Erro ao salvar linha na aba Financas", e); }
+    } catch (e) { console.error("Erro Financas Cloud", e); }
 };
 
-// --- SISTEMA DE LOGIN ---
+// --- LOGIN ---
 
 window.doLogin = async () => {
     const user = document.getElementById('login-user')?.value.trim();
     const pass = document.getElementById('login-pass')?.value.trim();
-    const msg = document.getElementById('login-msg');
     const btn = document.getElementById('btn-login');
-
     if (!user || !pass) return;
     if(btn) { btn.disabled = true; btn.innerText = "AUTENTICANDO..."; }
 
@@ -82,23 +70,174 @@ window.doLogin = async () => {
             body: JSON.stringify({ action: 'login', user, pass })
         });
         const result = await response.json();
-
         if (result.success) {
             appState.login = user;
             if (result.data) appState = { ...appState, ...result.data };
             saveLocalData();
             window.location.href = "dashboard.html";
         } else {
-            if(msg) msg.innerText = "Acesso Negado.";
-            if(btn) { btn.disabled = false; btn.innerText = "ENTRAR"; }
+            btn.disabled = false; btn.innerText = "ENTRAR";
         }
-    } catch (e) {
-        if(msg) msg.innerText = "Erro de conexão.";
-        if(btn) { btn.disabled = false; btn.innerText = "ENTRAR"; }
+    } catch (e) { if(btn) { btn.disabled = false; btn.innerText = "ENTRAR"; } }
+};
+
+// --- SAÚDE (ÁGUA E MONSTER) ---
+
+window.addWater = (ml) => {
+    appState.water_ml += ml;
+    updateGlobalUI();
+    saveCloudBackup();
+};
+
+window.addMonster = () => { 
+    appState.energy_mg += 160; 
+    const t = { id: Date.now(), tipo: 'Despesa', cat: 'Saúde', desc: 'MONSTER ENERGY', valor: 10, data: new Date().toLocaleDateString('pt-BR') };
+    appState.transacoes.push(t);
+    saveToFinancasSheet(t);
+    updateGlobalUI(); 
+    saveCloudBackup(); 
+};
+
+window.failChallenge = () => {
+    const overlay = document.getElementById('panic-overlay');
+    if(overlay) {
+        overlay.classList.remove('hidden');
+        setTimeout(() => overlay.classList.add('hidden'), 2000);
+    }
+    appState.perfil.alcoholStart = new Date().toISOString().split('T')[0];
+    updateGlobalUI();
+    saveCloudBackup();
+};
+
+// --- WORK (ATIVIDADES) ---
+
+window.addWorkTask = () => {
+    const title = document.getElementById('work-task-title')?.value.trim();
+    const type = document.getElementById('work-task-type')?.value;
+    const requester = document.getElementById('work-task-requester')?.value.trim() || "N/A";
+    const deadline = document.getElementById('work-task-deadline')?.value;
+
+    if (!title) return;
+
+    const novaTarefa = {
+        id: Date.now(),
+        title: title.toUpperCase(),
+        type,
+        requester: requester.toUpperCase(),
+        deadline,
+        status: 'Pendente'
+    };
+
+    appState.tarefas.push(novaTarefa);
+    document.getElementById('work-task-title').value = "";
+    
+    updateGlobalUI();
+    saveCloudBackup();
+};
+
+window.toggleTask = (id) => {
+    const task = appState.tarefas.find(t => t.id === id);
+    if (task) {
+        task.status = task.status === 'Pendente' ? 'Concluído' : 'Pendente';
+        updateGlobalUI();
+        saveCloudBackup();
     }
 };
 
-// --- FUNÇÃO PARA INJETAR O MENU (ESTAVA FALTANDO) ---
+const renderWorkTasks = () => {
+    const list = document.getElementById('work-task-active-list');
+    if (!list) return;
+
+    const pendentes = appState.tarefas.filter(t => t.status === 'Pendente');
+    document.getElementById('task-count').innerText = pendentes.length;
+
+    list.innerHTML = appState.tarefas.map(t => `
+        <div class="glass-card p-5 rounded-3xl flex items-center justify-between group transition-all ${t.status === 'Concluído' ? 'opacity-40' : ''}">
+            <div class="flex items-center gap-4">
+                <button onclick="window.toggleTask(${t.id})" class="w-6 h-6 rounded-lg border-2 ${t.status === 'Concluído' ? 'bg-blue-500 border-blue-500' : 'border-white/10'} flex items-center justify-center transition-all">
+                    ${t.status === 'Concluído' ? '<i data-lucide="check" class="w-4 h-4 text-white"></i>' : ''}
+                </button>
+                <div>
+                    <p class="text-xs font-black uppercase tracking-tight ${t.status === 'Concluído' ? 'line-through' : 'text-white'}">${t.title}</p>
+                    <p class="text-[8px] font-bold text-slate-500 uppercase tracking-widest mt-0.5">${t.type} • ${t.requester} • ${t.deadline || 'S/ DATA'}</p>
+                </div>
+            </div>
+            <button onclick="appState.tarefas = appState.tarefas.filter(x => x.id !== ${t.id}); updateGlobalUI(); saveCloudBackup();" class="text-slate-700 hover:text-red-500 transition-all">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
+        </div>
+    `).join('');
+    if (window.lucide) lucide.createIcons();
+};
+
+// --- INTERFACE E UI UPDATE ---
+
+window.toggleSidebar = () => { 
+    appState.sidebarCollapsed = !appState.sidebarCollapsed; 
+    saveLocalData(); 
+    updateGlobalUI(); 
+};
+
+const updateGlobalUI = () => {
+    injectInterface();
+    const main = document.getElementById('main-content');
+    if (main && window.innerWidth >= 768) {
+        main.classList.toggle('md:ml-64', !appState.sidebarCollapsed);
+        main.classList.toggle('md:ml-20', appState.sidebarCollapsed);
+    }
+    
+    const updateText = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
+    
+    // Metas
+    const waterGoal = 3500;
+    const energyLimit = 400;
+
+    // Atualiza Texto
+    updateText('dash-water-cur', appState.water_ml);
+    updateText('dash-energy-val', appState.energy_mg);
+    updateText('water-current-display', appState.water_ml);
+    updateText('energy-current-display', appState.energy_mg);
+    updateText('bike-km-display', appState.veiculo.km);
+    updateText('dash-tasks-remaining', appState.tarefas.filter(t => t.status === 'Pendente').length);
+
+    // Atualiza Barras de Saúde (Página Saúde e Dashboard)
+    const waterPct = Math.min((appState.water_ml / waterGoal) * 100, 100);
+    const energyPct = Math.min((appState.energy_mg / energyLimit) * 100, 100);
+
+    ['dash-water-bar', 'water-bar'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.width = waterPct + '%';
+    });
+    if (document.getElementById('water-percent-text')) document.getElementById('water-percent-text').innerText = Math.round(waterPct) + '%';
+
+    ['energy-bar'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.width = energyPct + '%';
+    });
+    if (document.getElementById('energy-percent-text')) document.getElementById('energy-percent-text').innerText = Math.round(energyPct) + '%';
+
+    // Gauge do Dashboard
+    const gauge = document.getElementById('energy-gauge-path');
+    if (gauge) gauge.style.strokeDashoffset = 226.2 - (energyPct / 100) * 226.2;
+
+    // Desafio Álcool
+    if (appState.perfil.alcoholStart) {
+        const start = new Date(appState.perfil.alcoholStart);
+        const diff = Math.floor((new Date() - start) / (1000 * 60 * 60 * 24));
+        const target = appState.perfil.alcoholTarget || 30;
+        updateText('alcohol-days-count', diff);
+        updateText('alcohol-target-display', target);
+        updateText('alcohol-challenge-title', appState.perfil.alcoholTitle);
+        const alcBar = document.getElementById('alcohol-bar');
+        if (alcBar) alcBar.style.width = Math.min((diff / target) * 100, 100) + '%';
+    }
+
+    // Renderiza Listas Específicas
+    renderWorkTasks();
+    if (window.lucide) lucide.createIcons();
+};
+
+// --- INICIALIZAÇÃO ---
 
 const injectInterface = () => {
     const navPlaceholder = document.getElementById('sidebar-placeholder');
@@ -117,7 +256,6 @@ const injectInterface = () => {
     ];
 
     navPlaceholder.innerHTML = `
-        <!-- Sidebar Desktop -->
         <aside class="hidden md:flex flex-col ${isCollapsed ? 'w-20' : 'w-64'} bg-slate-900 border-r border-white/5 fixed h-full z-50 transition-all duration-300 overflow-hidden italic">
             <div class="p-6 flex items-center justify-between">
                 <h1 class="text-2xl font-black tracking-tighter text-blue-500 italic ${isCollapsed ? 'hidden' : 'block'}">PULSE</h1>
@@ -134,8 +272,6 @@ const injectInterface = () => {
                 `).join('')}
             </nav>
         </aside>
-
-        <!-- Bottom Nav Mobile -->
         <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-xl border-t border-white/10 z-[60] px-2 pb-safe">
             <div class="flex items-center justify-around h-16">
                 ${menuItems.map(item => `
@@ -158,105 +294,12 @@ const injectInterface = () => {
                         <i data-lucide="${appState.weather.icon}" class="w-3 h-3"></i> ${appState.weather.temp}°C
                     </span>
                 </h2>
-                <div class="flex items-center gap-3">
-                    <button onclick="window.addMonster()" class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 active:scale-95 transition-all">
-                        <i data-lucide="zap" class="w-5 h-5"></i>
-                    </button>
-                </div>
+                <button onclick="window.addMonster()" class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 active:scale-95 transition-all">
+                    <i data-lucide="zap" class="w-5 h-5"></i>
+                </button>
             </header>
         `;
     }
-};
-
-// --- LANÇAMENTOS FINANCEIROS ---
-
-window.lancarFinanca = async (tipo) => {
-    const valor = parseFloat(document.getElementById('fin-valor')?.value);
-    const desc = document.getElementById('fin-desc')?.value.trim();
-    const cat = document.getElementById('fin-categoria')?.value;
-    const dataInput = document.getElementById('fin-data')?.value;
-
-    if (!valor || !desc) return;
-
-    const dataFormatada = dataInput ? dataInput.split('-').reverse().join('/') : new Date().toLocaleDateString('pt-BR');
-
-    const novaTransacao = {
-        id: Date.now(),
-        tipo: tipo === 'receita' ? 'Receita' : 'Despesa',
-        cat,
-        desc: desc.toUpperCase(),
-        valor,
-        data: dataFormatada
-    };
-
-    appState.transacoes.push(novaTransacao);
-    updateGlobalUI();
-    await saveToFinancasSheet(novaTransacao);
-    saveCloudBackup();
-
-    if (document.getElementById('fin-valor')) document.getElementById('fin-valor').value = "";
-    if (document.getElementById('fin-desc')) document.getElementById('fin-desc').value = "";
-};
-
-window.lancarVeiculo = async () => {
-    const tipoServico = document.getElementById('v-tipo-principal')?.value;
-    const km = parseInt(document.getElementById('v-km-atual')?.value) || 0;
-    const valor = parseFloat(document.getElementById('v-total-rs')?.value) || 0;
-    const desc = document.getElementById('v-descricao')?.value || "";
-    const dataInput = document.getElementById('v-data')?.value;
-
-    if (!km || !valor) return;
-
-    const dataFormatada = dataInput ? dataInput.split('-').reverse().join('/') : new Date().toLocaleDateString('pt-BR');
-
-    const novoLogVeiculo = { id: Date.now(), tipo: tipoServico, data: dataFormatada, km, valor, detalhes: desc };
-    appState.veiculo.historico.push(novoLogVeiculo);
-    appState.veiculo.km = Math.max(appState.veiculo.km, km);
-
-    const transacaoFinanceira = {
-        id: Date.now() + 1,
-        tipo: 'Despesa',
-        cat: 'Veículo',
-        desc: `${tipoServico.toUpperCase()}: ${desc.toUpperCase()} (KM: ${km})`,
-        valor,
-        data: dataFormatada
-    };
-
-    appState.transacoes.push(transacaoFinanceira);
-    updateGlobalUI();
-    await saveToFinancasSheet(transacaoFinanceira);
-    saveCloudBackup();
-};
-
-window.addWater = (ml) => { appState.water_ml += ml; updateGlobalUI(); saveCloudBackup(); };
-window.addMonster = () => { 
-    appState.energy_mg += 160; 
-    const t = { id: Date.now(), tipo: 'Despesa', cat: 'Saúde', desc: 'MONSTER ENERGY', valor: 10, data: new Date().toLocaleDateString('pt-BR') };
-    appState.transacoes.push(t);
-    saveToFinancasSheet(t);
-    updateGlobalUI(); 
-    saveCloudBackup(); 
-};
-
-window.toggleSidebar = () => { appState.sidebarCollapsed = !appState.sidebarCollapsed; saveLocalData(); updateGlobalUI(); };
-
-const updateGlobalUI = () => {
-    injectInterface();
-    const main = document.getElementById('main-content');
-    if (main && window.innerWidth >= 768) {
-        main.classList.toggle('md:ml-64', !appState.sidebarCollapsed);
-        main.classList.toggle('md:ml-20', appState.sidebarCollapsed);
-    }
-    
-    const update = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
-    update('dash-water-cur', appState.water_ml);
-    update('dash-energy-val', appState.energy_mg);
-    update('dash-nps-val', appState.nps_mes);
-    update('water-current-display', appState.water_ml);
-    update('energy-current-display', appState.energy_mg);
-    update('bike-km-display', appState.veiculo.km);
-
-    if (window.lucide) lucide.createIcons();
 };
 
 window.openTab = (p) => { window.location.href = p + ".html"; };
