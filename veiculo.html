@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PULSE OS - Veículo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .vehicle-row .action-buttons {
+            opacity: 0;
+            transition: all 0.2s ease;
+        }
+        .vehicle-row:hover .action-buttons {
+            opacity: 1;
+        }
+
+        @media (max-width: 768px) {
+            .pb-safe-bottom {
+                padding-bottom: 5rem;
+            }
+        }
+
+        .hidden-field { display: none; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 italic">
+    <div class="flex min-h-screen relative">
+        <!-- Injetado pelo app.js -->
+        <div id="sidebar-placeholder"></div>
+
+        <div class="flex-1 md:ml-64 transition-all duration-300 pb-safe-bottom">
+            <!-- Injetado pelo app.js -->
+            <div id="header-placeholder"></div>
+
+            <main class="max-w-4xl mx-auto p-4 md:p-8 space-y-6">
+                <!-- Status da Máquina -->
+                <div class="bg-slate-900 border border-white/5 p-8 rounded-[2.5rem] relative overflow-hidden group italic border border-white/5">
+                    <div class="absolute top-0 right-0 p-8 opacity-10">
+                        <i data-lucide="bike" class="w-24 h-24 text-blue-500"></i>
+                    </div>
+                    <div class="relative z-10">
+                        <div class="flex items-center gap-2 text-blue-500 mb-3 opacity-80 italic">
+                            <i data-lucide="info" class="w-4 h-4"></i>
+                            <p class="text-[10px] font-black uppercase tracking-[0.4em] italic">Status da Máquina</p>
+                        </div>
+                        <p class="text-4xl font-black tracking-tighter text-white leading-none italic uppercase" id="bike-name-display">Carregando...</p>
+                        <div class="flex gap-6 mt-6 italic">
+                            <div>
+                                <p class="text-[8px] font-black uppercase text-slate-500 tracking-widest italic">Odômetro</p>
+                                <p class="text-xl font-black text-slate-200 italic"><span id="bike-km-display">0</span> <small class="text-[10px] text-slate-500">KM</small></p>
+                            </div>
+                            <div>
+                                <p class="text-[8px] font-black uppercase text-slate-500 tracking-widest italic">Próx. Óleo</p>
+                                <p class="text-xl font-black text-orange-500 italic"><span id="bike-oil-display">0</span> <small class="text-[10px] text-slate-600">KM</small></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Formulário de Lançamento -->
+                <div class="bg-slate-900/40 p-6 rounded-[2.5rem] border border-white/5 space-y-3 italic">
+                    <h3 class="text-[10px] font-black uppercase tracking-[0.3em] text-orange-500 px-2 flex items-center gap-2 italic">
+                        <i data-lucide="plus-circle" class="w-3 h-3"></i> Novo Lançamento
+                    </h3>
+                    
+                    <div class="space-y-3 italic">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            <select id="v-tipo-principal" onchange="window.toggleCamposVeiculo()" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold outline-none text-slate-300 uppercase italic">
+                                <option value="Abastecimento">Abastecimento</option>
+                                <option value="Serviço">Serviço ou Manutenção</option>
+                            </select>
+                            <input type="date" id="v-data" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold text-slate-400 outline-none italic">
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-2 italic">
+                            <input type="number" id="v-km-atual" placeholder="KM ATUAL" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold text-slate-300 outline-none uppercase italic">
+                            <input type="text" id="v-descricao" placeholder="POSTO OU LOCAL..." class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold text-slate-300 outline-none uppercase italic">
+                        </div>
+
+                        <div id="area-abastecimento" class="space-y-3 italic">
+                            <select id="v-combustivel-tipo" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold outline-none text-slate-300 uppercase italic">
+                                <option value="Gasolina">Gasolina Comum</option>
+                                <option value="Aditivada">Gasolina Aditivada</option>
+                                <option value="Etanol">Etanol</option>
+                            </select>
+                            <div class="grid grid-cols-2 gap-2 italic">
+                                <div class="space-y-1 italic">
+                                    <label class="text-[8px] font-black uppercase text-slate-600 px-2 italic">Preço/L</label>
+                                    <input type="number" id="v-preco-litro" step="0.001" oninput="window.calcVeiculo('preco')" placeholder="R$ 0,00" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold text-emerald-500 outline-none italic">
+                                </div>
+                                <div class="space-y-1 italic">
+                                    <label class="text-[8px] font-black uppercase text-slate-600 px-2 italic">Litros</label>
+                                    <input type="number" id="v-litros" step="0.01" oninput="window.calcVeiculo('litros')" placeholder="0.00 L" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold text-blue-400 outline-none italic">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-1 italic">
+                            <label class="text-[8px] font-black uppercase text-slate-600 px-2 italic">Valor Total R$</label>
+                            <input type="number" id="v-total-rs" step="0.01" oninput="window.calcVeiculo('total')" placeholder="R$ 0,00" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold text-white outline-none italic">
+                        </div>
+
+                        <button onclick="window.lancarVeiculo()" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] mt-2 transition-all shadow-lg active:scale-[0.98] italic">
+                            Confirmar Lançamento
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Planejamento de Viagem -->
+                <div class="bg-slate-900/40 p-8 rounded-[2.5rem] border border-white/5 space-y-6 italic">
+                    <div class="flex items-center justify-between italic">
+                        <div class="flex items-center gap-2 text-blue-500 opacity-80 italic">
+                            <i data-lucide="map" class="w-4 h-4"></i>
+                            <p class="text-[10px] font-black uppercase tracking-[0.4em] italic">Estimador de Rota</p>
+                        </div>
+                        <button onclick="window.abrirGoogleMaps()" class="p-3 bg-white/5 rounded-xl text-blue-400 hover:bg-blue-500/20 transition-all flex items-center gap-2 italic active:scale-95">
+                            <i data-lucide="map-pin" class="w-4 h-4 text-emerald-400"></i>
+                            <span class="text-[9px] font-black uppercase tracking-widest italic">Ver Rota</span>
+                        </button>
+                    </div>
+                    
+                    <div class="space-y-4 italic">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2 italic">
+                            <input type="text" id="trip-destination" placeholder="DESTINO (EX: MORRO BRANCO)" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold text-slate-300 outline-none focus:border-blue-500/50 transition-all uppercase italic">
+                            <input type="date" id="trip-date" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold text-slate-400 outline-none italic">
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2 italic">
+                            <div class="space-y-1 italic">
+                                <label class="text-[8px] font-black uppercase text-slate-600 px-2 italic">Distância da Viagem (KM)</label>
+                                <input type="number" id="trip-dist-input" placeholder="EX: 150" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold text-white outline-none italic">
+                            </div>
+                            <button onclick="window.calcularViagem()" class="mt-auto bg-slate-800 text-slate-200 py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-slate-700 transition-all italic active:scale-95">
+                                Planejar Gasto
+                            </button>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3 pt-2 italic">
+                            <div class="bg-slate-950/50 p-5 rounded-3xl border border-white/5 italic">
+                                <p class="text-[8px] font-black uppercase text-slate-600 tracking-widest mb-1 italic">Litros Necessários</p>
+                                <p class="text-xl font-black text-blue-400 italic"><span id="trip-litros-val">0.0</span> <small class="text-xs uppercase">L</small></p>
+                            </div>
+                            <div class="bg-slate-950/50 p-5 rounded-3xl border border-white/5 italic">
+                                <p class="text-[8px] font-black uppercase text-slate-600 tracking-widest mb-1 italic">Custo Estimado</p>
+                                <p class="text-xl font-black text-emerald-400 italic"><small class="text-xs uppercase">R$</small> <span id="trip-custo-val">0</span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Histórico -->
+                <div class="space-y-4 italic">
+                    <h3 class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 px-6 italic">Histórico de Atividades</h3>
+                    <div id="bike-history-list" class="space-y-2 italic">
+                        <!-- Injetado pelo app.js -->
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <script src="js/app.js"></script>
+</body>
+</html>

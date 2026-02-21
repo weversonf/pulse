@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PULSE OS - Ajustes</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        @media (max-width: 768px) { .pb-safe-bottom { padding-bottom: 5rem; } }
+        
+        select option {
+            background-color: #0f172a;
+            color: white;
+        }
+
+        .input-locked {
+            background-color: rgba(255,255,255,0.02);
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 italic">
+    <div class="flex min-h-screen relative">
+        <div id="sidebar-placeholder"></div>
+
+        <div class="flex-1 md:ml-64 transition-all duration-300 pb-safe-bottom">
+            <div id="header-placeholder"></div>
+
+            <main class="max-w-4xl mx-auto p-4 md:p-8 space-y-8 italic">
+                
+                <!-- Secção 01: Bio-Perfil -->
+                <section class="space-y-4">
+                    <h3 class="text-[10px] font-black uppercase tracking-[0.3em] text-blue-500 px-2 italic flex items-center gap-2">
+                        <i data-lucide="user" class="w-3 h-3"></i> Bio-Perfil
+                    </h3>
+                    <div class="bg-slate-900/40 p-6 rounded-[2.5rem] border border-white/5 grid grid-cols-2 md:grid-cols-4 gap-4 italic">
+                        <div class="space-y-1">
+                            <label class="text-[8px] font-black uppercase text-slate-600 px-2 italic tracking-widest">Peso (kg)</label>
+                            <input type="number" id="set-peso" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold text-white outline-none italic">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[8px] font-black uppercase text-slate-600 px-2 italic tracking-widest">Altura (cm)</label>
+                            <input type="number" id="set-altura" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold text-white outline-none italic">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[8px] font-black uppercase text-slate-600 px-2 italic tracking-widest">Idade</label>
+                            <input type="number" id="set-idade" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold text-white outline-none italic">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[8px] font-black uppercase text-slate-600 px-2 italic tracking-widest">Sexo</label>
+                            <select id="set-sexo" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold text-white outline-none italic uppercase">
+                                <option value="M">Masc</option>
+                                <option value="F">Fem</option>
+                            </select>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Secção 02: Localização -->
+                <section class="space-y-4">
+                    <h3 class="text-[10px] font-black uppercase tracking-[0.3em] text-blue-500 px-2 italic flex items-center gap-2">
+                        <i data-lucide="map-pin" class="w-3 h-3"></i> Localização
+                    </h3>
+                    <div class="bg-slate-900/40 p-6 rounded-[2.5rem] border border-white/5 grid grid-cols-1 md:grid-cols-2 gap-4 italic">
+                        <div class="space-y-1">
+                            <label class="text-[8px] font-black uppercase text-slate-600 px-2 italic tracking-widest">Estado (UF)</label>
+                            <select id="set-estado" onchange="window.loadCities(this.value)" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold text-white outline-none italic uppercase">
+                                <option value="">Selecione o Estado</option>
+                                <option value="AC">Acre</option><option value="AL">Alagoas</option><option value="AP">Amapá</option><option value="AM">Amazonas</option><option value="BA">Bahia</option><option value="CE">Ceará</option><option value="DF">Distrito Federal</option><option value="ES">Espírito Santo</option><option value="GO">Goiás</option><option value="MA">Maranhão</option><option value="MT">Mato Grosso</option><option value="MS">Mato Grosso do Sul</option><option value="MG">Minas Gerais</option><option value="PA">Pará</option><option value="PB">Paraíba</option><option value="PR">Paraná</option><option value="PE">Pernambuco</option><option value="PI">Piauí</option><option value="RJ">Rio de Janeiro</option><option value="RN">Rio Grande do Norte</option><option value="RS">Rio Grande do Sul</option><option value="RO">Rondônia</option><option value="RR">Roraima</option><option value="SC">Santa Catarina</option><option value="SP">São Paulo</option><option value="SE">Sergipe</option><option value="TO">Tocantins</option>
+                            </select>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[8px] font-black uppercase text-slate-600 px-2 italic tracking-widest">Cidade / Município</label>
+                            <select id="set-cidade" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold text-white outline-none italic uppercase">
+                                <option value="">Selecione o Estado Primeiro</option>
+                            </select>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Secção 03: Veículo -->
+                <section class="space-y-4">
+                    <h3 class="text-[10px] font-black uppercase tracking-[0.3em] text-orange-500 px-2 italic flex items-center gap-2">
+                        <i data-lucide="bike" class="w-3 h-3"></i> Configurações de Veículo
+                    </h3>
+                    <div class="bg-slate-900/40 p-6 rounded-[2.5rem] border border-white/5 space-y-4 italic">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 italic">
+                            <div class="space-y-1">
+                                <label class="text-[8px] font-black uppercase text-slate-600 px-2 italic tracking-widest">Montadora</label>
+                                <select id="set-bike-montadora" onchange="window.updateModels(this.value)" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold text-white outline-none italic uppercase">
+                                    <option value="">Selecione a Montadora</option>
+                                </select>
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[8px] font-black uppercase text-slate-600 px-2 italic tracking-widest">Modelo</label>
+                                <select id="set-bike-modelo" onchange="window.updateConsumption(this.value)" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold text-white outline-none italic uppercase">
+                                    <option value="">Selecione a Montadora Primeiro</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 italic">
+                            <div class="space-y-1 relative group">
+                                <label class="text-[8px] font-black uppercase text-slate-600 px-2 italic tracking-widest">Consumo (km/L)</label>
+                                <div class="relative">
+                                    <input type="number" id="set-bike-consumo" readonly onclick="window.unlockConsumo(this)" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold text-blue-400 outline-none italic input-locked transition-all" title="Clique para editar manualmente">
+                                    <i data-lucide="lock" id="consumo-lock-icon" class="absolute right-4 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-700 pointer-events-none"></i>
+                                </div>
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[8px] font-black uppercase text-slate-600 px-2 italic tracking-widest">KM Atual</label>
+                                <input type="number" id="set-bike-km" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold text-white outline-none italic">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[8px] font-black uppercase text-slate-600 px-2 italic tracking-widest">Próx. Óleo</label>
+                                <input type="number" id="set-bike-oleo" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold text-orange-400 outline-none italic">
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Secção 04: Desafio Exclusivo -->
+                <section class="space-y-4">
+                    <h3 class="text-[10px] font-black uppercase tracking-[0.3em] text-purple-500 px-2 italic flex items-center gap-2">
+                        <i data-lucide="target" class="w-3 h-3"></i> Início do Desafio 30 Dias Sem Álcool
+                    </h3>
+                    <div class="bg-slate-900/40 p-6 rounded-[2.5rem] border border-white/5 space-y-4 italic">
+                        <div class="space-y-1">
+                            <label class="text-[8px] font-black uppercase text-slate-600 px-2 italic tracking-widest">Título do Desafio</label>
+                            <input type="text" id="set-prop-title" placeholder="EX: SEM ÁLCOOL" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold text-white outline-none italic uppercase">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4 italic">
+                            <div class="space-y-1">
+                                <label class="text-[8px] font-black uppercase text-slate-600 px-2 italic tracking-widest">Data de Início</label>
+                                <input type="date" id="set-prop-start" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold text-slate-400 outline-none italic">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[8px] font-black uppercase text-slate-600 px-2 italic tracking-widest">Meta (Dias)</label>
+                                <input type="number" id="set-prop-target" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold text-white outline-none italic">
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="flex items-center justify-center gap-2 text-slate-600 py-4 italic">
+                    <i data-lucide="cloud-check" class="w-4 h-4 text-emerald-500"></i>
+                    <span class="text-[8px] font-black uppercase tracking-widest">Alto Salvamento Ativo</span>
+                </div>
+
+                <div class="pt-6 italic">
+                    <button onclick="window.savePulseSettings()" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-5 rounded-[2rem] font-black uppercase tracking-[0.4em] text-[10px] shadow-2xl transition-all active:scale-[0.98] italic">
+                        Sincronizar Manualmente
+                    </button>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <script src="js/app.js"></script>
+    <script>
+        // Banco de Dados de Veículos (Exemplos comuns no Brasil)
+        const vehicleData = {
+            "Motos": {
+                "YAMAHA": { "FAZER 250": 32, "LANDER 250": 30, "MT-03": 22, "FACTOR 150": 42, "NMAX 160": 38 },
+                "HONDA": { "CG 160 TITAN": 40, "CB 250F TWISTER": 30, "XRE 300": 28, "PCX 150": 35, "BIZ 125": 45 },
+                "BMW": { "G 310 GS": 30, "F 850 GS": 18, "R 1250 GS": 15 },
+                "KAWASAKI": { "NINJA 400": 22, "Z400": 23, "VERSYS 650": 19 }
+            },
+            "Carros": {
+                "TOYOTA": { "COROLLA": 12, "HILUX": 10, "YARIS": 13, "ETIOS": 14 },
+                "VOLKSWAGEN": { "GOL": 13, "POLO": 12, "JETTA": 10, "T-CROSS": 11 },
+                "FIAT": { "STRADA": 12, "ARGO": 13, "TORO": 10, "MOBI": 14 },
+                "CHEVROLET": { "ONIX": 13, "TRACKER": 11, "S10": 9, "CRUZE": 11 },
+                "HYUNDAI": { "HB20": 12, "CRETA": 10 },
+                "RENAULT": { "KWID": 15, "SANDERO": 12, "DUSTER": 10 },
+                "JEEP": { "COMPASS": 9, "RENEGADE": 10 }
+            }
+        };
+
+        // Popular Montadoras
+        const initVehicleSelects = () => {
+            const mSelect = document.getElementById('set-bike-montadora');
+            const allBrands = [...Object.keys(vehicleData.Motos), ...Object.keys(vehicleData.Carros)].sort();
+            allBrands.forEach(brand => {
+                const opt = document.createElement('option');
+                opt.value = brand;
+                opt.textContent = brand;
+                mSelect.appendChild(opt);
+            });
+        };
+
+        window.updateModels = (brand) => {
+            const modSelect = document.getElementById('set-bike-modelo');
+            modSelect.innerHTML = '<option value="">Selecione o Modelo</option>';
+            
+            const findModels = (cat) => vehicleData[cat][brand];
+            const models = findModels('Motos') || findModels('Carros');
+
+            if (models) {
+                Object.keys(models).forEach(model => {
+                    const opt = document.createElement('option');
+                    opt.value = model;
+                    opt.textContent = model;
+                    modSelect.appendChild(opt);
+                });
+            }
+            window.savePulseSettings(true);
+        };
+
+        window.updateConsumption = (model) => {
+            const brand = document.getElementById('set-bike-montadora').value;
+            const findCons = (cat) => vehicleData[cat][brand]?.[model];
+            const consVal = findCons('Motos') || findCons('Carros');
+
+            const input = document.getElementById('set-bike-consumo');
+            if (consVal) {
+                input.value = consVal;
+                // Re-bloqueia ao trocar de modelo para evitar erros
+                input.readOnly = true;
+                input.classList.add('input-locked');
+                document.getElementById('consumo-lock-icon').style.display = 'block';
+            }
+            window.savePulseSettings(true);
+        };
+
+        window.unlockConsumo = (el) => {
+            el.readOnly = false;
+            el.classList.remove('input-locked');
+            document.getElementById('consumo-lock-icon').style.display = 'none';
+        };
+
+        window.loadCities = async (uf, selectedCity = "") => {
+            const citySelect = document.getElementById('set-cidade');
+            if (!uf) { citySelect.innerHTML = '<option value="">Selecione o Estado Primeiro</option>'; return; }
+            citySelect.innerHTML = '<option value="">Carregando...</option>';
+            try {
+                const res = await fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${uf}/municipios`);
+                const cities = await res.json();
+                cities.sort((a, b) => a.nome.localeCompare(b.nome));
+                citySelect.innerHTML = '<option value="">Selecione a Cidade</option>';
+                cities.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.nome; opt.textContent = c.nome;
+                    if (c.nome === selectedCity) opt.selected = true;
+                    citySelect.appendChild(opt);
+                });
+                if (!selectedCity) window.savePulseSettings(true);
+            } catch (e) { citySelect.innerHTML = '<option value="">Erro ao carregar cidades</option>'; }
+        };
+
+        const originalFillForm = window.fillSettingsForm;
+        window.fillSettingsForm = async () => {
+            if (originalFillForm) originalFillForm();
+            const p = appState.perfil;
+            const v = appState.veiculo;
+            if (p.estado) await window.loadCities(p.estado, p.cidade);
+            if (v.montadora) {
+                window.updateModels(v.montadora);
+                document.getElementById('set-bike-modelo').value = v.modelo;
+            }
+        };
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initVehicleSelects();
+            lucide.createIcons();
+        });
+    </script>
+</body>
+</html>
