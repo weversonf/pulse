@@ -375,11 +375,7 @@ const injectInterface = () => {
                     </button>
                 `).join('')}
             </nav>
-            <div class="p-3 border-t border-white/5 space-y-2">
-                <button onclick="window.openResetModal()" class="w-full flex items-center ${isColl ? 'justify-center' : 'gap-4 px-4'} py-4 rounded-2xl transition-all font-black uppercase text-[10px] tracking-widest text-red-500/60 hover:text-red-500 hover:bg-red-500/5">
-                    <i data-lucide="trash-2" class="w-5 h-5 flex-shrink-0"></i>
-                    <span class="${isColl ? 'hidden' : 'block'} ml-3">Zerar</span>
-                </button>
+            <div class="p-3 border-t border-white/5">
                 <button onclick="window.openTab('ajustes')" class="w-full flex items-center ${isColl ? 'justify-center' : 'gap-4 px-4'} py-4 rounded-2xl transition-all font-black uppercase text-[10px] tracking-widest ${path === 'ajustes' ? 'text-blue-500' : 'text-slate-500 hover:bg-white/5'}">
                     <i data-lucide="settings" class="w-5 h-5 text-slate-400"></i>
                     <span class="${isColl ? 'hidden' : 'block'} ml-3">Ajustes</span>
@@ -394,10 +390,6 @@ const injectInterface = () => {
                     <span class="text-[7px] font-black uppercase tracking-tighter">${i.label}</span>
                 </button>
             `).join('')}
-            <button onclick="window.openResetModal()" class="flex flex-col items-center text-red-500/60">
-                <i data-lucide="trash-2" class="w-5 h-5"></i>
-                <span class="text-[7px] font-black uppercase tracking-tighter">CLR</span>
-            </button>
             <button onclick="window.openTab('ajustes')" class="flex flex-col items-center ${path === 'ajustes' ? 'text-blue-500' : 'text-slate-500'}">
                 <i data-lucide="settings" class="w-5 h-5 text-slate-400"></i>
                 <span class="text-[7px] font-black uppercase tracking-tighter">SET</span>
