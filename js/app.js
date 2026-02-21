@@ -1,5 +1,5 @@
 /**
- * PULSE OS - Central Intelligence v2.5
+ * PULSE OS - Central Intelligence v2.6
  * Sincronização: JSON Global (Aba Dados) + Transações Linha a Linha (Aba Financas)
  */
 
@@ -28,7 +28,7 @@ const loadLocalData = () => {
         try {
             const parsed = JSON.parse(saved);
             appState = { ...appState, ...parsed };
-        } catch (e) { console.error("Erro ao carregar dados locais."); }
+        } catch (e) { console.error("PULSE: Erro ao carregar dados locais."); }
     }
 };
 
@@ -41,7 +41,7 @@ const saveCloudBackup = async () => {
             mode: 'no-cors',
             body: JSON.stringify({ action: 'syncData', userId: appState.login, data: appState })
         });
-    } catch (e) { console.warn("Cloud Sync Offline."); }
+    } catch (e) { console.warn("PULSE: Sincronização em nuvem offline."); }
 };
 
 const saveToFinancasSheet = async (transacao) => {
@@ -56,7 +56,7 @@ const saveToFinancasSheet = async (transacao) => {
                 rowData: [transacao.id, transacao.data, transacao.tipo, transacao.cat, transacao.desc, transacao.valor]
             })
         });
-    } catch (e) { console.error("Erro ao salvar linha de finanças."); }
+    } catch (e) { console.error("PULSE: Erro ao registar linha financeira."); }
 };
 
 // --- AUTENTICAÇÃO ---
@@ -71,7 +71,7 @@ window.doLogin = async () => {
         return;
     }
 
-    if (msg) msg.innerText = "AUTENTICANDO...";
+    if (msg) msg.innerText = "VERIFICANDO CREDENCIAIS...";
 
     try {
         const response = await fetch(SCRIPT_URL, {
@@ -86,10 +86,10 @@ window.doLogin = async () => {
             saveLocalData();
             window.location.href = "dashboard.html";
         } else {
-            if (msg) msg.innerText = result.error || "ERRO DE ACESSO";
+            if (msg) msg.innerText = result.error || "ACESSO NEGADO";
         }
     } catch (e) {
-        if (msg) msg.innerText = "ERRO DE CONEXÃO";
+        if (msg) msg.innerText = "ERRO NA LIGAÇÃO COM O SERVIDOR";
     }
 };
 
@@ -105,10 +105,10 @@ const refreshFromCloud = async () => {
             appState = { ...appState, ...result.data };
             updateGlobalUI();
         }
-    } catch (e) { console.warn("Refresh failed."); }
+    } catch (e) { console.warn("PULSE: Falha no refresh automático."); }
 };
 
-// --- LOGICA DE SAUDE ---
+// --- LÓGICA DE SAÚDE ---
 
 window.addWater = (ml) => {
     appState.water_ml += ml;
@@ -133,14 +133,14 @@ window.addMonster = () => {
 };
 
 window.failChallenge = () => {
-    if(confirm("CONFIRMAR QUE PERDEU O PROCESSO? O CONTADOR VOLTARÁ A ZERO.")) {
+    if(confirm("CONFIRMAR QUE INTERROMPEU O PROCESSO? O CONTADOR VOLTARÁ A ZERO.")) {
         appState.perfil.alcoholStart = new Date().toISOString();
         updateGlobalUI();
         saveCloudBackup();
     }
 };
 
-// --- LOGICA DE FINANÇAS ---
+// --- LÓGICA DE FINANÇAS ---
 
 window.lancarFinanca = async (tipo) => {
     const val = parseFloat(document.getElementById('fin-valor')?.value);
@@ -164,12 +164,11 @@ window.lancarFinanca = async (tipo) => {
     await saveToFinancasSheet(t);
     saveCloudBackup();
 
-    // Limpar campos
-    document.getElementById('fin-valor').value = "";
-    document.getElementById('fin-desc').value = "";
+    if(document.getElementById('fin-valor')) document.getElementById('fin-valor').value = "";
+    if(document.getElementById('fin-desc')) document.getElementById('fin-desc').value = "";
 };
 
-// --- LOGICA DE VEÍCULO (FAZER 250) ---
+// --- LÓGICA DE VEÍCULO (YAMAHA FAZER 250) ---
 
 window.toggleCamposVeiculo = () => {
     const tipo = document.getElementById('v-tipo-principal')?.value;
@@ -200,12 +199,10 @@ window.lancarVeiculo = async () => {
 
     const formattedDate = date ? date.split('-').reverse().join('/') : new Date().toLocaleDateString('pt-BR');
     
-    // Log Veículo
     const log = { id: Date.now(), tipo, data: formattedDate, km, valor: val, detalhes: desc };
     appState.veiculo.historico.push(log);
     appState.veiculo.km = Math.max(appState.veiculo.km, km);
 
-    // Espelhamento Finanças
     const fin = { 
         id: Date.now() + 1, 
         tipo: 'Despesa', 
@@ -224,7 +221,7 @@ window.lancarVeiculo = async () => {
 window.calcularViagem = () => {
     const dist = parseFloat(document.getElementById('trip-dist-input')?.value) || 0;
     const cons = appState.veiculo.consumo || 29;
-    const preco = 6.00; // Média Fortaleza
+    const preco = 6.00; 
 
     const litros = dist / cons;
     const custo = litros * preco;
@@ -236,7 +233,7 @@ window.calcularViagem = () => {
     if (custoEl) custoEl.innerText = Math.ceil(custo);
 };
 
-// --- LOGICA DE AJUSTES ---
+// --- LÓGICA DE AJUSTES ---
 
 window.savePulseSettings = (silent = false) => {
     appState.perfil.peso = parseFloat(document.getElementById('set-peso')?.value) || appState.perfil.peso;
@@ -286,7 +283,7 @@ const fillSettingsForm = () => {
     if (p.alcoholStart) setVal('set-prop-start', p.alcoholStart.split('T')[0]);
 };
 
-// --- LOGICA DE TRABALHO (WORK) ---
+// --- LÓGICA DE TRABALHO (MAKRO ENGENHARIA) ---
 
 window.addWorkTask = () => {
     const titleEl = document.getElementById('work-task-title');
@@ -320,7 +317,7 @@ const renderWorkTasks = () => {
     const sorted = [...appState.tarefas].sort((a,b) => (a.status === 'Concluído' ? 1 : -1));
     list.innerHTML = sorted.map(t => `
         <div class="glass-card p-5 rounded-3xl flex items-center justify-between transition-all ${t.status === 'Concluído' ? 'opacity-40' : ''}">
-            <div class="flex items-center gap-4 italic">
+            <div class="flex items-center gap-4">
                 <button onclick="window.toggleTask(${t.id})" class="w-6 h-6 rounded-lg border-2 ${t.status === 'Concluído' ? 'bg-sky-500 border-sky-500' : 'border-white/10'} flex items-center justify-center">
                     ${t.status === 'Concluído' ? '<i data-lucide="check" class="w-4 h-4 text-white"></i>' : ''}
                 </button>
@@ -355,14 +352,14 @@ const injectInterface = () => {
     ];
 
     sidebar.innerHTML = `
-        <aside class="hidden md:flex flex-col ${isColl ? 'w-20' : 'w-64'} bg-slate-900 border-r border-white/5 fixed h-full z-50 transition-all duration-300 italic">
+        <aside class="hidden md:flex flex-col ${isColl ? 'w-20' : 'w-64'} bg-slate-900 border-r border-white/5 fixed h-full z-50 transition-all duration-300">
             <div class="p-6 flex items-center justify-between">
                 <h1 class="text-2xl font-black text-blue-500 italic ${isColl ? 'hidden' : 'block'}">PULSE</h1>
                 <button onclick="window.toggleSidebar()" class="p-2 bg-white/5 rounded-xl text-slate-500 hover:text-white">
                     <i data-lucide="${isColl ? 'chevron-right' : 'chevron-left'}" class="w-4 h-4"></i>
                 </button>
             </div>
-            <nav class="flex-1 px-3 space-y-2 mt-4 italic">
+            <nav class="flex-1 px-3 space-y-2 mt-4">
                 ${items.map(i => `
                     <button onclick="window.openTab('${i.id}')" class="w-full flex items-center ${isColl ? 'justify-center' : 'gap-4 px-4'} py-4 rounded-2xl transition-all font-black uppercase text-[10px] tracking-widest ${path === i.id ? 'bg-white/5 text-blue-500' : 'text-slate-500 hover:bg-white/5'}">
                         <i data-lucide="${i.icon}" class="w-5 h-5 ${i.color}"></i>
@@ -377,7 +374,7 @@ const injectInterface = () => {
                 </button>
             </div>
         </aside>
-        <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-xl border-t border-white/10 z-[60] px-2 h-16 flex items-center justify-around italic">
+        <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-xl border-t border-white/10 z-[60] px-2 h-16 flex items-center justify-around">
             ${items.map(i => `
                 <button onclick="window.openTab('${i.id}')" class="flex flex-col items-center transition-all ${path === i.id ? 'text-blue-500' : 'text-slate-500'}">
                     <i data-lucide="${i.icon}" class="w-5 h-5 ${i.color}"></i>
@@ -393,11 +390,11 @@ const injectInterface = () => {
 
     if (header) {
         header.innerHTML = `
-            <header class="bg-slate-900/80 backdrop-blur-xl sticky top-0 z-40 px-6 py-5 flex items-center justify-between border-b border-white/5 italic">
+            <header class="bg-slate-900/80 backdrop-blur-xl sticky top-0 z-40 px-6 py-5 flex items-center justify-between border-b border-white/5">
                 <h2 class="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500 flex items-center gap-2">
                     ${path.toUpperCase()} <span class="text-slate-800">•</span>
                     <span class="text-blue-500">${(appState.perfil.cidade || 'FORTALEZA').toUpperCase()}</span> <span class="text-slate-800">•</span>
-                    <span class="flex items-center gap-1 italic text-white font-black">
+                    <span class="flex items-center gap-1 text-white font-black">
                         <i data-lucide="${appState.weather.icon}" class="w-3 h-3 ${appState.weather.color}"></i> ${appState.weather.temp}°C
                     </span>
                 </h2>
@@ -421,7 +418,6 @@ const updateGlobalUI = () => {
     
     const update = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
     
-    // Dashboard / Geral
     update('dash-water-cur', appState.water_ml);
     update('dash-energy-val', appState.energy_mg);
     update('dash-nps-val', appState.nps_mes);
@@ -434,7 +430,6 @@ const updateGlobalUI = () => {
     update('dash-tasks-progress', appState.tarefas.filter(t => t.status === 'Concluído').length);
     update('dash-tasks-remaining', appState.tarefas.filter(t => t.status === 'Pendente').length);
 
-    // Barras de Progresso
     const wPct = Math.min((appState.water_ml / 3500) * 100, 100);
     const ePct = Math.min((appState.energy_mg / 400) * 100, 100);
     ['dash-water-bar', 'water-bar'].forEach(id => { if(document.getElementById(id)) document.getElementById(id).style.width = wPct + '%'; });
@@ -445,7 +440,6 @@ const updateGlobalUI = () => {
     const gauge = document.getElementById('energy-gauge-path');
     if (gauge) gauge.style.strokeDashoffset = 226.2 - (ePct / 100) * 226.2;
 
-    // Propósito (Álcool)
     if (appState.perfil.alcoholStart) {
         const diff = Math.floor((new Date() - new Date(appState.perfil.alcoholStart)) / (1000 * 60 * 60 * 24));
         update('alcohol-days-count', diff);
@@ -455,12 +449,10 @@ const updateGlobalUI = () => {
         if(document.getElementById('alcohol-bar')) document.getElementById('alcohol-bar').style.width = aPct + '%';
     }
 
-    // Finanças
     const saldo = appState.transacoes.reduce((acc, t) => acc + (t.tipo === 'Receita' ? t.valor : -t.valor), 0);
     update('dash-saldo', saldo.toLocaleString('pt-BR'));
     update('fin-saldo-atual-pag', saldo.toLocaleString('pt-BR'));
 
-    // Render Lists
     renderWorkTasks();
     renderExtratos();
 
@@ -468,25 +460,25 @@ const updateGlobalUI = () => {
 };
 
 const renderExtratos = () => {
-    const list = document.getElementById('bike-history-list') || document.getElementById('fin-history-list');
+    // Sincronizado com os IDs de veiculo.html e financas.html
+    const list = document.getElementById('bike-history-list') || document.getElementById('fin-extrato-list');
     if (!list) return;
 
-    // Se estiver na aba veículo, filtra apenas o histórico do veículo, senão todas as transações
     const data = document.getElementById('bike-history-list') ? appState.veiculo.historico : appState.transacoes;
     const sorted = [...data].sort((a, b) => b.id - a.id);
 
     list.innerHTML = sorted.map(h => `
         <div class="bg-slate-900/40 p-4 rounded-2xl border border-white/5 flex items-center justify-between group transition-all italic">
-            <div class="flex items-center gap-4 italic">
-                <div class="w-10 h-10 ${h.tipo === 'Receita' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-orange-500/10 text-orange-500'} rounded-xl flex items-center justify-center italic">
+            <div class="flex items-center gap-4">
+                <div class="w-10 h-10 ${h.tipo === 'Receita' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-orange-500/10 text-orange-500'} rounded-xl flex items-center justify-center">
                     <i data-lucide="${h.tipo === 'Receita' ? 'trending-up' : (h.tipo === 'Abastecimento' ? 'fuel' : 'wrench')}"></i>
                 </div>
                 <div>
-                    <p class="text-xs font-black uppercase italic text-white">${h.desc || h.tipo}</p>
-                    <p class="text-[8px] font-bold text-slate-500 uppercase italic mt-0.5">${h.data} • ${h.km ? h.km + ' KM •' : ''} R$ ${h.valor.toFixed(2)}</p>
+                    <p class="text-xs font-black uppercase text-white">${h.desc || h.tipo}</p>
+                    <p class="text-[8px] font-bold text-slate-500 uppercase mt-0.5">${h.data} • ${h.km ? h.km + ' KM •' : ''} R$ ${h.valor.toFixed(2)}</p>
                 </div>
             </div>
-            <p class="text-[8px] font-black text-slate-600 uppercase italic">${h.detalhes || h.cat || ''}</p>
+            <p class="text-[8px] font-black text-slate-600 uppercase">${h.detalhes || h.cat || ''}</p>
         </div>
     `).join('');
 };
