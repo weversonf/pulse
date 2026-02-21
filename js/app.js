@@ -1,14 +1,14 @@
 /**
- * PULSE OS - Central Intelligence v3.1 (Master Sync + Robust UI)
- * Blindagem contra erros de dados e Sincronização GitHub/Google Sheets
+ * PULSE OS - Central Intelligence v3.3 (Master Sync + Cloud Truth)
+ * Ajuste de sincronização para refletir limpeza manual na planilha
  */
 
 // URL Única do Backend (BD_Pulse)
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwVDkNFRuFNyTh3We_8qvlrSDIa3G_y1Owo_l8K47qmw_tlwv3I-EMBfRplkYX6EkMUQw/exec";
 
 // Estado Inicial Padrão
-const getInitialState = () => ({
-    login: "",
+const getInitialState = (currentLogin = "") => ({
+    login: currentLogin,
     energy_mg: 0,
     water_ml: 0,
     sidebarCollapsed: false,
@@ -22,15 +22,79 @@ const getInitialState = () => ({
 
 let appState = getInitialState();
 
-// --- INJEÇÃO DE INTERFACE (CABECALHO E MENU) ---
+// --- SINCRONIZAÇÃO E PERSISTÊNCIA ---
+
+const saveLocalData = () => localStorage.setItem('pulse_state', JSON.stringify(appState));
+
+const loadLocalData = () => {
+    const saved = localStorage.getItem('pulse_state');
+    if (saved) {
+        try {
+            const parsed = JSON.parse(saved);
+            appState = { ...appState, ...parsed };
+        } catch (e) { console.error("PULSE: Erro no parse local."); }
+    }
+};
+
+const refreshFromCloud = async () => {
+    if (!appState.login) return;
+    try {
+        const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'login', user: appState.login, pass: "REFRESH" })
+        });
+        const result = await response.json();
+        
+        if (result.success) {
+            if (result.data) {
+                // Se houver dados na nuvem, carrega-os
+                appState = { ...appState, ...result.data, login: appState.login };
+            } else {
+                // Se a nuvem estiver limpa (Dados vazios), reseta o local para bater com a nuvem
+                console.log("PULSE: Nuvem limpa detectada. Sincronizando estado vazio.");
+                const currentLogin = appState.login;
+                appState = getInitialState(currentLogin);
+            }
+            saveLocalData();
+            updateGlobalUI();
+        }
+    } catch (e) { console.warn("PULSE: Falha no refresh automático."); }
+};
+
+const saveCloudBackup = async () => {
+    saveLocalData();
+    if (!appState.login) return;
+    try {
+        await fetch(SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            body: JSON.stringify({ action: 'syncData', userId: appState.login, data: appState })
+        });
+    } catch (e) { console.warn("PULSE: Backup nuvem falhou."); }
+};
+
+const saveToFinancasSheet = async (transacao) => {
+    if (!appState.login) return;
+    try {
+        await fetch(SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            body: JSON.stringify({ 
+                action: 'appendFinanca', 
+                userId: appState.login, 
+                rowData: [transacao.id, transacao.data, transacao.tipo, transacao.cat, transacao.desc, transacao.valor]
+            })
+        });
+    } catch (e) { console.error("PULSE: Erro no Google Sheets."); }
+};
+
+// --- INTERFACE E RENDERIZAÇÃO ---
 
 const injectInterface = () => {
     const sidebar = document.getElementById('sidebar-placeholder');
     const header = document.getElementById('header-placeholder');
-    
     const urlPath = window.location.pathname.split('/').pop().split('.')[0];
     const path = urlPath || 'dashboard';
-    
     const isColl = appState.sidebarCollapsed;
 
     if (sidebar) {
@@ -90,7 +154,7 @@ const injectInterface = () => {
                         <i data-lucide="${appState.weather.icon}" class="w-3 h-3 ${appState.weather.color || 'text-slate-400'}"></i> ${appState.weather.temp}°C
                     </span>
                 </h2>
-                <button onclick="window.openFuelModal()" class="w-10 h-10 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-500 active:scale-90 transition-all shadow-lg shadow-orange-950/20">
+                <button onclick="window.openFuelModal()" class="w-10 h-10 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-500 active:scale-90 transition-all shadow-lg shadow-orange-950/20 italic">
                     <i data-lucide="fuel" class="w-5 h-5 text-orange-500"></i>
                 </button>
             </header>
@@ -98,11 +162,8 @@ const injectInterface = () => {
     }
 };
 
-// --- UPDATE UI CENTRALIZADO ---
-
 const updateGlobalUI = () => {
     injectInterface();
-    
     const main = document.getElementById('main-content');
     if (main && window.innerWidth >= 768) {
         main.style.marginLeft = appState.sidebarCollapsed ? '5rem' : '16rem';
@@ -129,7 +190,6 @@ const updateGlobalUI = () => {
 
     const wPct = Math.min((appState.water_ml / 3500) * 100, 100);
     const ePct = Math.min((appState.energy_mg / 400) * 100, 100);
-    
     const wBar = document.getElementById('dash-water-bar') || document.getElementById('water-bar');
     if (wBar) wBar.style.width = wPct + '%';
     const eBar = document.getElementById('energy-bar');
@@ -141,27 +201,19 @@ const updateGlobalUI = () => {
 
     renderWorkTasks();
     renderExtratos();
-    
-    if (window.lucide) {
-        lucide.createIcons();
-    }
+    if (window.lucide) lucide.createIcons();
 };
-
-// --- RENDERIZADORES DE LISTAS ---
 
 const renderExtratos = () => {
     const list = document.getElementById('bike-history-list') || document.getElementById('fin-extrato-list');
     if (!list) return;
-
     const isBikePage = !!document.getElementById('bike-history-list');
     const data = isBikePage ? (appState.veiculo.historico || []) : (appState.transacoes || []);
     const sorted = [...data].sort((a, b) => b.id - a.id).slice(0, 15);
-
     if (sorted.length === 0) {
         list.innerHTML = `<p class="text-[8px] font-black uppercase text-slate-700 text-center py-8 italic">Nenhum registro encontrado</p>`;
         return;
     }
-
     list.innerHTML = sorted.map(h => {
         const val = parseFloat(h.valor || 0);
         return `
@@ -205,107 +257,30 @@ const renderWorkTasks = () => {
     `).join('');
 };
 
-// --- SINCRONIZAÇÃO E PERSISTÊNCIA ---
+// --- NAVEGAÇÃO E AUTENTICAÇÃO ---
 
-const saveLocalData = () => localStorage.setItem('pulse_state', JSON.stringify(appState));
-
-const loadLocalData = () => {
-    const saved = localStorage.getItem('pulse_state');
-    if (saved) {
-        try {
-            const parsed = JSON.parse(saved);
-            appState = { ...appState, ...parsed };
-        } catch (e) { console.error("PULSE: Erro no parse local."); }
-    }
-};
-
-const saveCloudBackup = async () => {
-    saveLocalData();
-    if (!appState.login) return;
-    try {
-        await fetch(SCRIPT_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            body: JSON.stringify({ action: 'syncData', userId: appState.login, data: appState })
-        });
-    } catch (e) { console.warn("PULSE: Backup nuvem falhou."); }
-};
-
-const saveToFinancasSheet = async (transacao) => {
-    if (!appState.login) return;
-    try {
-        await fetch(SCRIPT_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            body: JSON.stringify({ 
-                action: 'appendFinanca', 
-                userId: appState.login, 
-                rowData: [transacao.id, transacao.data, transacao.tipo, transacao.cat, transacao.desc, transacao.valor]
-            })
-        });
-    } catch (e) { console.error("PULSE: Erro no Google Sheets."); }
-};
-
-// --- NAVEGAÇÃO E AUXILIARES ---
-
-window.toggleSidebar = () => { 
-    appState.sidebarCollapsed = !appState.sidebarCollapsed; 
-    saveLocalData(); 
-    updateGlobalUI(); 
-};
-
-window.openTab = (p) => { 
-    window.location.href = p + ".html"; 
-};
+window.toggleSidebar = () => { appState.sidebarCollapsed = !appState.sidebarCollapsed; saveLocalData(); updateGlobalUI(); };
+window.openTab = (p) => { window.location.href = p + ".html"; };
 
 window.doLogin = async () => {
     const user = document.getElementById('login-user')?.value;
     const pass = document.getElementById('login-pass')?.value;
     const msg = document.getElementById('login-msg');
-
-    if (!user || !pass) {
-        if (msg) msg.innerText = "PREENCHA TODOS OS CAMPOS";
-        return;
-    }
-
+    if (!user || !pass) { if (msg) msg.innerText = "PREENCHA TODOS OS CAMPOS"; return; }
     if (msg) msg.innerText = "VERIFICANDO...";
-
     try {
         const response = await fetch(SCRIPT_URL, {
             method: 'POST',
             body: JSON.stringify({ action: 'login', user: user, pass: pass })
         });
         const result = await response.json();
-
         if (result.success) {
             appState.login = result.user;
-            if (result.data) {
-                appState = { ...appState, ...result.data, login: result.user };
-            }
+            if (result.data) appState = { ...appState, ...result.data, login: result.user };
             saveLocalData();
             window.location.href = "dashboard.html";
-        } else {
-            if (msg) msg.innerText = result.error || "ACESSO NEGADO";
-        }
-    } catch (e) {
-        if (msg) msg.innerText = "ERRO DE LIGAÇÃO";
-        console.error(e);
-    }
-};
-
-const refreshFromCloud = async () => {
-    if (!appState.login) return;
-    try {
-        const response = await fetch(SCRIPT_URL, {
-            method: 'POST',
-            body: JSON.stringify({ action: 'login', user: appState.login, pass: "REFRESH" })
-        });
-        const result = await response.json();
-        if (result.success && result.data) {
-            appState = { ...appState, ...result.data, login: appState.login };
-            updateGlobalUI();
-        }
-    } catch (e) { console.warn("PULSE: Falha no refresh."); }
+        } else { if (msg) msg.innerText = result.error || "ACESSO NEGADO"; }
+    } catch (e) { if (msg) msg.innerText = "ERRO DE LIGAÇÃO"; console.error(e); }
 };
 
 const fetchWeatherReal = async () => {
