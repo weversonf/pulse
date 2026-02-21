@@ -6,24 +6,28 @@
     <title>PULSE OS - Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="stylesheet" href="css/style.css">
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,900;1,900&display=swap');
+        body { font-family: 'Inter', sans-serif; }
         .gauge-circle { transform: rotate(-90deg); transform-origin: 50% 50%; }
         @media (max-width: 768px) { .pb-safe-bottom { padding-bottom: 5rem; } }
+        /* Transição suave para o menu flexível */
+        .transition-all { transition-property: all; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 300ms; }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 italic">
     <div class="flex min-h-screen relative">
         
-        <!-- O app.js injetará a Sidebar aqui -->
+        <!-- O app.js vai injetar a Sidebar aqui -->
         <div id="sidebar-placeholder"></div>
 
-        <div class="flex-1 md:ml-64 transition-all duration-300 pb-safe-bottom">
+        <!-- Este container flex-1 terá a sua margem controlada pelo app.js -->
+        <div id="main-content" class="flex-1 md:ml-64 transition-all pb-safe-bottom">
             
-            <!-- O app.js injetará o Cabeçalho com Clima aqui -->
+            <!-- O app.js vai injetar o Cabeçalho aqui -->
             <div id="header-placeholder"></div>
 
-            <main class="max-w-4xl mx-auto p-4 md:p-8 space-y-6">
+            <main class="max-w-5xl mx-auto p-4 md:p-8 space-y-6">
                 <!-- ROW 1: FINANÇAS -->
                 <div class="grid grid-cols-2 gap-4 italic">
                     <div class="bg-emerald-950/20 border border-emerald-500/20 p-6 rounded-[2.5rem] flex flex-col justify-between min-h-[140px] shadow-lg">
@@ -42,9 +46,8 @@
                     </div>
                 </div>
 
-                <!-- ROW 2: SAÚDE (ÁGUA + CAFEÍNA CIRCULAR) -->
+                <!-- ROW 2: SAÚDE -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 italic">
-                    <!-- Água -->
                     <div class="md:col-span-2 bg-slate-900 border border-white/5 p-6 rounded-[2.5rem] flex flex-col justify-between italic shadow-xl">
                         <div class="flex justify-between items-center mb-4">
                             <span class="text-[10px] font-black uppercase tracking-widest text-blue-500 italic">Hidratação Diária</span>
@@ -58,15 +61,11 @@
                                 <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden border border-white/5">
                                     <div id="dash-water-bar" class="bg-blue-500 h-full transition-all duration-1000" style="width: 0%"></div>
                                 </div>
-                                <div class="flex justify-between items-center italic">
-                                    <p class="text-[7px] font-black text-slate-700 uppercase tracking-widest italic">PROGRESSO</p>
-                                    <p class="text-[8px] font-black uppercase text-slate-600 tracking-widest italic">META <span id="dash-water-goal">3500</span>ml</p>
-                                </div>
+                                <p class="text-[8px] font-black uppercase text-slate-600 tracking-widest italic text-right">META <span id="dash-water-goal">3500</span>ml</p>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Cafeína Circular (Velocímetro) -->
                     <div class="bg-slate-900 border border-white/5 p-6 rounded-[2.5rem] flex flex-col items-center justify-center relative italic shadow-xl">
                         <div class="relative w-32 h-32">
                             <svg class="w-full h-full gauge-circle" viewBox="0 0 80 80">
@@ -78,51 +77,26 @@
                                 <p class="text-[7px] font-black text-emerald-500/60 uppercase tracking-widest">mg Caf.</p>
                             </div>
                         </div>
-                        <p class="text-[8px] font-black uppercase tracking-widest text-slate-600 mt-2 italic">Velocímetro Cafeína</p>
+                        <p class="text-[8px] font-black uppercase tracking-widest text-slate-600 mt-2 italic">Cafeína (Monster)</p>
                     </div>
                 </div>
 
-                <!-- ROW 3: WORK & INDICADORES -->
+                <!-- ROW 3: WORK & NPS MAKRO -->
                 <div class="grid grid-cols-2 md:grid-cols-3 gap-4 italic">
-                    <div class="bg-slate-900/40 border border-white/5 p-6 rounded-[2.5rem] flex flex-col justify-between italic shadow-md">
+                    <div class="bg-slate-900/40 border border-white/5 p-6 rounded-[2.5rem] flex flex-col justify-between italic">
                         <p class="text-[9px] font-black uppercase tracking-widest text-slate-500 italic">Atividades WORK</p>
-                        <div class="flex items-baseline gap-1">
-                            <p class="text-4xl font-black text-blue-500 italic" id="dash-tasks-progress">0</p>
-                            <p class="text-[8px] font-bold text-slate-600 uppercase">EM CURSO</p>
-                        </div>
+                        <p class="text-4xl font-black text-blue-500 italic" id="dash-tasks-progress">0</p>
                     </div>
-                    
-                    <div class="bg-slate-900/40 border border-white/5 p-6 rounded-[2.5rem] flex flex-col justify-between italic shadow-md">
+                    <div class="bg-slate-900/40 border border-white/5 p-6 rounded-[2.5rem] flex flex-col justify-between italic">
                         <p class="text-[9px] font-black uppercase tracking-widest text-slate-500 italic">Pendências</p>
-                        <div class="flex items-baseline gap-1">
-                            <p class="text-4xl font-black text-red-500 italic" id="dash-tasks-remaining">0</p>
-                            <p class="text-[8px] font-bold text-slate-600 uppercase">URGENTES</p>
-                        </div>
+                        <p class="text-4xl font-black text-red-500 italic" id="dash-tasks-remaining">0</p>
                     </div>
-
-                    <!-- CARD DE DESTAQUE: NPS MAKRO ENGENHARIA -->
                     <div class="col-span-2 md:col-span-1 bg-blue-600 border border-blue-500 p-6 rounded-[2.5rem] flex flex-col justify-between shadow-xl shadow-blue-900/20 italic group hover:scale-[1.02] transition-all">
                         <div class="flex justify-between items-start italic">
-                            <p class="text-[9px] font-black uppercase tracking-widest text-blue-100 italic">NPS Mensal Makro</p>
+                            <p class="text-[9px] font-black uppercase tracking-widest text-blue-100 italic">NPS Makro Engenharia</p>
                             <i data-lucide="award" class="w-4 h-4 text-white group-hover:rotate-12 transition-transform"></i>
                         </div>
-                        <div class="flex items-baseline gap-2 italic">
-                            <p class="text-5xl font-black text-white italic" id="dash-nps-val">0</p>
-                            <p class="text-xs font-bold text-blue-200">%</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- SEÇÃO DE ALERTAS RÁPIDOS -->
-                <div class="bg-slate-900/40 p-6 rounded-[2.5rem] border border-white/5 italic">
-                    <div class="flex items-center gap-2 mb-4 text-slate-500 italic">
-                        <i data-lucide="alert-circle" class="w-3 h-3 text-blue-500"></i>
-                        <span class="text-[9px] font-black uppercase tracking-widest">Avisos do Sistema</span>
-                    </div>
-                    <div class="space-y-2" id="dash-system-notices">
-                        <div class="p-4 bg-slate-950/50 rounded-2xl border border-white/5 text-[10px] font-bold text-slate-400 italic">
-                            Sincronização com Planilha Makro Engenharia: <span class="text-emerald-500">Ativa</span>
-                        </div>
+                        <p class="text-5xl font-black text-white italic" id="dash-nps-val">0</p>
                     </div>
                 </div>
             </main>
