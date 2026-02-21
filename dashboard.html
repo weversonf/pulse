@@ -3,32 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PULSE OS - Dashboard</title>
+    <title>PULSE v02</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/style.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,900;1,900&display=swap');
         body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
         .gauge-circle { transform: rotate(-90deg); transform-origin: 50% 50%; }
-        /* Padding inferior para não cobrir conteúdo com o menu mobile */
+        
+        /* Espaçamento para o menu mobile não tapar os cards */
         .pb-mobile-nav { padding-bottom: 5rem; }
         @media (min-width: 768px) { .pb-mobile-nav { padding-bottom: 0; } }
+        
         .transition-all { transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1); }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 italic">
     <div class="flex min-h-screen relative">
         
-        <!-- Sidebar injetada pelo app.js -->
+        <!-- CRÍTICO: O app.js procura por este ID para colocar o menu -->
         <div id="sidebar-placeholder"></div>
 
+        <!-- Este container flex-1 é empurrado pelo menu no Desktop -->
         <div id="main-content" class="flex-1 md:ml-64 transition-all pb-mobile-nav">
             
-            <!-- Header injetado pelo app.js -->
+            <!-- CRÍTICO: O app.js procura por este ID para o clima e título -->
             <div id="header-placeholder"></div>
 
             <main class="max-w-5xl mx-auto p-4 md:p-8 space-y-6">
-                <!-- ROW 1: FINANÇAS -->
+                <!-- LINHA 1: FINANÇAS MAKRO -->
                 <div class="grid grid-cols-2 gap-4 italic">
                     <div class="bg-emerald-950/20 border border-emerald-500/20 p-6 rounded-[2.5rem] flex flex-col justify-between min-h-[140px] shadow-lg">
                         <i data-lucide="wallet" class="w-5 h-5 text-emerald-500"></i>
@@ -46,28 +50,25 @@
                     </div>
                 </div>
 
-                <!-- ROW 2: SAÚDE (ÁGUA + CAFEÍNA) -->
+                <!-- LINHA 2: SAÚDE (HIDRATAÇÃO + CAFEÍNA) -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 italic">
-                    <div class="md:col-span-2 bg-slate-900 border border-white/5 p-6 rounded-[2.5rem] flex flex-col justify-between italic shadow-xl">
+                    <div class="md:col-span-2 bg-slate-900 border border-white/5 p-6 rounded-[2.5rem] flex flex-col justify-between shadow-xl">
                         <div class="flex justify-between items-center mb-4">
-                            <span class="text-[10px] font-black uppercase tracking-widest text-blue-500 italic">Hidratação Diária</span>
+                            <span class="text-[10px] font-black uppercase tracking-widest text-blue-500 italic">Hidratação (Meta: 3.5L)</span>
                             <i data-lucide="droplet" class="w-4 h-4 text-blue-500"></i>
                         </div>
                         <div class="space-y-4">
                             <p class="text-4xl font-black text-white italic tracking-tighter">
                                 <span id="dash-water-cur">0</span><small class="text-xs text-slate-500 ml-1">ml</small>
                             </p>
-                            <div class="space-y-1">
-                                <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden border border-white/5">
-                                    <div id="dash-water-bar" class="bg-blue-500 h-full transition-all duration-1000" style="width: 0%"></div>
-                                </div>
-                                <p class="text-[8px] font-black uppercase text-slate-600 tracking-widest italic text-right">META <span id="dash-water-goal">3500</span>ml</p>
+                            <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden border border-white/5">
+                                <div id="dash-water-bar" class="bg-blue-500 h-full transition-all duration-1000" style="width: 0%"></div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="bg-slate-900 border border-white/5 p-6 rounded-[2.5rem] flex flex-col items-center justify-center relative italic shadow-xl">
-                        <div class="relative w-32 h-32">
+                    <div class="bg-slate-900 border border-white/5 p-6 rounded-[2.5rem] flex flex-col items-center justify-center relative shadow-xl">
+                        <div class="relative w-28 h-28">
                             <svg class="w-full h-full gauge-circle" viewBox="0 0 80 80">
                                 <circle class="text-slate-950 stroke-current" stroke-width="6" fill="transparent" r="36" cx="40" cy="40"/>
                                 <circle id="energy-gauge-path" class="text-emerald-500 stroke-current transition-all duration-1000" stroke-width="6" stroke-linecap="round" fill="transparent" r="36" cx="40" cy="40" stroke-dasharray="226.2" stroke-dashoffset="226.2"/>
@@ -81,17 +82,17 @@
                     </div>
                 </div>
 
-                <!-- ROW 3: WORK & NPS MAKRO -->
+                <!-- LINHA 3: ATIVIDADES E NPS MAKRO -->
                 <div class="grid grid-cols-2 md:grid-cols-3 gap-4 italic">
-                    <div class="bg-slate-900/40 border border-white/5 p-6 rounded-[2.5rem] flex flex-col justify-between italic">
+                    <div class="bg-slate-900/40 border border-white/5 p-6 rounded-[2.5rem] flex flex-col justify-between">
                         <p class="text-[9px] font-black uppercase tracking-widest text-slate-500 italic">Atividades WORK</p>
                         <p class="text-4xl font-black text-blue-500 italic" id="dash-tasks-progress">0</p>
                     </div>
-                    <div class="bg-slate-900/40 border border-white/5 p-6 rounded-[2.5rem] flex flex-col justify-between italic">
+                    <div class="bg-slate-900/40 border border-white/5 p-6 rounded-[2.5rem] flex flex-col justify-between">
                         <p class="text-[9px] font-black uppercase tracking-widest text-slate-500 italic">Pendências</p>
                         <p class="text-4xl font-black text-red-500 italic" id="dash-tasks-remaining">0</p>
                     </div>
-                    <div class="col-span-2 md:col-span-1 bg-blue-600 border border-blue-500 p-6 rounded-[2.5rem] flex flex-col justify-between shadow-xl shadow-blue-900/20 italic group hover:scale-[1.02] transition-all">
+                    <div class="col-span-2 md:col-span-1 bg-blue-600 border border-blue-500 p-6 rounded-[2.5rem] flex flex-col justify-between shadow-xl shadow-blue-900/20 group hover:scale-[1.02] transition-all">
                         <div class="flex justify-between items-start italic">
                             <p class="text-[9px] font-black uppercase tracking-widest text-blue-100 italic">NPS Makro Engenharia</p>
                             <i data-lucide="award" class="w-4 h-4 text-white group-hover:rotate-12 transition-transform"></i>
@@ -102,6 +103,8 @@
             </main>
         </div>
     </div>
+    
+    <!-- Garante que o app.js é o último a carregar -->
     <script src="js/app.js"></script>
 </body>
 </html>
