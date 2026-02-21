@@ -45,7 +45,10 @@ const fetchWeather = async () => {
         else icon = "cloud";
         appState.weather = { temp, icon };
         const weatherEl = document.getElementById('header-weather-info');
-        if (weatherEl) { weatherEl.innerHTML = `<i data-lucide="${icon}" class="w-3 h-3"></i> ${temp}°C`; lucide.createIcons(); }
+        if (weatherEl) { 
+            weatherEl.innerHTML = `<i data-lucide="${icon}" class="w-3 h-3"></i> ${temp}°C`; 
+            if (window.lucide) lucide.createIcons(); 
+        }
     } catch (e) { console.error("Erro clima", e); }
 };
 
@@ -53,12 +56,11 @@ const fetchWeather = async () => {
 window.toggleSidebar = () => {
     appState.sidebarCollapsed = !appState.sidebarCollapsed;
     saveLocalData();
-    injectInterface();
-    adjustMainContentMargin();
+    updateGlobalUI(); // Atualiza toda a UI para refletir a mudança
 };
 
 const adjustMainContentMargin = () => {
-    // Procura o container principal que tem a margem esquerda md:ml-64
+    // Procura o container principal que tem a margem esquerda md:ml-64 ou md:ml-20
     const mainContent = document.querySelector('.flex-1.md\\:ml-64, .flex-1.md\\:ml-20');
     if (mainContent) {
         if (appState.sidebarCollapsed) {
@@ -160,7 +162,6 @@ const injectInterface = () => {
             </header>
         `;
     }
-    lucide.createIcons();
 };
 
 // --- SAÚDE E PÂNICO ---
@@ -185,9 +186,12 @@ const updateGlobalUI = () => {
     const fRot=appState.transacoes.filter(t=>t.cat==='Veículo'&&t.tipo==='receita').reduce((a,t)=>a+t.valor,0);
     const update = (id,v) => { const el=document.getElementById(id); if(el)el.innerText=v; };
     
+    // Injeta a interface primeiro
     injectInterface();
+    // Ajusta as margens baseado no estado colapsado
     adjustMainContentMargin();
     
+    // Atualiza valores de texto
     update('dash-saldo', sEfet.toLocaleString('pt-BR'));
     update('dash-fundo', fRot.toLocaleString('pt-BR'));
     update('dash-water-cur', appState.water_ml);
@@ -196,15 +200,21 @@ const updateGlobalUI = () => {
     update('dash-nps-val', appState.nps_mes);
     update('dash-km-atual', v.km.toLocaleString());
 
+    // Atualiza barras e gráficos
     const wBar=document.getElementById('dash-water-bar'); if(wBar) wBar.style.width=`${Math.min((appState.water_ml/wGoal)*100,100)}%`;
     const circ=document.getElementById('energy-gauge-path'); if(circ){ const pct=Math.min((appState.energy_mg/eLimit)*100,100), r=36, c=2*Math.PI*r; circ.style.strokeDasharray=`${c} ${c}`; circ.style.strokeDashoffset=c-(pct/100)*c; }
     if(p.alcoholStart&&document.getElementById('alcohol-bar')){ const s=new Date(p.alcoholStart+'T00:00:00'), d=Math.min(Math.floor((new Date()-s)/(1000*60*60*24)),p.alcoholTarget); update('alcohol-days-count',Math.max(d,0)); update('alcohol-target-display',p.alcoholTarget); document.getElementById('alcohol-bar').style.width=`${(d/p.alcoholTarget)*100}%`; }
 
+    // Renderiza listas específicas das páginas
     if(document.getElementById('fin-history-list')) renderFinances();
     if(document.getElementById('work-task-active-list')) renderWork();
     if(document.getElementById('bike-history-list')) renderVeiculo();
     if(window.location.pathname.includes('ajustes')) fillSettingsForm();
-    lucide.createIcons();
+    
+    // CRÍTICO: Recria os ícones Lucide após todas as injeções de HTML
+    if (window.lucide) {
+        lucide.createIcons();
+    }
 };
 
 window.savePulseSettings = (isAuto=false) => {
@@ -216,7 +226,6 @@ window.savePulseSettings = (isAuto=false) => {
 
 window.addEventListener('DOMContentLoaded', () => {
     loadLocalData();
-    injectInterface();
     updateGlobalUI();
     fetchNPSData();
     fetchWeather();
