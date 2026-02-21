@@ -226,7 +226,7 @@ window.deleteTask = (id) => {
     saveCloudBackup();
 };
 
-// --- VEÍCULO (NOVO) ---
+// --- VEÍCULO ---
 
 window.toggleCamposVeiculo = () => {
     const tipo = document.getElementById('v-tipo-principal')?.value;
@@ -266,7 +266,7 @@ window.lancarVeiculo = async () => {
     const transacao = {
         id: Date.now() + 1,
         tipo: 'Despesa',
-        cat: 'Transporte',
+        cat: 'Veículo',
         desc: `${tipo.toUpperCase()}: ${desc.toUpperCase()} (KM: ${km})`,
         valor,
         data: dataFormatada
@@ -421,6 +421,12 @@ const injectInterface = () => {
                     </button>
                 `).join('')}
             </nav>
+            <div class="p-3 border-t border-white/5">
+                <button onclick="window.openTab('ajustes')" class="w-full flex items-center ${isCollapsed ? 'justify-center' : 'gap-4 px-4'} py-4 rounded-2xl transition-all font-black uppercase text-[10px] tracking-widest ${currentPage === 'ajustes' ? 'text-blue-500 bg-white/5' : 'text-slate-500 hover:bg-white/5'}">
+                    <i data-lucide="settings" class="w-5 h-5 flex-shrink-0"></i>
+                    <span class="${isCollapsed ? 'hidden' : 'block'}">Ajustes</span>
+                </button>
+            </div>
         </aside>
         <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-xl border-t border-white/10 z-[60] px-2 pb-safe">
             <div class="flex items-center justify-around h-16">
@@ -430,6 +436,10 @@ const injectInterface = () => {
                         <span class="text-[7px] font-black uppercase tracking-tighter">${item.label}</span>
                     </button>
                 `).join('')}
+                <button onclick="window.openTab('ajustes')" class="flex flex-col items-center justify-center gap-1 transition-all ${currentPage === 'ajustes' ? 'text-blue-500' : 'text-slate-500'}">
+                    <i data-lucide="settings" class="w-5 h-5"></i>
+                    <span class="text-[7px] font-black uppercase tracking-tighter">Set</span>
+                </button>
             </div>
         </nav>
     `;
