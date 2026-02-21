@@ -1,6 +1,6 @@
 /**
- * PULSE OS - Central Intelligence v3.3 (Master Sync + Cloud Truth)
- * Ajuste de sincronização para refletir limpeza manual na planilha
+ * PULSE OS - Central Intelligence v3.4 (Online 100% + Resiliência)
+ * Sincronização robusta com tentativas automáticas e lógica de Cloud Truth.
  */
 
 // URL Única do Backend (BD_Pulse)
@@ -22,6 +22,27 @@ const getInitialState = (currentLogin = "") => ({
 
 let appState = getInitialState();
 
+// --- LÓGICA DE COMUNICAÇÃO ROBUSTA (RETRY & BACKOFF) ---
+
+/**
+ * Helper para chamadas fetch com tentativas automáticas em caso de erro.
+ * Segue o padrão de espera: 1s, 2s, 4s, 8s, 16s.
+ */
+const fetchWithRetry = async (url, options, retries = 5, backoff = 1000) => {
+    try {
+        const response = await fetch(url, options);
+        // Se a resposta for opaca (no-cors) ou sucesso (ok), retorna.
+        if (options.mode === 'no-cors' || response.ok) return response;
+        throw new Error(`HTTP Error: ${response.status}`);
+    } catch (err) {
+        if (retries > 0) {
+            await new Promise(resolve => setTimeout(resolve, backoff));
+            return fetchWithRetry(url, options, retries - 1, backoff * 2);
+        }
+        throw err;
+    }
+};
+
 // --- SINCRONIZAÇÃO E PERSISTÊNCIA ---
 
 const saveLocalData = () => localStorage.setItem('pulse_state', JSON.stringify(appState));
@@ -39,7 +60,8 @@ const loadLocalData = () => {
 const refreshFromCloud = async () => {
     if (!appState.login) return;
     try {
-        const response = await fetch(SCRIPT_URL, {
+        // Chamada de login/refresh requer ler dados, portanto não usamos no-cors
+        const response = await fetchWithRetry(SCRIPT_URL, {
             method: 'POST',
             body: JSON.stringify({ action: 'login', user: appState.login, pass: "REFRESH" })
         });
@@ -47,36 +69,37 @@ const refreshFromCloud = async () => {
         
         if (result.success) {
             if (result.data) {
-                // Se houver dados na nuvem, carrega-os
                 appState = { ...appState, ...result.data, login: appState.login };
             } else {
-                // Se a nuvem estiver limpa (Dados vazios), reseta o local para bater com a nuvem
-                console.log("PULSE: Nuvem limpa detectada. Sincronizando estado vazio.");
+                console.log("PULSE: Planilha limpa. Sincronizando estado padrão.");
                 const currentLogin = appState.login;
                 appState = getInitialState(currentLogin);
             }
             saveLocalData();
             updateGlobalUI();
         }
-    } catch (e) { console.warn("PULSE: Falha no refresh automático."); }
+    } catch (e) {
+        console.warn("PULSE: Falha na sincronização online após várias tentativas.");
+    }
 };
 
 const saveCloudBackup = async () => {
     saveLocalData();
     if (!appState.login) return;
     try {
-        await fetch(SCRIPT_URL, {
+        // Usamos no-cors para evitar problemas de redirect/CORS do Apps Script no POST de dados pesados
+        await fetchWithRetry(SCRIPT_URL, {
             method: 'POST',
             mode: 'no-cors',
             body: JSON.stringify({ action: 'syncData', userId: appState.login, data: appState })
         });
-    } catch (e) { console.warn("PULSE: Backup nuvem falhou."); }
+    } catch (e) { console.error("PULSE: Erro crítico ao salvar na nuvem."); }
 };
 
 const saveToFinancasSheet = async (transacao) => {
     if (!appState.login) return;
     try {
-        await fetch(SCRIPT_URL, {
+        await fetchWithRetry(SCRIPT_URL, {
             method: 'POST',
             mode: 'no-cors',
             body: JSON.stringify({ 
@@ -85,7 +108,7 @@ const saveToFinancasSheet = async (transacao) => {
                 rowData: [transacao.id, transacao.data, transacao.tipo, transacao.cat, transacao.desc, transacao.valor]
             })
         });
-    } catch (e) { console.error("PULSE: Erro no Google Sheets."); }
+    } catch (e) { console.error("PULSE: Erro ao registar linha financeira."); }
 };
 
 // --- INTERFACE E RENDERIZAÇÃO ---
@@ -114,7 +137,7 @@ const injectInterface = () => {
                         <i data-lucide="${isColl ? 'chevron-right' : 'chevron-left'}" class="w-4 h-4"></i>
                     </button>
                 </div>
-                <nav class="flex-1 px-3 space-y-2 mt-4">
+                <nav class="flex-1 px-3 space-y-2 mt-4 italic">
                     ${items.map(i => `
                         <button onclick="window.openTab('${i.id}')" class="w-full flex items-center ${isColl ? 'justify-center' : 'gap-4 px-4'} py-4 rounded-2xl transition-all font-black uppercase text-[10px] tracking-widest ${path === i.id ? 'bg-white/5 text-blue-500' : 'text-slate-500 hover:bg-white/5'}">
                             <i data-lucide="${i.icon}" class="w-5 h-5 ${i.color}"></i>
@@ -122,7 +145,7 @@ const injectInterface = () => {
                         </button>
                     `).join('')}
                 </nav>
-                <div class="p-3 border-t border-white/5">
+                <div class="p-3 border-t border-white/5 italic">
                     <button onclick="window.openTab('ajustes')" class="w-full flex items-center ${isColl ? 'justify-center' : 'gap-4 px-4'} py-4 rounded-2xl transition-all font-black uppercase text-[10px] tracking-widest ${path === 'ajustes' ? 'text-blue-500' : 'text-slate-500 hover:bg-white/5'}">
                         <i data-lucide="settings" class="w-5 h-5 text-slate-400"></i>
                         <span class="${isColl ? 'hidden' : 'block'} ml-3">Ajustes</span>
@@ -229,7 +252,7 @@ const renderExtratos = () => {
                         </p>
                     </div>
                 </div>
-                <p class="text-[8px] font-black text-slate-600 uppercase italic text-right">${h.detalhes || h.cat || ''}</p>
+                <p class="text-[8px] font-black text-slate-600 uppercase italic text-right text-right">${h.detalhes || h.cat || ''}</p>
             </div>
         `;
     }).join('');
@@ -257,6 +280,44 @@ const renderWorkTasks = () => {
     `).join('');
 };
 
+// --- FUNÇÕES DE RESET (REINTEGRADAS) ---
+
+window.openResetModal = () => {
+    const overlay = document.createElement('div');
+    overlay.id = 'reset-modal-overlay';
+    overlay.className = 'fixed inset-0 z-[300] bg-slate-950/80 backdrop-blur-xl flex items-center justify-center p-4 italic';
+    overlay.innerHTML = `
+        <div class="bg-slate-900 border border-red-500/20 w-full max-w-md p-8 rounded-[3rem] shadow-2xl relative italic">
+            <h3 class="text-xl font-black text-white uppercase italic mb-4 flex items-center gap-2">
+                <i data-lucide="alert-triangle" class="text-red-500"></i> Zerar Sistema
+            </h3>
+            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest leading-relaxed mb-8 italic text-center">
+                Atenção: Todos os dados de saúde, tarefas, histórico da Fazer 250 e finanças serão limpos localmente e na nuvem.
+            </p>
+            <div class="space-y-3 italic">
+                <button onclick="window.confirmReset()" class="w-full bg-red-600 hover:bg-red-500 text-white py-5 rounded-2xl font-black uppercase text-[10px] tracking-widest transition-all italic">
+                    Confirmar Limpeza Total
+                </button>
+                <button onclick="document.getElementById('reset-modal-overlay').remove()" class="w-full text-slate-600 hover:text-white py-3 font-black uppercase text-[8px] tracking-[0.4em] italic text-center">
+                    Cancelar
+                </button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+    if (window.lucide) window.lucide.createIcons();
+};
+
+window.confirmReset = async () => {
+    const user = appState.login;
+    appState = getInitialState(user);
+    saveLocalData();
+    await saveCloudBackup();
+    const modal = document.getElementById('reset-modal-overlay');
+    if (modal) modal.remove();
+    window.location.href = "dashboard.html";
+};
+
 // --- NAVEGAÇÃO E AUTENTICAÇÃO ---
 
 window.toggleSidebar = () => { appState.sidebarCollapsed = !appState.sidebarCollapsed; saveLocalData(); updateGlobalUI(); };
@@ -269,7 +330,7 @@ window.doLogin = async () => {
     if (!user || !pass) { if (msg) msg.innerText = "PREENCHA TODOS OS CAMPOS"; return; }
     if (msg) msg.innerText = "VERIFICANDO...";
     try {
-        const response = await fetch(SCRIPT_URL, {
+        const response = await fetchWithRetry(SCRIPT_URL, {
             method: 'POST',
             body: JSON.stringify({ action: 'login', user: user, pass: pass })
         });
