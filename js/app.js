@@ -16,7 +16,7 @@ let appState = {
     tarefas: [],
     transacoes: [],
     nps_mes: "...",
-    weather: { temp: "--", icon: "cloud" }
+    weather: { temp: "--", icon: "cloud", color: "text-slate-400" }
 };
 
 // --- SINCRONIZAÇÃO E PERSISTÊNCIA ---
@@ -77,6 +77,32 @@ const refreshFromCloud = async () => {
             updateGlobalUI();
         }
     } catch (e) { console.error("Refresh falhou", e); }
+};
+
+// --- PREVISÃO DO TEMPO (FORTALEZA) ---
+
+const fetchWeather = async () => {
+    try {
+        // Lat/Lon para Fortaleza - Ceará
+        const response = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=-3.7319&longitude=-38.5267&current_weather=true`);
+        const data = await response.json();
+        const code = data.current_weather.weathercode;
+        
+        let icon = 'cloud';
+        let color = 'text-blue-300';
+        
+        if (code <= 1) { icon = 'sun'; color = 'text-yellow-500'; }
+        else if (code <= 3) { icon = 'cloud-sun'; color = 'text-orange-300'; }
+        else if (code >= 51 && code <= 67) { icon = 'cloud-rain'; color = 'text-blue-500'; }
+        else if (code >= 95) { icon = 'zap'; color = 'text-yellow-600'; }
+
+        appState.weather = { 
+            temp: Math.round(data.current_weather.temperature), 
+            icon: icon,
+            color: color
+        };
+        updateGlobalUI();
+    } catch (e) { console.error("Erro ao buscar clima", e); }
 };
 
 // --- LOGIN ---
@@ -397,12 +423,13 @@ const injectInterface = () => {
     const currentPage = window.location.pathname.split('/').pop().split('.')[0] || 'dashboard';
     const isCollapsed = appState.sidebarCollapsed;
     
+    // Configuração de cores dos ícones
     const menuItems = [
-        { id: 'dashboard', label: 'Home', icon: 'layout-dashboard' },
-        { id: 'saude', label: 'Saúde', icon: 'activity' },
-        { id: 'veiculo', label: 'Moto', icon: 'bike' },
-        { id: 'work', label: 'WORK', icon: 'briefcase' },
-        { id: 'financas', label: 'Money', icon: 'wallet' }
+        { id: 'dashboard', label: 'Home', icon: 'layout-dashboard', color: 'text-blue-500' },
+        { id: 'saude', label: 'Saúde', icon: 'activity', color: 'text-rose-500' },
+        { id: 'veiculo', label: 'Moto', icon: 'bike', color: 'text-orange-500' },
+        { id: 'work', label: 'WORK', icon: 'briefcase', color: 'text-sky-400' },
+        { id: 'financas', label: 'Money', icon: 'wallet', color: 'text-emerald-500' }
     ];
 
     navPlaceholder.innerHTML = `
@@ -416,15 +443,15 @@ const injectInterface = () => {
             <nav class="flex-1 px-3 space-y-2 mt-4">
                 ${menuItems.map(item => `
                     <button onclick="window.openTab('${item.id}')" title="${item.label}" class="w-full flex items-center ${isCollapsed ? 'justify-center' : 'gap-4 px-4'} py-4 rounded-2xl transition-all font-black uppercase text-[10px] tracking-widest ${currentPage === item.id ? 'text-blue-500 bg-white/5 shadow-lg shadow-blue-500/10' : 'text-slate-500 hover:bg-white/5'}">
-                        <i data-lucide="${item.icon}" class="w-5 h-5 flex-shrink-0"></i> 
-                        <span class="${isCollapsed ? 'hidden' : 'block'}">${item.label}</span>
+                        <i data-lucide="${item.icon}" class="w-5 h-5 flex-shrink-0 ${item.color}"></i> 
+                        <span class="${isCollapsed ? 'hidden' : 'block'} ml-4">${item.label}</span>
                     </button>
                 `).join('')}
             </nav>
             <div class="p-3 border-t border-white/5">
                 <button onclick="window.openTab('ajustes')" class="w-full flex items-center ${isCollapsed ? 'justify-center' : 'gap-4 px-4'} py-4 rounded-2xl transition-all font-black uppercase text-[10px] tracking-widest ${currentPage === 'ajustes' ? 'text-blue-500 bg-white/5' : 'text-slate-500 hover:bg-white/5'}">
-                    <i data-lucide="settings" class="w-5 h-5 flex-shrink-0"></i>
-                    <span class="${isCollapsed ? 'hidden' : 'block'}">Ajustes</span>
+                    <i data-lucide="settings" class="w-5 h-5 flex-shrink-0 text-slate-400"></i>
+                    <span class="${isCollapsed ? 'hidden' : 'block'} ml-4">Ajustes</span>
                 </button>
             </div>
         </aside>
@@ -432,12 +459,12 @@ const injectInterface = () => {
             <div class="flex items-center justify-around h-16">
                 ${menuItems.map(item => `
                     <button onclick="window.openTab('${item.id}')" class="flex flex-col items-center justify-center gap-1 transition-all ${currentPage === item.id ? 'text-blue-500' : 'text-slate-500'}">
-                        <i data-lucide="${item.icon}" class="w-5 h-5"></i>
+                        <i data-lucide="${item.icon}" class="w-5 h-5 ${item.color}"></i>
                         <span class="text-[7px] font-black uppercase tracking-tighter">${item.label}</span>
                     </button>
                 `).join('')}
                 <button onclick="window.openTab('ajustes')" class="flex flex-col items-center justify-center gap-1 transition-all ${currentPage === 'ajustes' ? 'text-blue-500' : 'text-slate-500'}">
-                    <i data-lucide="settings" class="w-5 h-5"></i>
+                    <i data-lucide="settings" class="w-5 h-5 text-slate-400"></i>
                     <span class="text-[7px] font-black uppercase tracking-tighter">Set</span>
                 </button>
             </div>
@@ -450,12 +477,12 @@ const injectInterface = () => {
                 <h2 class="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500 flex items-center gap-2">
                     ${currentPage.toUpperCase()} <span class="text-slate-800">•</span>
                     <span class="text-blue-500">${(appState.perfil.cidade || 'FORTALEZA').toUpperCase()}</span> <span class="text-slate-800">•</span>
-                    <span id="header-weather-info" class="text-slate-400 flex items-center gap-1 italic">
-                        <i data-lucide="${appState.weather.icon}" class="w-3 h-3"></i> ${appState.weather.temp}°C
+                    <span id="header-weather-info" class="flex items-center gap-1 italic font-black text-white">
+                        <i data-lucide="${appState.weather.icon}" class="w-3 h-3 ${appState.weather.color}"></i> ${appState.weather.temp}°C
                     </span>
                 </h2>
                 <button onclick="window.openTab('veiculo')" class="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 active:scale-95 transition-all">
-                    <i data-lucide="fuel" class="w-5 h-5"></i>
+                    <i data-lucide="fuel" class="w-5 h-5 text-orange-500"></i>
                 </button>
             </header>
         `;
@@ -467,6 +494,7 @@ window.openTab = (p) => { window.location.href = p + ".html"; };
 window.addEventListener('DOMContentLoaded', () => {
     loadLocalData();
     updateGlobalUI();
+    fetchWeather(); // Inicia busca do clima de Fortaleza
     if (!window.location.pathname.includes('index')) refreshFromCloud();
 });
 
