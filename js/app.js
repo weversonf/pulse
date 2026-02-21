@@ -34,17 +34,20 @@ window.doLogin = async () => {
 
     if (!user || !pass) { if(msg) msg.innerText = "Campos obrigatórios!"; return; }
     
-    if(btn) { btn.disabled = true; btn.innerText = "AUTENTICANDO..."; }
+    if(btn) { 
+        btn.disabled = true; 
+        btn.innerText = "AUTENTICANDO..."; 
+    }
 
     try {
         const response = await fetch(SCRIPT_URL, {
             method: 'POST',
-            body: JSON.stringify({ action: 'login', user: user, pass: pass })
+            body: JSON.stringify({ action: 'login', user: user, pass: pass }),
+            redirect: 'follow'
         });
         const result = await response.json();
 
         if (result.success) {
-            // Se o login for bem-sucedido, carregamos os dados que vieram do Sheets
             appState.login = user;
             if (result.data) {
                 appState = { ...appState, ...result.data };
@@ -52,7 +55,7 @@ window.doLogin = async () => {
             saveLocalData();
             window.location.href = "dashboard.html";
         } else {
-            if(msg) msg.innerText = "Usuário ou senha inválidos.";
+            if(msg) msg.innerText = result.error || "Usuário ou senha inválidos.";
             if(btn) { btn.disabled = false; btn.innerText = "ENTRAR"; }
         }
     } catch (e) {
@@ -68,47 +71,53 @@ const saveLocalData = () => localStorage.setItem('pulse_state', JSON.stringify(a
 const loadLocalData = () => {
     const saved = localStorage.getItem('pulse_state');
     if (saved) {
-        const parsed = JSON.parse(saved);
-        appState = { ...appState, ...parsed };
+        try {
+            const parsed = JSON.parse(saved);
+            appState = { ...appState, ...parsed };
+        } catch (e) {
+            console.error("Erro ao ler localstorage", e);
+        }
     }
 };
 
 // Salva na nuvem e trata resposta
 const saveCloudData = async () => {
     saveLocalData();
-    if (!appState.login || appState.login === "USER_PULSE") return;
+    if (!appState.login || appState.login === "") return;
 
     try {
-        const response = await fetch(SCRIPT_URL, {
+        await fetch(SCRIPT_URL, {
             method: 'POST',
+            mode: 'no-cors', // Mantido no-cors para evitar preflight, mas syncData no Apps Script funciona assim
             body: JSON.stringify({ 
                 action: 'syncData', 
                 userId: appState.login, 
                 data: appState 
             })
         });
-        const res = await response.json();
-        console.log("PULSE Cloud: Sincronizado", res);
+        console.log("PULSE Cloud: Comando de sincronização enviado.");
     } catch (e) { 
-        console.warn("PULSE Cloud: Offline (Salvo Local)"); 
+        console.warn("PULSE Cloud: Erro ao tentar sincronizar."); 
     }
 };
 
 // Força o download dos dados da nuvem (útil no refresh)
 const refreshFromCloud = async () => {
-    if (!appState.login || appState.login === "USER_PULSE") return;
+    if (!appState.login || appState.login === "") return;
     try {
         const response = await fetch(SCRIPT_URL, {
             method: 'POST',
-            body: JSON.stringify({ action: 'login', user: appState.login, pass: "REFRESH" }) 
-            // Nota: O seu script deve tratar pass "REFRESH" para retornar dados sem validar senha de novo
+            body: JSON.stringify({ action: 'login', user: appState.login, pass: "REFRESH" }),
+            redirect: 'follow'
         });
         const result = await response.json();
         if (result.success && result.data) {
             appState = { ...appState, ...result.data };
             updateGlobalUI();
         }
-    } catch (e) {}
+    } catch (e) {
+        console.error("Refresh falhou", e);
+    }
 };
 
 // --- INTERFACE DINÂMICA ---
@@ -270,6 +279,7 @@ window.addEventListener('DOMContentLoaded', () => {
     loadLocalData();
     updateGlobalUI();
     
+    // Verifica se não estamos na página de login antes de sincronizar clima e nuvem
     if (!window.location.pathname.includes('index') && !window.location.pathname.endsWith('/')) {
         fetchWeather();
         fetchNPSData();
