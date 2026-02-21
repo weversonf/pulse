@@ -454,8 +454,8 @@ const injectInterface = () => {
                         <i data-lucide="${appState.weather.icon}" class="w-3 h-3"></i> ${appState.weather.temp}°C
                     </span>
                 </h2>
-                <button onclick="window.addMonster()" class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 active:scale-95 transition-all">
-                    <i data-lucide="zap" class="w-5 h-5"></i>
+                <button onclick="window.openTab('veiculo')" class="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 active:scale-95 transition-all">
+                    <i data-lucide="fuel" class="w-5 h-5"></i>
                 </button>
             </header>
         `;
