@@ -1,6 +1,6 @@
 /**
  * PULSE OS - Central Intelligence
- * Handles sync, Global UI, Weather, NPS, and Flexible Sidebar.
+ * Handles sync, Global UI, Weather, NPS, Login and Flexible Sidebar.
  */
 
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwVDkNFRuFNyTh3We_8qvlrSDIa3G_y1Owo_l8K47qmw_tlwv3I-EMBfRplkYX6EkMUQw/exec";
@@ -29,6 +29,64 @@ let appState = {
 let currentFilter = { month: new Date().getMonth() + 1, year: new Date().getFullYear(), viewMode: 'month' };
 let autoSaveTimeout;
 
+// --- LOGIN ---
+window.doLogin = async () => {
+    const userField = document.getElementById('login-user');
+    const passField = document.getElementById('login-pass');
+    const btn = document.getElementById('btn-login');
+    const msg = document.getElementById('login-msg');
+
+    if (!userField || !passField) return;
+
+    const user = userField.value;
+    const pass = passField.value;
+
+    if (!user || !pass) {
+        if(msg) msg.innerText = "Preencha todos os campos.";
+        return;
+    }
+
+    if(btn) {
+        btn.disabled = true;
+        btn.innerText = "AUTENTICANDO...";
+    }
+
+    try {
+        // Enviamos para o Google Script informando a ação de login
+        // O Script deve procurar na aba "Acessos"
+        const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({ 
+                action: 'login', 
+                user: user, 
+                pass: pass 
+            })
+        });
+        
+        // Se o Script estiver configurado para retornar JSON
+        const result = await response.json();
+
+        if (result.success) {
+            appState.login = user;
+            saveLocalData();
+            window.location.href = "dashboard.html";
+        } else {
+            if(msg) msg.innerText = "Usuário ou senha incorretos.";
+            if(btn) {
+                btn.disabled = false;
+                btn.innerText = "ENTRAR";
+            }
+        }
+    } catch (e) {
+        console.error("Erro de login:", e);
+        if(msg) msg.innerText = "Erro ao conectar. Tente novamente.";
+        if(btn) {
+            btn.disabled = false;
+            btn.innerText = "ENTRAR";
+        }
+    }
+};
+
 // --- CLIMA ---
 const fetchWeather = async () => {
     try {
@@ -56,11 +114,10 @@ const fetchWeather = async () => {
 window.toggleSidebar = () => {
     appState.sidebarCollapsed = !appState.sidebarCollapsed;
     saveLocalData();
-    updateGlobalUI(); // Atualiza toda a UI para refletir a mudança
+    updateGlobalUI(); 
 };
 
 const adjustMainContentMargin = () => {
-    // Procura o container principal que tem a margem esquerda md:ml-64 ou md:ml-20
     const mainContent = document.querySelector('.flex-1.md\\:ml-64, .flex-1.md\\:ml-20');
     if (mainContent) {
         if (appState.sidebarCollapsed) {
@@ -186,12 +243,9 @@ const updateGlobalUI = () => {
     const fRot=appState.transacoes.filter(t=>t.cat==='Veículo'&&t.tipo==='receita').reduce((a,t)=>a+t.valor,0);
     const update = (id,v) => { const el=document.getElementById(id); if(el)el.innerText=v; };
     
-    // Injeta a interface primeiro
     injectInterface();
-    // Ajusta as margens baseado no estado colapsado
     adjustMainContentMargin();
     
-    // Atualiza valores de texto
     update('dash-saldo', sEfet.toLocaleString('pt-BR'));
     update('dash-fundo', fRot.toLocaleString('pt-BR'));
     update('dash-water-cur', appState.water_ml);
@@ -200,18 +254,15 @@ const updateGlobalUI = () => {
     update('dash-nps-val', appState.nps_mes);
     update('dash-km-atual', v.km.toLocaleString());
 
-    // Atualiza barras e gráficos
     const wBar=document.getElementById('dash-water-bar'); if(wBar) wBar.style.width=`${Math.min((appState.water_ml/wGoal)*100,100)}%`;
     const circ=document.getElementById('energy-gauge-path'); if(circ){ const pct=Math.min((appState.energy_mg/eLimit)*100,100), r=36, c=2*Math.PI*r; circ.style.strokeDasharray=`${c} ${c}`; circ.style.strokeDashoffset=c-(pct/100)*c; }
     if(p.alcoholStart&&document.getElementById('alcohol-bar')){ const s=new Date(p.alcoholStart+'T00:00:00'), d=Math.min(Math.floor((new Date()-s)/(1000*60*60*24)),p.alcoholTarget); update('alcohol-days-count',Math.max(d,0)); update('alcohol-target-display',p.alcoholTarget); document.getElementById('alcohol-bar').style.width=`${(d/p.alcoholTarget)*100}%`; }
 
-    // Renderiza listas específicas das páginas
     if(document.getElementById('fin-history-list')) renderFinances();
     if(document.getElementById('work-task-active-list')) renderWork();
     if(document.getElementById('bike-history-list')) renderVeiculo();
     if(window.location.pathname.includes('ajustes')) fillSettingsForm();
     
-    // CRÍTICO: Recria os ícones Lucide após todas as injeções de HTML
     if (window.lucide) {
         lucide.createIcons();
     }
