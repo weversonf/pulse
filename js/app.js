@@ -1,11 +1,12 @@
 /**
  * PULSE OS - Central Intelligence
- * Versão Estável: Injeção de Interface + Sidebar Flexível + Clima + NPS
+ * Sincronização Total: Google Sheets + Clima + NPS + Sidebar Flexível + Mobile Nav
  */
 
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbVDkNFRuFNyTh3We_8qvlrSDIa3G_y1Owo_l8K47qmw_tlwv3I-EMBfRplkYX6EkMUQw/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwVDkNFRuFNyTh3We_8qvlrSDIa3G_y1Owo_l8K47qmw_tlwv3I-EMBfRplkYX6EkMUQw/exec";
 const NPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbcsfpw1_uglhD6JtF4jAvjJ4hqgnHTcgKL8CBtb_i6pRmck7POOBvuqYykjIIE9sLdyQ/exec";
 
+// Estado Inicial
 let appState = {
     login: "USER_PULSE",
     energy_mg: 0,
@@ -19,32 +20,18 @@ let appState = {
     weather: { temp: "--", icon: "cloud" }
 };
 
-// --- CARREGAMENTO INICIAL ---
+// --- PERSISTÊNCIA ---
 const loadLocalData = () => {
     const saved = localStorage.getItem('pulse_state');
     if (saved) appState = JSON.parse(saved);
 };
-
 const saveLocalData = () => localStorage.setItem('pulse_state', JSON.stringify(appState));
 
-// --- GESTÃO DE INTERFACE (MENU E TOPO) ---
+// --- INTERFACE (SIDEBAR + MOBILE NAV + HEADER) ---
 window.toggleSidebar = () => {
     appState.sidebarCollapsed = !appState.sidebarCollapsed;
     saveLocalData();
     updateGlobalUI();
-};
-
-const adjustMainContentMargin = () => {
-    const main = document.getElementById('main-content');
-    if (main) {
-        if (appState.sidebarCollapsed) {
-            main.classList.remove('md:ml-64');
-            main.classList.add('md:ml-20');
-        } else {
-            main.classList.remove('md:ml-20');
-            main.classList.add('md:ml-64');
-        }
-    }
 };
 
 const injectInterface = () => {
@@ -64,8 +51,10 @@ const injectInterface = () => {
         { id: 'relatorio', label: 'Relatório', icon: 'bar-chart-3' }
     ];
 
+    // Sidebar para Desktop e Bottom Nav para Mobile
     navPlaceholder.innerHTML = `
-        <aside class="hidden md:flex flex-col ${isCollapsed ? 'w-20' : 'w-64'} bg-slate-900 border-r border-white/5 fixed h-full z-50 transition-all overflow-hidden italic">
+        <!-- Desktop Sidebar -->
+        <aside class="hidden md:flex flex-col ${isCollapsed ? 'w-20' : 'w-64'} bg-slate-900 border-r border-white/5 fixed h-full z-50 transition-all duration-300 overflow-hidden italic">
             <div class="p-6 flex items-center justify-between">
                 <h1 class="text-2xl font-black tracking-tighter text-blue-500 ${isCollapsed ? 'hidden' : 'block'}">PULSE</h1>
                 <button onclick="window.toggleSidebar()" class="p-2 rounded-xl bg-white/5 text-slate-500 hover:text-white transition-all">
@@ -87,6 +76,22 @@ const injectInterface = () => {
                 </button>
             </div>
         </aside>
+
+        <!-- Mobile Bottom Nav -->
+        <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-xl border-t border-white/10 z-[60] px-2 pb-safe">
+            <div class="flex items-center justify-around h-16">
+                ${menuItems.slice(0, 5).map(item => `
+                    <button onclick="window.openTab('${item.id}')" class="flex flex-col items-center justify-center gap-1 transition-all ${currentPage === item.id ? 'text-blue-500' : 'text-slate-500'}">
+                        <i data-lucide="${item.icon}" class="w-5 h-5"></i>
+                        <span class="text-[7px] font-black uppercase tracking-tighter">${item.label}</span>
+                    </button>
+                `).join('')}
+                <button onclick="window.openTab('ajustes')" class="flex flex-col items-center justify-center gap-1 transition-all ${currentPage === 'ajustes' ? 'text-blue-500' : 'text-slate-500'}">
+                    <i data-lucide="settings" class="w-5 h-5"></i>
+                    <span class="text-[7px] font-black uppercase tracking-tighter">SET</span>
+                </button>
+            </div>
+        </nav>
     `;
 
     if (headerPlaceholder) {
@@ -94,7 +99,7 @@ const injectInterface = () => {
             <header class="bg-slate-900/80 backdrop-blur-xl sticky top-0 z-40 px-6 py-5 flex items-center justify-between border-b border-white/5 italic">
                 <h2 class="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500 flex items-center gap-2">
                     ${currentPage.toUpperCase()} <span class="text-slate-800">•</span>
-                    <span class="text-blue-500">${appState.perfil.cidade.toUpperCase()}</span> <span class="text-slate-800">•</span>
+                    <span class="text-blue-500">${(appState.perfil.cidade || 'Fortaleza').toUpperCase()}</span> <span class="text-slate-800">•</span>
                     <span id="header-weather-info" class="text-slate-400 flex items-center gap-1">
                         <i data-lucide="${appState.weather.icon}" class="w-3 h-3"></i> ${appState.weather.temp}°C
                     </span>
@@ -109,38 +114,32 @@ const injectInterface = () => {
     }
 };
 
-// --- ACÇÕES E SINCRONIZAÇÃO ---
-window.addMonster = () => {
-    appState.energy_mg += 160;
-    saveLocalData();
-    updateGlobalUI();
+const adjustMainContentMargin = () => {
+    const main = document.getElementById('main-content');
+    if (main) {
+        // No mobile (telas pequenas), a margem lateral deve ser zero
+        if (window.innerWidth < 768) {
+            main.style.marginLeft = "0";
+            return;
+        }
+        // No desktop, segue a sidebar
+        if (appState.sidebarCollapsed) {
+            main.classList.remove('md:ml-64');
+            main.classList.add('md:ml-20');
+        } else {
+            main.classList.remove('md:ml-20');
+            main.classList.add('md:ml-64');
+        }
+    }
 };
 
-const fetchWeather = async () => {
-    try {
-        const response = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=-3.73&longitude=-38.52&current_weather=true`);
-        const data = await response.json();
-        appState.weather = { temp: Math.round(data.current_weather.temperature), icon: "sun" };
-        updateGlobalUI();
-    } catch(e) {}
-};
-
-const fetchNPSData = async () => {
-    try {
-        const r = await fetch(NPS_SCRIPT_URL);
-        const d = await r.json();
-        appState.nps_mes = d.nps || d.valor || d;
-        updateGlobalUI();
-    } catch(e) { appState.nps_mes = "ERR"; }
-};
-
-// --- ACTUALIZAÇÃO DA UI ---
+// --- LOGICA UI ---
 const updateGlobalUI = () => {
     injectInterface();
     adjustMainContentMargin();
     
     const p = appState.perfil;
-    const waterGoal = p.peso * 35;
+    const waterGoal = (p.peso || 80) * 35;
     const energyLimit = 400;
 
     const update = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
@@ -162,6 +161,25 @@ const updateGlobalUI = () => {
     if (window.lucide) lucide.createIcons();
 };
 
+// --- API FETCH ---
+const fetchWeather = async () => {
+    try {
+        const response = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=-3.73&longitude=-38.52&current_weather=true`);
+        const data = await response.json();
+        appState.weather = { temp: Math.round(data.current_weather.temperature), icon: "sun" };
+        updateGlobalUI();
+    } catch(e) {}
+};
+
+const fetchNPSData = async () => {
+    try {
+        const r = await fetch(NPS_SCRIPT_URL);
+        const d = await r.json();
+        appState.nps_mes = d.nps || d.valor || d;
+        updateGlobalUI();
+    } catch(e) { appState.nps_mes = "ERR"; }
+};
+
 // --- INICIALIZAÇÃO ---
 window.addEventListener('DOMContentLoaded', () => {
     loadLocalData();
@@ -173,4 +191,5 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+window.addEventListener('resize', adjustMainContentMargin);
 window.openTab = (p) => { window.location.href = p + ".html"; };
