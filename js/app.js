@@ -12,7 +12,7 @@ let appState = {
     login: "USER_PULSE",
     energy_mg: 0,
     water_ml: 0,
-    sidebarCollapsed: false, // Estado do menu lateral
+    sidebarCollapsed: false,
     perfil: { 
         peso: 70, altura: 170, idade: 25, sexo: 'M', estado: 'CE', cidade: 'Fortaleza', 
         alcoholStart: '', alcoholTitle: 'SEM ÁLCOOL', alcoholTarget: 30
@@ -29,7 +29,7 @@ let appState = {
 let currentFilter = { month: new Date().getMonth() + 1, year: new Date().getFullYear(), viewMode: 'month' };
 let autoSaveTimeout;
 
-// --- LOGIN ---
+// --- LOGIN SYSTEM ---
 window.doLogin = async () => {
     const userField = document.getElementById('login-user');
     const passField = document.getElementById('login-pass');
@@ -38,8 +38,8 @@ window.doLogin = async () => {
 
     if (!userField || !passField) return;
 
-    const user = userField.value;
-    const pass = passField.value;
+    const user = userField.value.trim();
+    const pass = passField.value.trim();
 
     if (!user || !pass) {
         if(msg) msg.innerText = "Preencha todos os campos.";
@@ -52,8 +52,6 @@ window.doLogin = async () => {
     }
 
     try {
-        // Enviamos para o Google Script informando a ação de login
-        // O Script deve procurar na aba "Acessos"
         const response = await fetch(SCRIPT_URL, {
             method: 'POST',
             body: JSON.stringify({ 
@@ -63,7 +61,6 @@ window.doLogin = async () => {
             })
         });
         
-        // Se o Script estiver configurado para retornar JSON
         const result = await response.json();
 
         if (result.success) {
@@ -79,7 +76,7 @@ window.doLogin = async () => {
         }
     } catch (e) {
         console.error("Erro de login:", e);
-        if(msg) msg.innerText = "Erro ao conectar. Tente novamente.";
+        if(msg) msg.innerText = "Erro ao conectar. Verifique sua SCRIPT_URL.";
         if(btn) {
             btn.disabled = false;
             btn.innerText = "ENTRAR";
@@ -87,7 +84,7 @@ window.doLogin = async () => {
     }
 };
 
-// --- CLIMA ---
+// --- WEATHER & NPS ---
 const fetchWeather = async () => {
     try {
         const lat = -3.73; const lon = -38.52;
@@ -107,10 +104,19 @@ const fetchWeather = async () => {
             weatherEl.innerHTML = `<i data-lucide="${icon}" class="w-3 h-3"></i> ${temp}°C`; 
             if (window.lucide) lucide.createIcons(); 
         }
-    } catch (e) { console.error("Erro clima", e); }
+    } catch (e) {}
 };
 
-// --- INJEÇÃO DE INTERFACE (SIDEBAR FLEXÍVEL) ---
+const fetchNPSData = async () => { 
+    try { 
+        const r = await fetch(NPS_SCRIPT_URL); 
+        const d = await r.json(); 
+        appState.nps_mes = d.nps || d.valor || d; 
+        updateGlobalUI(); 
+    } catch(e) { appState.nps_mes = "ERR"; } 
+};
+
+// --- SIDEBAR & UI INJECTION ---
 window.toggleSidebar = () => {
     appState.sidebarCollapsed = !appState.sidebarCollapsed;
     saveLocalData();
@@ -142,7 +148,8 @@ const injectInterface = () => {
         { id: 'saude', label: 'Saúde', icon: 'activity' },
         { id: 'veiculo', label: 'Moto', icon: 'bike' },
         { id: 'work', label: 'WORK', icon: 'briefcase' },
-        { id: 'financas', label: 'Money', icon: 'wallet' }
+        { id: 'financas', label: 'Money', icon: 'wallet' },
+        { id: 'relatorio', label: 'Relatório', icon: 'bar-chart-3' }
     ];
 
     navPlaceholder.innerHTML = `
@@ -153,7 +160,6 @@ const injectInterface = () => {
                     <i data-lucide="${isCollapsed ? 'chevron-right' : 'chevron-left'}" class="w-4 h-4"></i>
                 </button>
             </div>
-            
             <nav class="flex-1 px-3 space-y-2 mt-4">
                 ${menuItems.map(item => `
                     <button onclick="window.openTab('${item.id}')" title="${item.label}" class="w-full flex items-center ${isCollapsed ? 'justify-center' : 'gap-4 px-4'} py-4 rounded-2xl transition-all font-black uppercase text-[10px] tracking-widest ${currentPage === item.id ? 'text-blue-500 bg-white/5' : 'text-slate-500 hover:bg-white/5'}">
@@ -162,7 +168,6 @@ const injectInterface = () => {
                     </button>
                 `).join('')}
             </nav>
-
             <div class="p-3 border-t border-white/5">
                 <button onclick="window.openTab('ajustes')" title="Ajustes" class="w-full flex items-center ${isCollapsed ? 'justify-center' : 'gap-4 px-4'} py-4 rounded-2xl transition-all font-black uppercase text-[10px] tracking-widest ${currentPage === 'ajustes' ? 'text-blue-500 bg-white/5' : 'text-slate-500 hover:bg-white/5'}">
                     <i data-lucide="settings" class="w-5 h-5 flex-shrink-0"></i>
@@ -178,7 +183,7 @@ const injectInterface = () => {
             </div>
         </nav>
 
-        <!-- Modal Global Abastecimento -->
+        <!-- Global Refuel Modal -->
         <div id="global-refuel-modal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4">
             <div class="bg-slate-900 w-full max-w-lg rounded-[2.5rem] border border-white/10 p-8 space-y-6 relative italic shadow-2xl">
                 <button onclick="window.closeRefuelModal()" class="absolute top-6 right-6 text-slate-500 hover:text-white"><i data-lucide="x" class="w-6 h-6"></i></button>
@@ -221,21 +226,17 @@ const injectInterface = () => {
     }
 };
 
-// --- SAÚDE E PÂNICO ---
+// --- CORE ACTIONS ---
 window.addWater = (ml) => { appState.water_ml += ml; saveLocalData(); saveCloudData(); updateGlobalUI(); };
 window.addMonster = () => { appState.energy_mg += 160; appState.transacoes.push({ id: Date.now(), tipo: 'despesa', cat: 'Saúde', desc: 'Monster Energy', valor: 10, data: getTodayFormatted(), efetivada: true }); saveLocalData(); saveCloudData(); updateGlobalUI(); };
 window.failChallenge = () => { const o = document.getElementById('panic-overlay'); if(o){o.classList.remove('hidden'); setTimeout(()=>o.classList.add('hidden'), 3000);} appState.perfil.alcoholStart = new Date().toISOString().split('T')[0]; saveLocalData(); saveCloudData(); updateGlobalUI(); };
 
-// --- VEÍCULO ---
+window.openRefuelModal = () => { document.getElementById('global-refuel-modal').classList.remove('hidden'); document.getElementById('m-refuel-date').value = new Date().toISOString().split('T')[0]; document.getElementById('m-refuel-km').value = appState.veiculo.km; };
+window.closeRefuelModal = () => document.getElementById('global-refuel-modal').classList.add('hidden');
 window.calcRefuelModal = (o) => { const p=parseFloat(document.getElementById('m-refuel-price').value)||0, l=parseFloat(document.getElementById('m-refuel-liters').value)||0, t=parseFloat(document.getElementById('m-refuel-total').value)||0; if(o==='preco'||o==='total'){if(p>0&&t>0) document.getElementById('m-refuel-liters').value=(t/p).toFixed(2);} else if(o==='litros'){if(p>0&&l>0) document.getElementById('m-refuel-total').value=(l*p).toFixed(2);} };
 window.confirmGlobalRefuel = () => { const d=document.getElementById('m-refuel-date').value, k=parseInt(document.getElementById('m-refuel-km').value)||0, t=parseFloat(document.getElementById('m-refuel-total').value)||0, l=document.getElementById('m-refuel-liters').value; if(t<=0)return; appState.veiculo.historico.push({id:Date.now(),tipo:'Abastecimento',sub:'Combustível',data:formatInputDate(d),km:k,valor:t,detalhes:`${l}L`}); if(k>appState.veiculo.km) appState.veiculo.km=k; appState.transacoes.push({id:Date.now()+1,tipo:'despesa',cat:'Veículo',desc:'Abastecimento',valor:t,data:formatInputDate(d),efetivada:true}); saveLocalData(); saveCloudData(); updateGlobalUI(); window.closeRefuelModal(); };
 
-// --- SYNC & UI ---
-const fetchNPSData = async () => { try { const r=await fetch(NPS_SCRIPT_URL); const d=await r.json(); appState.nps_mes=d.nps||d.valor||d; updateGlobalUI(); } catch(e){ appState.nps_mes="ERR"; } };
-const saveLocalData = () => localStorage.setItem('pulse_state', JSON.stringify(appState));
-const loadLocalData = () => { const s=localStorage.getItem('pulse_state'); if(s) appState=JSON.parse(s); };
-const saveCloudData = async () => { try { await fetch(SCRIPT_URL, {method:'POST', mode:'no-cors', body:JSON.stringify({action:'syncData', userId:appState.login, data:appState})}); } catch(e){} };
-
+// --- UI UPDATE & SYNC ---
 const updateGlobalUI = () => {
     const p=appState.perfil, v=appState.veiculo;
     const wGoal=p.peso*35, eLimit=400;
@@ -262,11 +263,12 @@ const updateGlobalUI = () => {
     if(document.getElementById('work-task-active-list')) renderWork();
     if(document.getElementById('bike-history-list')) renderVeiculo();
     if(window.location.pathname.includes('ajustes')) fillSettingsForm();
-    
-    if (window.lucide) {
-        lucide.createIcons();
-    }
+    if(window.lucide) lucide.createIcons();
 };
+
+const saveLocalData = () => localStorage.setItem('pulse_state', JSON.stringify(appState));
+const loadLocalData = () => { const s=localStorage.getItem('pulse_state'); if(s) appState=JSON.parse(s); };
+const saveCloudData = async () => { try { await fetch(SCRIPT_URL, {method:'POST', mode:'no-cors', body:JSON.stringify({action:'syncData', userId:appState.login, data:appState})}); } catch(e){} };
 
 window.savePulseSettings = (isAuto=false) => {
     const p=appState.perfil, v=appState.veiculo, get=(id)=>document.getElementById(id)?.value;
