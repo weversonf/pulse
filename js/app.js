@@ -12,7 +12,7 @@ let appState = {
     water_ml: 0,
     sidebarCollapsed: false,
     perfil: { peso: 80, altura: 175, cidade: 'Fortaleza', alcoholStart: '', alcoholTarget: 30, alcoholTitle: 'SEM ÁLCOOL' },
-    veiculo: { tipo: 'Moto', modelo: 'Fazer 250', km: 35000, historico: [] },
+    veiculo: { tipo: 'Moto', montadora: 'YAMAHA', modelo: 'FAZER 250', consumo: 29, km: 35000, oleo: 38000, historico: [] },
     tarefas: [],
     transacoes: [],
     nps_mes: "...",
@@ -41,7 +41,6 @@ const saveCloudBackup = async () => {
     saveLocalData();
     if (!appState.login) return;
     try {
-        // Envio silencioso para a aba "Dados"
         await fetch(SCRIPT_URL, {
             method: 'POST',
             mode: 'no-cors',
@@ -65,7 +64,6 @@ const saveToFinancasSheet = async (transacao) => {
     } catch (e) { console.error("Erro Financas Cloud", e); }
 };
 
-// Força o download dos dados da nuvem para garantir sincronia
 const refreshFromCloud = async () => {
     if (!appState.login) return;
     try {
@@ -122,7 +120,7 @@ window.doLogin = async () => {
     }
 };
 
-// --- SAÚDE (ÁGUA E MONSTER) ---
+// --- SAÚDE ---
 
 window.addWater = (ml) => {
     appState.water_ml += ml;
@@ -157,7 +155,7 @@ window.failChallenge = () => {
     saveCloudBackup();
 };
 
-// --- WORK (ATIVIDADES) ---
+// --- WORK ---
 
 window.addWorkTask = () => {
     const titleEl = document.getElementById('work-task-title');
@@ -182,7 +180,7 @@ window.addWorkTask = () => {
     };
 
     appState.tarefas.push(novaTarefa);
-    titleEl.value = ""; // Limpa o campo
+    titleEl.value = "";
     
     updateGlobalUI();
     saveCloudBackup();
@@ -201,11 +199,6 @@ const renderWorkTasks = () => {
     const list = document.getElementById('work-task-active-list');
     if (!list) return;
 
-    const pendentes = appState.tarefas.filter(t => t.status === 'Pendente');
-    const countEl = document.getElementById('task-count');
-    if (countEl) countEl.innerText = pendentes.length;
-
-    // Ordena para mostrar pendentes primeiro
     const sortedTasks = [...appState.tarefas].sort((a, b) => (a.status === 'Concluído' ? 1 : -1));
 
     list.innerHTML = sortedTasks.map(t => `
@@ -233,7 +226,101 @@ window.deleteTask = (id) => {
     saveCloudBackup();
 };
 
-// --- INTERFACE E UI UPDATE ---
+// --- VEÍCULO (NOVO) ---
+
+window.toggleCamposVeiculo = () => {
+    const tipo = document.getElementById('v-tipo-principal')?.value;
+    const area = document.getElementById('area-abastecimento');
+    if (area) area.style.display = tipo === 'Abastecimento' ? 'block' : 'none';
+};
+
+window.calcVeiculo = (origem) => {
+    const p = parseFloat(document.getElementById('v-preco-litro')?.value) || 0;
+    const l = parseFloat(document.getElementById('v-litros')?.value) || 0;
+    const t = parseFloat(document.getElementById('v-total-rs')?.value) || 0;
+
+    if ((origem === 'preco' || origem === 'total') && p > 0 && t > 0) {
+        document.getElementById('v-litros').value = (t / p).toFixed(2);
+    } else if (origem === 'litros' && p > 0 && l > 0) {
+        document.getElementById('v-total-rs').value = (l * p).toFixed(2);
+    }
+};
+
+window.lancarVeiculo = async () => {
+    const tipo = document.getElementById('v-tipo-principal')?.value;
+    const km = parseInt(document.getElementById('v-km-atual')?.value) || 0;
+    const valor = parseFloat(document.getElementById('v-total-rs')?.value) || 0;
+    const desc = document.getElementById('v-descricao')?.value || "";
+    const dataInput = document.getElementById('v-data')?.value;
+
+    if (!km || !valor) return;
+
+    const dataFormatada = dataInput ? dataInput.split('-').reverse().join('/') : new Date().toLocaleDateString('pt-BR');
+
+    // Histórico da Moto
+    const novoLog = { id: Date.now(), tipo, data: dataFormatada, km, valor, detalhes: desc.toUpperCase() };
+    appState.veiculo.historico.push(novoLog);
+    appState.veiculo.km = Math.max(appState.veiculo.km, km);
+
+    // Lançamento Financeiro Automático
+    const transacao = {
+        id: Date.now() + 1,
+        tipo: 'Despesa',
+        cat: 'Transporte',
+        desc: `${tipo.toUpperCase()}: ${desc.toUpperCase()} (KM: ${km})`,
+        valor,
+        data: dataFormatada
+    };
+    appState.transacoes.push(transacao);
+
+    updateGlobalUI();
+    await saveToFinancasSheet(transacao);
+    saveCloudBackup();
+
+    // Limpeza
+    ['v-km-atual', 'v-descricao', 'v-preco-litro', 'v-litros', 'v-total-rs'].forEach(id => {
+        const el = document.getElementById(id); if (el) el.value = "";
+    });
+};
+
+window.calcularViagem = () => {
+    const dist = parseFloat(document.getElementById('trip-dist-input')?.value) || 0;
+    const consumo = appState.veiculo.consumo || 29;
+    const preco = parseFloat(document.getElementById('v-preco-litro')?.value) || 6.00;
+
+    if (dist > 0) {
+        const litros = dist / consumo;
+        const custo = litros * preco;
+        const lVal = document.getElementById('trip-litros-val');
+        const cVal = document.getElementById('trip-custo-val');
+        if (lVal) lVal.innerText = litros.toFixed(1);
+        if (cVal) cVal.innerText = Math.round(custo);
+    }
+};
+
+const renderVehicleHistory = () => {
+    const list = document.getElementById('bike-history-list');
+    if (!list) return;
+
+    const history = [...appState.veiculo.historico].sort((a, b) => b.id - a.id);
+    list.innerHTML = history.map(h => `
+        <div class="glass-card p-5 rounded-3xl flex items-center justify-between group transition-all">
+            <div class="flex items-center gap-4">
+                <div class="w-10 h-10 bg-blue-500/10 text-blue-400 rounded-xl flex items-center justify-center">
+                    <i data-lucide="${h.tipo === 'Abastecimento' ? 'fuel' : 'wrench'}"></i>
+                </div>
+                <div>
+                    <p class="text-xs font-black uppercase tracking-tight text-white">${h.tipo}</p>
+                    <p class="text-[8px] font-bold text-slate-500 uppercase tracking-widest mt-0.5">${h.data} • ${h.km} KM • R$ ${h.valor.toFixed(2)}</p>
+                </div>
+            </div>
+            <p class="text-[8px] font-black text-slate-600 uppercase italic">${h.detalhes}</p>
+        </div>
+    `).join('');
+    if (window.lucide) lucide.createIcons();
+};
+
+// --- UI UPDATE ---
 
 window.toggleSidebar = () => { 
     appState.sidebarCollapsed = !appState.sidebarCollapsed; 
@@ -251,77 +338,56 @@ const updateGlobalUI = () => {
     
     const updateText = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
     
-    // Metas
-    const waterGoal = 3500;
-    const energyLimit = 400;
-
-    // Atualiza Textos de Status
     updateText('dash-water-cur', appState.water_ml);
     updateText('dash-energy-val', appState.energy_mg);
     updateText('water-current-display', appState.water_ml);
     updateText('energy-current-display', appState.energy_mg);
     updateText('bike-km-display', appState.veiculo.km);
+    updateText('bike-oil-display', appState.veiculo.oleo);
+    updateText('bike-name-display', `${appState.veiculo.montadora} ${appState.veiculo.modelo}`);
     
     const pendentesCount = appState.tarefas.filter(t => t.status === 'Pendente').length;
     updateText('dash-tasks-remaining', pendentesCount);
+    updateText('task-count', pendentesCount);
 
-    // Atualiza Barras de Saúde
+    const waterGoal = 3500;
+    const energyLimit = 400;
     const waterPct = Math.min((appState.water_ml / waterGoal) * 100, 100);
     const energyPct = Math.min((appState.energy_mg / energyLimit) * 100, 100);
 
-    // Itera sobre possíveis IDs de barras (Dashboard e Página Saúde)
     ['dash-water-bar', 'water-bar'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.style.width = waterPct + '%';
+        const el = document.getElementById(id); if (el) el.style.width = waterPct + '%';
     });
-    
     const waterPctText = document.getElementById('water-percent-text');
     if (waterPctText) waterPctText.innerText = Math.round(waterPct) + '%';
 
     ['energy-bar', 'dash-energy-bar'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.style.width = energyPct + '%';
+        const el = document.getElementById(id); if (el) el.style.width = energyPct + '%';
     });
-    
     const energyPctText = document.getElementById('energy-percent-text');
     if (energyPctText) energyPctText.innerText = Math.round(energyPct) + '%';
 
-    // Gauge Circular do Dashboard
     const gauge = document.getElementById('energy-gauge-path');
-    if (gauge) {
-        // 226.2 é o comprimento do círculo (2 * PI * 36)
-        gauge.style.strokeDashoffset = 226.2 - (energyPct / 100) * 226.2;
-    }
+    if (gauge) gauge.style.strokeDashoffset = 226.2 - (energyPct / 100) * 226.2;
 
-    // Desafio Disciplina (Álcool)
     if (appState.perfil.alcoholStart) {
-        const start = new Date(appState.perfil.alcoholStart);
-        const now = new Date();
-        const diff = Math.floor((now - start) / (1000 * 60 * 60 * 24));
+        const diff = Math.floor((new Date() - new Date(appState.perfil.alcoholStart)) / (1000 * 60 * 60 * 24));
         const target = appState.perfil.alcoholTarget || 30;
-        
         updateText('alcohol-days-count', diff);
         updateText('alcohol-target-display', target);
         updateText('alcohol-challenge-title', appState.perfil.alcoholTitle || 'SEM ÁLCOOL');
-        
         const alcBar = document.getElementById('alcohol-bar');
         if (alcBar) alcBar.style.width = Math.min((diff / target) * 100, 100) + '%';
-        
-        const statusText = document.getElementById('alcohol-status-text');
-        if (statusText) statusText.innerText = diff >= target ? "CONCLUÍDO" : "EM CURSO";
     }
 
-    // Somas Financeiras para o Dashboard
     const saldoTotal = appState.transacoes.reduce((acc, t) => acc + (t.tipo.toLowerCase() === 'receita' ? t.valor : -t.valor), 0);
     updateText('dash-saldo', saldoTotal.toLocaleString('pt-BR'));
+    updateText('fin-saldo-atual-pag', saldoTotal.toLocaleString('pt-BR'));
 
-    // Renderiza listas
     renderWorkTasks();
-    
+    renderVehicleHistory();
     if (window.lucide) lucide.createIcons();
 };
-
-// --- INICIALIZAÇÃO DA INTERFACE ---
 
 const injectInterface = () => {
     const navPlaceholder = document.getElementById('sidebar-placeholder');
@@ -391,11 +457,7 @@ window.openTab = (p) => { window.location.href = p + ".html"; };
 window.addEventListener('DOMContentLoaded', () => {
     loadLocalData();
     updateGlobalUI();
-    
-    // Tenta sincronizar com a nuvem após carregar o local
-    if (!window.location.pathname.includes('index')) {
-        refreshFromCloud();
-    }
+    if (!window.location.pathname.includes('index')) refreshFromCloud();
 });
 
 window.addEventListener('resize', () => {
