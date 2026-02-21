@@ -1,21 +1,20 @@
 /**
- * PULSE OS - Central Intelligence
+ * PULSE OS - Central Intelligence v2.5
  * Sincronização: JSON Global (Aba Dados) + Transações Linha a Linha (Aba Financas)
  */
 
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwVDkNFRuFNyTh3We_8qvlrSDIa3G_y1Owo_l8K47qmw_tlwv3I-EMBfRplkYX6EkMUQw/exec";
-const NPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbcsfpw1_uglhD6JtF4jAvjJ4hqgnHTcgKL8CBtb_i6pRmck7POOBvuqYykjIIE9sLdyQ/exec";
 
 let appState = {
     login: "",
     energy_mg: 0,
     water_ml: 0,
     sidebarCollapsed: false,
-    perfil: { peso: 80, altura: 175, cidade: 'Fortaleza', alcoholStart: '', alcoholTarget: 30, alcoholTitle: 'SEM ÁLCOOL' },
+    perfil: { peso: 80, altura: 175, idade: 30, sexo: 'M', estado: '', cidade: 'Fortaleza', alcoholStart: '', alcoholTarget: 30, alcoholTitle: 'SEM ÁLCOOL' },
     veiculo: { tipo: 'Moto', montadora: 'YAMAHA', modelo: 'FAZER 250', consumo: 29, km: 35000, oleo: 38000, historico: [] },
     tarefas: [],
     transacoes: [],
-    nps_mes: "...",
+    nps_mes: "75",
     weather: { temp: "--", icon: "cloud", color: "text-slate-400" }
 };
 
@@ -27,8 +26,9 @@ const loadLocalData = () => {
     const saved = localStorage.getItem('pulse_state');
     if (saved) {
         try {
-            appState = { ...appState, ...JSON.parse(saved) };
-        } catch (e) { console.error("PULSE: Erro local."); }
+            const parsed = JSON.parse(saved);
+            appState = { ...appState, ...parsed };
+        } catch (e) { console.error("Erro ao carregar dados locais."); }
     }
 };
 
@@ -41,7 +41,7 @@ const saveCloudBackup = async () => {
             mode: 'no-cors',
             body: JSON.stringify({ action: 'syncData', userId: appState.login, data: appState })
         });
-    } catch (e) { console.warn("PULSE: Cloud off."); }
+    } catch (e) { console.warn("Cloud Sync Offline."); }
 };
 
 const saveToFinancasSheet = async (transacao) => {
@@ -56,7 +56,41 @@ const saveToFinancasSheet = async (transacao) => {
                 rowData: [transacao.id, transacao.data, transacao.tipo, transacao.cat, transacao.desc, transacao.valor]
             })
         });
-    } catch (e) { console.error("Finanças off."); }
+    } catch (e) { console.error("Erro ao salvar linha de finanças."); }
+};
+
+// --- AUTENTICAÇÃO ---
+
+window.doLogin = async () => {
+    const user = document.getElementById('login-user')?.value;
+    const pass = document.getElementById('login-pass')?.value;
+    const msg = document.getElementById('login-msg');
+
+    if (!user || !pass) {
+        if (msg) msg.innerText = "PREENCHA TODOS OS CAMPOS";
+        return;
+    }
+
+    if (msg) msg.innerText = "AUTENTICANDO...";
+
+    try {
+        const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'login', user: user, pass: pass })
+        });
+        const result = await response.json();
+
+        if (result.success) {
+            appState.login = result.user;
+            if (result.data) appState = { ...appState, ...result.data, login: result.user };
+            saveLocalData();
+            window.location.href = "dashboard.html";
+        } else {
+            if (msg) msg.innerText = result.error || "ERRO DE ACESSO";
+        }
+    } catch (e) {
+        if (msg) msg.innerText = "ERRO DE CONEXÃO";
+    }
 };
 
 const refreshFromCloud = async () => {
@@ -71,231 +105,188 @@ const refreshFromCloud = async () => {
             appState = { ...appState, ...result.data };
             updateGlobalUI();
         }
-    } catch (e) { console.error("Refresh off."); }
+    } catch (e) { console.warn("Refresh failed."); }
 };
 
-// --- CLIMA FORTALEZA ---
+// --- LOGICA DE SAUDE ---
 
-const fetchWeather = async () => {
-    try {
-        const response = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=-3.73&longitude=-38.52&current_weather=true`);
-        const data = await response.json();
-        const code = data.current_weather.weathercode;
-        
-        let icon = 'cloud';
-        let color = 'text-blue-300';
-        
-        if (code <= 1) { icon = 'sun'; color = 'text-yellow-400'; }
-        else if (code <= 3) { icon = 'cloud-sun'; color = 'text-orange-400'; }
-        else if (code >= 51 && code <= 67) { icon = 'cloud-rain'; color = 'text-blue-400'; }
-        else if (code >= 95) { icon = 'zap'; color = 'text-yellow-600'; }
+window.addWater = (ml) => {
+    appState.water_ml += ml;
+    updateGlobalUI();
+    saveCloudBackup();
+};
 
-        appState.weather = { temp: Math.round(data.current_weather.temperature), icon, color };
+window.addMonster = () => {
+    appState.energy_mg += 160;
+    const t = { 
+        id: Date.now(), 
+        tipo: 'Despesa', 
+        cat: 'Saúde', 
+        desc: 'MONSTER ENERGY (CAFEÍNA)', 
+        valor: 12.00, 
+        data: new Date().toLocaleDateString('pt-BR') 
+    };
+    appState.transacoes.push(t);
+    saveToFinancasSheet(t);
+    updateGlobalUI();
+    saveCloudBackup();
+};
+
+window.failChallenge = () => {
+    if(confirm("CONFIRMAR QUE PERDEU O PROCESSO? O CONTADOR VOLTARÁ A ZERO.")) {
+        appState.perfil.alcoholStart = new Date().toISOString();
         updateGlobalUI();
-    } catch (e) {}
-};
-
-// --- LIGHTBOX (MODAL) ABASTECIMENTO ---
-
-window.openFuelModal = () => {
-    let modal = document.getElementById('fuel-modal-overlay');
-    if (!modal) {
-        modal = document.createElement('div');
-        modal.id = 'fuel-modal-overlay';
-        modal.className = 'fixed inset-0 z-[200] bg-slate-950/70 backdrop-blur-xl flex items-center justify-center p-4 transition-all duration-300 opacity-0 pointer-events-none';
-        document.body.appendChild(modal);
+        saveCloudBackup();
     }
-
-    modal.innerHTML = `
-        <div class="bg-[#020617] border border-white/5 w-full max-w-xl p-6 rounded-[2rem] shadow-2xl relative italic">
-            <div class="flex items-center gap-2 mb-6">
-                <i data-lucide="plus-circle" class="w-4 h-4 text-orange-500"></i>
-                <h3 class="text-[10px] font-black uppercase tracking-[0.3em] text-orange-500 italic">Novo Lançamento</h3>
-            </div>
-
-            <div class="space-y-4">
-                <div class="grid grid-cols-2 gap-3">
-                    <select id="m-v-tipo" class="w-full p-4 bg-slate-900 border border-white/5 rounded-2xl text-xs font-bold text-white outline-none uppercase italic">
-                        <option value="Abastecimento">Abastecimento</option>
-                        <option value="Serviço">Serviço ou Manutenção</option>
-                    </select>
-                    <input type="date" id="m-v-data" value="${new Date().toISOString().split('T')[0]}" class="w-full p-4 bg-slate-900 border border-white/5 rounded-2xl text-xs font-bold text-slate-400 outline-none italic">
-                </div>
-
-                <div class="grid grid-cols-2 gap-3">
-                    <input type="number" id="m-v-km-atual" value="${appState.veiculo.km}" placeholder="KM ATUAL" class="w-full p-4 bg-slate-900 border border-white/5 rounded-2xl text-xs font-bold text-white outline-none italic uppercase">
-                    <input type="text" id="m-v-desc" placeholder="POSTO OU LOCAL..." class="w-full p-4 bg-slate-900 border border-white/5 rounded-2xl text-xs font-bold text-white outline-none italic uppercase">
-                </div>
-
-                <select id="m-v-comb-tipo" class="w-full p-4 bg-slate-900 border border-white/5 rounded-2xl text-xs font-bold text-white outline-none uppercase italic">
-                    <option value="Gasolina Comum">Gasolina Comum</option>
-                    <option value="Gasolina Aditivada">Gasolina Aditivada</option>
-                    <option value="Etanol">Etanol</option>
-                </select>
-
-                <div class="grid grid-cols-2 gap-3">
-                    <div class="space-y-1">
-                        <label class="text-[8px] font-black uppercase text-slate-600 px-2 italic">Preço/L</label>
-                        <div class="relative">
-                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-500 text-xs font-bold">R$</span>
-                            <input type="number" id="m-v-preco" step="0.001" oninput="window.calcFuelModal('preco')" placeholder="0,00" class="w-full p-4 pl-10 bg-slate-900 border border-white/5 rounded-2xl text-xs font-bold text-emerald-500 outline-none italic">
-                        </div>
-                    </div>
-                    <div class="space-y-1">
-                        <label class="text-[8px] font-black uppercase text-slate-600 px-2 italic">Litros</label>
-                        <div class="relative">
-                            <input type="number" id="m-v-litros" step="0.01" oninput="window.calcFuelModal('litros')" placeholder="0.00" class="w-full p-4 pr-10 bg-slate-900 border border-white/5 rounded-2xl text-xs font-bold text-blue-400 outline-none italic">
-                            <span class="absolute right-4 top-1/2 -translate-y-1/2 text-blue-400 text-xs font-bold uppercase">L</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="space-y-1">
-                    <label class="text-[8px] font-black uppercase text-slate-600 px-2 italic">Valor Total R$</label>
-                    <div class="relative">
-                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-white text-xs font-bold">R$</span>
-                        <input type="number" id="m-v-total" step="0.01" oninput="window.calcFuelModal('total')" placeholder="0,00" class="w-full p-4 pl-10 bg-slate-900 border border-white/5 rounded-2xl text-xs font-bold text-white outline-none italic">
-                    </div>
-                </div>
-
-                <div class="flex gap-2 mt-4">
-                   <button onclick="window.closeFuelModal()" class="flex-1 bg-slate-900 text-slate-500 py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all hover:text-white italic">Cancelar</button>
-                   <button onclick="window.saveFuelModal()" class="flex-[2] bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-blue-900/20 transition-all active:scale-95 italic">Confirmar Lançamento</button>
-                </div>
-            </div>
-        </div>
-    `;
-
-    modal.classList.remove('opacity-0', 'pointer-events-none');
-    if (window.lucide) window.lucide.createIcons();
 };
 
-window.closeFuelModal = () => {
-    const modal = document.getElementById('fuel-modal-overlay');
-    if (modal) modal.classList.add('opacity-0', 'pointer-events-none');
+// --- LOGICA DE FINANÇAS ---
+
+window.lancarFinanca = async (tipo) => {
+    const val = parseFloat(document.getElementById('fin-valor')?.value);
+    const desc = document.getElementById('fin-desc')?.value.trim().toUpperCase();
+    const cat = document.getElementById('fin-categoria')?.value;
+    const data = document.getElementById('fin-data')?.value;
+
+    if (!val || !desc) return;
+
+    const t = {
+        id: Date.now(),
+        tipo: tipo === 'receita' ? 'Receita' : 'Despesa',
+        cat: cat,
+        desc: desc,
+        valor: val,
+        data: data ? data.split('-').reverse().join('/') : new Date().toLocaleDateString('pt-BR')
+    };
+
+    appState.transacoes.push(t);
+    updateGlobalUI();
+    await saveToFinancasSheet(t);
+    saveCloudBackup();
+
+    // Limpar campos
+    document.getElementById('fin-valor').value = "";
+    document.getElementById('fin-desc').value = "";
 };
 
-window.calcFuelModal = (src) => {
-    const p = parseFloat(document.getElementById('m-v-preco')?.value) || 0;
-    const l = parseFloat(document.getElementById('m-v-litros')?.value) || 0;
-    const t = parseFloat(document.getElementById('m-v-total')?.value) || 0;
+// --- LOGICA DE VEÍCULO (FAZER 250) ---
+
+window.toggleCamposVeiculo = () => {
+    const tipo = document.getElementById('v-tipo-principal')?.value;
+    const area = document.getElementById('area-abastecimento');
+    if (area) area.style.display = tipo === 'Abastecimento' ? 'block' : 'none';
+};
+
+window.calcVeiculo = (src) => {
+    const p = parseFloat(document.getElementById('v-preco-litro')?.value) || 0;
+    const l = parseFloat(document.getElementById('v-litros')?.value) || 0;
+    const t = parseFloat(document.getElementById('v-total-rs')?.value) || 0;
 
     if (src === 'preco' || src === 'total') {
-        if (p > 0 && t > 0) document.getElementById('m-v-litros').value = (t / p).toFixed(2);
+        if (p > 0 && t > 0) document.getElementById('v-litros').value = (t / p).toFixed(2);
     } else if (src === 'litros') {
-        if (p > 0 && l > 0) document.getElementById('m-v-total').value = (l * p).toFixed(2);
+        if (p > 0 && l > 0) document.getElementById('v-total-rs').value = (l * p).toFixed(2);
     }
 };
 
-window.saveFuelModal = async () => {
-    const km = parseInt(document.getElementById('m-v-km-atual')?.value) || 0;
-    const val = parseFloat(document.getElementById('m-v-total')?.value) || 0;
-    const date = document.getElementById('m-v-data')?.value;
-    const desc = document.getElementById('m-v-desc')?.value.trim() || "ABASTECIMENTO";
-    const tipo = document.getElementById('m-v-tipo')?.value;
-    const comb = document.getElementById('m-v-comb-tipo')?.value;
+window.lancarVeiculo = async () => {
+    const km = parseInt(document.getElementById('v-km-atual')?.value);
+    const val = parseFloat(document.getElementById('v-total-rs')?.value);
+    const desc = document.getElementById('v-descricao')?.value.trim().toUpperCase();
+    const tipo = document.getElementById('v-tipo-principal')?.value;
+    const date = document.getElementById('v-data')?.value;
 
     if (!km || !val) return;
 
     const formattedDate = date ? date.split('-').reverse().join('/') : new Date().toLocaleDateString('pt-BR');
     
-    const log = { id: Date.now(), tipo, data: formattedDate, km, valor: val, detalhes: `${comb} - ${desc.toUpperCase()}` };
+    // Log Veículo
+    const log = { id: Date.now(), tipo, data: formattedDate, km, valor: val, detalhes: desc };
     appState.veiculo.historico.push(log);
     appState.veiculo.km = Math.max(appState.veiculo.km, km);
 
-    const fin = { id: Date.now() + 1, tipo: 'Despesa', cat: 'Transporte', desc: `${tipo.toUpperCase()} (${comb}): ${desc.toUpperCase()} (KM: ${km})`, valor: val, data: formattedDate };
+    // Espelhamento Finanças
+    const fin = { 
+        id: Date.now() + 1, 
+        tipo: 'Despesa', 
+        cat: 'Transporte', 
+        desc: `${tipo.toUpperCase()}: ${desc} (KM: ${km})`, 
+        valor: val, 
+        data: formattedDate 
+    };
     appState.transacoes.push(fin);
 
     updateGlobalUI();
     await saveToFinancasSheet(fin);
     saveCloudBackup();
-    window.closeFuelModal();
 };
 
-// --- MODAL DE RESET DE DADOS ---
+window.calcularViagem = () => {
+    const dist = parseFloat(document.getElementById('trip-dist-input')?.value) || 0;
+    const cons = appState.veiculo.consumo || 29;
+    const preco = 6.00; // Média Fortaleza
 
-window.openResetModal = () => {
-    let modal = document.getElementById('reset-modal-overlay');
-    if (!modal) {
-        modal = document.createElement('div');
-        modal.id = 'reset-modal-overlay';
-        modal.className = 'fixed inset-0 z-[300] bg-slate-950/80 backdrop-blur-xl flex items-center justify-center p-4 transition-all duration-300 opacity-0 pointer-events-none';
-        document.body.appendChild(modal);
-    }
+    const litros = dist / cons;
+    const custo = litros * preco;
 
-    modal.innerHTML = `
-        <div class="bg-slate-900 border border-red-500/20 w-full max-w-md p-8 rounded-[3rem] shadow-2xl relative italic">
-            <div class="flex items-center gap-3 mb-6">
-                <i data-lucide="alert-triangle" class="w-6 h-6 text-red-500"></i>
-                <h3 class="text-xl font-black tracking-tighter text-white uppercase italic leading-none">Zerar Dados</h3>
-            </div>
-            
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed mb-8 italic">
-                Atenção: Esta ação é irreversível. Escolha quais informações deseja remover permanentemente do sistema.
-            </p>
-
-            <div class="space-y-3">
-                <button onclick="window.resetData('finance_vehicle')" class="w-full bg-slate-950 border border-white/5 hover:border-orange-500/30 p-5 rounded-3xl flex items-center justify-between transition-all group active:scale-95 italic">
-                    <div class="text-left">
-                        <p class="text-xs font-black uppercase text-white leading-none">Finanças e Veículo</p>
-                        <p class="text-[7px] font-bold text-slate-500 uppercase tracking-tighter mt-1 italic">Limpa extratos, histórico e KM</p>
-                    </div>
-                    <i data-lucide="wallet" class="w-4 h-4 text-orange-500 group-hover:scale-110 transition-transform"></i>
-                </button>
-
-                <button onclick="window.resetData('all')" class="w-full bg-red-600/10 border border-red-500/20 hover:bg-red-600 p-5 rounded-3xl flex items-center justify-between transition-all group active:scale-95 text-red-500 hover:text-white italic">
-                    <div class="text-left">
-                        <p class="text-xs font-black uppercase leading-none">Zerar Tudo</p>
-                        <p class="text-[7px] font-bold opacity-60 uppercase tracking-tighter mt-1 italic">Reseta saúde, tarefas e biometria</p>
-                    </div>
-                    <i data-lucide="trash-2" class="w-4 h-4 group-hover:scale-110 transition-transform"></i>
-                </button>
-
-                <button onclick="window.closeResetModal()" class="w-full py-4 text-[9px] font-black uppercase tracking-[0.4em] text-slate-600 hover:text-slate-200 transition-all italic mt-4">
-                    Cancelar
-                </button>
-            </div>
-        </div>
-    `;
-
-    modal.classList.remove('opacity-0', 'pointer-events-none');
-    if (window.lucide) window.lucide.createIcons();
-};
-
-window.closeResetModal = () => {
-    const modal = document.getElementById('reset-modal-overlay');
-    if (modal) modal.classList.add('opacity-0', 'pointer-events-none');
-};
-
-window.resetData = async (type) => {
-    if (type === 'finance_vehicle') {
-        appState.transacoes = [];
-        appState.veiculo.historico = [];
-        appState.veiculo.km = 35000;
-        appState.veiculo.oleo = 38000;
-    } else if (type === 'all') {
-        appState.energy_mg = 0;
-        appState.water_ml = 0;
-        appState.tarefas = [];
-        appState.transacoes = [];
-        appState.veiculo.historico = [];
-        appState.veiculo.km = 35000;
-        appState.perfil = { peso: 80, altura: 175, cidade: 'Fortaleza', alcoholStart: '', alcoholTarget: 30, alcoholTitle: 'SEM ÁLCOOL' };
-    }
-
-    updateGlobalUI();
-    saveCloudBackup();
-    window.closeResetModal();
+    const litrosEl = document.getElementById('trip-litros-val');
+    const custoEl = document.getElementById('trip-custo-val');
     
-    // Feedback visual rápido
-    const main = document.getElementById('main-content');
-    if (main) {
-        main.style.opacity = '0.3';
-        setTimeout(() => main.style.opacity = '1', 500);
-    }
+    if (litrosEl) litrosEl.innerText = litros.toFixed(1);
+    if (custoEl) custoEl.innerText = Math.ceil(custo);
 };
 
-// --- WORK LOGIC ---
+// --- LOGICA DE AJUSTES ---
+
+window.savePulseSettings = (silent = false) => {
+    appState.perfil.peso = parseFloat(document.getElementById('set-peso')?.value) || appState.perfil.peso;
+    appState.perfil.altura = parseInt(document.getElementById('set-altura')?.value) || appState.perfil.altura;
+    appState.perfil.idade = parseInt(document.getElementById('set-idade')?.value) || appState.perfil.idade;
+    appState.perfil.sexo = document.getElementById('set-sexo')?.value || appState.perfil.sexo;
+    appState.perfil.estado = document.getElementById('set-estado')?.value || appState.perfil.estado;
+    appState.perfil.cidade = document.getElementById('set-cidade')?.value || appState.perfil.cidade;
+
+    appState.veiculo.montadora = document.getElementById('set-bike-montadora')?.value || appState.veiculo.montadora;
+    appState.veiculo.modelo = document.getElementById('set-bike-modelo')?.value || appState.veiculo.modelo;
+    appState.veiculo.consumo = parseFloat(document.getElementById('set-bike-consumo')?.value) || appState.veiculo.consumo;
+    appState.veiculo.km = parseInt(document.getElementById('set-bike-km')?.value) || appState.veiculo.km;
+    appState.veiculo.oleo = parseInt(document.getElementById('set-bike-oleo')?.value) || appState.veiculo.oleo;
+
+    appState.perfil.alcoholTitle = document.getElementById('set-prop-title')?.value.toUpperCase() || appState.perfil.alcoholTitle;
+    appState.perfil.alcoholTarget = parseInt(document.getElementById('set-prop-target')?.value) || appState.perfil.alcoholTarget;
+    const newStart = document.getElementById('set-prop-start')?.value;
+    if (newStart) appState.perfil.alcoholStart = new Date(newStart).toISOString();
+
+    saveCloudBackup();
+    if (!silent) alert("PULSE: CONFIGURAÇÕES SINCRONIZADAS COM A NUVEM.");
+    updateGlobalUI();
+};
+
+const fillSettingsForm = () => {
+    const p = appState.perfil;
+    const v = appState.veiculo;
+
+    const setVal = (id, val) => { const el = document.getElementById(id); if (el && val) el.value = val; };
+    
+    setVal('set-peso', p.peso);
+    setVal('set-altura', p.altura);
+    setVal('set-idade', p.idade);
+    setVal('set-sexo', p.sexo);
+    setVal('set-estado', p.estado);
+    setVal('set-cidade', p.cidade);
+
+    setVal('set-bike-montadora', v.montadora);
+    setVal('set-bike-modelo', v.modelo);
+    setVal('set-bike-consumo', v.consumo);
+    setVal('set-bike-km', v.km);
+    setVal('set-bike-oleo', v.oleo);
+
+    setVal('set-prop-title', p.alcoholTitle);
+    setVal('set-prop-target', p.alcoholTarget);
+    if (p.alcoholStart) setVal('set-prop-start', p.alcoholStart.split('T')[0]);
+};
+
+// --- LOGICA DE TRABALHO (WORK) ---
 
 window.addWorkTask = () => {
     const titleEl = document.getElementById('work-task-title');
@@ -316,7 +307,11 @@ window.addWorkTask = () => {
 
 window.toggleTask = (id) => {
     const task = appState.tarefas.find(t => t.id === id);
-    if (task) { task.status = task.status === 'Pendente' ? 'Concluído' : 'Pendente'; updateGlobalUI(); saveCloudBackup(); }
+    if (task) { 
+        task.status = task.status === 'Pendente' ? 'Concluído' : 'Pendente'; 
+        updateGlobalUI(); 
+        saveCloudBackup(); 
+    }
 };
 
 const renderWorkTasks = () => {
@@ -325,12 +320,12 @@ const renderWorkTasks = () => {
     const sorted = [...appState.tarefas].sort((a,b) => (a.status === 'Concluído' ? 1 : -1));
     list.innerHTML = sorted.map(t => `
         <div class="glass-card p-5 rounded-3xl flex items-center justify-between transition-all ${t.status === 'Concluído' ? 'opacity-40' : ''}">
-            <div class="flex items-center gap-4">
-                <button onclick="window.toggleTask(${t.id})" class="w-6 h-6 rounded-lg border-2 ${t.status === 'Concluído' ? 'bg-blue-500 border-blue-500' : 'border-white/10'} flex items-center justify-center">
+            <div class="flex items-center gap-4 italic">
+                <button onclick="window.toggleTask(${t.id})" class="w-6 h-6 rounded-lg border-2 ${t.status === 'Concluído' ? 'bg-sky-500 border-sky-500' : 'border-white/10'} flex items-center justify-center">
                     ${t.status === 'Concluído' ? '<i data-lucide="check" class="w-4 h-4 text-white"></i>' : ''}
                 </button>
                 <div>
-                    <p class="text-xs font-black uppercase italic ${t.status === 'Concluído' ? 'line-through' : 'text-white'}">${t.title}</p>
+                    <p class="text-xs font-black uppercase italic ${t.status === 'Concluído' ? 'line-through text-slate-500' : 'text-white'}">${t.title}</p>
                     <p class="text-[8px] font-bold text-slate-500 uppercase italic mt-0.5">${t.type} • ${t.requester} • ${t.deadline || 'S/ DATA'}</p>
                 </div>
             </div>
@@ -367,7 +362,7 @@ const injectInterface = () => {
                     <i data-lucide="${isColl ? 'chevron-right' : 'chevron-left'}" class="w-4 h-4"></i>
                 </button>
             </div>
-            <nav class="flex-1 px-3 space-y-2 mt-4">
+            <nav class="flex-1 px-3 space-y-2 mt-4 italic">
                 ${items.map(i => `
                     <button onclick="window.openTab('${i.id}')" class="w-full flex items-center ${isColl ? 'justify-center' : 'gap-4 px-4'} py-4 rounded-2xl transition-all font-black uppercase text-[10px] tracking-widest ${path === i.id ? 'bg-white/5 text-blue-500' : 'text-slate-500 hover:bg-white/5'}">
                         <i data-lucide="${i.icon}" class="w-5 h-5 ${i.color}"></i>
@@ -382,8 +377,7 @@ const injectInterface = () => {
                 </button>
             </div>
         </aside>
-        <!-- Mobile Nav -->
-        <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-xl border-t border-white/10 z-[60] px-2 h-16 flex items-center justify-around">
+        <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-xl border-t border-white/10 z-[60] px-2 h-16 flex items-center justify-around italic">
             ${items.map(i => `
                 <button onclick="window.openTab('${i.id}')" class="flex flex-col items-center transition-all ${path === i.id ? 'text-blue-500' : 'text-slate-500'}">
                     <i data-lucide="${i.icon}" class="w-5 h-5 ${i.color}"></i>
@@ -415,6 +409,8 @@ const injectInterface = () => {
     }
 };
 
+// --- UPDATE UI CENTRALIZADO ---
+
 const updateGlobalUI = () => {
     injectInterface();
     const main = document.getElementById('main-content');
@@ -424,56 +420,102 @@ const updateGlobalUI = () => {
     }
     
     const update = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
+    
+    // Dashboard / Geral
     update('dash-water-cur', appState.water_ml);
     update('dash-energy-val', appState.energy_mg);
+    update('dash-nps-val', appState.nps_mes);
     update('water-current-display', appState.water_ml);
     update('energy-current-display', appState.energy_mg);
     update('bike-km-display', appState.veiculo.km);
+    update('bike-oil-display', appState.veiculo.oleo);
+    update('bike-name-display', appState.veiculo.modelo.toUpperCase());
     update('task-count', appState.tarefas.filter(t => t.status === 'Pendente').length);
+    update('dash-tasks-progress', appState.tarefas.filter(t => t.status === 'Concluído').length);
+    update('dash-tasks-remaining', appState.tarefas.filter(t => t.status === 'Pendente').length);
 
+    // Barras de Progresso
     const wPct = Math.min((appState.water_ml / 3500) * 100, 100);
     const ePct = Math.min((appState.energy_mg / 400) * 100, 100);
     ['dash-water-bar', 'water-bar'].forEach(id => { if(document.getElementById(id)) document.getElementById(id).style.width = wPct + '%'; });
     if(document.getElementById('energy-bar')) document.getElementById('energy-bar').style.width = ePct + '%';
+    update('water-percent-text', Math.round(wPct) + '%');
+    update('energy-percent-text', Math.round(ePct) + '%');
     
     const gauge = document.getElementById('energy-gauge-path');
     if (gauge) gauge.style.strokeDashoffset = 226.2 - (ePct / 100) * 226.2;
 
+    // Propósito (Álcool)
+    if (appState.perfil.alcoholStart) {
+        const diff = Math.floor((new Date() - new Date(appState.perfil.alcoholStart)) / (1000 * 60 * 60 * 24));
+        update('alcohol-days-count', diff);
+        update('alcohol-target-display', appState.perfil.alcoholTarget);
+        update('alcohol-challenge-title', appState.perfil.alcoholTitle);
+        const aPct = Math.min((diff / appState.perfil.alcoholTarget) * 100, 100);
+        if(document.getElementById('alcohol-bar')) document.getElementById('alcohol-bar').style.width = aPct + '%';
+    }
+
+    // Finanças
     const saldo = appState.transacoes.reduce((acc, t) => acc + (t.tipo === 'Receita' ? t.valor : -t.valor), 0);
     update('dash-saldo', saldo.toLocaleString('pt-BR'));
     update('fin-saldo-atual-pag', saldo.toLocaleString('pt-BR'));
 
+    // Render Lists
     renderWorkTasks();
-    const bikeList = document.getElementById('bike-history-list');
-    if (bikeList) {
-        const history = [...appState.veiculo.historico].sort((a, b) => b.id - a.id);
-        bikeList.innerHTML = history.map(h => `
-            <div class="bg-slate-900/40 p-4 rounded-2xl border border-white/5 flex items-center justify-between group transition-all">
-                <div class="flex items-center gap-4">
-                    <div class="w-10 h-10 bg-orange-500/10 text-orange-500 rounded-xl flex items-center justify-center">
-                        <i data-lucide="${h.tipo === 'Abastecimento' ? 'fuel' : 'wrench'}"></i>
-                    </div>
-                    <div>
-                        <p class="text-xs font-black uppercase italic text-white">${h.tipo}</p>
-                        <p class="text-[8px] font-bold text-slate-500 uppercase italic mt-0.5">${h.data} • ${h.km} KM • R$ ${h.valor.toFixed(2)}</p>
-                    </div>
-                </div>
-                <div class="text-right">
-                    <p class="text-[8px] font-black text-slate-500 uppercase italic">${h.detalhes}</p>
-                </div>
-            </div>
-        `).join('');
-    }
+    renderExtratos();
 
     setTimeout(() => { if (window.lucide) window.lucide.createIcons(); }, 50);
+};
+
+const renderExtratos = () => {
+    const list = document.getElementById('bike-history-list') || document.getElementById('fin-history-list');
+    if (!list) return;
+
+    // Se estiver na aba veículo, filtra apenas o histórico do veículo, senão todas as transações
+    const data = document.getElementById('bike-history-list') ? appState.veiculo.historico : appState.transacoes;
+    const sorted = [...data].sort((a, b) => b.id - a.id);
+
+    list.innerHTML = sorted.map(h => `
+        <div class="bg-slate-900/40 p-4 rounded-2xl border border-white/5 flex items-center justify-between group transition-all italic">
+            <div class="flex items-center gap-4 italic">
+                <div class="w-10 h-10 ${h.tipo === 'Receita' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-orange-500/10 text-orange-500'} rounded-xl flex items-center justify-center italic">
+                    <i data-lucide="${h.tipo === 'Receita' ? 'trending-up' : (h.tipo === 'Abastecimento' ? 'fuel' : 'wrench')}"></i>
+                </div>
+                <div>
+                    <p class="text-xs font-black uppercase italic text-white">${h.desc || h.tipo}</p>
+                    <p class="text-[8px] font-bold text-slate-500 uppercase italic mt-0.5">${h.data} • ${h.km ? h.km + ' KM •' : ''} R$ ${h.valor.toFixed(2)}</p>
+                </div>
+            </div>
+            <p class="text-[8px] font-black text-slate-600 uppercase italic">${h.detalhes || h.cat || ''}</p>
+        </div>
+    `).join('');
 };
 
 window.openTab = (p) => { window.location.href = p + ".html"; };
 window.toggleSidebar = () => { appState.sidebarCollapsed = !appState.sidebarCollapsed; saveLocalData(); updateGlobalUI(); };
 
+// --- WEATHER ---
+
+const fetchWeatherReal = async () => {
+    try {
+        const response = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=-3.73&longitude=-38.52&current_weather=true`);
+        const data = await response.json();
+        const code = data.current_weather.weathercode;
+        let icon = 'cloud'; let color = 'text-blue-300';
+        if (code <= 1) { icon = 'sun'; color = 'text-yellow-400'; }
+        else if (code <= 3) { icon = 'cloud-sun'; color = 'text-orange-400'; }
+        else if (code >= 51 && code <= 67) { icon = 'cloud-rain'; color = 'text-blue-400'; }
+        appState.weather = { temp: Math.round(data.current_weather.temperature), icon, color };
+        updateGlobalUI();
+    } catch (e) {}
+};
+
+// --- INIT ---
+
 window.addEventListener('DOMContentLoaded', () => {
     loadLocalData();
     updateGlobalUI();
-    fetchWeather();
+    fetchWeatherReal();
+    if (window.location.pathname.includes('ajustes')) fillSettingsForm();
     if (!window.location.pathname.includes('index')) refreshFromCloud();
 });
