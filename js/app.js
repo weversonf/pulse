@@ -95,7 +95,7 @@ const fetchWeather = async () => {
     } catch (e) {}
 };
 
-// --- LIGHTBOX (MODAL) ABASTECIMENTO ---
+// --- LIGHTBOX (MODAL) ABASTECIMENTO (Visual Refinado) ---
 
 window.openFuelModal = () => {
     let modal = document.getElementById('fuel-modal-overlay');
@@ -107,52 +107,66 @@ window.openFuelModal = () => {
     }
 
     modal.innerHTML = `
-        <div class="bg-slate-900/90 border border-white/10 w-full max-w-md p-8 rounded-[3rem] shadow-2xl relative italic">
-            <button onclick="window.closeFuelModal()" class="absolute top-6 right-6 p-2 text-slate-500 hover:text-white transition-all">
-                <i data-lucide="x" class="w-5 h-5"></i>
-            </button>
-            
-            <div class="flex items-center gap-4 mb-8">
-                <div class="w-12 h-12 bg-orange-500/20 text-orange-500 rounded-2xl flex items-center justify-center">
-                    <i data-lucide="fuel"></i>
-                </div>
-                <div>
-                    <h3 class="text-xl font-black tracking-tighter text-white uppercase italic">Abastecimento</h3>
-                    <p class="text-[8px] font-bold text-slate-500 uppercase tracking-[0.3em] italic">Yamaha Fazer 250</p>
-                </div>
+        <div class="bg-[#020617] border border-white/5 w-full max-w-xl p-6 rounded-[2rem] shadow-2xl relative italic">
+            <div class="flex items-center gap-2 mb-6">
+                <i data-lucide="plus-circle" class="w-4 h-4 text-orange-500"></i>
+                <h3 class="text-[10px] font-black uppercase tracking-[0.3em] text-orange-500 italic">Novo Lançamento</h3>
             </div>
 
             <div class="space-y-4">
-                <div class="grid grid-cols-2 gap-2">
-                    <div class="space-y-1">
-                        <label class="text-[8px] font-black uppercase text-slate-600 px-2 italic">KM Atual</label>
-                        <input type="number" id="m-v-km-atual" value="${appState.veiculo.km}" class="w-full p-4 bg-slate-950/50 border border-white/5 rounded-2xl text-xs font-bold text-white outline-none italic">
-                    </div>
-                    <div class="space-y-1">
-                        <label class="text-[8px] font-black uppercase text-slate-600 px-2 italic">Data</label>
-                        <input type="date" id="m-v-data" value="${new Date().toISOString().split('T')[0]}" class="w-full p-4 bg-slate-950/50 border border-white/5 rounded-2xl text-xs font-bold text-slate-400 outline-none italic">
-                    </div>
+                <!-- Linha 1: Tipo e Data -->
+                <div class="grid grid-cols-2 gap-3">
+                    <select id="m-v-tipo" class="w-full p-4 bg-slate-900 border border-white/5 rounded-2xl text-xs font-bold text-white outline-none uppercase italic">
+                        <option value="Abastecimento">Abastecimento</option>
+                        <option value="Serviço">Serviço ou Manutenção</option>
+                    </select>
+                    <input type="date" id="m-v-data" value="${new Date().toISOString().split('T')[0]}" class="w-full p-4 bg-slate-900 border border-white/5 rounded-2xl text-xs font-bold text-slate-400 outline-none italic">
                 </div>
 
-                <div class="space-y-1">
-                    <label class="text-[8px] font-black uppercase text-slate-600 px-2 italic">Preço por Litro (R$)</label>
-                    <input type="number" id="m-v-preco-litro" step="0.001" oninput="window.calcFuelModal('preco')" placeholder="0,000" class="w-full p-4 bg-slate-950 border border-white/10 rounded-2xl text-xs font-bold text-emerald-500 outline-none italic">
+                <!-- Linha 2: KM e Local -->
+                <div class="grid grid-cols-2 gap-3">
+                    <input type="number" id="m-v-km-atual" value="${appState.veiculo.km}" placeholder="KM ATUAL" class="w-full p-4 bg-slate-900 border border-white/5 rounded-2xl text-xs font-bold text-white outline-none italic uppercase">
+                    <input type="text" id="m-v-desc" placeholder="POSTO OU LOCAL..." class="w-full p-4 bg-slate-900 border border-white/5 rounded-2xl text-xs font-bold text-white outline-none italic uppercase">
                 </div>
 
-                <div class="grid grid-cols-2 gap-2">
+                <!-- Linha 3: Tipo Combustível -->
+                <select id="m-v-comb-tipo" class="w-full p-4 bg-slate-900 border border-white/5 rounded-2xl text-xs font-bold text-white outline-none uppercase italic">
+                    <option value="Gasolina Comum">Gasolina Comum</option>
+                    <option value="Gasolina Aditivada">Gasolina Aditivada</option>
+                    <option value="Etanol">Etanol</option>
+                </select>
+
+                <!-- Linha 4: Preço e Litros -->
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="space-y-1">
+                        <label class="text-[8px] font-black uppercase text-slate-600 px-2 italic">Preço/L</label>
+                        <div class="relative">
+                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-500 text-xs font-bold">R$</span>
+                            <input type="number" id="m-v-preco" step="0.001" oninput="window.calcFuelModal('preco')" placeholder="0,00" class="w-full p-4 pl-10 bg-slate-900 border border-white/5 rounded-2xl text-xs font-bold text-emerald-500 outline-none italic">
+                        </div>
+                    </div>
                     <div class="space-y-1">
                         <label class="text-[8px] font-black uppercase text-slate-600 px-2 italic">Litros</label>
-                        <input type="number" id="m-v-litros" step="0.01" oninput="window.calcFuelModal('litros')" placeholder="0,00" class="w-full p-4 bg-slate-950 border border-white/10 rounded-2xl text-xs font-bold text-blue-400 outline-none italic">
-                    </div>
-                    <div class="space-y-1">
-                        <label class="text-[8px] font-black uppercase text-slate-600 px-2 italic">Total (R$)</label>
-                        <input type="number" id="m-v-total-rs" step="0.01" oninput="window.calcFuelModal('total')" placeholder="0,00" class="w-full p-4 bg-slate-950 border border-white/10 rounded-2xl text-xs font-bold text-white outline-none italic">
+                        <div class="relative">
+                            <input type="number" id="m-v-litros" step="0.01" oninput="window.calcFuelModal('litros')" placeholder="0.00" class="w-full p-4 pr-10 bg-slate-900 border border-white/5 rounded-2xl text-xs font-bold text-blue-400 outline-none italic">
+                            <span class="absolute right-4 top-1/2 -translate-y-1/2 text-blue-400 text-xs font-bold uppercase">L</span>
+                        </div>
                     </div>
                 </div>
 
-                <button onclick="window.saveFuelModal()" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-5 rounded-3xl font-black uppercase tracking-[0.2em] text-[10px] shadow-lg transition-all active:scale-95 mt-4 italic">
-                    Registrar Agora
-                </button>
+                <!-- Linha 5: Total -->
+                <div class="space-y-1">
+                    <label class="text-[8px] font-black uppercase text-slate-600 px-2 italic">Valor Total R$</label>
+                    <div class="relative">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-white text-xs font-bold">R$</span>
+                        <input type="number" id="m-v-total" step="0.01" oninput="window.calcFuelModal('total')" placeholder="0,00" class="w-full p-4 pl-10 bg-slate-900 border border-white/5 rounded-2xl text-xs font-bold text-white outline-none italic">
+                    </div>
+                </div>
+
+                <div class="flex gap-2 mt-4">
+                   <button onclick="window.closeFuelModal()" class="flex-1 bg-slate-900 text-slate-500 py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all hover:text-white italic">Cancelar</button>
+                   <button onclick="window.saveFuelModal()" class="flex-[2] bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-blue-900/20 transition-all active:scale-95 italic">Confirmar Lançamento</button>
+                </div>
             </div>
         </div>
     `;
@@ -167,34 +181,50 @@ window.closeFuelModal = () => {
 };
 
 window.calcFuelModal = (src) => {
-    const p = parseFloat(document.getElementById('m-v-preco-litro')?.value) || 0;
+    const p = parseFloat(document.getElementById('m-v-preco')?.value) || 0;
     const l = parseFloat(document.getElementById('m-v-litros')?.value) || 0;
-    const t = parseFloat(document.getElementById('m-v-total-rs')?.value) || 0;
+    const t = parseFloat(document.getElementById('m-v-total')?.value) || 0;
 
-    if (p > 0) {
-        if (src === 'preco' || src === 'total') {
-            if (t > 0) document.getElementById('m-v-litros').value = (t / p).toFixed(2);
-        } else if (src === 'litros') {
-            if (l > 0) document.getElementById('m-v-total-rs').value = (l * p).toFixed(2);
-        }
+    if (src === 'preco' || src === 'total') {
+        if (p > 0 && t > 0) document.getElementById('m-v-litros').value = (t / p).toFixed(2);
+    } else if (src === 'litros') {
+        if (p > 0 && l > 0) document.getElementById('m-v-total').value = (l * p).toFixed(2);
     }
 };
 
 window.saveFuelModal = async () => {
     const km = parseInt(document.getElementById('m-v-km-atual')?.value) || 0;
-    const val = parseFloat(document.getElementById('m-v-total-rs')?.value) || 0;
+    const val = parseFloat(document.getElementById('m-v-total')?.value) || 0;
     const date = document.getElementById('m-v-data')?.value;
+    const desc = document.getElementById('m-v-desc')?.value.trim() || "ABASTECIMENTO";
+    const tipo = document.getElementById('m-v-tipo')?.value;
+    const comb = document.getElementById('m-v-comb-tipo')?.value;
+
     if (!km || !val) return;
 
     const formattedDate = date ? date.split('-').reverse().join('/') : new Date().toLocaleDateString('pt-BR');
     
     // Log Veículo
-    const log = { id: Date.now(), tipo: 'Abastecimento', data: formattedDate, km, valor: val, detalhes: 'LANÇAMENTO RÁPIDO' };
+    const log = { 
+        id: Date.now(), 
+        tipo, 
+        data: formattedDate, 
+        km, 
+        valor: val, 
+        detalhes: `${comb} - ${desc.toUpperCase()}` 
+    };
     appState.veiculo.historico.push(log);
     appState.veiculo.km = Math.max(appState.veiculo.km, km);
 
-    // Finanças
-    const fin = { id: Date.now() + 1, tipo: 'Despesa', cat: 'Transporte', desc: `COMBUSTÍVEL (KM: ${km})`, valor: val, data: formattedDate };
+    // Finanças (Mirror)
+    const fin = { 
+        id: Date.now() + 1, 
+        tipo: 'Despesa', 
+        cat: 'Transporte', 
+        desc: `${tipo.toUpperCase()} (${comb}): ${desc.toUpperCase()} (KM: ${km})`, 
+        valor: val, 
+        data: formattedDate 
+    };
     appState.transacoes.push(fin);
 
     updateGlobalUI();
@@ -353,6 +383,28 @@ const updateGlobalUI = () => {
     update('fin-saldo-atual-pag', saldo.toLocaleString('pt-BR'));
 
     renderWorkTasks();
+    // Re-render vehicle history if on the vehicle page
+    const bikeList = document.getElementById('bike-history-list');
+    if (bikeList) {
+        const history = [...appState.veiculo.historico].sort((a, b) => b.id - a.id);
+        bikeList.innerHTML = history.map(h => `
+            <div class="bg-slate-900/40 p-4 rounded-2xl border border-white/5 flex items-center justify-between group transition-all">
+                <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 bg-orange-500/10 text-orange-500 rounded-xl flex items-center justify-center">
+                        <i data-lucide="${h.tipo === 'Abastecimento' ? 'fuel' : 'wrench'}"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-black uppercase italic text-white">${h.tipo}</p>
+                        <p class="text-[8px] font-bold text-slate-500 uppercase italic mt-0.5">${h.data} • ${h.km} KM • R$ ${h.valor.toFixed(2)}</p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <p class="text-[8px] font-black text-slate-500 uppercase italic">${h.detalhes}</p>
+                </div>
+            </div>
+        `).join('');
+    }
+
     setTimeout(() => { if (window.lucide) window.lucide.createIcons(); }, 50);
 };
 
