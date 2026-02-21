@@ -14,11 +14,13 @@
 </head>
 <body class="bg-slate-950 text-slate-100 italic">
     <div class="flex min-h-screen relative">
-        <!-- Injetado pelo app.js -->
+        
+        <!-- O app.js injetará a Sidebar aqui -->
         <div id="sidebar-placeholder"></div>
 
         <div class="flex-1 md:ml-64 transition-all duration-300 pb-safe-bottom">
-            <!-- Injetado pelo app.js -->
+            
+            <!-- O app.js injetará o Cabeçalho com Clima aqui -->
             <div id="header-placeholder"></div>
 
             <main class="max-w-4xl mx-auto p-4 md:p-8 space-y-6">
@@ -82,7 +84,7 @@
 
                 <!-- ROW 3: WORK & INDICADORES -->
                 <div class="grid grid-cols-2 md:grid-cols-3 gap-4 italic">
-                    <div class="bg-slate-900/40 border border-white/5 p-6 rounded-[2.5rem] flex flex-col justify-between italic">
+                    <div class="bg-slate-900/40 border border-white/5 p-6 rounded-[2.5rem] flex flex-col justify-between italic shadow-md">
                         <p class="text-[9px] font-black uppercase tracking-widest text-slate-500 italic">Atividades WORK</p>
                         <div class="flex items-baseline gap-1">
                             <p class="text-4xl font-black text-blue-500 italic" id="dash-tasks-progress">0</p>
@@ -90,7 +92,7 @@
                         </div>
                     </div>
                     
-                    <div class="bg-slate-900/40 border border-white/5 p-6 rounded-[2.5rem] flex flex-col justify-between italic">
+                    <div class="bg-slate-900/40 border border-white/5 p-6 rounded-[2.5rem] flex flex-col justify-between italic shadow-md">
                         <p class="text-[9px] font-black uppercase tracking-widest text-slate-500 italic">Pendências</p>
                         <div class="flex items-baseline gap-1">
                             <p class="text-4xl font-black text-red-500 italic" id="dash-tasks-remaining">0</p>
@@ -98,7 +100,7 @@
                         </div>
                     </div>
 
-                    <!-- CARD DE DESTAQUE: NPS MAKRO -->
+                    <!-- CARD DE DESTAQUE: NPS MAKRO ENGENHARIA -->
                     <div class="col-span-2 md:col-span-1 bg-blue-600 border border-blue-500 p-6 rounded-[2.5rem] flex flex-col justify-between shadow-xl shadow-blue-900/20 italic group hover:scale-[1.02] transition-all">
                         <div class="flex justify-between items-start italic">
                             <p class="text-[9px] font-black uppercase tracking-widest text-blue-100 italic">NPS Mensal Makro</p>
