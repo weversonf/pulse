@@ -1,81 +1,33 @@
 /**
  * PULSE OS - Central Intelligence
- * Sincronização Total: Google Sheets (Acessos e Dados) + Clima + NPS + Sidebar Retrátil
+ * Versão Estável: Injeção de Interface + Sidebar Flexível + Clima + NPS
  */
 
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwVDkNFRuFNyTh3We_8qvlrSDIa3G_y1Owo_l8K47qmw_tlwv3I-EMBfRplkYX6EkMUQw/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbVDkNFRuFNyTh3We_8qvlrSDIa3G_y1Owo_l8K47qmw_tlwv3I-EMBfRplkYX6EkMUQw/exec";
 const NPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbcsfpw1_uglhD6JtF4jAvjJ4hqgnHTcgKL8CBtb_i6pRmck7POOBvuqYykjIIE9sLdyQ/exec";
 
-// Estado Inicial do Sistema
 let appState = {
     login: "USER_PULSE",
     energy_mg: 0,
     water_ml: 0,
     sidebarCollapsed: false,
-    perfil: { 
-        peso: 80, altura: 175, idade: 25, sexo: 'M', estado: 'CE', cidade: 'Fortaleza', 
-        alcoholStart: '', alcoholTitle: 'SEM ÁLCOOL', alcoholTarget: 30
-    },
-    veiculo: { 
-        tipo: 'Moto', montadora: 'Yamaha', modelo: 'Fazer 250', consumo: 29, km: 35000, oleo: 38000, historico: [] 
-    },
+    perfil: { peso: 80, altura: 175, cidade: 'Fortaleza', alcoholStart: '', alcoholTarget: 30 },
+    veiculo: { km: 35000, oleo: 38000, consumo: 29 },
     tarefas: [],
     transacoes: [],
     nps_mes: "...",
     weather: { temp: "--", icon: "cloud" }
 };
 
-let autoSaveTimeout;
-
-// --- SISTEMA DE LOGIN ---
-window.doLogin = async () => {
-    const user = document.getElementById('login-user')?.value.trim();
-    const pass = document.getElementById('login-pass')?.value.trim();
-    const btn = document.getElementById('btn-login');
-    const msg = document.getElementById('login-msg');
-
-    if (!user || !pass) { if(msg) msg.innerText = "Campos obrigatórios!"; return; }
-    
-    if(btn) { btn.disabled = true; btn.innerText = "VERIFICANDO..."; }
-
-    try {
-        const response = await fetch(SCRIPT_URL, {
-            method: 'POST',
-            body: JSON.stringify({ action: 'login', user, pass })
-        });
-        const result = await response.json();
-
-        if (result.success) {
-            appState.login = user;
-            if (result.data) appState = { ...appState, ...result.data };
-            saveLocalData();
-            window.location.href = "dashboard.html";
-        } else {
-            if(msg) msg.innerText = "Acesso Negado. Verifique os dados.";
-            if(btn) { btn.disabled = false; btn.innerText = "ENTRAR"; }
-        }
-    } catch (e) {
-        if(msg) msg.innerText = "Erro na conexão com o Banco de Dados.";
-        if(btn) { btn.disabled = false; btn.innerText = "ENTRAR"; }
-    }
+// --- CARREGAMENTO INICIAL ---
+const loadLocalData = () => {
+    const saved = localStorage.getItem('pulse_state');
+    if (saved) appState = JSON.parse(saved);
 };
 
-// --- SINCRONIZAÇÃO DE DADOS ---
 const saveLocalData = () => localStorage.setItem('pulse_state', JSON.stringify(appState));
-const loadLocalData = () => { const s = localStorage.getItem('pulse_state'); if (s) appState = JSON.parse(s); };
 
-const saveCloudData = async () => {
-    saveLocalData();
-    try {
-        await fetch(SCRIPT_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            body: JSON.stringify({ action: 'syncData', userId: appState.login, data: appState })
-        });
-    } catch (e) { console.error("Erro sync nuvem", e); }
-};
-
-// --- INTERFACE DINÂMICA (SIDEBAR E HEADER) ---
+// --- GESTÃO DE INTERFACE (MENU E TOPO) ---
 window.toggleSidebar = () => {
     appState.sidebarCollapsed = !appState.sidebarCollapsed;
     saveLocalData();
@@ -83,8 +35,7 @@ window.toggleSidebar = () => {
 };
 
 const adjustMainContentMargin = () => {
-    // Busca o elemento principal independente de qual classe ele tenha no início
-    const main = document.querySelector('.flex-1');
+    const main = document.getElementById('main-content');
     if (main) {
         if (appState.sidebarCollapsed) {
             main.classList.remove('md:ml-64');
@@ -103,6 +54,7 @@ const injectInterface = () => {
 
     const currentPage = window.location.pathname.split('/').pop().split('.')[0] || 'dashboard';
     const isCollapsed = appState.sidebarCollapsed;
+    
     const menuItems = [
         { id: 'dashboard', label: 'Home', icon: 'layout-dashboard' },
         { id: 'saude', label: 'Saúde', icon: 'activity' },
@@ -113,9 +65,9 @@ const injectInterface = () => {
     ];
 
     navPlaceholder.innerHTML = `
-        <aside class="hidden md:flex flex-col ${isCollapsed ? 'w-20' : 'w-64'} bg-slate-900 border-r border-white/5 fixed h-full z-50 transition-all duration-300">
+        <aside class="hidden md:flex flex-col ${isCollapsed ? 'w-20' : 'w-64'} bg-slate-900 border-r border-white/5 fixed h-full z-50 transition-all overflow-hidden italic">
             <div class="p-6 flex items-center justify-between">
-                <h1 class="text-2xl font-black tracking-tighter text-blue-500 italic ${isCollapsed ? 'hidden' : 'block'}">PULSE</h1>
+                <h1 class="text-2xl font-black tracking-tighter text-blue-500 ${isCollapsed ? 'hidden' : 'block'}">PULSE</h1>
                 <button onclick="window.toggleSidebar()" class="p-2 rounded-xl bg-white/5 text-slate-500 hover:text-white transition-all">
                     <i data-lucide="${isCollapsed ? 'chevron-right' : 'chevron-left'}" class="w-4 h-4"></i>
                 </button>
@@ -139,8 +91,8 @@ const injectInterface = () => {
 
     if (headerPlaceholder) {
         headerPlaceholder.innerHTML = `
-            <header class="bg-slate-900/80 backdrop-blur-xl sticky top-0 z-40 px-6 py-5 flex items-center justify-between border-b border-white/5">
-                <h2 class="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500 flex items-center gap-2 italic">
+            <header class="bg-slate-900/80 backdrop-blur-xl sticky top-0 z-40 px-6 py-5 flex items-center justify-between border-b border-white/5 italic">
+                <h2 class="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500 flex items-center gap-2">
                     ${currentPage.toUpperCase()} <span class="text-slate-800">•</span>
                     <span class="text-blue-500">${appState.perfil.cidade.toUpperCase()}</span> <span class="text-slate-800">•</span>
                     <span id="header-weather-info" class="text-slate-400 flex items-center gap-1">
@@ -157,39 +109,13 @@ const injectInterface = () => {
     }
 };
 
-// --- LOGICA GLOBAL DE UI ---
-const updateGlobalUI = () => {
-    injectInterface();
-    adjustMainContentMargin();
-    
-    const p = appState.perfil;
-    const waterGoal = p.peso * 35;
-    const energyLimit = 400;
-
-    const update = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
-    
-    update('dash-water-cur', appState.water_ml);
-    update('dash-water-goal', waterGoal);
-    update('dash-energy-val', appState.energy_mg);
-    update('dash-nps-val', appState.nps_mes);
-
-    // Gráficos e Barras
-    const wBar = document.getElementById('dash-water-bar'); 
-    if(wBar) wBar.style.width = `${Math.min((appState.water_ml/waterGoal)*100, 100)}%`;
-    
-    const gauge = document.getElementById('energy-gauge-path'); 
-    if(gauge){ 
-        const pct = Math.min((appState.energy_mg/energyLimit)*100, 100); 
-        gauge.style.strokeDashoffset = 226.2 - (pct/100)*226.2; 
-    }
-
-    // CRÍTICO: Recarregar ícones Lucide
-    if (window.lucide) {
-        lucide.createIcons();
-    }
+// --- ACÇÕES E SINCRONIZAÇÃO ---
+window.addMonster = () => {
+    appState.energy_mg += 160;
+    saveLocalData();
+    updateGlobalUI();
 };
 
-// --- WEATHER & NPS FETCH ---
 const fetchWeather = async () => {
     try {
         const response = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=-3.73&longitude=-38.52&current_weather=true`);
@@ -208,13 +134,40 @@ const fetchNPSData = async () => {
     } catch(e) { appState.nps_mes = "ERR"; }
 };
 
+// --- ACTUALIZAÇÃO DA UI ---
+const updateGlobalUI = () => {
+    injectInterface();
+    adjustMainContentMargin();
+    
+    const p = appState.perfil;
+    const waterGoal = p.peso * 35;
+    const energyLimit = 400;
+
+    const update = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
+    
+    update('dash-water-cur', appState.water_ml);
+    update('dash-water-goal', waterGoal);
+    update('dash-energy-val', appState.energy_mg);
+    update('dash-nps-val', appState.nps_mes);
+
+    const wBar = document.getElementById('dash-water-bar'); 
+    if(wBar) wBar.style.width = `${Math.min((appState.water_ml/waterGoal)*100, 100)}%`;
+    
+    const gauge = document.getElementById('energy-gauge-path'); 
+    if(gauge){ 
+        const pct = Math.min((appState.energy_mg/energyLimit)*100, 100); 
+        gauge.style.strokeDashoffset = 226.2 - (pct/100)*226.2; 
+    }
+
+    if (window.lucide) lucide.createIcons();
+};
+
 // --- INICIALIZAÇÃO ---
 window.addEventListener('DOMContentLoaded', () => {
     loadLocalData();
     updateGlobalUI();
     
-    // Não busca clima no login para evitar erros
-    if (!window.location.pathname.includes('index') && !window.location.pathname.endsWith('/')) {
+    if (!window.location.pathname.includes('index')) {
         fetchWeather();
         fetchNPSData();
     }
