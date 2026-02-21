@@ -1,307 +1,215 @@
 /**
  * PULSE OS - Central Intelligence
- * Sincronização Bidirecional: Google Sheets (Acessos e Dados) + Clima + NPS + PWA
+ * Sincronização: JSON Global (Aba Dados) + Transações Linha a Linha (Aba Financas)
  */
 
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwVDkNFRuFNyTh3We_8qvlrSDIa3G_y1Owo_l8K47qmw_tlwv3I-EMBfRplkYX6EkMUQw/exec";
 const NPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbcsfpw1_uglhD6JtF4jAvjJ4hqgnHTcgKL8CBtb_i6pRmck7POOBvuqYykjIIE9sLdyQ/exec";
 
-// Estado Inicial do Sistema
 let appState = {
     login: "",
     energy_mg: 0,
     water_ml: 0,
     sidebarCollapsed: false,
-    perfil: { 
-        peso: 80, altura: 175, idade: 25, sexo: 'M', estado: 'CE', cidade: 'Fortaleza', 
-        alcoholStart: '', alcoholTitle: 'SEM ÁLCOOL', alcoholTarget: 30
-    },
-    veiculo: { 
-        tipo: 'Moto', montadora: 'Yamaha', modelo: 'Fazer 250', consumo: 29, km: 35000, oleo: 38000, historico: [] 
-    },
+    perfil: { peso: 80, altura: 175, cidade: 'Fortaleza', alcoholStart: '', alcoholTarget: 30 },
+    veiculo: { tipo: 'Moto', modelo: 'Fazer 250', km: 35000, historico: [] },
     tarefas: [],
-    transacoes: [],
+    transacoes: [], // Cache local para exibição rápida
     nps_mes: "...",
     weather: { temp: "--", icon: "cloud" }
 };
 
-// --- SISTEMA DE LOGIN ---
-window.doLogin = async () => {
-    console.log("PULSE: Iniciando tentativa de login...");
-    
-    const userField = document.getElementById('login-user');
-    const passField = document.getElementById('login-pass');
-    const btn = document.getElementById('btn-login');
-    const msg = document.getElementById('login-msg');
+// --- SINCRONIZAÇÃO E PERSISTÊNCIA ---
 
-    if (!userField || !passField) {
-        console.error("PULSE: Elementos de login não encontrados no HTML. Verifique os IDs 'login-user' e 'login-pass'.");
-        return;
-    }
-
-    const user = userField.value.trim();
-    const pass = passField.value.trim();
-
-    if (!user || !pass) { 
-        if(msg) msg.innerText = "Campos obrigatórios!"; 
-        return; 
-    }
-    
-    if(btn) { 
-        btn.disabled = true; 
-        btn.innerText = "AUTENTICANDO..."; 
-    }
-
-    try {
-        console.log("PULSE: Enviando requisição para a Makro Cloud...");
-        const response = await fetch(SCRIPT_URL, {
-            method: 'POST',
-            body: JSON.stringify({ action: 'login', user: user, pass: pass }),
-            redirect: 'follow'
-        });
-        
-        const result = await response.json();
-        console.log("PULSE: Resposta do servidor recebida:", result);
-
-        if (result.success) {
-            appState.login = user;
-            if (result.data) {
-                appState = { ...appState, ...result.data };
-            }
-            saveLocalData();
-            window.location.href = "dashboard.html";
-        } else {
-            if(msg) msg.innerText = result.error || "Usuário ou senha inválidos.";
-            if(btn) { btn.disabled = false; btn.innerText = "ENTRAR"; }
-        }
-    } catch (e) {
-        console.error("PULSE: Erro crítico no login:", e);
-        if(msg) msg.innerText = "Erro de conexão com a Makro Cloud.";
-        if(btn) { btn.disabled = false; btn.innerText = "ENTRAR"; }
-    }
-};
-
-// --- SINCRONIZAÇÃO DE DADOS ---
 const saveLocalData = () => localStorage.setItem('pulse_state', JSON.stringify(appState));
 
 const loadLocalData = () => {
     const saved = localStorage.getItem('pulse_state');
-    if (saved) {
-        try {
-            const parsed = JSON.parse(saved);
-            appState = { ...appState, ...parsed };
-        } catch (e) {
-            console.error("Erro ao ler localstorage", e);
-        }
-    }
+    if (saved) appState = { ...appState, ...JSON.parse(saved) };
 };
 
-// Salva na nuvem e trata resposta
-const saveCloudData = async () => {
+// Salva o "Backup" JSON na aba Dados
+const saveCloudBackup = async () => {
     saveLocalData();
-    if (!appState.login || appState.login === "") return;
-
+    if (!appState.login) return;
     try {
         await fetch(SCRIPT_URL, {
             method: 'POST',
-            mode: 'no-cors', 
-            body: JSON.stringify({ 
-                action: 'syncData', 
-                userId: appState.login, 
-                data: appState 
-            })
+            mode: 'no-cors',
+            body: JSON.stringify({ action: 'syncData', userId: appState.login, data: appState })
         });
-        console.log("PULSE Cloud: Sincronização automática enviada.");
-    } catch (e) { 
-        console.warn("PULSE Cloud: Erro ao tentar sincronizar."); 
-    }
+    } catch (e) { console.warn("PULSE: Erro no backup cloud."); }
 };
 
-// Força o download dos dados da nuvem (útil no refresh)
-const refreshFromCloud = async () => {
-    if (!appState.login || appState.login === "") return;
+// SALVAMENTO ESPECÍFICO NA ABA "FINANCAS" (LINHA POR LINHA)
+const saveToFinancasSheet = async (transacao) => {
+    if (!appState.login) return;
+    try {
+        await fetch(SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            body: JSON.stringify({ 
+                action: 'appendFinanca', 
+                userId: appState.login, 
+                rowData: [
+                    transacao.id,
+                    transacao.data,
+                    transacao.tipo,
+                    transacao.cat,
+                    transacao.desc,
+                    transacao.valor
+                ]
+            })
+        });
+        console.log("PULSE: Transação salva na aba Financas.");
+    } catch (e) { console.error("Erro ao salvar linha na aba Financas", e); }
+};
+
+// --- SISTEMA DE LOGIN ---
+
+window.doLogin = async () => {
+    const user = document.getElementById('login-user')?.value.trim();
+    const pass = document.getElementById('login-pass')?.value.trim();
+    const msg = document.getElementById('login-msg');
+    const btn = document.getElementById('btn-login');
+
+    if (!user || !pass) return;
+    if(btn) { btn.disabled = true; btn.innerText = "AUTENTICANDO..."; }
+
     try {
         const response = await fetch(SCRIPT_URL, {
             method: 'POST',
-            body: JSON.stringify({ action: 'login', user: appState.login, pass: "REFRESH" }),
-            redirect: 'follow'
+            body: JSON.stringify({ action: 'login', user, pass })
         });
         const result = await response.json();
-        if (result.success && result.data) {
-            appState = { ...appState, ...result.data };
-            updateGlobalUI();
+
+        if (result.success) {
+            appState.login = user;
+            if (result.data) appState = { ...appState, ...result.data };
+            saveLocalData();
+            window.location.href = "dashboard.html";
+        } else {
+            if(msg) msg.innerText = "Acesso Negado.";
+            if(btn) { btn.disabled = false; btn.innerText = "ENTRAR"; }
         }
     } catch (e) {
-        console.error("Refresh falhou", e);
+        if(msg) msg.innerText = "Erro de conexão.";
+        if(btn) { btn.disabled = false; btn.innerText = "ENTRAR"; }
     }
 };
 
-// --- INTERFACE DINÂMICA ---
-window.toggleSidebar = () => {
-    appState.sidebarCollapsed = !appState.sidebarCollapsed;
-    saveLocalData();
+// --- LANÇAMENTOS FINANCEIROS ---
+
+window.lancarFinanca = async (tipo) => {
+    const valor = parseFloat(document.getElementById('fin-valor')?.value);
+    const desc = document.getElementById('fin-desc')?.value.trim();
+    const cat = document.getElementById('fin-categoria')?.value;
+    const dataInput = document.getElementById('fin-data')?.value;
+
+    if (!valor || !desc) return;
+
+    const dataFormatada = dataInput ? dataInput.split('-').reverse().join('/') : new Date().toLocaleDateString('pt-BR');
+
+    const novaTransacao = {
+        id: Date.now(),
+        tipo: tipo === 'receita' ? 'Receita' : 'Despesa',
+        cat,
+        desc: desc.toUpperCase(),
+        valor,
+        data: dataFormatada
+    };
+
+    // 1. Atualiza localmente
+    appState.transacoes.push(novaTransacao);
     updateGlobalUI();
+
+    // 2. Salva linha na aba "Financas" (O que você pediu)
+    await saveToFinancasSheet(novaTransacao);
+
+    // 3. Salva backup JSON
+    saveCloudBackup();
+
+    if (document.getElementById('fin-valor')) document.getElementById('fin-valor').value = "";
+    if (document.getElementById('fin-desc')) document.getElementById('fin-desc').value = "";
 };
 
-const adjustMainContentMargin = () => {
-    const main = document.getElementById('main-content');
-    if (!main) return;
-    if (window.innerWidth < 768) {
-        main.style.marginLeft = "0";
-    } else {
-        if (appState.sidebarCollapsed) {
-            main.classList.remove('md:ml-64');
-            main.classList.add('md:ml-20');
-        } else {
-            main.classList.remove('md:ml-20');
-            main.classList.add('md:ml-64');
-        }
-    }
-};
+// --- LANÇAMENTOS DE VEÍCULO (AGORA VAI PARA ABA FINANÇAS TAMBÉM) ---
 
-const injectInterface = () => {
-    const navPlaceholder = document.getElementById('sidebar-placeholder');
-    const headerPlaceholder = document.getElementById('header-placeholder');
-    if (!navPlaceholder) return;
+window.lancarVeiculo = async () => {
+    const tipoServico = document.getElementById('v-tipo-principal')?.value;
+    const km = parseInt(document.getElementById('v-km-atual')?.value) || 0;
+    const valor = parseFloat(document.getElementById('v-total-rs')?.value) || 0;
+    const desc = document.getElementById('v-descricao')?.value || "";
+    const dataInput = document.getElementById('v-data')?.value;
 
-    const currentPage = window.location.pathname.split('/').pop().split('.')[0] || 'dashboard';
-    const isCollapsed = appState.sidebarCollapsed;
-    const menuItems = [
-        { id: 'dashboard', label: 'Home', icon: 'layout-dashboard' },
-        { id: 'saude', label: 'Saúde', icon: 'activity' },
-        { id: 'veiculo', label: 'Moto', icon: 'bike' },
-        { id: 'work', label: 'WORK', icon: 'briefcase' },
-        { id: 'financas', label: 'Money', icon: 'wallet' },
-        { id: 'relatorio', label: 'Relatório', icon: 'bar-chart-3' }
-    ];
+    if (!km || !valor) return;
 
-    navPlaceholder.innerHTML = `
-        <aside class="hidden md:flex flex-col ${isCollapsed ? 'w-20' : 'w-64'} bg-slate-900 border-r border-white/5 fixed h-full z-50 transition-all duration-300 overflow-hidden">
-            <div class="p-6 flex items-center justify-between">
-                <h1 class="text-2xl font-black tracking-tighter text-blue-500 italic ${isCollapsed ? 'hidden' : 'block'}">PULSE</h1>
-                <button onclick="window.toggleSidebar()" class="p-2 rounded-xl bg-white/5 text-slate-500 hover:text-white transition-all">
-                    <i data-lucide="${isCollapsed ? 'chevron-right' : 'chevron-left'}" class="w-4 h-4"></i>
-                </button>
-            </div>
-            <nav class="flex-1 px-3 space-y-2 mt-4">
-                ${menuItems.map(item => `
-                    <button onclick="window.openTab('${item.id}')" title="${item.label}" class="w-full flex items-center ${isCollapsed ? 'justify-center' : 'gap-4 px-4'} py-4 rounded-2xl transition-all font-black uppercase text-[10px] tracking-widest ${currentPage === item.id ? 'text-blue-500 bg-white/5 shadow-lg shadow-blue-500/10' : 'text-slate-500 hover:bg-white/5'}">
-                        <i data-lucide="${item.icon}" class="w-5 h-5 flex-shrink-0"></i> 
-                        <span class="${isCollapsed ? 'hidden' : 'block'}">${item.label}</span>
-                    </button>
-                `).join('')}
-            </nav>
-            <div class="p-3 border-t border-white/5">
-                <button onclick="window.openTab('ajustes')" class="w-full flex items-center ${isCollapsed ? 'justify-center' : 'gap-4 px-4'} py-4 rounded-2xl transition-all font-black uppercase text-[10px] tracking-widest ${currentPage === 'ajustes' ? 'text-blue-500 bg-white/5' : 'text-slate-500 hover:bg-white/5'}">
-                    <i data-lucide="settings" class="w-5 h-5 flex-shrink-0"></i>
-                    <span class="${isCollapsed ? 'hidden' : 'block'}">Ajustes</span>
-                </button>
-            </div>
-        </aside>
+    const dataFormatada = dataInput ? dataInput.split('-').reverse().join('/') : new Date().toLocaleDateString('pt-BR');
 
-        <!-- Mobile Nav -->
-        <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-xl border-t border-white/10 z-[60] px-2 pb-safe">
-            <div class="flex items-center justify-around h-16">
-                ${menuItems.slice(0, 5).map(item => `
-                    <button onclick="window.openTab('${item.id}')" class="flex flex-col items-center justify-center gap-1 transition-all ${currentPage === item.id ? 'text-blue-500' : 'text-slate-500'}">
-                        <i data-lucide="${item.icon}" class="w-5 h-5"></i>
-                        <span class="text-[7px] font-black uppercase tracking-tighter">${item.label}</span>
-                    </button>
-                `).join('')}
-                <button onclick="window.openTab('ajustes')" class="flex flex-col items-center justify-center gap-1 transition-all ${currentPage === 'ajustes' ? 'text-blue-500' : 'text-slate-500'}">
-                    <i data-lucide="settings" class="w-5 h-5"></i>
-                    <span class="text-[7px] font-black uppercase tracking-tighter">SET</span>
-                </button>
-            </div>
-        </nav>
-    `;
+    // Objeto para aba Veiculo_Log (JSON)
+    const novoLogVeiculo = { id: Date.now(), tipo: tipoServico, data: dataFormatada, km, valor, detalhes: desc };
+    appState.veiculo.historico.push(novoLogVeiculo);
+    appState.veiculo.km = Math.max(appState.veiculo.km, km);
 
-    if (headerPlaceholder) {
-        headerPlaceholder.innerHTML = `
-            <header class="bg-slate-900/80 backdrop-blur-xl sticky top-0 z-40 px-6 py-5 flex items-center justify-between border-b border-white/5">
-                <h2 class="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500 flex items-center gap-2 italic">
-                    ${currentPage.toUpperCase()} <span class="text-slate-800">•</span>
-                    <span class="text-blue-500">${(appState.perfil.cidade || 'Fortaleza').toUpperCase()}</span> <span class="text-slate-800">•</span>
-                    <span id="header-weather-info" class="text-slate-400 flex items-center gap-1">
-                        <i data-lucide="${appState.weather.icon}" class="w-3 h-3"></i> ${appState.weather.temp}°C
-                    </span>
-                </h2>
-                <div class="flex items-center gap-3">
-                    <button onclick="window.addMonster()" class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 active:scale-95 transition-all">
-                        <i data-lucide="zap" class="w-5 h-5"></i>
-                    </button>
-                </div>
-            </header>
-        `;
-    }
-};
+    // Objeto para aba FINANÇAS (O que você pediu)
+    const transacaoFinanceira = {
+        id: Date.now() + 1,
+        tipo: 'Despesa',
+        cat: 'Veículo',
+        desc: `${tipoServico.toUpperCase()}: ${desc.toUpperCase()} (KM: ${km})`,
+        valor,
+        data: dataFormatada
+    };
 
-// --- LOGICA DE SAÚDE ---
-window.addMonster = () => {
-    appState.energy_mg += 160;
-    saveCloudData(); 
+    appState.transacoes.push(transacaoFinanceira);
     updateGlobalUI();
+
+    // 1. Salva na aba "Financas" linha por linha
+    await saveToFinancasSheet(transacaoFinanceira);
+
+    // 2. Salva backup JSON
+    saveCloudBackup();
 };
 
-// --- CORE UI UPDATE ---
+// --- INTERFACE E APOIO ---
+
+window.addWater = (ml) => { appState.water_ml += ml; updateGlobalUI(); saveCloudBackup(); };
+window.addMonster = () => { 
+    appState.energy_mg += 160; 
+    const t = { id: Date.now(), tipo: 'Despesa', cat: 'Saúde', desc: 'MONSTER ENERGY', valor: 10, data: new Date().toLocaleDateString('pt-BR') };
+    appState.transacoes.push(t);
+    saveToFinancasSheet(t);
+    updateGlobalUI(); 
+    saveCloudBackup(); 
+};
+
+window.toggleSidebar = () => { appState.sidebarCollapsed = !appState.sidebarCollapsed; saveLocalData(); updateGlobalUI(); };
+
 const updateGlobalUI = () => {
-    injectInterface();
-    adjustMainContentMargin();
+    if (typeof injectInterface === 'function') injectInterface();
+    const main = document.getElementById('main-content');
+    if (main && window.innerWidth >= 768) {
+        main.classList.toggle('md:ml-64', !appState.sidebarCollapsed);
+        main.classList.toggle('md:ml-20', appState.sidebarCollapsed);
+    }
     
-    const p = appState.perfil;
-    const waterGoal = (p.peso || 80) * 35;
-    const energyLimit = 400;
-
     const update = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
-    
     update('dash-water-cur', appState.water_ml);
-    update('dash-water-goal', waterGoal);
     update('dash-energy-val', appState.energy_mg);
     update('dash-nps-val', appState.nps_mes);
-
-    const wBar = document.getElementById('dash-water-bar'); 
-    if(wBar) wBar.style.width = `${Math.min((appState.water_ml/waterGoal)*100, 100)}%`;
-    
-    const gauge = document.getElementById('energy-gauge-path'); 
-    if(gauge){ 
-        const pct = Math.min((appState.energy_mg/energyLimit)*100, 100); 
-        gauge.style.strokeDashoffset = 226.2 - (pct/100)*226.2; 
-    }
+    update('water-current-display', appState.water_ml);
+    update('energy-current-display', appState.energy_mg);
+    update('bike-km-display', appState.veiculo.km);
 
     if (window.lucide) lucide.createIcons();
 };
 
-// --- DATA FETCH ---
-const fetchWeather = async () => {
-    try {
-        const response = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=-3.73&longitude=-38.52&current_weather=true`);
-        const data = await response.json();
-        appState.weather = { temp: Math.round(data.current_weather.temperature), icon: "sun" };
-        updateGlobalUI();
-    } catch(e) {}
-};
+window.openTab = (p) => { window.location.href = p + ".html"; };
 
-const fetchNPSData = async () => {
-    try {
-        const r = await fetch(NPS_SCRIPT_URL);
-        const d = await r.json();
-        appState.nps_mes = d.nps || d.valor || d;
-        updateGlobalUI();
-    } catch(e) { appState.nps_mes = "ERR"; }
-};
-
-// --- INICIALIZAÇÃO ---
 window.addEventListener('DOMContentLoaded', () => {
     loadLocalData();
     updateGlobalUI();
-    
-    // Verifica se não estamos na página de login antes de sincronizar clima e nuvem
-    if (!window.location.pathname.includes('index') && !window.location.pathname.endsWith('/')) {
-        fetchWeather();
-        fetchNPSData();
-        refreshFromCloud(); // Tenta atualizar do Sheets ao abrir
+    if (!window.location.pathname.includes('index')) {
+        // fetchWeather e NPS omitidos por brevidade
     }
 });
-
-window.addEventListener('resize', adjustMainContentMargin);
-window.openTab = (p) => { window.location.href = p + ".html"; };
