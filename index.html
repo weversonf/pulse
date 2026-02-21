@@ -8,73 +8,63 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,900;1,900&display=swap');
-        
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #020617;
-        }
-
-        .pulse-input {
-            background: rgba(15, 23, 42, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            transition: all 0.3s ease;
-        }
-
-        .pulse-input:focus {
-            border-color: #3b82f6;
-            background: rgba(15, 23, 42, 0.9);
-            box-shadow: 0 0 20px rgba(59, 130, 246, 0.1);
-        }
+        body { font-family: 'Inter', sans-serif; background-color: #020617; }
+        .pulse-input { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.05); transition: all 0.3s ease; }
+        .pulse-input:focus { border-color: #3b82f6; background: rgba(15, 23, 42, 0.9); box-shadow: 0 0 20px rgba(59, 130, 246, 0.1); }
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4 italic">
     <div class="w-full max-w-sm space-y-8">
-        <!-- Branding -->
         <div class="text-center space-y-2">
             <h1 class="text-6xl font-black tracking-tighter text-blue-500 italic leading-none">PULSE</h1>
             <p class="text-[10px] font-black uppercase tracking-[0.5em] text-slate-500 italic">Operating System</p>
         </div>
 
-        <!-- Login Card -->
         <div class="bg-slate-900/50 border border-white/5 p-8 rounded-[2.5rem] shadow-2xl space-y-6">
             <div class="space-y-4">
                 <div class="space-y-1">
                     <label class="text-[9px] font-black uppercase tracking-widest text-slate-500 px-4 italic">Identificação</label>
-                    <input type="text" id="login-user" placeholder="USUÁRIO" 
+                    <input type="text" id="login-user" placeholder="USUÁRIO" autocomplete="username"
                         class="pulse-input w-full p-5 rounded-3xl text-white font-bold placeholder:text-slate-700 outline-none uppercase italic">
                 </div>
                 
                 <div class="space-y-1">
                     <label class="text-[9px] font-black uppercase tracking-widest text-slate-500 px-4 italic">Código de Acesso</label>
-                    <input type="password" id="login-pass" placeholder="••••••••" 
+                    <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password"
                         class="pulse-input w-full p-5 rounded-3xl text-white font-bold placeholder:text-slate-700 outline-none italic">
                 </div>
             </div>
 
             <p id="login-msg" class="text-[10px] font-bold text-red-500 text-center uppercase tracking-widest min-h-[1.25rem] italic"></p>
 
-            <button id="btn-login" onclick="window.doLogin()" 
+            <button id="btn-login" onclick="handleLoginClick()" 
                 class="w-full bg-blue-600 hover:bg-blue-500 text-white py-5 rounded-3xl font-black uppercase tracking-[0.2em] text-xs transition-all active:scale-[0.98] shadow-lg shadow-blue-900/20 italic">
                 Entrar no Sistema
             </button>
         </div>
 
-        <!-- Footer -->
         <p class="text-center text-[8px] font-black text-slate-700 uppercase tracking-widest italic">
-            Makro Engenharia &bull; Pulse OS v2.0
+            Pulse OS v2.0
         </p>
     </div>
 
+    <!-- Se o seu arquivo app.js NÃO estiver dentro de uma pasta chamada js, mude para src="app.js" -->
     <script src="js/app.js"></script>
     <script>
-        // Inicializa os ícones se houver algum
         lucide.createIcons();
 
-        // Atalho para entrar com o "Enter"
-        document.addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') {
+        // Função de ponte para garantir que o clique funcione
+        function handleLoginClick() {
+            if (typeof window.doLogin === 'function') {
                 window.doLogin();
+            } else {
+                document.getElementById('login-msg').innerText = "ERRO: SCRIPT NÃO CARREGADO";
+                console.error("A função doLogin não foi encontrada no app.js");
             }
+        }
+
+        document.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleLoginClick();
         });
     </script>
 </body>
