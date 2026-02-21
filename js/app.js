@@ -83,7 +83,6 @@ const refreshFromCloud = async () => {
 
 const fetchWeather = async () => {
     try {
-        // Lat/Lon para Fortaleza - Ceará
         const response = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=-3.7319&longitude=-38.5267&current_weather=true`);
         const data = await response.json();
         const code = data.current_weather.weathercode;
@@ -243,7 +242,6 @@ const renderWorkTasks = () => {
             </button>
         </div>
     `).join('');
-    if (window.lucide) lucide.createIcons();
 };
 
 window.deleteTask = (id) => {
@@ -265,10 +263,12 @@ window.calcVeiculo = (origem) => {
     const l = parseFloat(document.getElementById('v-litros')?.value) || 0;
     const t = parseFloat(document.getElementById('v-total-rs')?.value) || 0;
 
-    if ((origem === 'preco' || origem === 'total') && p > 0 && t > 0) {
-        document.getElementById('v-litros').value = (t / p).toFixed(2);
-    } else if (origem === 'litros' && p > 0 && l > 0) {
-        document.getElementById('v-total-rs').value = (l * p).toFixed(2);
+    if (p > 0) {
+        if (origem === 'preco' || origem === 'total') {
+            if (t > 0) document.getElementById('v-litros').value = (t / p).toFixed(2);
+        } else if (origem === 'litros') {
+            if (l > 0) document.getElementById('v-total-rs').value = (l * p).toFixed(2);
+        }
     }
 };
 
@@ -283,12 +283,10 @@ window.lancarVeiculo = async () => {
 
     const dataFormatada = dataInput ? dataInput.split('-').reverse().join('/') : new Date().toLocaleDateString('pt-BR');
 
-    // Histórico da Moto
     const novoLog = { id: Date.now(), tipo, data: dataFormatada, km, valor, detalhes: desc.toUpperCase() };
     appState.veiculo.historico.push(novoLog);
     appState.veiculo.km = Math.max(appState.veiculo.km, km);
 
-    // Lançamento Financeiro Automático
     const transacao = {
         id: Date.now() + 1,
         tipo: 'Despesa',
@@ -303,7 +301,6 @@ window.lancarVeiculo = async () => {
     await saveToFinancasSheet(transacao);
     saveCloudBackup();
 
-    // Limpeza
     ['v-km-atual', 'v-descricao', 'v-preco-litro', 'v-litros', 'v-total-rs'].forEach(id => {
         const el = document.getElementById(id); if (el) el.value = "";
     });
@@ -312,7 +309,7 @@ window.lancarVeiculo = async () => {
 window.calcularViagem = () => {
     const dist = parseFloat(document.getElementById('trip-dist-input')?.value) || 0;
     const consumo = appState.veiculo.consumo || 29;
-    const preco = parseFloat(document.getElementById('v-preco-litro')?.value) || 6.00;
+    const preco = 6.00; // Valor base médio em Fortaleza
 
     if (dist > 0) {
         const litros = dist / consumo;
@@ -343,7 +340,6 @@ const renderVehicleHistory = () => {
             <p class="text-[8px] font-black text-slate-600 uppercase italic">${h.detalhes}</p>
         </div>
     `).join('');
-    if (window.lucide) lucide.createIcons();
 };
 
 // --- UI UPDATE ---
@@ -412,7 +408,9 @@ const updateGlobalUI = () => {
 
     renderWorkTasks();
     renderVehicleHistory();
-    if (window.lucide) lucide.createIcons();
+
+    // Re-inicializa ícones após a injeção do HTML
+    setTimeout(() => { if (window.lucide) window.lucide.createIcons(); }, 10);
 };
 
 const injectInterface = () => {
@@ -423,7 +421,6 @@ const injectInterface = () => {
     const currentPage = window.location.pathname.split('/').pop().split('.')[0] || 'dashboard';
     const isCollapsed = appState.sidebarCollapsed;
     
-    // Configuração de cores dos ícones
     const menuItems = [
         { id: 'dashboard', label: 'Home', icon: 'layout-dashboard', color: 'text-blue-500' },
         { id: 'saude', label: 'Saúde', icon: 'activity', color: 'text-rose-500' },
@@ -494,7 +491,7 @@ window.openTab = (p) => { window.location.href = p + ".html"; };
 window.addEventListener('DOMContentLoaded', () => {
     loadLocalData();
     updateGlobalUI();
-    fetchWeather(); // Inicia busca do clima de Fortaleza
+    fetchWeather();
     if (!window.location.pathname.includes('index')) refreshFromCloud();
 });
 
