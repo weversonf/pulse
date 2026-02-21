@@ -27,12 +27,25 @@ let appState = {
 
 // --- SISTEMA DE LOGIN ---
 window.doLogin = async () => {
-    const user = document.getElementById('login-user')?.value.trim();
-    const pass = document.getElementById('login-pass')?.value.trim();
+    console.log("PULSE: Iniciando tentativa de login...");
+    
+    const userField = document.getElementById('login-user');
+    const passField = document.getElementById('login-pass');
     const btn = document.getElementById('btn-login');
     const msg = document.getElementById('login-msg');
 
-    if (!user || !pass) { if(msg) msg.innerText = "Campos obrigatórios!"; return; }
+    if (!userField || !passField) {
+        console.error("PULSE: Elementos de login não encontrados no HTML. Verifique os IDs 'login-user' e 'login-pass'.");
+        return;
+    }
+
+    const user = userField.value.trim();
+    const pass = passField.value.trim();
+
+    if (!user || !pass) { 
+        if(msg) msg.innerText = "Campos obrigatórios!"; 
+        return; 
+    }
     
     if(btn) { 
         btn.disabled = true; 
@@ -40,12 +53,15 @@ window.doLogin = async () => {
     }
 
     try {
+        console.log("PULSE: Enviando requisição para a Makro Cloud...");
         const response = await fetch(SCRIPT_URL, {
             method: 'POST',
             body: JSON.stringify({ action: 'login', user: user, pass: pass }),
             redirect: 'follow'
         });
+        
         const result = await response.json();
+        console.log("PULSE: Resposta do servidor recebida:", result);
 
         if (result.success) {
             appState.login = user;
@@ -59,9 +75,9 @@ window.doLogin = async () => {
             if(btn) { btn.disabled = false; btn.innerText = "ENTRAR"; }
         }
     } catch (e) {
+        console.error("PULSE: Erro crítico no login:", e);
         if(msg) msg.innerText = "Erro de conexão com a Makro Cloud.";
         if(btn) { btn.disabled = false; btn.innerText = "ENTRAR"; }
-        console.error(e);
     }
 };
 
@@ -88,14 +104,14 @@ const saveCloudData = async () => {
     try {
         await fetch(SCRIPT_URL, {
             method: 'POST',
-            mode: 'no-cors', // Mantido no-cors para evitar preflight, mas syncData no Apps Script funciona assim
+            mode: 'no-cors', 
             body: JSON.stringify({ 
                 action: 'syncData', 
                 userId: appState.login, 
                 data: appState 
             })
         });
-        console.log("PULSE Cloud: Comando de sincronização enviado.");
+        console.log("PULSE Cloud: Sincronização automática enviada.");
     } catch (e) { 
         console.warn("PULSE Cloud: Erro ao tentar sincronizar."); 
     }
