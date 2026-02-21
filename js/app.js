@@ -34,10 +34,9 @@ window.doLogin = async () => {
     const btn = document.getElementById('btn-login');
     const msg = document.getElementById('login-msg');
 
-    if (!user || !pass) { msg.innerText = "Campos obrigatórios!"; return; }
+    if (!user || !pass) { if(msg) msg.innerText = "Campos obrigatórios!"; return; }
     
-    btn.disabled = true;
-    btn.innerText = "VERIFICANDO...";
+    if(btn) { btn.disabled = true; btn.innerText = "VERIFICANDO..."; }
 
     try {
         const response = await fetch(SCRIPT_URL, {
@@ -48,18 +47,16 @@ window.doLogin = async () => {
 
         if (result.success) {
             appState.login = user;
-            if (result.data) appState = { ...appState, ...result.data }; // Carrega dados da nuvem se existirem
+            if (result.data) appState = { ...appState, ...result.data };
             saveLocalData();
             window.location.href = "dashboard.html";
         } else {
-            msg.innerText = "Acesso Negado. Verifique os dados.";
-            btn.disabled = false;
-            btn.innerText = "ENTRAR";
+            if(msg) msg.innerText = "Acesso Negado. Verifique os dados.";
+            if(btn) { btn.disabled = false; btn.innerText = "ENTRAR"; }
         }
     } catch (e) {
-        msg.innerText = "Erro na conexão com o Banco de Dados.";
-        btn.disabled = false;
-        btn.innerText = "ENTRAR";
+        if(msg) msg.innerText = "Erro na conexão com o Banco de Dados.";
+        if(btn) { btn.disabled = false; btn.innerText = "ENTRAR"; }
     }
 };
 
@@ -86,10 +83,16 @@ window.toggleSidebar = () => {
 };
 
 const adjustMainContentMargin = () => {
-    const main = document.querySelector('.flex-1.md\\:ml-64, .flex-1.md\\:ml-20');
+    // Busca o elemento principal independente de qual classe ele tenha no início
+    const main = document.querySelector('.flex-1');
     if (main) {
-        if (appState.sidebarCollapsed) { main.classList.replace('md:ml-64', 'md:ml-20'); }
-        else { main.classList.replace('md:ml-20', 'md:ml-64'); }
+        if (appState.sidebarCollapsed) {
+            main.classList.remove('md:ml-64');
+            main.classList.add('md:ml-20');
+        } else {
+            main.classList.remove('md:ml-20');
+            main.classList.add('md:ml-64');
+        }
     }
 };
 
@@ -119,7 +122,7 @@ const injectInterface = () => {
             </div>
             <nav class="flex-1 px-3 space-y-2 mt-4">
                 ${menuItems.map(item => `
-                    <button onclick="window.openTab('${item.id}')" title="${item.label}" class="w-full flex items-center ${isCollapsed ? 'justify-center' : 'gap-4 px-4'} py-4 rounded-2xl transition-all font-black uppercase text-[10px] tracking-widest ${currentPage === item.id ? 'text-blue-500 bg-white/5' : 'text-slate-500 hover:bg-white/5'}">
+                    <button onclick="window.openTab('${item.id}')" title="${item.label}" class="w-full flex items-center ${isCollapsed ? 'justify-center' : 'gap-4 px-4'} py-4 rounded-2xl transition-all font-black uppercase text-[10px] tracking-widest ${currentPage === item.id ? 'text-blue-500 bg-white/5 shadow-lg shadow-blue-500/10' : 'text-slate-500 hover:bg-white/5'}">
                         <i data-lucide="${item.icon}" class="w-5 h-5 flex-shrink-0"></i> 
                         <span class="${isCollapsed ? 'hidden' : 'block'}">${item.label}</span>
                     </button>
@@ -170,12 +173,20 @@ const updateGlobalUI = () => {
     update('dash-energy-val', appState.energy_mg);
     update('dash-nps-val', appState.nps_mes);
 
-    // Dashboard específico
-    const wBar = document.getElementById('dash-water-bar'); if(wBar) wBar.style.width = `${Math.min((appState.water_ml/waterGoal)*100, 100)}%`;
-    const gauge = document.getElementById('energy-gauge-path'); if(gauge){ const pct = Math.min((appState.energy_mg/energyLimit)*100, 100); gauge.style.strokeDashoffset = 226.2 - (pct/100)*226.2; }
+    // Gráficos e Barras
+    const wBar = document.getElementById('dash-water-bar'); 
+    if(wBar) wBar.style.width = `${Math.min((appState.water_ml/waterGoal)*100, 100)}%`;
+    
+    const gauge = document.getElementById('energy-gauge-path'); 
+    if(gauge){ 
+        const pct = Math.min((appState.energy_mg/energyLimit)*100, 100); 
+        gauge.style.strokeDashoffset = 226.2 - (pct/100)*226.2; 
+    }
 
-    // Carregar ícones Lucide (Fix para ícones que somem)
-    if (window.lucide) lucide.createIcons();
+    // CRÍTICO: Recarregar ícones Lucide
+    if (window.lucide) {
+        lucide.createIcons();
+    }
 };
 
 // --- WEATHER & NPS FETCH ---
@@ -201,7 +212,9 @@ const fetchNPSData = async () => {
 window.addEventListener('DOMContentLoaded', () => {
     loadLocalData();
     updateGlobalUI();
-    if (!window.location.pathname.includes('index')) {
+    
+    // Não busca clima no login para evitar erros
+    if (!window.location.pathname.includes('index') && !window.location.pathname.endsWith('/')) {
         fetchWeather();
         fetchNPSData();
     }
