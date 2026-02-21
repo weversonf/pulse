@@ -8,21 +8,37 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="css/style.css">
     <style>
-        /* Estilo para suavizar o surgimento dos botões de ação */
-        .task-row .action-buttons {
-            opacity: 0;
-            transition: all 0.2s ease;
-        }
-        .task-row:hover .action-buttons {
-            opacity: 1;
+        @import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,900;1,900&display=swap');
+        
+        body { 
+            font-family: 'Inter', sans-serif; 
+            -webkit-tap-highlight-color: transparent; 
+            background-color: #020617;
         }
 
-        /* Ajuste para evitar que a bottom bar esconda conteúdo no mobile */
-        @media (max-width: 768px) {
-            .pb-safe-bottom {
-                padding-bottom: 5rem;
-            }
+        .transition-all { transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1); }
+
+        /* Container principal para controle de margem via app.js */
+        #main-content {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
+
+        /* Espaçamento seguro para mobile (Bottom Nav) */
+        .pb-mobile-nav { padding-bottom: 5rem; }
+        @media (max-width: 768px) { .pb-mobile-nav { padding-bottom: 5rem; } }
+        @media (min-width: 768px) { .pb-mobile-nav { padding-bottom: 0; } }
+
+        .glass-card {
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Suavização de hover nas tarefas */
+        .task-row .action-buttons { opacity: 0; transition: all 0.2s ease; }
+        .task-row:hover .action-buttons { opacity: 1; }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 italic">
@@ -30,53 +46,53 @@
         <!-- Placeholder para a Navegação (Injetada pelo app.js) -->
         <div id="sidebar-placeholder"></div>
 
-        <!-- Conteúdo Principal -->
-        <div class="flex-1 md:ml-64 transition-all duration-300 pb-safe-bottom">
-            <header class="bg-slate-900/80 backdrop-blur-xl sticky top-0 z-40 px-6 py-5 flex items-center justify-between border-b border-white/5">
-                <h2 class="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500 flex items-center gap-2">
-                    WORK • <span id="header-loc" class="text-blue-500 uppercase">FORTALEZA</span>
-                </h2>
-                <button onclick="window.addMonster()" class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
-                    <i data-lucide="zap" class="w-6 h-6"></i>
-                </button>
-            </header>
+        <!-- Conteúdo Principal com ID para controle de margem -->
+        <div id="main-content" class="flex-1 md:ml-64 transition-all duration-300 pb-mobile-nav">
+            
+            <!-- Placeholder para o Cabeçalho Dinâmico (Injetado pelo app.js) -->
+            <div id="header-placeholder"></div>
 
             <main class="max-w-4xl mx-auto p-4 md:p-8 space-y-6">
                 <!-- Branding Card -->
-                <div class="bg-slate-900 border border-white/5 p-8 rounded-[2.5rem]">
-                    <div class="flex items-center gap-2 text-blue-500 mb-3 opacity-80">
+                <div class="glass-card p-8 rounded-[2.5rem] italic">
+                    <div class="flex items-center gap-2 text-sky-400 mb-3 opacity-80 italic">
                         <i data-lucide="briefcase" class="w-4 h-4"></i>
-                        <p class="text-[10px] font-black uppercase tracking-[0.4em]">Gestão de Atividades</p>
+                        <p class="text-[10px] font-black uppercase tracking-[0.4em] italic">MAKRO ENGENHARIA</p>
                     </div>
-                    <p class="text-5xl font-black tracking-tighter text-white leading-none">Atividades</p>
+                    <p class="text-5xl font-black tracking-tighter text-white leading-none italic uppercase">Atividades</p>
                 </div>
 
                 <!-- Formulário de Lançamento -->
-                <div class="bg-slate-900/40 p-6 rounded-[2.5rem] border border-white/5 space-y-3">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-                        <input type="text" id="work-task-title" placeholder="O que precisa ser feito?" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold text-slate-300 outline-none">
-                        <select id="work-task-type" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold text-slate-300 outline-none">
+                <div class="glass-card p-6 rounded-[2.5rem] space-y-3 italic">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2 italic">
+                        <input type="text" id="work-task-title" placeholder="O QUE PRECISA SER FEITO?" class="w-full p-4 bg-slate-950/50 border border-white/5 rounded-2xl text-xs font-bold text-slate-300 outline-none uppercase italic focus:border-sky-500/30 transition-all">
+                        <select id="work-task-type" class="w-full p-4 bg-slate-950/50 border border-white/5 rounded-2xl text-xs font-bold text-slate-300 outline-none uppercase italic">
+                            <option value="Operacional">Operacional</option>
                             <option value="Engenharia">Engenharia</option>
                             <option value="Financeiro">Financeiro</option>
-                            <option value="Operacional">Operacional</option>
                             <option value="Reunião">Reunião</option>
                         </select>
                     </div>
-                    <div class="grid grid-cols-2 gap-2">
-                        <input type="text" id="work-task-requester" placeholder="Solicitante..." class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold text-slate-300 outline-none">
-                        <input type="date" id="work-task-deadline" class="w-full p-4 bg-slate-950 border border-white/5 rounded-2xl text-xs font-bold text-slate-400 outline-none">
+                    <div class="grid grid-cols-2 gap-2 italic">
+                        <input type="text" id="work-task-requester" placeholder="SOLICITANTE..." class="w-full p-4 bg-slate-950/50 border border-white/5 rounded-2xl text-xs font-bold text-slate-300 outline-none uppercase italic">
+                        <input type="date" id="work-task-deadline" class="w-full p-4 bg-slate-950/50 border border-white/5 rounded-2xl text-xs font-bold text-slate-400 outline-none italic">
                     </div>
-                    <button onclick="window.addWorkTask()" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest mt-2 transition-all">Lançar Atividade</button>
+                    <button onclick="window.addWorkTask()" class="w-full bg-sky-600 hover:bg-sky-500 text-white py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest mt-2 transition-all shadow-lg active:scale-[0.98] italic">
+                        Lançar Atividade
+                    </button>
                 </div>
 
                 <!-- Lista de Atividades -->
-                <div class="space-y-4">
-                    <div class="flex items-center justify-between px-6">
+                <div class="space-y-4 italic">
+                    <div class="flex items-center justify-between px-6 italic">
                         <h3 class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 italic">Tarefas Ativas</h3>
-                        <span id="task-count" class="text-[10px] font-black text-blue-500 tracking-widest">0</span>
+                        <div class="flex items-center gap-2">
+                            <span id="task-count" class="text-[10px] font-black text-sky-400 tracking-widest italic">0</span>
+                            <span class="text-[8px] font-bold text-slate-700 uppercase italic">Pendentes</span>
+                        </div>
                     </div>
-                    <div id="work-task-active-list" class="space-y-2">
-                        <!-- Gerado dinamicamente pelo app.js em formato de cápsulas -->
+                    <div id="work-task-active-list" class="space-y-2 italic">
+                        <!-- Gerado dinamicamente pelo app.js -->
                     </div>
                 </div>
             </main>
@@ -84,5 +100,10 @@
     </div>
     
     <script src="js/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.lucide) lucide.createIcons();
+        });
+    </script>
 </body>
 </html>
