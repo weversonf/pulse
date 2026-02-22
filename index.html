@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PULSE OS - Login v03</title>
+    <title>PULSE OS - Login v04</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
@@ -26,6 +26,9 @@
         }
         .loading-spin { animation: spin 1s linear infinite; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        
+        /* Ajuste para evitar zoom automático em inputs no iPhone */
+        input { font-size: 16px !important; }
     </style>
 </head>
 <body class="bg-slate-950 flex items-center justify-center min-h-screen p-4 italic">
@@ -33,10 +36,10 @@
     <div class="w-full max-w-sm space-y-8">
         <div class="text-center space-y-2">
             <h1 class="text-6xl font-black tracking-tighter text-blue-500 italic">PULSE</h1>
-            <p class="text-[10px] font-black uppercase tracking-[0.5em] text-slate-500">Operating System v6.7</p>
+            <p class="text-[10px] font-black uppercase tracking-[0.5em] text-slate-500">Operating System v6.8</p>
         </div>
 
-        <!-- Formulário para suporte nativo ao Enter -->
+        <!-- Formulário nativo: O Enter funciona automaticamente ao submeter -->
         <form id="login-form" onsubmit="handleLoginSubmit(event)" class="bg-slate-900/50 border border-white/5 p-8 rounded-[2.5rem] shadow-2xl space-y-6 backdrop-blur-md">
             <div class="space-y-4">
                 <div class="space-y-1">
@@ -53,8 +56,9 @@
 
             <p id="login-msg" class="text-[9px] font-bold text-red-500 text-center uppercase min-h-[1.25rem] tracking-widest leading-tight"></p>
 
+            <!-- Botão do tipo submit: Reage ao Enter no formulário -->
             <button type="submit" id="btn-login" 
-                class="w-full bg-blue-600 hover:bg-blue-500 text-white py-5 rounded-3xl font-black uppercase text-xs transition-all italic flex items-center justify-center gap-2 active:scale-95">
+                class="w-full bg-blue-600 hover:bg-blue-500 text-white py-5 rounded-3xl font-black uppercase text-xs transition-all italic flex items-center justify-center gap-2 active:scale-95 shadow-lg shadow-blue-500/10">
                 <span>Entrar no Sistema</span>
             </button>
         </form>
@@ -65,55 +69,51 @@
         </div>
     </div>
 
-    <!-- Carregamento dinâmico para evitar cache no GitHub -->
-    <script id="main-logic-script">
-        const loadScript = () => {
-            const oldScript = document.getElementById('pulse-core-js');
-            if (oldScript) oldScript.remove();
-
-            const script = document.createElement('script');
-            script.id = 'pulse-core-js';
-            script.src = "js/app.js?v=" + Date.now();
-            script.onload = () => {
-                const status = document.getElementById('js-status');
-                status.innerText = "Status JS: Conectado";
-                status.className = "text-[7px] font-bold text-emerald-900 uppercase tracking-[0.3em]";
-                if (window.lucide) lucide.createIcons();
-            };
-            script.onerror = () => {
-                const status = document.getElementById('js-status');
-                status.innerText = "Status JS: Erro de Caminho";
-                status.className = "text-[7px] font-bold text-red-900 uppercase tracking-[0.3em]";
-            };
-            document.body.appendChild(script);
-        };
-        loadScript();
-    </script>
-
+    <!-- Carregamento do app.js com Bust de Cache -->
     <script>
-        function handleLoginSubmit(event) {
-            // Impede o recarregamento da página pelo formulário
-            event.preventDefault();
+        const status = document.getElementById('js-status');
+        const script = document.createElement('script');
+        script.src = "js/app.js?v=" + Date.now();
+        script.onload = () => {
+            status.innerText = "Status JS: Conectado";
+            status.className = "text-[7px] font-bold text-emerald-500 uppercase tracking-[0.3em]";
+            if (window.lucide) lucide.createIcons();
+        };
+        script.onerror = () => {
+            status.innerText = "Status JS: Falha no js/app.js";
+            status.className = "text-[7px] font-bold text-red-500 uppercase tracking-[0.3em]";
+        };
+        document.body.appendChild(script);
+
+        async function handleLoginSubmit(event) {
+            event.preventDefault(); // Impede o refresh da página
 
             const btn = document.getElementById('btn-login');
             const msg = document.getElementById('login-msg');
+            const user = document.getElementById('login-user').value.trim();
+            const pass = document.getElementById('login-pass').value.trim();
             
             msg.innerText = "";
+            
+            // Verificação imediata se o motor foi carregado
+            if (typeof window.doLogin !== 'function') {
+                msg.innerHTML = "ERRO CRÍTICO:<br>MOTOR APP.JS NÃO DETECTADO";
+                return;
+            }
+
             btn.disabled = true;
-            btn.innerHTML = '<i data-lucide="refresh-cw" class="w-4 h-4 loading-spin"></i> Processando...';
+            btn.innerHTML = '<i data-lucide="refresh-cw" class="w-4 h-4 loading-spin"></i> Autenticando...';
             if (window.lucide) lucide.createIcons();
 
-            // Delay para feedback visual
-            setTimeout(() => {
-                if (typeof window.doLogin === 'function') {
-                    window.doLogin();
-                } else {
-                    msg.innerHTML = "ERRO CRÍTICO:<br>ARQUIVO JS NÃO ENCONTRADO";
-                    btn.disabled = false;
-                    btn.innerText = 'Entrar no Sistema';
-                    if (window.lucide) lucide.createIcons();
-                }
-            }, 600);
+            // Executa a função de login do app.js
+            try {
+                await window.doLogin(user, pass);
+            } catch (err) {
+                msg.innerText = "ERRO NA EXECUÇÃO DO LOGIN";
+                btn.disabled = false;
+                btn.innerText = 'Entrar no Sistema';
+                if (window.lucide) lucide.createIcons();
+            }
         }
     </script>
 </body>
