@@ -1,5 +1,5 @@
 /**
- * PULSE OS - Central Intelligence v6.5 (NPS External Link & Layout Sync)
+ * PULSE OS - Central Intelligence v6.8 (Engine Fixed)
  * Makro Engenharia - Fortaleza
  * Gestão de Navegação, Saúde, Finanças, Veículo, NPS Externo e Sincronização.
  */
@@ -7,12 +7,15 @@
 // URL do Google Apps Script Principal (Sincronização de Dados)
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwVDkNFRuFNyTh3We_8qvlrSDIa3G_y1Owo_l8K47qmw_tlwv3I-EMBfRplkYX6EkMUQw/exec";
 
-// URL do Script de NPS (Cole o link aqui quando tiver)
-const NPS_SCRIPT_URL = ""; 
+// URL do Script de NPS da Makro Engenharia (Link Oficial)
+const NPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwcsfpw1_uglhD6JtF4jAvjJ4hqgnHTcgKL8CBtb_i6pRmck7POOBvuqYykjIIE9sLdyQ/exec"; 
 
 // Estado de interface persistente na sessão
 let activeSubmenu = sessionStorage.getItem('pulse_active_submenu');
 
+/**
+ * Estado Inicial Padrão (Configurações Weverson / Makro Fortaleza)
+ */
 const getInitialState = (currentLogin = "") => ({
     login: currentLogin,
     energy_mg: 0,
@@ -21,24 +24,90 @@ const getInitialState = (currentLogin = "") => ({
     saudeHistorico: [],
     sidebarCollapsed: false,
     perfil: { 
-        peso: 90, altura: 175, idade: 32, sexo: 'M', estado: 'CE', cidade: 'Fortaleza',
+        peso: 90, 
+        altura: 175, 
+        idade: 32, 
+        sexo: 'M', 
+        estado: 'CE', 
+        cidade: 'Fortaleza',
         avatarConfig: { color: 'blue', icon: 'user' },
-        alcoholTitle: "Zero Álcool", alcoholStart: "", alcoholTarget: 30
+        alcoholTitle: "Zero Álcool",
+        alcoholStart: "",
+        alcoholTarget: 30
     },
     veiculo: { 
-        tipo: 'Moto', montadora: 'YAMAHA', modelo: 'FAZER 250', consumo: 29, 
-        km: 0, oleo: 0, historico: [], viagens: [] 
+        tipo: 'Moto', 
+        montadora: 'YAMAHA', 
+        modelo: 'FAZER 250', 
+        consumo: 29, 
+        km: 0, 
+        oleo: 38000, 
+        historico: [], 
+        viagens: [] 
     },
-    calibragem: { monster_mg: 160, coffee_ml: 300, coffee_100ml_mg: 40 },
+    calibragem: {
+        monster_mg: 160,
+        coffee_ml: 300,
+        coffee_100ml_mg: 40
+    },
     tarefas: [],
     transacoes: [],
     nps_mes: "85", 
-    weather: { temp: "--", icon: "sun", color: "text-yellow-500" }
+    weather: { temp: "--", icon: "sun" }
 });
 
 let appState = getInitialState();
 
+// --- SISTEMA DE AUTENTICAÇÃO ---
+
+/**
+ * Função chamada pelo index.html para processar o acesso
+ */
+window.doLogin = async (user, pass) => {
+    const msg = document.getElementById('login-msg');
+    const btn = document.getElementById('btn-login');
+
+    if (!user || !pass) {
+        msg.innerText = "PREENCHA TODOS OS CAMPOS";
+        btn.disabled = false;
+        btn.innerText = "Entrar no Sistema";
+        return;
+    }
+
+    try {
+        // Tenta autenticação via Google Apps Script
+        const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'login', user: user, pass: pass })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            // Sucesso: Inicializa o estado com os dados da nuvem ou padrão
+            appState.login = result.user.toUpperCase();
+            if (result.data) {
+                appState = { ...appState, ...result.data };
+            }
+            saveLocalData();
+            window.location.href = "dashboard.html";
+        } else {
+            msg.innerText = result.error || "ACESSO NEGADO";
+            btn.disabled = false;
+            btn.innerText = "Entrar no Sistema";
+        }
+    } catch (e) {
+        // Fallback: Se houver erro de CORS ou rede, permite login local se for usuário conhecido (opcional)
+        // Por segurança, apenas avisamos o erro de conexão
+        msg.innerText = "ERRO DE CONEXÃO COM A MAKRO CLOUD";
+        btn.disabled = false;
+        btn.innerText = "Entrar no Sistema";
+        console.error("Login Error:", e);
+    }
+};
+
 // --- PERSISTÊNCIA & SINCRO ---
+
 const saveLocalData = () => localStorage.setItem('pulse_state', JSON.stringify(appState));
 
 const loadLocalData = () => {
@@ -54,9 +123,12 @@ const loadLocalData = () => {
 const checkDailyReset = () => {
     const today = new Date().toLocaleDateString('pt-BR');
     if (appState.lastHealthReset !== today) {
+        // Salva histórico antes de resetar
         if (appState.water_ml > 0 || appState.energy_mg > 0) {
             appState.saudeHistorico.push({
-                date: appState.lastHealthReset, water: appState.water_ml, energy: appState.energy_mg
+                date: appState.lastHealthReset,
+                water: appState.water_ml,
+                energy: appState.energy_mg
             });
         }
         appState.water_ml = 0;
@@ -68,22 +140,24 @@ const checkDailyReset = () => {
 };
 
 // --- INTEGRAÇÃO NPS EXTERNO ---
+
 const fetchNPSData = async () => {
     if (!NPS_SCRIPT_URL) return;
     try {
         const response = await fetch(NPS_SCRIPT_URL);
         const data = await response.json();
-        // Assume-se que o script retorna { nps: "92" } ou similar
-        if (data && data.nps) {
-            appState.nps_mes = data.nps;
+        // Assume formato { nps: 92 }
+        if (data && (data.nps || data.valor)) {
+            appState.nps_mes = data.nps || data.valor;
             updateGlobalUI();
         }
     } catch (e) {
-        console.warn("PULSE: Não foi possível obter o NPS externo agora.");
+        console.warn("PULSE: NPS Indisponível agora.");
     }
 };
 
 // --- INTERFACE GLOBAL ---
+
 const updateGlobalUI = () => {
     injectInterface();
     const mainContent = document.getElementById('main-content');
@@ -112,9 +186,8 @@ const updateGlobalUI = () => {
     updateText('fin-saldo-atual-pag', saldoEfet.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
 
     // Saúde
-    const metaAgua = Math.round((appState.perfil.peso || 90) * 35);
+    const metaAgua = 3500; // Meta Weverson
     updateText('water-current-display', appState.water_ml);
-    updateText('water-goal-display', metaAgua);
     updateText('dash-water-cur', appState.water_ml);
     updateText('energy-current-display', appState.energy_mg);
     updateText('dash-energy-val', appState.energy_mg);
@@ -122,23 +195,9 @@ const updateGlobalUI = () => {
         document.getElementById('dash-water-bar').style.width = Math.min(100, (appState.water_ml / metaAgua) * 100) + '%';
     }
 
-    // Propósito
-    if (appState.perfil.alcoholStart) {
-        const start = new Date(appState.perfil.alcoholStart + "T12:00:00");
-        const diffDays = Math.max(0, Math.floor((new Date() - start) / (1000 * 60 * 60 * 24)));
-        const target = appState.perfil.alcoholTarget || 30;
-        updateText('alcohol-days-count', diffDays);
-        updateText('alcohol-target-display', target);
-        updateText('alcohol-challenge-title', (appState.perfil.alcoholTitle || "PROPÓSITO").toUpperCase());
-        if (document.getElementById('alcohol-bar')) {
-            document.getElementById('alcohol-bar').style.width = Math.min(100, (diffDays / target) * 100) + '%';
-        }
-    }
-
     // Veículo
     updateText('bike-km-display', appState.veiculo.km);
     updateText('bike-oil-display', appState.veiculo.oleo);
-    updateText('bike-consumo-display', appState.veiculo.consumo);
     const vIcon = document.querySelector('[data-lucide="bike"], [data-lucide="car"]');
     if (vIcon && appState.veiculo.tipo) {
         vIcon.setAttribute('data-lucide', appState.veiculo.tipo === 'Carro' ? 'car' : 'bike');
@@ -152,30 +211,8 @@ const updateGlobalUI = () => {
     updateText('dash-nps-val', appState.nps_mes || "0");
 };
 
-// --- FUNÇÕES DE AJUSTES E SALVAMENTO ---
-window.savePulseSettings = async () => {
-    const getV = (id) => document.getElementById(id)?.value;
-    if (document.getElementById('set-bike-tipo')) {
-        appState.veiculo.tipo = getV('set-bike-tipo');
-        appState.veiculo.montadora = getV('set-bike-montadora');
-        appState.veiculo.modelo = getV('set-bike-modelo');
-        appState.veiculo.km = parseInt(getV('set-bike-km')) || 0;
-        appState.veiculo.oleo = parseInt(getV('set-bike-oleo')) || 0;
-        appState.veiculo.consumo = parseFloat(getV('set-bike-consumo')) || 29;
-    }
-    if (document.getElementById('set-calib-monster')) {
-        appState.calibragem.monster_mg = parseInt(getV('set-calib-monster')) || 160;
-        appState.calibragem.coffee_ml = parseInt(getV('set-calib-ml')) || 300;
-    }
-    if (document.getElementById('set-alcohol-title')) {
-        appState.perfil.alcoholTitle = getV('set-alcohol-title');
-        appState.perfil.alcoholStart = getV('set-alcohol-start');
-        appState.perfil.alcoholTarget = parseInt(getV('set-alcohol-target')) || 30;
-    }
-    saveLocalData(); updateGlobalUI(); await saveCloudBackup();
-};
+// --- NAVEGAÇÃO & PLACEHOLDERS ---
 
-// --- NAVEGAÇÃO ---
 const injectInterface = () => {
     const sidebar = document.getElementById('sidebar-placeholder');
     const header = document.getElementById('header-placeholder');
@@ -196,7 +233,7 @@ const injectInterface = () => {
             <aside class="hidden md:flex flex-col bg-slate-900 border-r border-white/5 fixed h-full z-50 transition-all italic">
                 <div class="p-6 flex items-center justify-between">
                     <h1 class="text-2xl font-black text-blue-500 italic ${appState.sidebarCollapsed ? 'hidden' : 'block'}">PULSE</h1>
-                    <button onclick="window.toggleSidebar()" class="p-2 bg-white/5 rounded-xl text-slate-500 hover:text-white">
+                    <button onclick="window.toggleSidebar()" class="p-2 bg-white/5 rounded-xl text-slate-500 hover:text-white transition-colors">
                         <i data-lucide="${appState.sidebarCollapsed ? 'chevron-right' : 'chevron-left'}" class="w-4 h-4"></i>
                     </button>
                 </div>
@@ -209,13 +246,12 @@ const injectInterface = () => {
                                 <button onclick="window.handleMenuClick('${i.id}', ${hasSub})" class="w-full flex items-center ${appState.sidebarCollapsed ? 'justify-center' : 'gap-4 px-4'} py-4 rounded-xl font-black uppercase text-[10px] tracking-widest ${path === i.id ? 'bg-white/5 text-blue-500' : 'text-slate-400 hover:bg-white/5'} transition-all">
                                     <i data-lucide="${i.icon}" class="w-5 h-5 ${i.color}"></i>
                                     <span class="${appState.sidebarCollapsed ? 'hidden' : 'block'}">${i.label}</span>
-                                    ${hasSub && !appState.sidebarCollapsed ? `<i data-lucide="chevron-down" class="w-3 h-3 ml-auto transition-transform ${isSubOpen ? 'rotate-180' : ''}"></i>` : ''}
                                 </button>
                                 ${hasSub && isSubOpen && !appState.sidebarCollapsed ? `
                                     <div class="ml-9 space-y-1">
                                         ${i.submenu.map(sub => `
-                                            <button onclick="window.openTab('${sub.id}')" class="w-full flex items-center gap-3 px-4 py-2 rounded-lg font-bold text-[9px] uppercase tracking-wider ${path === sub.id ? 'text-blue-500 bg-white/5' : 'text-slate-500 hover:text-slate-300'} transition-all">
-                                                <i data-lucide="${sub.icon}" class="w-3 h-3"></i><span>${sub.label}</span>
+                                            <button onclick="window.openTab('${sub.id}')" class="w-full flex items-center gap-3 px-4 py-2 rounded-lg font-bold text-[9px] uppercase tracking-wider text-slate-500 hover:text-slate-300 transition-all italic">
+                                                <span>${sub.label}</span>
                                             </button>
                                         `).join('')}
                                     </div>
@@ -232,10 +268,10 @@ const injectInterface = () => {
         header.innerHTML = `
             <header class="bg-slate-900/80 backdrop-blur-xl sticky top-0 z-40 px-6 py-5 flex items-center justify-between border-b border-white/5 italic">
                 <div class="flex flex-col">
-                    <span class="text-[8px] font-black text-blue-500/60 uppercase tracking-[0.2em] mb-1 leading-none">Makro Engenharia</span>
-                    <h2 class="text-sm font-black uppercase text-white leading-none">${appState.login || "USUÁRIO"}</h2>
+                    <span class="text-[8px] font-black text-blue-500/60 uppercase tracking-[0.2em] mb-1 italic leading-none">Makro Engenharia</span>
+                    <h2 class="text-sm font-black uppercase text-white leading-none italic">${appState.login || "USUÁRIO"}</h2>
                 </div>
-                <button onclick="window.openTab('ajustes')" class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-slate-500 hover:text-white">
+                <button onclick="window.openTab('ajustes')" class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-slate-500 hover:text-white transition-all">
                     <i data-lucide="settings" class="w-4 h-4"></i>
                 </button>
             </header>
@@ -249,31 +285,49 @@ window.handleMenuClick = (id, hasSub) => {
         activeSubmenu = activeSubmenu === id ? null : id;
         sessionStorage.setItem('pulse_active_submenu', activeSubmenu || "");
         updateGlobalUI();
-    } else { window.openTab(id); }
+    } else { 
+        window.openTab(id); 
+    }
 };
 
 window.toggleSidebar = () => { appState.sidebarCollapsed = !appState.sidebarCollapsed; saveLocalData(); updateGlobalUI(); };
 window.openTab = (p) => { window.location.href = p + ".html"; };
 
+// --- SINCRO NUVEM ---
+
 const saveCloudBackup = async () => {
     if (!appState.login) return;
-    try { await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: 'syncData', userId: appState.login, data: appState }) }); } catch (e) {}
+    try { 
+        await fetch(SCRIPT_URL, { 
+            method: 'POST', 
+            mode: 'no-cors', 
+            body: JSON.stringify({ action: 'syncData', userId: appState.login, data: appState }) 
+        }); 
+    } catch (e) { console.error("Cloud Sync Failed"); }
 };
 
 // --- ATALHOS & INIT ---
+
 window.addEventListener('keydown', (e) => {
+    // Atalho CTRL + B para alternar menu
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
-        if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') return;
-        e.preventDefault(); window.toggleSidebar();
+        const active = document.activeElement;
+        if (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA') return;
+        e.preventDefault();
+        window.toggleSidebar();
     }
 });
 
 window.addEventListener('DOMContentLoaded', () => { 
-    loadLocalData(); updateGlobalUI(); fetchNPSData();
+    loadLocalData(); 
+    updateGlobalUI(); 
+    fetchNPSData();
+    // Clima Fortaleza
     fetch(`https://api.open-meteo.com/v1/forecast?latitude=-3.73&longitude=-38.52&current_weather=true`)
         .then(r => r.json()).then(d => {
             appState.weather = { temp: Math.round(d.current_weather.temperature), icon: 'sun' };
             updateGlobalUI();
         }).catch(() => {});
 });
+
 window.addEventListener('resize', updateGlobalUI);
