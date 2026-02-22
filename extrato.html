@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PULSE OS - Extrato</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-slate-950 text-slate-100 italic">
+    <div class="flex min-h-screen relative">
+        <!-- 1. Placeholder da Barra Lateral -->
+        <div id="sidebar-placeholder"></div>
+
+        <!-- 2. Container de Conteúdo -->
+        <div id="main-content" class="flex-1 md:ml-64 transition-all pb-safe-bottom">
+            
+            <!-- 3. Placeholder do Cabeçalho -->
+            <div id="header-placeholder"></div>
+
+            <main class="max-w-6xl mx-auto p-4 md:p-8 space-y-6 italic">
+                <div class="flex items-center justify-between italic">
+                    <div>
+                        <h2 class="text-[10px] font-black uppercase tracking-[0.4em] text-blue-500 italic mb-2">Money Hub</h2>
+                        <h1 class="text-4xl font-black tracking-tighter text-white uppercase italic leading-none">Histórico Completo</h1>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="window.openTab('financas')" class="bg-white/5 hover:bg-white/10 p-3 rounded-xl transition-all">
+                            <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Filtros e Busca -->
+                <div class="glass-card p-6 flex flex-col md:flex-row gap-4 italic items-center">
+                    <div class="relative flex-1 w-full">
+                        <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600"></i>
+                        <input type="text" id="extrato-search" onkeyup="filterExtrato()" placeholder="BUSCAR POR DESCRIÇÃO..." class="pulse-input w-full pl-12">
+                    </div>
+                    <select id="filter-type" onchange="filterExtrato()" class="pulse-input md:w-48">
+                        <option value="todos">TODOS OS TIPOS</option>
+                        <option value="Receita">RECEITAS</option>
+                        <option value="Despesa">DESPESAS</option>
+                    </select>
+                </div>
+
+                <!-- Lista de Transações -->
+                <div class="glass-card overflow-hidden">
+                    <div class="p-6 border-b border-white/5 bg-white/2">
+                        <h3 class="text-[10px] font-black uppercase tracking-widest text-slate-500 italic">Lista de Lançamentos</h3>
+                    </div>
+                    <div id="extrato-full-list" class="divide-y divide-white/5">
+                        <!-- Injetado via script -->
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script>
+        function filterExtrato() {
+            const query = document.getElementById('extrato-search').value.toLowerCase();
+            const type = document.getElementById('filter-type').value;
+            renderFullExtrato(query, type);
+        }
+
+        function renderFullExtrato(query = "", typeFilter = "todos") {
+            const list = document.getElementById('extrato-full-list');
+            if (!list || !window.appState.transacoes) return;
+
+            const filtered = window.appState.transacoes.filter(t => {
+                const matchesDesc = (t.desc || "").toLowerCase().includes(query);
+                const matchesType = typeFilter === "todos" || t.tipo === typeFilter;
+                return matchesDesc && matchesType;
+            }).sort((a, b) => b.id - a.id);
+
+            if (filtered.length === 0) {
+                list.innerHTML = `<div class="p-12 text-center text-[10px] font-black uppercase text-slate-700 italic">Nenhum registro encontrado</div>`;
+                return;
+            }
+
+            list.innerHTML = filtered.map(t => `
+                <div class="p-6 flex items-center justify-between hover:bg-white/2 transition-all italic">
+                    <div class="flex items-center gap-6">
+                        <div class="w-12 h-12 rounded-2xl ${t.tipo === 'Receita' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'} flex items-center justify-center shadow-lg">
+                            <i data-lucide="${t.tipo === 'Receita' ? 'plus-circle' : 'minus-circle'}" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-black text-white uppercase italic">${t.desc || 'Sem descrição'}</p>
+                            <div class="flex items-center gap-2 mt-1">
+                                <span class="text-[8px] font-black text-slate-600 uppercase tracking-widest">${t.data}</span>
+                                <span class="w-1 h-1 bg-slate-800 rounded-full"></span>
+                                <span class="text-[8px] font-black text-slate-500 uppercase tracking-widest">${t.cat || 'Geral'}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-xl font-black ${t.tipo === 'Receita' ? 'text-emerald-400' : 'text-red-400'} italic tracking-tighter">
+                            ${t.tipo === 'Receita' ? '+' : '-'} R$ ${parseFloat(t.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+                        </p>
+                        <p class="text-[8px] font-bold text-slate-600 uppercase italic mt-1">${t.status}</p>
+                    </div>
+                </div>
+            `).join('');
+
+            if (window.lucide) lucide.createIcons();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => renderFullExtrato(), 500);
+        });
+    </script>
+</body>
+</html>
