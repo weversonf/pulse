@@ -4,105 +4,58 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PULSE OS - Login</title>
-    <!-- Tailwind CSS para estilização rápida e responsiva -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Ícones Lucide -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,900;1,900&display=swap');
-        
         body { 
             font-family: 'Inter', sans-serif; 
-            background-color: #020617 !important; /* Força o Azul Escuro da Makro */
+            background-color: #020617 !important;
+            color: #f1f5f9;
         }
-
         .pulse-input { 
-            background: rgba(15, 23, 42, 0.6); 
-            border: 1px solid rgba(255, 255, 255, 0.05); 
-            transition: all 0.3s ease; 
-        }
-
-        .pulse-input:focus { 
-            border-color: #3b82f6; 
-            background: rgba(15, 23, 42, 0.9); 
-            box-shadow: 0 0 20px rgba(59, 130, 246, 0.1); 
-        }
-
-        /* Animação suave de entrada */
-        .fade-in {
-            animation: fadeIn 0.8s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+            background: rgba(15, 23, 42, 0.8); 
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            color: white;
         }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 flex items-center justify-center min-h-screen p-4 italic">
+<body class="bg-slate-950 flex items-center justify-center min-h-screen p-4 italic">
     
-    <div class="w-full max-w-sm space-y-8 fade-in">
-        <!-- Logotipo do Sistema -->
+    <div class="w-full max-w-sm space-y-8">
         <div class="text-center space-y-2">
-            <h1 class="text-6xl font-black tracking-tighter text-blue-500 italic leading-none">PULSE</h1>
-            <p class="text-[10px] font-black uppercase tracking-[0.5em] text-slate-500 italic">Operating System</p>
+            <h1 class="text-6xl font-black tracking-tighter text-blue-500 italic">PULSE</h1>
+            <p class="text-[10px] font-black uppercase tracking-[0.5em] text-slate-500">Operating System v6.6</p>
         </div>
 
-        <!-- Cartão de Login -->
         <div class="bg-slate-900/50 border border-white/5 p-8 rounded-[2.5rem] shadow-2xl space-y-6 backdrop-blur-md">
             <div class="space-y-4">
-                <div class="space-y-1">
-                    <label class="text-[9px] font-black uppercase tracking-widest text-slate-500 px-4 italic">Identificação</label>
-                    <input type="text" id="login-user" placeholder="USUÁRIO" autocomplete="username"
-                        class="pulse-input w-full p-5 rounded-3xl text-white font-bold placeholder:text-slate-700 outline-none uppercase italic">
-                </div>
-                
-                <div class="space-y-1">
-                    <label class="text-[9px] font-black uppercase tracking-widest text-slate-500 px-4 italic">Código de Acesso</label>
-                    <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password"
-                        class="pulse-input w-full p-5 rounded-3xl text-white font-bold placeholder:text-slate-700 outline-none italic">
-                </div>
+                <input type="text" id="login-user" placeholder="USUÁRIO" class="pulse-input w-full p-5 rounded-3xl font-bold outline-none uppercase italic">
+                <input type="password" id="login-pass" placeholder="CÓDIGO" class="pulse-input w-full p-5 rounded-3xl font-bold outline-none italic">
             </div>
 
-            <!-- Mensagem de Erro -->
-            <p id="login-msg" class="text-[10px] font-bold text-red-500 text-center uppercase tracking-widest min-h-[1.25rem] italic"></p>
+            <p id="login-msg" class="text-[10px] font-bold text-red-500 text-center uppercase min-h-[1.25rem]"></p>
 
             <button id="btn-login" onclick="handleLoginClick()" 
-                class="w-full bg-blue-600 hover:bg-blue-500 text-white py-5 rounded-3xl font-black uppercase tracking-[0.2em] text-xs transition-all active:scale-[0.98] shadow-lg shadow-blue-900/20 italic">
+                class="w-full bg-blue-600 hover:bg-blue-500 text-white py-5 rounded-3xl font-black uppercase text-xs transition-all italic">
                 Entrar no Sistema
             </button>
         </div>
-
-        <!-- Rodapé Makro -->
-        <p class="text-center text-[8px] font-black text-slate-700 uppercase tracking-widest italic">
-            Makro Engenharia &bull; Pulse OS v6.5
-        </p>
+        <p class="text-center text-[8px] font-black text-slate-700 uppercase tracking-widest italic">Makro Engenharia</p>
     </div>
 
-    <!-- Script Central -->
     <script src="js/app.js"></script>
     <script>
-        // Inicializa os ícones
-        if (window.lucide) lucide.createIcons();
-
-        // Função de Login integrada ao app.js
         function handleLoginClick() {
             const btn = document.getElementById('btn-login');
-            btn.innerHTML = '<i data-lucide="refresh-cw" class="w-4 h-4 animate-spin"></i>';
-            lucide.createIcons();
-            
+            btn.innerHTML = 'CARREGANDO...';
             if (typeof window.doLogin === 'function') {
                 window.doLogin();
             } else {
-                document.getElementById('login-msg').innerText = "ERRO: SCRIPT APP.JS NÃO ENCONTRADO";
+                document.getElementById('login-msg').innerText = "ERRO: APP.JS NÃO DETECTADO";
                 btn.innerText = 'Entrar no Sistema';
             }
         }
-
-        // Atalho Enter
-        document.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') handleLoginClick();
-        });
     </script>
 </body>
 </html>
