@@ -34,7 +34,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const googleProvider = new GoogleAuthProvider();
-const appId = typeof __app_id !== 'undefined' ? __app_id : 'pulse-os-personal';
+const appId = 'pulse-os-personal';
 
 // Estado Global Inicial
 window.appState = {
@@ -131,7 +131,8 @@ onAuthStateChanged(auth, (user) => {
 
 const setupRealtimeSync = (userId) => {
     if (!userId) return;
-    const stateDoc = doc(db, 'artifacts', appId, 'users', userId, 'state', 'current');
+    // Corrigido: Usando um caminho mais direto para garantir o salvamento
+    const stateDoc = doc(db, 'users', userId);
     onSnapshot(stateDoc, (snapshot) => {
         if (snapshot.exists()) {
             const cloudData = snapshot.data();
@@ -141,7 +142,7 @@ const setupRealtimeSync = (userId) => {
             
             window.appState = { ...window.appState, ...cloudData };
             window.appState.sidebarCollapsed = currentLocalSidebar;
-            window.appState.photoURL = googlePhoto; // Mantém a foto do Google como prioridade
+            window.appState.photoURL = googlePhoto;
             window.appState.fullName = googleName;
             
             updateGlobalUI();
@@ -153,11 +154,11 @@ const setupRealtimeSync = (userId) => {
 
 const pushState = async () => {
     if (!auth.currentUser) return;
-    const stateDoc = doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'state', 'current');
+    const stateDoc = doc(db, 'users', auth.currentUser.uid);
     
     const dataToSync = { ...window.appState };
     delete dataToSync.sidebarCollapsed; 
-    delete dataToSync.photoURL; // Não precisa salvar a URL da foto, ela vem do Auth
+    delete dataToSync.photoURL;
 
     try { 
         await setDoc(stateDoc, dataToSync); 
@@ -206,9 +207,62 @@ const updateGlobalUI = () => {
     set('fin-saldo-atual-pag', saldo.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
     set('total-income', receitas.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
     set('total-expenses', despesas.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
+    
     set('dash-water-cur', window.appState.water_ml);
     set('water-current-display', window.appState.water_ml);
+    
+    set('dash-energy-val', window.appState.energy_mg);
+    set('energy-current-display', window.appState.energy_mg);
+    
     set('bike-km-display', window.appState.veiculo.km);
+    set('bike-oil-display', window.appState.veiculo.oleo);
+
+    // Atualizar Barras de Progresso
+    const waterBar = document.getElementById('dash-water-bar');
+    if (waterBar) {
+        const perc = Math.min((window.appState.water_ml / 3500) * 100, 100);
+        waterBar.style.width = perc + '%';
+    }
+
+    const energyBar = document.getElementById('energy-bar');
+    if (energyBar) {
+        const perc = Math.min((window.appState.energy_mg / 400) * 100, 100);
+        energyBar.style.width = perc + '%';
+    }
+    
+    const energyGauge = document.getElementById('energy-gauge-path');
+    if (energyGauge) {
+        const perc = Math.min((window.appState.energy_mg / 400) * 100, 100);
+        const offset = 226.2 - (226.2 * perc / 100);
+        energyGauge.style.strokeDashoffset = offset;
+    }
+
+    // Propósito / Álcool
+    const alcoholTitle = document.getElementById('alcohol-challenge-title');
+    if (alcoholTitle) alcoholTitle.innerText = window.appState.perfil.alcoholTitle || "ZERO ÁLCOOL";
+    
+    const alcoholCount = document.getElementById('alcohol-days-count');
+    const alcoholTarget = document.getElementById('alcohol-target-display');
+    if (alcoholCount && alcoholTarget) {
+        const start = new Date(window.appState.perfil.alcoholStart);
+        const today = new Date();
+        const diffTime = Math.abs(today - start);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        alcoholCount.innerText = diffDays || 0;
+        alcoholTarget.innerText = window.appState.perfil.alcoholTarget || 30;
+        
+        const alcoholBar = document.getElementById('alcohol-bar');
+        if (alcoholBar) {
+            const perc = Math.min((diffDays / (window.appState.perfil.alcoholTarget || 30)) * 100, 100);
+            alcoholBar.style.width = perc + '%';
+        }
+    }
+
+    // Tarefas
+    const tasks = window.appState.tarefas || [];
+    set('dash-tasks-progress', tasks.filter(t => t.status === 'Concluída').length);
+    set('dash-tasks-remaining', tasks.filter(t => t.status === 'Pendente').length);
+    set('task-count', tasks.filter(t => t.status === 'Pendente').length);
 
     // Atualiza nome e foto em páginas como Perfil se existirem
     const profName = document.getElementById('profile-user-name');
@@ -221,6 +275,7 @@ const updateGlobalUI = () => {
 
     if (window.lucide) lucide.createIcons();
     if (typeof renderFullExtrato === 'function') renderFullExtrato();
+    if (typeof renderWorkTasks === 'function') renderWorkTasks();
 };
 
 const injectInterface = () => {
@@ -253,7 +308,7 @@ const injectInterface = () => {
                             <span class="menu-label">${i.label}</span>
                         </button>
                     `).join('')}
-                    <button onclick="window.openTab('perfil')" class="w-full flex items-center gap-4 px-4 py-4 rounded-xl font-black uppercase text-[10px] tracking-widest ${path === 'perfil' ? 'bg-white/5 text-purple-500' : 'text-slate-400 hover:bg-white/5'}">
+                    <button onclick="window.openTab('perfil')" class="w-full flex items-center gap-4 px-4 py-4 rounded-xl font-black uppercase text-[10px] tracking-widest ${path === 'perfil' ? 'bg-white/5 text-purple-500' : 'text-slate-400 hover:bg-white/5'} transition-all">
                         <i data-lucide="user" class="w-5 h-5 text-purple-500"></i>
                         <span class="menu-label">Perfil</span>
                     </button>
@@ -464,6 +519,38 @@ window.resetHealthDay = () => {
     pushState(); 
     updateGlobalUI(); 
     window.showToast("Dashboard Zerado para hoje");
+};
+
+// Funções para renderizar listas específicas se os containers existirem
+window.renderWorkTasks = () => {
+    const list = document.getElementById('work-task-active-list');
+    if (!list) return;
+    const tasks = window.appState.tarefas || [];
+    if (tasks.length === 0) {
+        list.innerHTML = `<div class="p-8 text-center text-[10px] font-black uppercase text-slate-700 italic">Nenhuma tarefa pendente</div>`;
+        return;
+    }
+    list.innerHTML = tasks.filter(t => t.status === 'Pendente').map(t => `
+        <div class="bg-slate-900/50 border border-white/5 p-4 rounded-2xl flex items-center justify-between italic">
+            <div>
+                <p class="text-[10px] font-black text-white uppercase italic">${t.title}</p>
+                <p class="text-[7px] font-bold text-slate-500 uppercase tracking-widest mt-1">${t.type} • ${t.requester}</p>
+            </div>
+            <button onclick="window.completeTask(${t.id})" class="p-2 bg-sky-500/10 text-sky-500 rounded-lg hover:bg-sky-500 hover:text-white transition-all">
+                <i data-lucide="check" class="w-4 h-4"></i>
+            </button>
+        </div>
+    `).join('');
+    if (window.lucide) lucide.createIcons();
+};
+
+window.completeTask = async (id) => {
+    const idx = window.appState.tarefas.findIndex(t => t.id === id);
+    if (idx !== -1) {
+        window.appState.tarefas[idx].status = 'Concluída';
+        await pushState();
+        updateGlobalUI();
+    }
 };
 
 // --- INIT ---
