@@ -1,5 +1,5 @@
 /**
- * PULSE OS - Central Intelligence v8.2 (Firebase Stable & Sidebar Protection)
+ * PULSE OS - Central Intelligence v8.3 (Sidebar Stability & Firebase)
  * Makro Engenharia - Fortaleza
  * Gestão em Tempo Real: Saúde, Finanças, Veículo, WORK e NPS.
  */
@@ -84,12 +84,10 @@ onAuthStateChanged(auth, (user) => {
     if (user) {
         window.appState.login = user.displayName ? user.displayName.split(' ')[0].toUpperCase() : user.email.split('@')[0].toUpperCase();
         setupRealtimeSync(user.uid);
-        // Redireciona se estiver na tela de login
         if (window.location.pathname.endsWith('index.html') || window.location.pathname === '/' || window.location.pathname.endsWith('pulse/')) {
             window.location.href = "dashboard.html";
         }
     } else {
-        // Bloqueia acesso a páginas internas
         if (!window.location.pathname.endsWith('index.html') && window.location.pathname !== '/' && !window.location.pathname.endsWith('pulse/')) {
             window.location.href = "index.html";
         }
@@ -117,10 +115,10 @@ const pushState = async () => {
     try { await setDoc(stateDoc, window.appState); } catch (e) { console.error("Cloud Error:", e); }
 };
 
-// --- LÓGICA DE INTERFACE (SideBar Blindada) ---
+// --- LÓGICA DE INTERFACE ---
 
 const updateGlobalUI = () => {
-    injectInterface(); // Garante que a barra existe antes de manipular
+    injectInterface(); 
     
     const isCollapsed = window.appState.sidebarCollapsed;
     const mainContent = document.getElementById('main-content');
@@ -136,19 +134,16 @@ const updateGlobalUI = () => {
         sidebar.classList.toggle('sidebar-collapsed', isCollapsed);
         sidebar.classList.toggle('sidebar-expanded', !isCollapsed);
         
-        // Esconde textos se colapsado
+        // Controla visibilidade de textos de forma robusta
         const labels = sidebar.querySelectorAll('span, h1');
         labels.forEach(l => {
-            if (!l.closest('button')?.querySelector('i') || l.tagName === 'H1') {
-                l.style.display = isCollapsed ? 'none' : 'block';
-            }
+            l.style.display = isCollapsed ? 'none' : 'block';
         });
     }
 
-    // Atualização de Dados no Dashboard
+    // Atualização de Dados
     const set = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
     
-    // Cálculo de Saldo
     const efektivaj = (window.appState.transacoes || []).filter(t => t.status === 'Efetivada');
     const saldo = efektivaj.reduce((acc, t) => acc + (t.tipo === 'Receita' ? t.valor : -t.valor), 0);
     
@@ -156,7 +151,6 @@ const updateGlobalUI = () => {
     set('dash-water-cur', window.appState.water_ml);
     set('dash-nps-val', window.appState.nps_mes || "0");
     
-    // Barras de progresso
     const wBar = document.getElementById('dash-water-bar');
     if (wBar) wBar.style.width = Math.min(100, (window.appState.water_ml / 3500) * 100) + '%';
 
@@ -167,7 +161,7 @@ const injectInterface = () => {
     const sidebarPlaceholder = document.getElementById('sidebar-placeholder');
     const headerPlaceholder = document.getElementById('header-placeholder');
     
-    if (sidebarPlaceholder && !sidebarPlaceholder.innerHTML) {
+    if (sidebarPlaceholder && !sidebarPlaceholder.querySelector('aside')) {
         const path = (window.location.pathname.split('/').pop() || 'dashboard.html').split('.')[0];
         const items = [
             { id: 'dashboard', label: 'Home', icon: 'layout-dashboard', color: 'text-blue-500' },
@@ -202,7 +196,7 @@ const injectInterface = () => {
         `;
     }
 
-    if (headerPlaceholder && !headerPlaceholder.innerHTML) {
+    if (headerPlaceholder && !headerPlaceholder.querySelector('header')) {
         headerPlaceholder.innerHTML = `
             <header class="bg-slate-900/80 backdrop-blur-xl sticky top-0 z-40 px-6 py-5 flex items-center justify-between border-b border-white/5 italic">
                 <div class="flex flex-col">
@@ -242,7 +236,6 @@ const checkDailyReset = () => {
 // --- INIT ---
 window.addEventListener('DOMContentLoaded', () => { 
     updateGlobalUI();
-    // Atalho Ctrl+B
     window.addEventListener('keydown', (e) => {
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
             const active = document.activeElement;
