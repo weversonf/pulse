@@ -23,18 +23,18 @@
 </head>
 <body class="bg-slate-950 text-slate-100 italic">
     <div class="flex min-h-screen relative">
-        <!-- 1. Flanka breto (Sidebar) -->
+        <!-- 1. Menu Lateral (Injetado pelo app.js) -->
         <div id="sidebar-placeholder"></div>
 
-        <!-- 2. Enhava ujo -->
+        <!-- 2. Conteúdo Principal -->
         <div id="main-content" class="flex-1 md:ml-64 transition-all pb-safe-bottom">
             
-            <!-- 3. Kaplinio (Header) -->
+            <!-- 3. Cabeçalho (Injetado pelo app.js) -->
             <div id="header-placeholder"></div>
 
             <main class="max-w-6xl mx-auto p-4 md:p-8 space-y-6 italic">
 
-                <!-- Resumo Geral (Kortoj por Efektiva Stato) -->
+                <!-- Resumo Geral -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 italic">
                     <div class="bg-slate-900 border border-white/5 p-6 rounded-2xl flex flex-col justify-between shadow-xl italic">
                         <span class="text-blue-500 text-[9px] font-black uppercase tracking-widest italic flex items-center gap-2">
@@ -52,7 +52,7 @@
                     </div>
                 </div>
 
-                <!-- Grafikaĵo de Balanco (Antaŭvidebla Vido) -->
+                <!-- Balanço Previsível -->
                 <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 italic">
                     <div class="lg:col-span-3 bg-slate-900 border border-white/5 p-8 rounded-[2rem] italic shadow-2xl">
                         <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4 italic">
@@ -60,7 +60,7 @@
                                 <i data-lucide="trending-up" class="w-3 h-3 text-blue-500"></i> BALANÇO (PREVISÍVEL)
                             </h3>
                             
-                            <!-- Kontroloj de Intervalo (Interval Controls) -->
+                            <!-- Intervalos -->
                             <div class="flex bg-slate-950 p-1 rounded-xl border border-white/5 italic overflow-hidden">
                                 <button onclick="window.updateChartRange(-12)" class="range-btn px-3 py-1.5 text-[8px] font-black uppercase transition-all text-slate-500 hover:text-white" data-range="-12">Histórico</button>
                                 <button onclick="window.updateChartRange(6)" class="range-btn px-3 py-1.5 text-[8px] font-black uppercase bg-blue-600 text-white transition-all" data-range="6">6 Meses</button>
@@ -70,20 +70,9 @@
                         <div class="h-[320px] relative italic">
                             <canvas id="financeChart"></canvas>
                         </div>
-                        <!-- Legendo (Legend) -->
-                        <div class="mt-6 flex flex-wrap justify-center gap-6 italic">
-                            <div class="flex items-center gap-2">
-                                <span class="w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.3)]"></span>
-                                <span class="text-[8px] font-black uppercase text-slate-500 tracking-widest">Previsão Receitas</span>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <span class="w-3 h-3 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.3)]"></span>
-                                <span class="text-[8px] font-black uppercase text-slate-500 tracking-widest">Previsão Despesas</span>
-                            </div>
-                        </div>
                     </div>
                     
-                    <!-- Lastaj transakcioj (Recent Flows) -->
+                    <!-- Fluxo Recente -->
                     <div class="lg:col-span-2 bg-slate-900 border border-white/5 p-8 rounded-[2rem] flex flex-col italic shadow-2xl">
                         <div class="flex items-center justify-between mb-6 italic">
                             <h3 class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 flex items-center gap-2 italic">
@@ -102,12 +91,12 @@
         </div>
     </div>
 
-    <!-- Flosanta butono (Floating Action Button) -->
+    <!-- Botão Flutuante -->
     <button onclick="toggleModal()" class="fixed bottom-24 right-6 md:bottom-8 md:right-8 w-16 h-16 bg-blue-600 hover:bg-blue-500 text-white rounded-full flex items-center justify-center shadow-lg shadow-blue-900/40 active:scale-90 z-[90] italic transition-all">
         <i data-lucide="plus" class="w-8 h-8"></i>
     </button>
 
-    <!-- Modala fenestro (Modal for Entry) -->
+    <!-- Modal Novo Lançamento -->
     <div id="modal" class="hidden fixed inset-0 bg-slate-950/90 backdrop-blur-xl flex items-center justify-center p-4 z-[100] transition-all italic">
         <div class="bg-slate-900 border border-white/5 rounded-3xl shadow-2xl w-full max-w-md p-8 italic">
             <div class="flex justify-between items-center mb-6 italic">
@@ -122,7 +111,7 @@
                 </div>
                 
                 <div class="grid grid-cols-2 gap-3 italic">
-                    <!-- Chave de Status (Efetivada / Previsível) -->
+                    <!-- Chave de Status (Toggle) -->
                     <div class="flex items-center justify-between px-4 py-3 bg-slate-950/50 rounded-xl border border-white/5">
                         <span id="toggle-label" class="text-[9px] font-black uppercase text-emerald-500 italic">Efetivada</span>
                         <label for="status-toggle" class="flex items-center cursor-pointer">
@@ -132,7 +121,6 @@
                                 <div class="toggle-dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full shadow transition"></div>
                             </div>
                         </label>
-                        <!-- Campo oculto para manter compatibilidade com o app.js -->
                         <input type="hidden" id="fin-status" value="Efetivada">
                     </div>
 
@@ -151,7 +139,9 @@
         </div>
     </div>
 
-    <script src="js/app.js"></script>
+    <!-- CARREGAMENTO OBRIGATÓRIO COMO MODULE PARA FIREBASE -->
+    <script type="module" src="js/app.js"></script>
+
     <script>
         let myChart = null;
 
@@ -159,7 +149,6 @@
             document.getElementById('modal').classList.toggle('hidden'); 
         }
 
-        // Função para atualizar o valor da chave de status
         function updateStatusValue(isEfetivada) {
             const hiddenInput = document.getElementById('fin-status');
             const label = document.getElementById('toggle-label');
@@ -196,9 +185,6 @@
             if (!ctx) return;
             if (myChart) myChart.destroy();
 
-            const gridColor = 'rgba(255, 255, 255, 0.03)';
-            const labelColor = '#64748b';
-
             const labels = [];
             const now = new Date();
             const startOffset = monthsRange < 0 ? monthsRange : 0;
@@ -214,12 +200,10 @@
             const balanceData = new Array(count).fill(0);
 
             if (window.appState && window.appState.transacoes) {
-                // VISÃO PREVISÍVEL (Tudo o que está planejado + efetivado)
                 window.appState.transacoes.forEach(t => {
                     if (!t.vencimento) return;
                     const tDate = new Date(t.vencimento + "T12:00:00");
                     const diffMonths = (tDate.getFullYear() - now.getFullYear()) * 12 + (tDate.getMonth() - now.getMonth());
-                    
                     const index = diffMonths - startOffset;
                     if (index >= 0 && index < count) {
                         if (t.tipo === 'Receita') incomeData[index] += parseFloat(t.valor) || 0;
@@ -227,7 +211,6 @@
                     }
                 });
 
-                // Kalkulo de Bilanco (Balance Calculation)
                 for(let j=0; j<count; j++) {
                     balanceData[j] = incomeData[j] - expenseData[j];
                 }
@@ -247,8 +230,6 @@
                             fill: true,
                             tension: 0.4,
                             pointRadius: 4,
-                            pointHoverRadius: 6,
-                            pointBackgroundColor: '#3b82f6',
                             order: 1
                         },
                         {
@@ -257,7 +238,6 @@
                             data: incomeData,
                             backgroundColor: 'rgba(16, 185, 129, 0.4)',
                             borderRadius: 6,
-                            barPercentage: 0.6,
                             order: 2
                         },
                         {
@@ -266,7 +246,6 @@
                             data: expenseData,
                             backgroundColor: 'rgba(239, 68, 68, 0.4)',
                             borderRadius: 6,
-                            barPercentage: 0.6,
                             order: 3
                         }
                     ]
@@ -274,48 +253,27 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            backgroundColor: '#0f172a',
-                            titleFont: { family: 'Inter', weight: 'bold', style: 'italic' },
-                            bodyFont: { family: 'Inter', style: 'italic' },
-                            padding: 12,
-                            cornerRadius: 12,
-                            callbacks: {
-                                label: function(context) {
-                                    let val = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(context.parsed.y);
-                                    return `${context.dataset.label}: ${val}`;
-                                }
-                            }
-                        }
-                    },
+                    plugins: { legend: { display: false } },
                     scales: {
-                        y: {
-                            grid: { color: gridColor },
-                            ticks: {
-                                color: labelColor,
-                                font: { size: 9, weight: 'bold', family: 'Inter', style: 'italic' },
-                                callback: (v) => 'R$ ' + v.toLocaleString('pt-BR')
-                            }
-                        },
-                        x: {
-                            grid: { display: false },
-                            ticks: {
-                                color: labelColor,
-                                font: { size: 8, weight: 'bold', family: 'Inter', style: 'italic' }
-                            }
-                        }
+                        y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#64748b' } },
+                        x: { grid: { display: false }, ticks: { color: '#64748b' } }
                     }
                 }
             });
         }
 
+        // Aguarda o appState do Firebase carregar para iniciar o gráfico
         document.addEventListener('DOMContentLoaded', () => {
+            const checkState = setInterval(() => {
+                if (window.appState) {
+                    initFinanceChart(6);
+                    clearInterval(checkState);
+                }
+            }, 500);
+            
             setTimeout(() => {
                 if(window.lucide) lucide.createIcons();
-                initFinanceChart(6);
-            }, 800);
+            }, 1000);
         });
     </script>
 </body>
