@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PULSE OS - Perfil</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-slate-950 text-slate-100 italic">
+    <div class="flex min-h-screen relative">
+        <!-- Placeholder para a Barra Lateral -->
+        <div id="sidebar-placeholder"></div>
+
+        <div id="main-content" class="flex-1 md:ml-64 transition-all duration-300 pb-safe-bottom">
+            <!-- Placeholder para o Cabeçalho -->
+            <div id="header-placeholder"></div>
+
+            <main class="max-w-6xl mx-auto p-4 md:p-8 space-y-8 italic">
+                
+                <!-- Secção de Perfil (Utilizador) - Cartão de Identidade Centralizado -->
+                <section class="space-y-4 animate-fade-in relative">
+                    <div class="glass-card p-6 flex items-center gap-6 shadow-xl shadow-blue-950/10">
+                        <!-- Foto do Utilizador (Interativa com Lightbox) -->
+                        <div class="relative group cursor-pointer" onclick="toggleAvatarSelector()">
+                            <div id="avatar-preview-container" class="w-20 h-20 rounded-full bg-slate-950 border border-white/10 flex items-center justify-center overflow-hidden transition-all duration-500 group-hover:border-blue-500/50">
+                                <!-- Ícone de Utilizador Central -->
+                                <i id="avatar-preview-icon" data-lucide="user" class="w-10 h-10 text-blue-500/50"></i>
+                                
+                                <!-- Overlay de Edição -->
+                                <div class="absolute inset-0 bg-blue-600/20 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity rounded-full">
+                                    <i data-lucide="pencil" class="w-5 h-5 text-white"></i>
+                                </div>
+                            </div>
+                            <!-- Badge de Status Online -->
+                            <div class="absolute bottom-1 right-1 w-5 h-5 bg-emerald-500 border-4 border-slate-950 rounded-full shadow-lg"></div>
+                        </div>
+
+                        <!-- Info do Utilizador -->
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-1">
+                                <i data-lucide="shield-check" class="w-3 h-3 text-blue-500"></i>
+                                <span class="text-[8px] font-black text-blue-500 uppercase tracking-widest italic">Acesso Verificado</span>
+                            </div>
+                            <h2 class="text-3xl font-black text-white uppercase tracking-tighter leading-none italic" id="profile-user-name">CARREGANDO...</h2>
+                            <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] mt-3 italic flex items-center gap-2">
+                                <span class="w-1 h-1 bg-slate-700 rounded-full"></span>
+                                PULSE OPERATING SYSTEM
+                            </p>
+                        </div>
+
+                        <!-- Ícone Decorativo -->
+                        <div class="hidden sm:flex w-12 h-12 glass-card rounded-xl items-center justify-center text-slate-700">
+                            <i data-lucide="award" class="w-6 h-6 opacity-20"></i>
+                        </div>
+                    </div>
+
+                    <!-- Seletor de Avatar (Lightbox/Modal) -->
+                    <div id="avatar-selector-wrapper" class="hidden fixed inset-0 z-[100] bg-slate-950/90 backdrop-blur-xl flex items-center justify-center p-4">
+                        <div class="glass-card p-8 w-full max-w-2xl space-y-6 border-blue-500/30 shadow-2xl relative animate-in fade-in zoom-in duration-300">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <h3 class="text-xl font-black text-white italic uppercase tracking-tighter">Escolher Identidade</h3>
+                                    <p class="text-[9px] font-black uppercase text-slate-500 tracking-widest italic mt-1">Personalize a sua presença visual no sistema</p>
+                                </div>
+                                <button onclick="toggleAvatarSelector()" class="w-10 h-10 flex items-center justify-center bg-white/5 hover:bg-white/10 rounded-full text-slate-500 hover:text-white transition-all">
+                                    <i data-lucide="x" class="w-5 h-5"></i>
+                                </button>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 py-4">
+                                <button onclick="selectAvatar('blue', 'user')" class="group p-4 rounded-2xl border border-white/5 hover:border-blue-500/50 hover:bg-blue-500/10 transition-all text-center space-y-3">
+                                    <div class="w-12 h-12 mx-auto rounded-full bg-blue-500/20 flex items-center justify-center text-blue-500"><i data-lucide="user" class="w-6 h-6"></i></div>
+                                    <p class="text-[8px] font-black uppercase text-slate-500 group-hover:text-blue-500 tracking-widest italic">Classic</p>
+                                </button>
+                                <button onclick="selectAvatar('emerald', 'zap')" class="group p-4 rounded-2xl border border-white/5 hover:border-emerald-500/50 hover:bg-emerald-500/10 transition-all text-center space-y-3">
+                                    <div class="w-12 h-12 mx-auto rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-500"><i data-lucide="zap" class="w-6 h-6"></i></div>
+                                    <p class="text-[8px] font-black uppercase text-slate-500 group-hover:text-emerald-500 tracking-widest italic">Tech</p>
+                                </button>
+                                <button onclick="selectAvatar('orange', 'bike')" class="group p-4 rounded-2xl border border-white/5 hover:border-orange-500/50 hover:bg-orange-500/10 transition-all text-center space-y-3">
+                                    <div class="w-12 h-12 mx-auto rounded-full bg-orange-500/20 flex items-center justify-center text-orange-500"><i data-lucide="bike" class="w-6 h-6"></i></div>
+                                    <p class="text-[8px] font-black uppercase text-slate-500 group-hover:text-orange-500 tracking-widest italic">Rider</p>
+                                </button>
+                                <button onclick="selectAvatar('purple', 'crown')" class="group p-4 rounded-2xl border border-white/5 hover:border-purple-500/50 hover:bg-purple-500/10 transition-all text-center space-y-3">
+                                    <div class="w-12 h-12 mx-auto rounded-full bg-purple-500/20 flex items-center justify-center text-purple-500"><i data-lucide="crown" class="w-6 h-6"></i></div>
+                                    <p class="text-[8px] font-black uppercase text-slate-500 group-hover:text-purple-500 tracking-widest italic">Alpha</p>
+                                </button>
+                                <button onclick="selectAvatar('rose', 'heart')" class="group p-4 rounded-2xl border border-white/5 hover:border-rose-500/50 hover:bg-rose-500/10 transition-all text-center space-y-3">
+                                    <div class="w-12 h-12 mx-auto rounded-full bg-rose-500/20 flex items-center justify-center text-rose-500"><i data-lucide="heart" class="w-6 h-6"></i></div>
+                                    <p class="text-[8px] font-black uppercase text-slate-500 group-hover:text-rose-500 tracking-widest italic">Health</p>
+                                </button>
+                                <button onclick="selectAvatar('sky', 'hard-hat')" class="group p-4 rounded-2xl border border-white/5 hover:border-sky-500/50 hover:bg-sky-500/10 transition-all text-center space-y-3">
+                                    <div class="w-12 h-12 mx-auto rounded-full bg-sky-500/20 flex items-center justify-center text-sky-500"><i data-lucide="hard-hat" class="w-6 h-6"></i></div>
+                                    <p class="text-[8px] font-black uppercase text-slate-500 group-hover:text-sky-500 tracking-widest italic">Build</p>
+                                </button>
+                                <button onclick="selectAvatar('amber', 'star')" class="group p-4 rounded-2xl border border-white/5 hover:border-amber-500/50 hover:bg-amber-500/10 transition-all text-center space-y-3">
+                                    <div class="w-12 h-12 mx-auto rounded-full bg-amber-500/20 flex items-center justify-center text-amber-500"><i data-lucide="star" class="w-6 h-6"></i></div>
+                                    <p class="text-[8px] font-black uppercase text-slate-500 group-hover:text-amber-500 tracking-widest italic">Premium</p>
+                                </button>
+                                <button onclick="selectAvatar('slate', 'eye')" class="group p-4 rounded-2xl border border-white/5 hover:border-slate-500/50 hover:bg-slate-500/10 transition-all text-center space-y-3">
+                                    <div class="w-12 h-12 mx-auto rounded-full bg-slate-500/20 flex items-center justify-center text-slate-500"><i data-lucide="eye" class="w-6 h-6"></i></div>
+                                    <p class="text-[8px] font-black uppercase text-slate-500 group-hover:text-slate-500 tracking-widest italic">Stealth</p>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Secção Bio-Métrica -->
+                <section class="space-y-4">
+                    <h3 class="text-[10px] font-black uppercase tracking-[0.3em] text-purple-500 px-2 flex items-center gap-2 italic">
+                        <i data-lucide="activity" class="w-3 h-3"></i> Bio-Perfil (Saúde)
+                    </h3>
+                    
+                    <div class="glass-card p-6">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                            <div class="flex flex-col gap-2">
+                                <label class="text-[9px] font-black uppercase text-slate-500 px-2 tracking-widest italic">Peso Atual (kg)</label>
+                                <input type="number" id="set-peso" class="pulse-input" placeholder="Ex: 80">
+                            </div>
+                            
+                            <div class="flex flex-col gap-2">
+                                <label class="text-[9px] font-black uppercase text-slate-500 px-2 tracking-widest italic">Altura (cm)</label>
+                                <input type="number" id="set-altura" class="pulse-input" placeholder="Ex: 175">
+                            </div>
+                            
+                            <div class="flex flex-col gap-2">
+                                <label class="text-[9px] font-black uppercase text-slate-500 px-2 tracking-widest italic">Idade (Anos)</label>
+                                <input type="number" id="set-idade" class="pulse-input" placeholder="Ex: 30">
+                            </div>
+                            
+                            <div class="flex flex-col gap-2">
+                                <label class="text-[9px] font-black uppercase text-slate-500 px-2 tracking-widest italic">Sexo Biológico</label>
+                                <select id="set-sexo" class="pulse-input uppercase cursor-pointer">
+                                    <option value="M">Masculino</option>
+                                    <option value="F">Feminino</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Secção Regional -->
+                <section class="space-y-4">
+                    <h3 class="text-[10px] font-black uppercase tracking-[0.3em] text-blue-500 px-2 flex items-center gap-2 italic">
+                        <i data-lucide="globe" class="w-3 h-3"></i> Localização & Fuso
+                    </h3>
+                    
+                    <div class="glass-card p-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="flex flex-col gap-2">
+                                <label class="text-[9px] font-black uppercase text-slate-500 px-2 tracking-widest italic">Estado (UF)</label>
+                                <select id="set-estado" onchange="window.loadCities(this.value)" class="pulse-input uppercase cursor-pointer">
+                                    <option value="CE">Ceará</option>
+                                    <option value="SP">São Paulo</option>
+                                    <option value="RJ">Rio de Janeiro</option>
+                                    <option value="MG">Minas Gerais</option>
+                                </select>
+                            </div>
+                            
+                            <div class="flex flex-col gap-2">
+                                <label class="text-[9px] font-black uppercase text-slate-500 px-2 tracking-widest italic">Cidade / Município</label>
+                                <select id="set-cidade" class="pulse-input uppercase cursor-pointer">
+                                    <option value="Fortaleza">Fortaleza</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Acção de Salvamento -->
+                <div class="pt-4">
+                    <button onclick="window.savePulseSettings()" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-5 rounded-2xl font-black uppercase tracking-[0.4em] text-[11px] shadow-2xl transition-all active:scale-[0.98] italic flex items-center justify-center gap-3">
+                        <i data-lucide="save" class="w-4 h-4"></i>
+                        Confirmar Atualização de Perfil
+                    </button>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <script src="js/app.js"></script>
+    <script>
+        // Função para mostrar/esconder o seletor de avatar (Lightbox)
+        window.toggleAvatarSelector = () => {
+            const wrapper = document.getElementById('avatar-selector-wrapper');
+            if (!wrapper) return;
+            wrapper.classList.toggle('hidden');
+            document.body.style.overflow = wrapper.classList.contains('hidden') ? '' : 'hidden';
+        };
+
+        // Lógica para carregar o preview do avatar
+        const loadAvatarPreview = (color, iconName) => {
+            const container = document.getElementById('avatar-preview-container');
+            const iconEl = document.getElementById('avatar-preview-icon');
+            if (!container || !iconEl) return;
+
+            const colorMap = {
+                blue: "bg-blue-500/20 border-blue-500/40 text-blue-500",
+                emerald: "bg-emerald-500/20 border-emerald-500/40 text-emerald-500",
+                orange: "bg-orange-500/20 border-orange-500/40 text-orange-500",
+                purple: "bg-purple-500/20 border-purple-500/40 text-purple-500",
+                rose: "bg-rose-500/20 border-rose-500/40 text-rose-500",
+                sky: "bg-sky-500/20 border-sky-500/40 text-sky-500",
+                amber: "bg-amber-500/20 border-amber-500/40 text-amber-500",
+                slate: "bg-slate-500/20 border-slate-500/40 text-slate-500"
+            };
+
+            const selectedColor = colorMap[color] || colorMap.blue;
+            container.className = `w-20 h-20 rounded-full border flex items-center justify-center overflow-hidden transition-all duration-500 group-hover:border-blue-500/50 ${selectedColor}`;
+            
+            iconEl.setAttribute('data-lucide', iconName);
+            iconEl.className = `w-10 h-10 ${selectedColor.split(' ').pop()}`;
+            
+            if (window.lucide) lucide.createIcons();
+        };
+
+        // Lógica para selecionar o avatar e persistir temporariamente
+        window.selectAvatar = (color, iconName) => {
+            loadAvatarPreview(color, iconName);
+            if (window.appState && window.appState.perfil) {
+                window.appState.perfil.avatarConfig = { color, icon: iconName };
+            }
+            setTimeout(() => toggleAvatarSelector(), 200);
+        };
+
+        window.addEventListener('DOMContentLoaded', () => {
+            if (window.lucide) lucide.createIcons();
+
+            if (window.appState) {
+                if (window.appState.login) {
+                    document.getElementById('profile-user-name').innerText = window.appState.login;
+                }
+
+                if (window.appState.perfil) {
+                    const p = window.appState.perfil;
+                    document.getElementById('set-peso').value = p.peso || "";
+                    document.getElementById('set-altura').value = p.altura || "";
+                    document.getElementById('set-idade').value = p.idade || "";
+                    document.getElementById('set-sexo').value = p.sexo || "M";
+                    document.getElementById('set-estado').value = p.estado || "CE";
+                    
+                    if (p.avatarConfig) {
+                        loadAvatarPreview(p.avatarConfig.color, p.avatarConfig.icon);
+                    }
+
+                    if (window.loadCities) {
+                        window.loadCities(p.estado || "CE", p.cidade);
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
