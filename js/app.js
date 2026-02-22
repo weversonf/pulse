@@ -1,5 +1,5 @@
 /**
- * PULSE OS - Central Intelligence v8.9 (Sub-menu & Sidebar Absolute Fix)
+ * PULSE OS - Central Intelligence v9.0 (Full Functional Sync)
  * Makro Engenharia - Fortaleza
  * Gestão em Tempo Real com Sincronização Google & Email via Firebase.
  */
@@ -44,7 +44,7 @@ window.appState = {
     water_ml: 0,
     lastHealthReset: new Date().toLocaleDateString('pt-BR'),
     sidebarCollapsed: false,
-    activeSubmenu: null, // Controla qual sub-menu está aberto
+    activeSubmenu: null,
     perfil: { peso: 90, altura: 175, idade: 32, sexo: 'M', estado: 'CE', cidade: 'Fortaleza' },
     veiculo: { tipo: 'Moto', km: 0, oleo: 38000, historico: [], viagens: [] },
     tarefas: [],
@@ -77,7 +77,7 @@ onAuthStateChanged(auth, (user) => {
         window.appState.login = user.displayName ? user.displayName.split(' ')[0].toUpperCase() : user.email.split('@')[0].toUpperCase();
         window.appState.email = user.email;
         
-        updateGlobalUI(); // Render imediato
+        updateGlobalUI(); 
         setupRealtimeSync(user.uid);
         
         const path = window.location.pathname;
@@ -136,19 +136,32 @@ const updateGlobalUI = () => {
         mainContent.style.marginLeft = isCollapsed ? '5rem' : '16rem';
     }
 
-    // Atualização de Saldos e Saúde
+    // Atualização de Displays
     const set = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
+    
+    // Cálculos Financeiros
     const efektivaj = (window.appState.transacoes || []).filter(t => t.status === 'Efetivada');
-    const saldo = efektivaj.reduce((acc, t) => acc + (t.tipo === 'Receita' ? parseFloat(t.valor) : -parseFloat(t.valor)), 0);
-    const fundoRota = efektivaj.filter(t => t.cat === 'Transporte').reduce((acc, t) => acc + parseFloat(t.valor), 0);
+    const receitasTotal = efektivaj.filter(t => t.tipo === 'Receita').reduce((acc, t) => acc + parseFloat(t.valor || 0), 0);
+    const despesasTotal = efektivaj.filter(t => t.tipo === 'Despesa').reduce((acc, t) => acc + parseFloat(t.valor || 0), 0);
+    const saldo = receitasTotal - despesasTotal;
+    const fundoRota = efektivaj.filter(t => t.cat === 'Transporte').reduce((acc, t) => acc + parseFloat(t.valor || 0), 0);
 
     set('dash-saldo', saldo.toLocaleString('pt-BR', { minimumFractionDigits: 0 }));
     set('dash-fundo', fundoRota.toLocaleString('pt-BR', { minimumFractionDigits: 0 }));
     set('fin-saldo-atual-pag', saldo.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
+    set('total-income', receitasTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
+    set('total-expenses', despesasTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
+
+    // Saúde e NPS
     set('dash-water-cur', window.appState.water_ml);
+    set('water-current-display', window.appState.water_ml);
+    set('dash-energy-val', window.appState.energy_mg);
+    set('energy-current-display', window.appState.energy_mg);
     set('dash-nps-val', window.appState.nps_mes || "0");
+    set('bike-km-display', window.appState.veiculo.km);
 
     if (window.lucide) lucide.createIcons();
+    if (typeof renderWorkTasks === 'function') renderWorkTasks();
 };
 
 const injectInterface = () => {
@@ -157,21 +170,14 @@ const injectInterface = () => {
     
     if (sidebarPlaceholder && !sidebarPlaceholder.querySelector('aside')) {
         const path = (window.location.pathname.split('/').pop() || 'dashboard.html').split('.')[0];
-        
-        // Definição dos itens com suporte a sub-menu
         const items = [
             { id: 'dashboard', label: 'Home', icon: 'layout-dashboard', color: 'text-blue-500' },
             { id: 'saude', label: 'Saúde', icon: 'activity', color: 'text-rose-500' },
             { id: 'veiculo', label: 'Máquina', icon: 'bike', color: 'text-orange-500' },
             { id: 'work', label: 'WORK', icon: 'briefcase', color: 'text-sky-400' },
             { 
-                id: 'financas', 
-                label: 'Money', 
-                icon: 'wallet', 
-                color: 'text-emerald-500',
-                submenu: [
-                    { id: 'extrato', label: 'Extrato', icon: 'list' }
-                ]
+                id: 'financas', label: 'Money', icon: 'wallet', color: 'text-emerald-500',
+                submenu: [{ id: 'extrato', label: 'Extrato', icon: 'list' }]
             },
             { id: 'perfil', label: 'Perfil', icon: 'user', color: 'text-purple-500' }
         ];
@@ -189,7 +195,6 @@ const injectInterface = () => {
                         const hasSub = i.submenu && i.submenu.length > 0;
                         const isOpen = window.appState.activeSubmenu === i.id;
                         const isActive = path === i.id || (hasSub && i.submenu.some(s => s.id === path));
-                        
                         return `
                             <div class="space-y-1">
                                 <button onclick="${hasSub ? `window.toggleSubmenu('${i.id}')` : `window.openTab('${i.id}')`}" 
@@ -198,7 +203,6 @@ const injectInterface = () => {
                                     <span class="menu-label flex-1 text-left">${i.label}</span>
                                     ${hasSub && !window.appState.sidebarCollapsed ? `<i data-lucide="${isOpen ? 'chevron-up' : 'chevron-down'}" class="w-3 h-3 opacity-50"></i>` : ''}
                                 </button>
-                                
                                 ${hasSub && isOpen && !window.appState.sidebarCollapsed ? `
                                     <div class="pl-12 space-y-1 animate-in slide-in-from-top-2 duration-200">
                                         ${i.submenu.map(sub => `
@@ -213,7 +217,6 @@ const injectInterface = () => {
                             </div>
                         `;
                     }).join('')}
-                    
                     <button onclick="window.logout()" class="w-full flex items-center gap-4 px-4 py-4 mt-10 text-red-500/40 hover:text-red-500 transition-all italic font-black text-[10px] tracking-widest">
                         <i data-lucide="log-out" class="w-5 h-5"></i>
                         <span class="menu-label">Sair</span>
@@ -239,6 +242,89 @@ const injectInterface = () => {
     if (window.lucide) lucide.createIcons();
 };
 
+// --- AÇÕES FINANCEIRAS ---
+window.processarLancamento = async (tipo) => {
+    const desc = document.getElementById('fin-desc')?.value.trim();
+    const valor = parseFloat(document.getElementById('fin-valor')?.value);
+    const venc = document.getElementById('fin-vencimento')?.value;
+    const status = document.getElementById('fin-status')?.value || 'Efetivada';
+    const cat = document.getElementById('fin-categoria')?.value || 'Geral';
+
+    if (!desc || isNaN(valor)) return;
+
+    const lancamento = {
+        id: Date.now(),
+        tipo: tipo === 'receita' ? 'Receita' : 'Despesa',
+        desc: desc.toUpperCase(),
+        valor: valor,
+        vencimento: venc || new Date().toISOString().split('T')[0],
+        status: status,
+        cat: cat,
+        data: new Date().toLocaleDateString('pt-BR')
+    };
+
+    if (!window.appState.transacoes) window.appState.transacoes = [];
+    window.appState.transacoes.push(lancamento);
+
+    await pushState();
+    updateGlobalUI();
+
+    if (typeof window.toggleModal === 'function') window.toggleModal();
+    if(document.getElementById('fin-desc')) document.getElementById('fin-desc').value = "";
+    if(document.getElementById('fin-valor')) document.getElementById('fin-valor').value = "";
+};
+
+// --- AÇÕES DE TRABALHO (WORK) ---
+window.addWorkTask = async () => {
+    const title = document.getElementById('work-task-title')?.value;
+    const type = document.getElementById('work-task-type')?.value || "Geral";
+    const req = document.getElementById('work-task-requester')?.value || "Próprio";
+    if (!title) return;
+
+    const newTask = {
+        id: Date.now(),
+        title: title.toUpperCase(),
+        type: type,
+        requester: req,
+        status: 'Pendente',
+        data: new Date().toLocaleDateString('pt-BR')
+    };
+
+    if (!window.appState.tarefas) window.appState.tarefas = [];
+    window.appState.tarefas.push(newTask);
+    if (document.getElementById('work-task-title')) document.getElementById('work-task-title').value = "";
+    
+    await pushState();
+    updateGlobalUI();
+};
+
+// --- AÇÕES DE VEÍCULO ---
+window.saveBikeEntry = async () => {
+    const desc = document.getElementById('bike-log-desc')?.value;
+    const km = parseInt(document.getElementById('bike-log-km')?.value);
+    const valor = parseFloat(document.getElementById('bike-log-valor')?.value) || 0;
+    const tipo = document.getElementById('bike-log-tipo')?.value || 'Manutenção';
+    if (!desc || isNaN(km)) return false;
+
+    const entry = {
+        id: Date.now(),
+        desc: desc.toUpperCase(),
+        km: km,
+        valor: valor,
+        tipo: tipo,
+        data: new Date().toLocaleDateString('pt-BR')
+    };
+
+    window.appState.veiculo.km = km;
+    if (!window.appState.veiculo.historico) window.appState.veiculo.historico = [];
+    window.appState.veiculo.historico.push(entry);
+    
+    await pushState();
+    updateGlobalUI();
+    return true;
+};
+
+// --- CONTROLES DE NAVEGAÇÃO E SIDEBAR ---
 window.toggleSubmenu = (id) => {
     window.appState.activeSubmenu = window.appState.activeSubmenu === id ? null : id;
     updateGlobalUI();
@@ -252,10 +338,12 @@ window.toggleSidebar = () => {
 
 window.openTab = (p) => { window.location.href = p + ".html"; };
 
-// --- ACTIONS ---
+// --- AÇÕES DE SAÚDE ---
 window.addWater = (ml) => { window.appState.water_ml += ml; pushState(); updateGlobalUI(); };
 window.addMonster = () => { window.appState.energy_mg += 160; pushState(); updateGlobalUI(); };
+window.resetHealthDay = () => { window.appState.water_ml = 0; window.appState.energy_mg = 0; pushState(); updateGlobalUI(); };
 
+// --- INIT ---
 window.addEventListener('DOMContentLoaded', () => { 
     updateGlobalUI();
     window.addEventListener('keydown', (e) => {
