@@ -131,7 +131,6 @@ onAuthStateChanged(auth, (user) => {
 
 const setupRealtimeSync = (userId) => {
     if (!userId) return;
-    // Corrigido: Usando um caminho mais direto para garantir o salvamento
     const stateDoc = doc(db, 'users', userId);
     onSnapshot(stateDoc, (snapshot) => {
         if (snapshot.exists()) {
