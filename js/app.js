@@ -1,5 +1,5 @@
 /**
- * PULSE OS - Central Intelligence v11.0 (Mobile Bottom Nav Edition)
+ * PULSE OS - Central Intelligence v11.1 (Mobile Bottom Nav & Full Actions)
  * Makro Engenharia - Fortaleza
  * Gestão em Tempo Real com Sincronização Google & Email via Firebase.
  */
@@ -139,7 +139,7 @@ const updateGlobalUI = () => {
             mainContent.style.paddingBottom = '0';
         } else {
             mainContent.style.marginLeft = '0';
-            mainContent.style.paddingBottom = '5rem'; // Espaço para a Bottom Nav
+            mainContent.style.paddingBottom = '5rem'; 
         }
     }
 
@@ -152,9 +152,12 @@ const updateGlobalUI = () => {
 
     set('dash-saldo', saldo.toLocaleString('pt-BR', { minimumFractionDigits: 0 }));
     set('fin-saldo-atual-pag', saldo.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
+    set('total-income', receitas.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
+    set('total-expenses', despesas.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
     set('dash-water-cur', window.appState.water_ml);
     set('water-current-display', window.appState.water_ml);
     set('dash-nps-val', window.appState.nps_mes || "0");
+    set('bike-km-display', window.appState.veiculo.km);
 
     if (window.lucide) lucide.createIcons();
     if (typeof renderFullExtrato === 'function') renderFullExtrato();
@@ -174,10 +177,8 @@ const injectInterface = () => {
 
     const path = (window.location.pathname.split('/').pop() || 'dashboard.html').split('.')[0];
 
-    // 1. INJEÇÃO DA SIDEBAR (DESKTOP)
     if (sidebarPlaceholder && !sidebarPlaceholder.querySelector('aside')) {
         sidebarPlaceholder.innerHTML = `
-            <!-- Sidebar Desktop -->
             <aside class="hidden md:flex flex-col bg-slate-900 border-r border-white/5 fixed h-full z-50 transition-all duration-300 italic">
                 <div class="p-6 flex items-center justify-between">
                     <h1 class="text-2xl font-black text-blue-500 italic">PULSE</h1>
@@ -203,7 +204,6 @@ const injectInterface = () => {
                 </nav>
             </aside>
 
-            <!-- Bottom Nav Mobile -->
             <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-slate-900/90 backdrop-blur-xl border-t border-white/5 flex items-center justify-around px-2 py-3 z-[100] italic shadow-2xl">
                 ${items.map(i => `
                     <button onclick="window.openTab('${i.id}')" class="flex flex-col items-center gap-1 p-2 rounded-xl transition-all ${path === i.id ? 'text-blue-500' : 'text-slate-500'}">
@@ -233,6 +233,89 @@ const injectInterface = () => {
         `;
     }
 };
+
+// --- AÇÕES DO SISTEMA ---
+
+window.processarLancamento = async (tipo) => {
+    const desc = document.getElementById('fin-desc')?.value.trim();
+    const valor = parseFloat(document.getElementById('fin-valor')?.value);
+    const venc = document.getElementById('fin-vencimento')?.value;
+    const status = document.getElementById('fin-status')?.value || 'Efetivada';
+    const cat = document.getElementById('fin-categoria')?.value || 'Geral';
+
+    if (!desc || isNaN(valor)) return;
+
+    const lancamento = {
+        id: Date.now(),
+        tipo: tipo === 'receita' ? 'Receita' : 'Despesa',
+        desc: desc.toUpperCase(),
+        valor: valor,
+        vencimento: venc || new Date().toISOString().split('T')[0],
+        status: status,
+        cat: cat,
+        data: new Date().toLocaleDateString('pt-BR')
+    };
+
+    if (!window.appState.transacoes) window.appState.transacoes = [];
+    window.appState.transacoes.push(lancamento);
+
+    await pushState();
+    updateGlobalUI();
+
+    if (typeof window.toggleModal === 'function') window.toggleModal();
+    if(document.getElementById('fin-desc')) document.getElementById('fin-desc').value = "";
+    if(document.getElementById('fin-valor')) document.getElementById('fin-valor').value = "";
+};
+
+window.addWorkTask = async () => {
+    const title = document.getElementById('work-task-title')?.value;
+    const type = document.getElementById('work-task-type')?.value || "Geral";
+    const req = document.getElementById('work-task-requester')?.value || "Próprio";
+    if (!title) return;
+
+    const newTask = {
+        id: Date.now(),
+        title: title.toUpperCase(),
+        type: type,
+        requester: req,
+        status: 'Pendente',
+        data: new Date().toLocaleDateString('pt-BR')
+    };
+
+    if (!window.appState.tarefas) window.appState.tarefas = [];
+    window.appState.tarefas.push(newTask);
+    if (document.getElementById('work-task-title')) document.getElementById('work-task-title').value = "";
+    
+    await pushState();
+    updateGlobalUI();
+};
+
+window.saveBikeEntry = async () => {
+    const desc = document.getElementById('bike-log-desc')?.value;
+    const km = parseInt(document.getElementById('bike-log-km')?.value);
+    const valor = parseFloat(document.getElementById('bike-log-valor')?.value) || 0;
+    const tipo = document.getElementById('bike-log-tipo')?.value || 'Manutenção';
+    if (!desc || isNaN(km)) return false;
+
+    const entry = {
+        id: Date.now(),
+        desc: desc.toUpperCase(),
+        km: km,
+        valor: valor,
+        tipo: tipo,
+        data: new Date().toLocaleDateString('pt-BR')
+    };
+
+    window.appState.veiculo.km = km;
+    if (!window.appState.veiculo.historico) window.appState.veiculo.historico = [];
+    window.appState.veiculo.historico.push(entry);
+    
+    await pushState();
+    updateGlobalUI();
+    return true;
+};
+
+// --- NAVEGAÇÃO E CONTROLES ---
 
 window.toggleSidebar = () => { 
     window.appState.sidebarCollapsed = !window.appState.sidebarCollapsed; 
