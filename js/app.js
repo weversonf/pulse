@@ -1,7 +1,7 @@
 /**
- * PULSE OS - Central Intelligence v7.5 (Google & Email Auth)
+ * PULSE OS - Central Intelligence v7.8 (Firebase Full Sync)
  * Makro Engenharia - Fortaleza
- * Gestão em Tempo Real com Sincronização via Firebase.
+ * Gestão em Tempo Real: Saúde, Finanças, Veículo, WORK e NPS.
  */
 
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
@@ -40,7 +40,7 @@ const appId = 'pulse-os-makro';
 // URL do Script de NPS da Makro Engenharia
 const NPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwcsfpw1_uglhD6JtF4jAvjJ4hqgnHTcgKL8CBtb_i6pRmck7POOBvuqYykjIIE9sLdyQ/exec";
 
-// Estado Global Inicial (Definido em window para acesso pelo index.html)
+// Estado Global Inicial
 window.appState = {
     login: "CARREGANDO...",
     email: "",
@@ -50,9 +50,10 @@ window.appState = {
     sidebarCollapsed: false,
     perfil: { 
         peso: 90, altura: 175, idade: 32, sexo: 'M', estado: 'CE', cidade: 'Fortaleza',
-        avatarConfig: { color: 'blue', icon: 'user' }
+        avatarConfig: { color: 'blue', icon: 'user' },
+        alcoholTitle: "ZERO ÁLCOOL", alcoholStart: "", alcoholTarget: 30
     },
-    veiculo: { tipo: 'Moto', montadora: 'YAMAHA', modelo: 'FAZER 250', consumo: 29, km: 0, oleo: 38000 },
+    veiculo: { tipo: 'Moto', montadora: 'YAMAHA', modelo: 'FAZER 250', consumo: 29, km: 0, oleo: 38000, historico: [], viagens: [] },
     calibragem: { monster_mg: 160, coffee_ml: 300, coffee_100ml_mg: 40 },
     tarefas: [],
     transacoes: [],
@@ -62,19 +63,12 @@ window.appState = {
 
 let activeSubmenu = sessionStorage.getItem('pulse_active_submenu');
 
-// --- FUNÇÕES DE AUTENTICAÇÃO ---
+// --- SISTEMA DE AUTENTICAÇÃO ---
 
-// Login com Google
 window.loginWithGoogle = async () => {
-    try {
-        await signInWithPopup(auth, googleProvider);
-    } catch (err) {
-        console.error("Erro Google Login:", err);
-        throw err;
-    }
+    try { await signInWithPopup(auth, googleProvider); } catch (err) { console.error("Erro Google Login:", err); throw err; }
 };
 
-// Login com E-mail e Senha
 window.loginWithEmail = async (email, pass) => {
     try {
         await signInWithEmailAndPassword(auth, email, pass);
@@ -88,31 +82,20 @@ window.loginWithEmail = async (email, pass) => {
     }
 };
 
-// Encerrar Sessão
 window.logout = async () => {
-    try {
-        await signOut(auth);
-        window.location.href = "index.html";
-    } catch (err) {
-        console.error("Erro ao sair:", err);
-    }
+    try { await signOut(auth); window.location.href = "index.html"; } catch (err) { console.error("Erro ao sair:", err); }
 };
 
-// Monitor de Login e Redirecionamento
 onAuthStateChanged(auth, (user) => {
     if (user) {
         window.appState.login = user.displayName ? user.displayName.split(' ')[0].toUpperCase() : user.email.split('@')[0].toUpperCase();
         window.appState.email = user.email;
-        
         setupRealtimeSync(user.uid);
-        
-        // Redireciona para o dashboard se estiver na raiz ou no login
         const path = window.location.pathname;
         if (path.endsWith('index.html') || path === '/' || path.endsWith('pulse/')) {
             window.location.href = "dashboard.html";
         }
     } else {
-        // Bloqueia acesso a páginas internas se deslogado
         const path = window.location.pathname;
         if (!path.endsWith('index.html') && path !== '/' && !path.endsWith('pulse/')) {
             window.location.href = "index.html";
@@ -120,18 +103,16 @@ onAuthStateChanged(auth, (user) => {
     }
 });
 
-// --- SINCRONIZAÇÃO FIRESTORE (TEMPO REAL) ---
+// --- SINCRONIZAÇÃO FIRESTORE ---
 
 const setupRealtimeSync = (userId) => {
     const stateDoc = doc(db, 'artifacts', appId, 'users', userId, 'state', 'current');
-
     onSnapshot(stateDoc, (snapshot) => {
         if (snapshot.exists()) {
             window.appState = { ...window.appState, ...snapshot.data() };
             checkDailyReset();
             updateGlobalUI();
         } else {
-            // Inicializa dados na nuvem para novo usuário da Makro
             setDoc(stateDoc, window.appState);
         }
     }, (error) => console.error("Firestore Sync Error:", error));
@@ -140,11 +121,7 @@ const setupRealtimeSync = (userId) => {
 const pushState = async () => {
     if (!auth.currentUser) return;
     const stateDoc = doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'state', 'current');
-    try {
-        await setDoc(stateDoc, window.appState);
-    } catch (e) {
-        console.error("Erro ao salvar dados no Firestore:", e);
-    }
+    try { await setDoc(stateDoc, window.appState); } catch (e) { console.error("Erro ao salvar dados:", e); }
 };
 
 // --- AÇÕES DO SISTEMA (REGISTROS) ---
@@ -158,22 +135,35 @@ window.addWater = (ml) => {
 window.addMonster = () => {
     const mg = window.appState.calibragem?.monster_mg || 160;
     window.appState.energy_mg += mg;
+    window.processarLancamentoAutomatico('MONSTER ENERGY', 10, 'Saúde');
+    updateGlobalUI();
+    pushState();
+};
+
+window.launchCustomCoffee = () => {
+    const calib = window.appState.calibragem;
+    const mgRes = Math.round((calib.coffee_ml / 100) * calib.coffee_100ml_mg);
+    window.appState.energy_mg += mgRes;
+    updateGlobalUI();
+    pushState();
+};
+
+window.resetHealthDay = () => {
+    window.appState.water_ml = 0;
+    window.appState.energy_mg = 0;
     updateGlobalUI();
     pushState();
 };
 
 window.addWorkTask = () => {
     const title = document.getElementById('work-task-title')?.value;
+    const type = document.getElementById('work-task-type')?.value || "Geral";
+    const req = document.getElementById('work-task-requester')?.value || "Próprio";
     if (!title) return;
-    const newTask = { 
-        id: Date.now(), 
-        title: title.toUpperCase(), 
-        status: 'Pendente', 
-        data: new Date().toLocaleDateString('pt-BR') 
-    };
+    const newTask = { id: Date.now(), title: title.toUpperCase(), type, requester: req, status: 'Pendente', data: new Date().toLocaleDateString('pt-BR') };
     if (!window.appState.tarefas) window.appState.tarefas = [];
     window.appState.tarefas.push(newTask);
-    document.getElementById('work-task-title').value = "";
+    if (document.getElementById('work-task-title')) document.getElementById('work-task-title').value = "";
     updateGlobalUI();
     pushState();
 };
@@ -187,14 +177,86 @@ window.toggleTaskStatus = (taskId) => {
     }
 };
 
-// --- LÓGICA DE INTERFACE (CONTROLO DA BARRA LATERAL) ---
+// --- FINANÇAS ---
+
+window.processarLancamento = (tipo) => {
+    const desc = document.getElementById('fin-desc')?.value.trim();
+    const valor = parseFloat(document.getElementById('fin-valor')?.value);
+    const venc = document.getElementById('fin-vencimento')?.value;
+    const status = document.getElementById('fin-status')?.value;
+    if (!desc || isNaN(valor)) return;
+
+    const lanc = { id: Date.now(), tipo: tipo === 'receita' ? 'Receita' : 'Despesa', cat: 'Geral', desc: desc.toUpperCase(), valor, data: new Date().toLocaleDateString('pt-BR'), vencimento: venc, status };
+    if (!window.appState.transacoes) window.appState.transacoes = [];
+    window.appState.transacoes.push(lanc);
+    if (typeof toggleModal === 'function') toggleModal();
+    updateGlobalUI();
+    pushState();
+};
+
+window.processarLancamentoAutomatico = (desc, valor, cat) => {
+    const lanc = { id: Date.now(), tipo: 'Despesa', cat, desc: desc.toUpperCase(), valor, data: new Date().toLocaleDateString('pt-BR'), status: 'Efetivada' };
+    if (!window.appState.transacoes) window.appState.transacoes = [];
+    window.appState.transacoes.push(lanc);
+};
+
+// --- VEÍCULO ---
+
+window.saveBikeEntry = async () => {
+    const desc = document.getElementById('bike-log-desc')?.value;
+    const km = parseInt(document.getElementById('bike-log-km')?.value);
+    const valor = parseFloat(document.getElementById('bike-log-valor')?.value);
+    const tipo = document.getElementById('bike-log-tipo')?.value;
+    if (!desc || isNaN(km)) return false;
+
+    const entry = { id: Date.now(), desc: desc.toUpperCase(), km, valor: valor || 0, tipo, data: new Date().toLocaleDateString('pt-BR') };
+    window.appState.veiculo.km = km;
+    if (!window.appState.veiculo.historico) window.appState.veiculo.historico = [];
+    window.appState.veiculo.historico.push(entry);
+    
+    if (valor > 0) window.processarLancamentoAutomatico(`VEÍCULO: ${desc}`, valor, 'Transporte');
+    
+    updateGlobalUI();
+    pushState();
+    return true;
+};
+
+// --- AJUSTES ---
+
+window.savePulseSettings = () => {
+    const getV = (id) => document.getElementById(id)?.value;
+    if (document.getElementById('set-bike-tipo')) {
+        window.appState.veiculo.tipo = getV('set-bike-tipo');
+        window.appState.veiculo.montadora = getV('set-bike-montadora');
+        window.appState.veiculo.modelo = getV('set-bike-modelo');
+        window.appState.veiculo.km = parseInt(getV('set-bike-km')) || window.appState.veiculo.km;
+        window.appState.veiculo.oleo = parseInt(getV('set-bike-oleo')) || window.appState.veiculo.oleo;
+        window.appState.veiculo.consumo = parseFloat(getV('set-bike-consumo')) || window.appState.veiculo.consumo;
+    }
+    if (document.getElementById('set-peso')) {
+        window.appState.perfil.peso = parseFloat(getV('set-peso'));
+        window.appState.perfil.altura = parseFloat(getV('set-altura'));
+        window.appState.perfil.idade = parseInt(getV('set-idade'));
+        window.appState.perfil.sexo = getV('set-sexo');
+        window.appState.perfil.estado = getV('set-estado');
+        window.appState.perfil.cidade = getV('set-cidade');
+    }
+    if (document.getElementById('set-alcohol-title')) {
+        window.appState.perfil.alcoholTitle = getV('set-alcohol-title');
+        window.appState.perfil.alcoholStart = getV('set-alcohol-start');
+        window.appState.perfil.alcoholTarget = parseInt(getV('set-alcohol-target'));
+    }
+    pushState();
+    updateGlobalUI();
+};
+
+// --- LÓGICA DE INTERFACE ---
 
 const updateGlobalUI = () => {
     injectInterface();
     const mainContent = document.getElementById('main-content');
     const sidebar = document.querySelector('aside');
     
-    // Sincroniza Classes do Layout com style.css
     if (mainContent && window.innerWidth >= 768) {
         mainContent.classList.remove('content-expanded', 'content-collapsed');
         mainContent.classList.add(window.appState.sidebarCollapsed ? 'content-collapsed' : 'content-expanded');
@@ -207,15 +269,40 @@ const updateGlobalUI = () => {
     
     const updateText = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
     
-    // Saúde e Metas (Personalizadas para Weverson)
+    // Finanças
+    const efektivaj = (window.appState.transacoes || []).filter(t => t.status === 'Efetivada');
+    const saldoEfet = efektivaj.reduce((acc, t) => acc + (t.tipo === 'Receita' ? t.valor : -t.valor), 0);
+    const fundoRota = efektivaj.filter(t => t.cat === 'Transporte').reduce((acc, t) => acc + t.valor, 0);
+    
+    updateText('dash-saldo', saldoEfet.toLocaleString('pt-BR'));
+    updateText('dash-fundo', fundoRota.toLocaleString('pt-BR'));
+    updateText('fin-saldo-atual-pag', saldoEfet.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
+
+    // Saúde
+    const metaAgua = 3500;
     updateText('water-current-display', window.appState.water_ml);
     updateText('dash-water-cur', window.appState.water_ml);
     updateText('energy-current-display', window.appState.energy_mg);
     updateText('dash-energy-val', window.appState.energy_mg);
     
     if (document.getElementById('dash-water-bar')) {
-        document.getElementById('dash-water-bar').style.width = Math.min(100, (window.appState.water_ml / 3500) * 100) + '%';
+        document.getElementById('dash-water-bar').style.width = Math.min(100, (window.appState.water_ml / metaAgua) * 100) + '%';
     }
+
+    // Gauge de Energia (Dashboard SVG)
+    const energyPath = document.getElementById('energy-gauge-path');
+    if (energyPath) {
+        const limit = 400;
+        const percentage = Math.min(100, (window.appState.energy_mg / limit) * 100);
+        const offset = 226.2 - (226.2 * percentage) / 100;
+        energyPath.style.strokeDashoffset = offset;
+    }
+
+    // Work Counters
+    const pendentes = (window.appState.tarefas || []).filter(t => t.status === 'Pendente');
+    const concluidas = (window.appState.tarefas || []).filter(t => t.status === 'Concluído');
+    updateText('dash-tasks-progress', concluidas.length);
+    updateText('dash-tasks-remaining', pendentes.length);
     
     updateText('dash-nps-val', window.appState.nps_mes || "0");
     updateText('bike-km-display', window.appState.veiculo.km);
@@ -226,13 +313,16 @@ const updateGlobalUI = () => {
 const renderWorkTasks = () => {
     const list = document.getElementById('work-task-active-list');
     if (!list) return;
-    const pendentes = (window.appState.tarefas || []).filter(t => t.status === 'Pendente');
     const counter = document.getElementById('task-count');
+    const pendentes = (window.appState.tarefas || []).filter(t => t.status === 'Pendente');
     if (counter) counter.innerText = pendentes.length;
 
     list.innerHTML = (window.appState.tarefas || []).map(t => `
         <div class="glass-card p-4 flex items-center justify-between border-l-4 ${t.status === 'Concluído' ? 'border-emerald-500 opacity-50' : 'border-sky-500'} italic">
-            <p class="text-[10px] font-black uppercase text-white ${t.status === 'Concluído' ? 'line-through' : ''}">${t.title}</p>
+            <div>
+                <p class="text-[10px] font-black uppercase text-white ${t.status === 'Concluído' ? 'line-through' : ''}">${t.title}</p>
+                <p class="text-[7px] font-bold text-slate-500 uppercase mt-1 italic">${t.requester} • ${t.type}</p>
+            </div>
             <button onclick="window.toggleTaskStatus(${t.id})" class="p-2 rounded-lg bg-white/5 text-slate-400 hover:text-white transition-all">
                 <i data-lucide="${t.status === 'Concluído' ? 'rotate-ccw' : 'check'}" class="w-4 h-4"></i>
             </button>
