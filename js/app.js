@@ -1,5 +1,5 @@
 /**
- * PULSE OS - Central Intelligence v8.6 (Sidebar & Offline Resilience)
+ * PULSE OS - Central Intelligence v8.8 (Global Sidebar Fix)
  * Makro Engenharia - Fortaleza
  * Gestão em Tempo Real com Sincronização Google & Email via Firebase.
  */
@@ -82,7 +82,7 @@ onAuthStateChanged(auth, (user) => {
         window.appState.login = user.displayName ? user.displayName.split(' ')[0].toUpperCase() : user.email.split('@')[0].toUpperCase();
         window.appState.email = user.email;
         
-        // Renderização imediata para evitar tela branca
+        // Renderização imediata
         updateGlobalUI();
         setupRealtimeSync(user.uid);
         
@@ -125,6 +125,7 @@ const pushState = async () => {
 // --- INTERFACE (CONTROLE DE VISIBILIDADE) ---
 
 const updateGlobalUI = () => {
+    // 1. Injeta o HTML se não existir
     injectInterface();
     
     const isCollapsed = window.appState.sidebarCollapsed;
@@ -132,46 +133,74 @@ const updateGlobalUI = () => {
     const sidebar = document.querySelector('aside');
     
     if (sidebar) {
-        // Removemos o 'hidden' forçadamente se houver um usuário ou estado carregado
+        // Força a exibição e o comportamento de flexbox
         sidebar.classList.remove('hidden');
-        sidebar.classList.add('flex');
+        sidebar.style.display = 'flex';
         
-        // Sincroniza largura e classes do CSS
-        sidebar.style.width = isCollapsed ? '5rem' : '16rem';
+        // Aplica as classes do style.css
         sidebar.classList.toggle('sidebar-collapsed', isCollapsed);
         sidebar.classList.toggle('sidebar-expanded', !isCollapsed);
         
+        // Ajusta a largura via estilo para garantir consistência
+        sidebar.style.width = isCollapsed ? '5rem' : '16rem';
+        
+        // Esconde os textos quando colapsado
         const texts = sidebar.querySelectorAll('span, h1');
         texts.forEach(el => el.style.display = isCollapsed ? 'none' : 'block');
 
+        // Atualiza o ícone do botão de toggle
         const toggleIcon = sidebar.querySelector('[data-lucide="chevron-left"], [data-lucide="chevron-right"]');
-        if (toggleIcon) toggleIcon.setAttribute('data-lucide', isCollapsed ? 'chevron-right' : 'chevron-left');
+        if (toggleIcon) {
+            toggleIcon.setAttribute('data-lucide', isCollapsed ? 'chevron-right' : 'chevron-left');
+        }
     }
 
     if (mainContent) {
-        // Usa as variáveis do style.css em vez de valores fixos no JS
+        // Remove classes estáticas que podem bloquear a margem dinâmica
+        mainContent.classList.remove('md:ml-64');
+        
         if (window.innerWidth >= 768) {
             mainContent.classList.toggle('content-collapsed', isCollapsed);
             mainContent.classList.toggle('content-expanded', !isCollapsed);
-            mainContent.style.marginLeft = ''; // Deixa o CSS (classes acima) controlar
+            // Garante que a margem bata com o CSS
+            mainContent.style.marginLeft = isCollapsed ? '5rem' : '16rem';
         } else {
+            mainContent.classList.remove('content-collapsed', 'content-expanded');
             mainContent.style.marginLeft = '0';
         }
     }
 
-    // Atualização de Displays
+    // Atualização de Displays Dinâmicos
     const set = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
     
     const efektivaj = (window.appState.transacoes || []).filter(t => t.status === 'Efetivada');
     const receitas = efektivaj.filter(t => t.tipo === 'Receita').reduce((acc, t) => acc + (parseFloat(t.valor) || 0), 0);
     const despesas = efektivaj.filter(t => t.tipo === 'Despesa').reduce((acc, t) => acc + (parseFloat(t.valor) || 0), 0);
     const saldo = receitas - despesas;
+    const fundoRota = efektivaj.filter(t => t.cat === 'Transporte').reduce((acc, t) => acc + (parseFloat(t.valor) || 0), 0);
 
     set('fin-saldo-atual-pag', saldo.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
-    set('dash-saldo', saldo.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
+    set('dash-saldo', saldo.toLocaleString('pt-BR', { minimumFractionDigits: 0 }));
+    set('dash-fundo', fundoRota.toLocaleString('pt-BR', { minimumFractionDigits: 0 }));
     set('dash-water-cur', window.appState.water_ml);
     set('water-current-display', window.appState.water_ml);
+    set('dash-energy-val', window.appState.energy_mg);
+    set('energy-current-display', window.appState.energy_mg);
     set('dash-nps-val', window.appState.nps_mes || "0");
+
+    // Gauge de Cafeína (Se existir no Dashboard)
+    const energyPath = document.getElementById('energy-gauge-path');
+    if (energyPath) {
+        const percentage = Math.min(100, (window.appState.energy_mg / 400) * 100);
+        const offset = 226.2 - (226.2 * percentage) / 100;
+        energyPath.style.strokeDashoffset = offset;
+    }
+
+    // Barra de Água
+    const waterBar = document.getElementById('dash-water-bar');
+    if (waterBar) {
+        waterBar.style.width = Math.min(100, (window.appState.water_ml / 3500) * 100) + '%';
+    }
 
     if (window.lucide) lucide.createIcons();
 };
@@ -180,6 +209,7 @@ const injectInterface = () => {
     const sidebarPlaceholder = document.getElementById('sidebar-placeholder');
     const headerPlaceholder = document.getElementById('header-placeholder');
     
+    // Injeção da Barra Lateral
     if (sidebarPlaceholder && !sidebarPlaceholder.querySelector('aside')) {
         const path = (window.location.pathname.split('/').pop() || 'dashboard.html').split('.')[0];
         const items = [
@@ -191,7 +221,6 @@ const injectInterface = () => {
             { id: 'perfil', label: 'Perfil', icon: 'user', color: 'text-purple-500' }
         ];
 
-        // Removi a classe 'hidden' inicial para o JS gerenciar a exibição
         sidebarPlaceholder.innerHTML = `
             <aside class="flex flex-col bg-slate-900 border-r border-white/5 fixed h-full z-50 transition-all duration-300 italic">
                 <div class="p-6 flex items-center justify-between">
@@ -216,6 +245,7 @@ const injectInterface = () => {
         `;
     }
 
+    // Injeção do Cabeçalho
     if (headerPlaceholder && !headerPlaceholder.querySelector('header')) {
         headerPlaceholder.innerHTML = `
             <header class="bg-slate-900/80 backdrop-blur-xl sticky top-0 z-40 px-6 py-5 flex items-center justify-between border-b border-white/5 italic">
@@ -238,6 +268,11 @@ window.toggleSidebar = () => {
 };
 
 window.openTab = (p) => { window.location.href = p + ".html"; };
+
+// --- ACTIONS SAÚDE ---
+window.addWater = (ml) => { window.appState.water_ml += ml; pushState(); updateGlobalUI(); };
+window.addMonster = () => { window.appState.energy_mg += 160; pushState(); updateGlobalUI(); };
+window.resetHealthDay = () => { window.appState.water_ml = 0; window.appState.energy_mg = 0; pushState(); updateGlobalUI(); };
 
 // --- INIT ---
 window.addEventListener('DOMContentLoaded', () => { 
