@@ -1,7 +1,7 @@
 /**
- * PULSE OS - Central Intelligence v11.4 (Save Feedback & Toast System)
- * Makro Engenharia - Fortaleza
- * Gestão em Tempo Real com Sincronização Google & Email via Firebase.
+ * PULSE OS - Central Intelligence v11.5 (Personal Edition)
+ * Gestão Pessoal: Saúde, Finanças e Veículo.
+ * Sincronização em Tempo Real via Firebase & Identidade Google.
  */
 
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
@@ -34,11 +34,13 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const googleProvider = new GoogleAuthProvider();
-const appId = typeof __app_id !== 'undefined' ? __app_id : 'pulse-os-makro';
+const appId = typeof __app_id !== 'undefined' ? __app_id : 'pulse-os-personal';
 
 // Estado Global Inicial
 window.appState = {
     login: "USUÁRIO",
+    fullName: "USUÁRIO",
+    photoURL: null,
     email: "",
     energy_mg: 0,
     water_ml: 0,
@@ -50,7 +52,7 @@ window.appState = {
     calibragem: { monster_mg: 160, coffee_ml: 0 },
     tarefas: [],
     transacoes: [],
-    nps_mes: "85"
+    nps_mes: "0"
 };
 
 // --- SISTEMA DE NOTIFICAÇÃO (TOAST) ---
@@ -67,12 +69,10 @@ window.showToast = (message, type = 'success') => {
     document.body.appendChild(toast);
     if (window.lucide) lucide.createIcons();
 
-    // Animar entrada
     setTimeout(() => {
         toast.classList.remove('translate-y-[-20px]', 'opacity-0');
     }, 10);
 
-    // Remover após 3 segundos
     setTimeout(() => {
         toast.classList.add('translate-y-[-20px]', 'opacity-0');
         setTimeout(() => toast.remove(), 500);
@@ -84,7 +84,7 @@ window.showToast = (message, type = 'success') => {
 window.loginWithGoogle = async () => {
     try { 
         const result = await signInWithPopup(auth, googleProvider);
-        window.showToast("Login Efetuado!");
+        window.showToast("Sincronizado com Google!");
         return { success: true, user: result.user };
     } catch (err) { throw err; }
 };
@@ -107,8 +107,11 @@ window.logout = async () => {
 
 onAuthStateChanged(auth, (user) => {
     if (user) {
-        window.appState.login = user.displayName ? user.displayName.split(' ')[0].toUpperCase() : user.email.split('@')[0].toUpperCase();
+        window.appState.login = user.displayName ? user.displayName.split(' ')[0].toUpperCase() : "USUÁRIO";
+        window.appState.fullName = user.displayName || "USUÁRIO";
+        window.appState.photoURL = user.photoURL || null;
         window.appState.email = user.email;
+        
         updateGlobalUI(); 
         setupRealtimeSync(user.uid);
         
@@ -133,9 +136,13 @@ const setupRealtimeSync = (userId) => {
         if (snapshot.exists()) {
             const cloudData = snapshot.data();
             const currentLocalSidebar = window.appState.sidebarCollapsed;
+            const googlePhoto = window.appState.photoURL;
+            const googleName = window.appState.fullName;
             
             window.appState = { ...window.appState, ...cloudData };
             window.appState.sidebarCollapsed = currentLocalSidebar;
+            window.appState.photoURL = googlePhoto; // Mantém a foto do Google como prioridade
+            window.appState.fullName = googleName;
             
             updateGlobalUI();
         } else {
@@ -150,6 +157,7 @@ const pushState = async () => {
     
     const dataToSync = { ...window.appState };
     delete dataToSync.sidebarCollapsed; 
+    delete dataToSync.photoURL; // Não precisa salvar a URL da foto, ela vem do Auth
 
     try { 
         await setDoc(stateDoc, dataToSync); 
@@ -200,8 +208,16 @@ const updateGlobalUI = () => {
     set('total-expenses', despesas.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
     set('dash-water-cur', window.appState.water_ml);
     set('water-current-display', window.appState.water_ml);
-    set('dash-nps-val', window.appState.nps_mes || "0");
     set('bike-km-display', window.appState.veiculo.km);
+
+    // Atualiza nome e foto em páginas como Perfil se existirem
+    const profName = document.getElementById('profile-user-name');
+    if (profName) profName.innerText = window.appState.fullName;
+    
+    const avatarImg = document.getElementById('avatar-preview-container');
+    if (avatarImg && window.appState.photoURL) {
+        avatarImg.innerHTML = `<img src="${window.appState.photoURL}" class="w-full h-full object-cover rounded-full" />`;
+    }
 
     if (window.lucide) lucide.createIcons();
     if (typeof renderFullExtrato === 'function') renderFullExtrato();
@@ -215,8 +231,8 @@ const injectInterface = () => {
         { id: 'dashboard', label: 'Home', icon: 'layout-dashboard', color: 'text-blue-500' },
         { id: 'saude', label: 'Saúde', icon: 'activity', color: 'text-rose-500' },
         { id: 'veiculo', label: 'Máquina', icon: 'bike', color: 'text-orange-500' },
-        { id: 'work', label: 'WORK', icon: 'briefcase', color: 'text-sky-400' },
-        { id: 'financas', label: 'Money', icon: 'wallet', color: 'text-emerald-500' }
+        { id: 'work', label: 'Tarefas', icon: 'briefcase', color: 'text-sky-400' },
+        { id: 'financas', label: 'Finanças', icon: 'wallet', color: 'text-emerald-500' }
     ];
 
     const path = (window.location.pathname.split('/').pop() || 'dashboard.html').split('.')[0];
@@ -264,11 +280,17 @@ const injectInterface = () => {
     }
 
     if (headerPlaceholder && !headerPlaceholder.querySelector('header')) {
+        const photo = window.appState.photoURL || '';
+        const name = window.appState.login || 'USUÁRIO';
+        
         headerPlaceholder.innerHTML = `
             <header class="bg-slate-900/80 backdrop-blur-xl sticky top-0 z-40 px-6 py-5 flex items-center justify-between border-b border-white/5 italic">
-                <div class="flex flex-col">
-                    <span class="text-[8px] font-black text-blue-500/60 uppercase tracking-[0.2em] mb-1 leading-none italic">Makro Engenharia</span>
-                    <h2 class="text-sm font-black uppercase text-white leading-none italic">${window.appState.login}</h2>
+                <div class="flex items-center gap-3">
+                    ${photo ? `<img src="${photo}" class="w-8 h-8 rounded-full border border-white/10 shadow-lg" onerror="this.style.display='none'"/>` : `<div class="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-500 border border-blue-500/30"><i data-lucide="user" class="w-4 h-4"></i></div>`}
+                    <div class="flex flex-col">
+                        <span class="text-[8px] font-black text-blue-500/60 uppercase tracking-[0.2em] mb-1 leading-none italic">SISTEMA PULSE</span>
+                        <h2 class="text-sm font-black uppercase text-white leading-none italic">${name}</h2>
+                    </div>
                 </div>
                 <button onclick="window.openTab('ajustes')" class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-slate-500 hover:text-white transition-all">
                     <i data-lucide="settings" class="w-4 h-4"></i>
@@ -283,7 +305,6 @@ const injectInterface = () => {
 window.savePulseSettings = async () => {
     let changed = false;
 
-    // Coleta dados de Ajustes.html (Veículo)
     if (document.getElementById('set-bike-tipo')) {
         window.appState.veiculo.tipo = document.getElementById('set-bike-tipo').value;
         window.appState.veiculo.montadora = document.getElementById('set-bike-montadora').value;
@@ -294,7 +315,6 @@ window.savePulseSettings = async () => {
         changed = true;
     }
 
-    // Coleta dados de Ajustes.html (Cafeína e Propósito)
     if (document.getElementById('set-calib-monster')) {
         if (!window.appState.calibragem) window.appState.calibragem = {};
         window.appState.calibragem.monster_mg = parseInt(document.getElementById('set-calib-monster').value) || 160;
@@ -306,7 +326,6 @@ window.savePulseSettings = async () => {
         changed = true;
     }
 
-    // Coleta dados de Perfil.html (Biometria)
     if (document.getElementById('set-peso')) {
         window.appState.perfil.peso = parseFloat(document.getElementById('set-peso').value) || 0;
         window.appState.perfil.altura = parseInt(document.getElementById('set-altura').value) || 0;
@@ -320,7 +339,7 @@ window.savePulseSettings = async () => {
     if (changed) {
         const success = await pushState();
         if (success) {
-            window.showToast("Configurações Salvas!");
+            window.showToast("Dados Pessoais Salvos!");
             updateGlobalUI();
         }
     }
@@ -382,7 +401,7 @@ window.addWorkTask = async () => {
     
     const success = await pushState();
     if (success) {
-        window.showToast("Atividade Lançada!");
+        window.showToast("Atividade Registrada!");
         if (document.getElementById('work-task-title')) document.getElementById('work-task-title').value = "";
         updateGlobalUI();
     }
@@ -410,7 +429,7 @@ window.saveBikeEntry = async () => {
     
     const success = await pushState();
     if (success) {
-        window.showToast("Registro da Máquina Salvo!");
+        window.showToast("Log da Fazer 250 Salvo!");
         updateGlobalUI();
         return true;
     }
@@ -437,14 +456,14 @@ window.addMonster = () => {
     window.appState.energy_mg += 160; 
     pushState(); 
     updateGlobalUI(); 
-    window.showToast("Energia Recarregada!");
+    window.showToast("Cafeína Injetada!");
 };
 window.resetHealthDay = () => { 
     window.appState.water_ml = 0; 
     window.appState.energy_mg = 0; 
     pushState(); 
     updateGlobalUI(); 
-    window.showToast("Ciclo Biométrico Reiniciado");
+    window.showToast("Dashboard Zerado para hoje");
 };
 
 // --- INIT ---
