@@ -3,26 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PULSE OS - Finanças</title>
+    <title>PULSE OS - Financas</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* Estilização da Chave (Toggle) personalizada */
+        .toggle-dot {
+            transition: all 0.3s ease-in-out;
+        }
+        input:checked ~ .toggle-bg {
+            background-color: #10b981; /* Verde Emerald-500 */
+        }
+        input:checked ~ .toggle-dot {
+            transform: translateX(100%);
+        }
+    </style>
 </head>
 <body class="bg-slate-950 text-slate-100 italic">
     <div class="flex min-h-screen relative">
-        <!-- 1. Placeholder da Barra Lateral -->
+        <!-- 1. Flanka breto (Sidebar) -->
         <div id="sidebar-placeholder"></div>
 
-        <!-- 2. Container de Conteúdo -->
+        <!-- 2. Enhava ujo -->
         <div id="main-content" class="flex-1 md:ml-64 transition-all pb-safe-bottom">
             
-            <!-- 3. Placeholder do Cabeçalho -->
+            <!-- 3. Kaplinio (Header) -->
             <div id="header-placeholder"></div>
 
             <main class="max-w-6xl mx-auto p-4 md:p-8 space-y-6 italic">
 
-                <!-- Resumo Geral (Cards Efetivados) -->
+                <!-- Resumo Geral (Kortoj por Efektiva Stato) -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 italic">
                     <div class="bg-slate-900 border border-white/5 p-6 rounded-2xl flex flex-col justify-between shadow-xl italic">
                         <span class="text-blue-500 text-[9px] font-black uppercase tracking-widest italic flex items-center gap-2">
@@ -40,7 +52,7 @@
                     </div>
                 </div>
 
-                <!-- Gráfico de Balanço (Visão Previsível) -->
+                <!-- Grafikaĵo de Balanco (Antaŭvidebla Vido) -->
                 <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 italic">
                     <div class="lg:col-span-3 bg-slate-900 border border-white/5 p-8 rounded-[2rem] italic shadow-2xl">
                         <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4 italic">
@@ -48,7 +60,7 @@
                                 <i data-lucide="trending-up" class="w-3 h-3 text-blue-500"></i> BALANÇO (PREVISÍVEL)
                             </h3>
                             
-                            <!-- Controles de Intervalo -->
+                            <!-- Kontroloj de Intervalo (Interval Controls) -->
                             <div class="flex bg-slate-950 p-1 rounded-xl border border-white/5 italic overflow-hidden">
                                 <button onclick="window.updateChartRange(-12)" class="range-btn px-3 py-1.5 text-[8px] font-black uppercase transition-all text-slate-500 hover:text-white" data-range="-12">Histórico</button>
                                 <button onclick="window.updateChartRange(6)" class="range-btn px-3 py-1.5 text-[8px] font-black uppercase bg-blue-600 text-white transition-all" data-range="6">6 Meses</button>
@@ -58,7 +70,7 @@
                         <div class="h-[320px] relative italic">
                             <canvas id="financeChart"></canvas>
                         </div>
-                        <!-- Legenda do Gráfico -->
+                        <!-- Legendo (Legend) -->
                         <div class="mt-6 flex flex-wrap justify-center gap-6 italic">
                             <div class="flex items-center gap-2">
                                 <span class="w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.3)]"></span>
@@ -71,7 +83,7 @@
                         </div>
                     </div>
                     
-                    <!-- Extrato Lateral -->
+                    <!-- Lastaj transakcioj (Recent Flows) -->
                     <div class="lg:col-span-2 bg-slate-900 border border-white/5 p-8 rounded-[2rem] flex flex-col italic shadow-2xl">
                         <div class="flex items-center justify-between mb-6 italic">
                             <h3 class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 flex items-center gap-2 italic">
@@ -90,12 +102,12 @@
         </div>
     </div>
 
-    <!-- Botão Flutuante -->
+    <!-- Flosanta butono (Floating Action Button) -->
     <button onclick="toggleModal()" class="fixed bottom-24 right-6 md:bottom-8 md:right-8 w-16 h-16 bg-blue-600 hover:bg-blue-500 text-white rounded-full flex items-center justify-center shadow-lg shadow-blue-900/40 active:scale-90 z-[90] italic transition-all">
         <i data-lucide="plus" class="w-8 h-8"></i>
     </button>
 
-    <!-- Modal de Lançamento -->
+    <!-- Modala fenestro (Modal for Entry) -->
     <div id="modal" class="hidden fixed inset-0 bg-slate-950/90 backdrop-blur-xl flex items-center justify-center p-4 z-[100] transition-all italic">
         <div class="bg-slate-900 border border-white/5 rounded-3xl shadow-2xl w-full max-w-md p-8 italic">
             <div class="flex justify-between items-center mb-6 italic">
@@ -108,11 +120,22 @@
                     <input type="number" id="fin-valor" placeholder="VALOR R$" class="pulse-input">
                     <input type="date" id="fin-vencimento" class="pulse-input">
                 </div>
+                
                 <div class="grid grid-cols-2 gap-3 italic">
-                    <select id="fin-status" class="pulse-input uppercase">
-                        <option value="Efetivada">Efetivada</option>
-                        <option value="Previsível">Previsível</option>
-                    </select>
+                    <!-- Chave de Status (Efetivada / Previsível) -->
+                    <div class="flex items-center justify-between px-4 py-3 bg-slate-950/50 rounded-xl border border-white/5">
+                        <span id="toggle-label" class="text-[9px] font-black uppercase text-emerald-500 italic">Efetivada</span>
+                        <label for="status-toggle" class="flex items-center cursor-pointer">
+                            <div class="relative">
+                                <input type="checkbox" id="status-toggle" class="sr-only" checked onchange="updateStatusValue(this.checked)">
+                                <div class="toggle-bg block bg-slate-700 w-10 h-6 rounded-full shadow-inner"></div>
+                                <div class="toggle-dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full shadow transition"></div>
+                            </div>
+                        </label>
+                        <!-- Campo oculto para manter compatibilidade com o app.js -->
+                        <input type="hidden" id="fin-status" value="Efetivada">
+                    </div>
+
                     <div class="flex items-center gap-2 px-2 italic bg-slate-950/50 rounded-xl border border-white/5">
                         <input type="checkbox" id="fin-fixa" class="w-4 h-4 rounded border-white/10 bg-slate-950 text-blue-500">
                         <label for="fin-fixa" class="text-[8px] font-black uppercase text-slate-500 italic">Fixa (12x)</label>
@@ -134,6 +157,24 @@
 
         function toggleModal() { 
             document.getElementById('modal').classList.toggle('hidden'); 
+        }
+
+        // Função para atualizar o valor da chave de status
+        function updateStatusValue(isEfetivada) {
+            const hiddenInput = document.getElementById('fin-status');
+            const label = document.getElementById('toggle-label');
+            
+            if (isEfetivada) {
+                hiddenInput.value = "Efetivada";
+                label.innerText = "Efetivada";
+                label.classList.remove('text-slate-500');
+                label.classList.add('text-emerald-500');
+            } else {
+                hiddenInput.value = "Previsível";
+                label.innerText = "Previsível";
+                label.classList.remove('text-emerald-500');
+                label.classList.add('text-slate-500');
+            }
         }
 
         window.updateChartRange = (range) => {
@@ -186,7 +227,7 @@
                     }
                 });
 
-                // Cálculo do Balanço Acumulado Previsível
+                // Kalkulo de Bilanco (Balance Calculation)
                 for(let j=0; j<count; j++) {
                     balanceData[j] = incomeData[j] - expenseData[j];
                 }
