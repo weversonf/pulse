@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PULSE OS - Login v02</title>
+    <title>PULSE OS - Login v03</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
@@ -17,7 +17,15 @@
             background: rgba(15, 23, 42, 0.8); 
             border: 1px solid rgba(255, 255, 255, 0.05);
             color: white;
+            transition: all 0.3s ease;
         }
+        .pulse-input:focus {
+            border-color: #3b82f6;
+            background: rgba(15, 23, 42, 0.95);
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.1);
+        }
+        .loading-spin { animation: spin 1s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
     </style>
 </head>
 <body class="bg-slate-950 flex items-center justify-center min-h-screen p-4 italic">
@@ -25,36 +33,87 @@
     <div class="w-full max-w-sm space-y-8">
         <div class="text-center space-y-2">
             <h1 class="text-6xl font-black tracking-tighter text-blue-500 italic">PULSE</h1>
-            <p class="text-[10px] font-black uppercase tracking-[0.5em] text-slate-500">Operating System v6.6</p>
+            <p class="text-[10px] font-black uppercase tracking-[0.5em] text-slate-500">Operating System v6.7</p>
         </div>
 
-        <div class="bg-slate-900/50 border border-white/5 p-8 rounded-[2.5rem] shadow-2xl space-y-6 backdrop-blur-md">
+        <!-- Formulário para suporte nativo ao Enter -->
+        <form id="login-form" onsubmit="handleLoginSubmit(event)" class="bg-slate-900/50 border border-white/5 p-8 rounded-[2.5rem] shadow-2xl space-y-6 backdrop-blur-md">
             <div class="space-y-4">
-                <input type="text" id="login-user" placeholder="USUÁRIO" class="pulse-input w-full p-5 rounded-3xl font-bold outline-none uppercase italic">
-                <input type="password" id="login-pass" placeholder="CÓDIGO" class="pulse-input w-full p-5 rounded-3xl font-bold outline-none italic">
+                <div class="space-y-1">
+                    <label class="text-[8px] font-black uppercase tracking-widest text-slate-600 px-4 italic">Utilizador</label>
+                    <input type="text" id="login-user" placeholder="USUÁRIO" required
+                        class="pulse-input w-full p-5 rounded-3xl font-bold outline-none uppercase italic">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[8px] font-black uppercase tracking-widest text-slate-600 px-4 italic">Código</label>
+                    <input type="password" id="login-pass" placeholder="••••••••" required
+                        class="pulse-input w-full p-5 rounded-3xl font-bold outline-none italic">
+                </div>
             </div>
 
-            <p id="login-msg" class="text-[10px] font-bold text-red-500 text-center uppercase min-h-[1.25rem]"></p>
+            <p id="login-msg" class="text-[9px] font-bold text-red-500 text-center uppercase min-h-[1.25rem] tracking-widest leading-tight"></p>
 
-            <button id="btn-login" onclick="handleLoginClick()" 
-                class="w-full bg-blue-600 hover:bg-blue-500 text-white py-5 rounded-3xl font-black uppercase text-xs transition-all italic">
-                Entrar no Sistema
+            <button type="submit" id="btn-login" 
+                class="w-full bg-blue-600 hover:bg-blue-500 text-white py-5 rounded-3xl font-black uppercase text-xs transition-all italic flex items-center justify-center gap-2 active:scale-95">
+                <span>Entrar no Sistema</span>
             </button>
+        </form>
+        
+        <div class="text-center space-y-2">
+            <p class="text-[8px] font-black text-slate-700 uppercase tracking-widest italic">Makro Engenharia</p>
+            <div id="js-status" class="text-[7px] font-bold text-slate-800 uppercase tracking-[0.3em]">Status JS: Verificando...</div>
         </div>
-        <p class="text-center text-[8px] font-black text-slate-700 uppercase tracking-widest italic">Makro Engenharia</p>
     </div>
 
-    <script src="js/app.js"></script>
+    <!-- Carregamento dinâmico para evitar cache no GitHub -->
+    <script id="main-logic-script">
+        const loadScript = () => {
+            const oldScript = document.getElementById('pulse-core-js');
+            if (oldScript) oldScript.remove();
+
+            const script = document.createElement('script');
+            script.id = 'pulse-core-js';
+            script.src = "js/app.js?v=" + Date.now();
+            script.onload = () => {
+                const status = document.getElementById('js-status');
+                status.innerText = "Status JS: Conectado";
+                status.className = "text-[7px] font-bold text-emerald-900 uppercase tracking-[0.3em]";
+                if (window.lucide) lucide.createIcons();
+            };
+            script.onerror = () => {
+                const status = document.getElementById('js-status');
+                status.innerText = "Status JS: Erro de Caminho";
+                status.className = "text-[7px] font-bold text-red-900 uppercase tracking-[0.3em]";
+            };
+            document.body.appendChild(script);
+        };
+        loadScript();
+    </script>
+
     <script>
-        function handleLoginClick() {
+        function handleLoginSubmit(event) {
+            // Impede o recarregamento da página pelo formulário
+            event.preventDefault();
+
             const btn = document.getElementById('btn-login');
-            btn.innerHTML = 'CARREGANDO...';
-            if (typeof window.doLogin === 'function') {
-                window.doLogin();
-            } else {
-                document.getElementById('login-msg').innerText = "ERRO: APP.JS NÃO DETECTADO";
-                btn.innerText = 'Entrar no Sistema';
-            }
+            const msg = document.getElementById('login-msg');
+            
+            msg.innerText = "";
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="refresh-cw" class="w-4 h-4 loading-spin"></i> Processando...';
+            if (window.lucide) lucide.createIcons();
+
+            // Delay para feedback visual
+            setTimeout(() => {
+                if (typeof window.doLogin === 'function') {
+                    window.doLogin();
+                } else {
+                    msg.innerHTML = "ERRO CRÍTICO:<br>ARQUIVO JS NÃO ENCONTRADO";
+                    btn.disabled = false;
+                    btn.innerText = 'Entrar no Sistema';
+                    if (window.lucide) lucide.createIcons();
+                }
+            }, 600);
         }
     </script>
 </body>
