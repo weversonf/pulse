@@ -1,5 +1,5 @@
 /**
- * PULSE OS - Central Intelligence v8.5 (Sidebar Absolute Fix)
+ * PULSE OS - Central Intelligence v8.6 (Sidebar & Offline Resilience)
  * Makro Engenharia - Fortaleza
  * Gestão em Tempo Real com Sincronização Google & Email via Firebase.
  */
@@ -38,7 +38,7 @@ const appId = 'pulse-os-makro';
 
 const NPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwcsfpw1_uglhD6JtF4jAvjJ4hqgnHTcgKL8CBtb_i6pRmck7POOBvuqYykjIIE9sLdyQ/exec";
 
-// Estado Global Inicial (Importante para o Financas.html)
+// Estado Global Inicial
 window.appState = {
     login: "USUÁRIO",
     email: "",
@@ -82,16 +82,17 @@ onAuthStateChanged(auth, (user) => {
         window.appState.login = user.displayName ? user.displayName.split(' ')[0].toUpperCase() : user.email.split('@')[0].toUpperCase();
         window.appState.email = user.email;
         
-        // Renderiza a interface básica antes mesmo do Firebase responder os dados
+        // Renderização imediata para evitar tela branca
         updateGlobalUI();
-        
         setupRealtimeSync(user.uid);
         
-        if (window.location.pathname.endsWith('index.html') || window.location.pathname === '/' || window.location.pathname.endsWith('pulse/')) {
+        const path = window.location.pathname;
+        if (path.endsWith('index.html') || path === '/' || path.endsWith('pulse/')) {
             window.location.href = "dashboard.html";
         }
     } else {
-        if (!window.location.pathname.endsWith('index.html') && window.location.pathname !== '/' && !window.location.pathname.endsWith('pulse/')) {
+        const path = window.location.pathname;
+        if (!path.endsWith('index.html') && path !== '/' && !path.endsWith('pulse/')) {
             window.location.href = "index.html";
         }
     }
@@ -106,7 +107,6 @@ const setupRealtimeSync = (userId) => {
             window.appState = { ...window.appState, ...snapshot.data() };
             updateGlobalUI();
         } else {
-            // Inicializa se não existir nada na nuvem
             setDoc(stateDoc, window.appState);
         }
     }, (error) => {
@@ -122,64 +122,55 @@ const pushState = async () => {
     } catch (e) { console.error("Erro ao salvar:", e); }
 };
 
-// --- INTERFACE (SIDEBAR BLINDADA) ---
+// --- INTERFACE (CONTROLE DE VISIBILIDADE) ---
 
 const updateGlobalUI = () => {
-    // 1. Garante a injeção do HTML do menu
     injectInterface();
     
     const isCollapsed = window.appState.sidebarCollapsed;
     const mainContent = document.getElementById('main-content');
     const sidebar = document.querySelector('aside');
     
-    // 2. Controla o layout baseado no estado colapsado
     if (sidebar) {
-        sidebar.style.width = isCollapsed ? '80px' : '256px';
+        // Removemos o 'hidden' forçadamente se houver um usuário ou estado carregado
+        sidebar.classList.remove('hidden');
+        sidebar.classList.add('flex');
+        
+        // Sincroniza largura e classes do CSS
+        sidebar.style.width = isCollapsed ? '5rem' : '16rem';
         sidebar.classList.toggle('sidebar-collapsed', isCollapsed);
         sidebar.classList.toggle('sidebar-expanded', !isCollapsed);
         
-        // Esconde textos do menu se estiver fechado
         const texts = sidebar.querySelectorAll('span, h1');
-        texts.forEach(el => {
-            el.style.display = isCollapsed ? 'none' : 'block';
-        });
+        texts.forEach(el => el.style.display = isCollapsed ? 'none' : 'block');
 
-        // Ajusta ícone do botão de toggle
         const toggleIcon = sidebar.querySelector('[data-lucide="chevron-left"], [data-lucide="chevron-right"]');
-        if (toggleIcon) {
-            toggleIcon.setAttribute('data-lucide', isCollapsed ? 'chevron-right' : 'chevron-left');
-        }
+        if (toggleIcon) toggleIcon.setAttribute('data-lucide', isCollapsed ? 'chevron-right' : 'chevron-left');
     }
 
     if (mainContent) {
-        // Se mobile (< 768px), ignora margem. Se desktop, ajusta.
+        // Usa as variáveis do style.css em vez de valores fixos no JS
         if (window.innerWidth >= 768) {
-            mainContent.style.marginLeft = isCollapsed ? '80px' : '256px';
+            mainContent.classList.toggle('content-collapsed', isCollapsed);
+            mainContent.classList.toggle('content-expanded', !isCollapsed);
+            mainContent.style.marginLeft = ''; // Deixa o CSS (classes acima) controlar
         } else {
             mainContent.style.marginLeft = '0';
         }
     }
 
-    // 3. Atualiza dados comuns que existem em múltiplas telas
+    // Atualização de Displays
     const set = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
     
-    // Cálculos de Finanças (Efetivados)
     const efektivaj = (window.appState.transacoes || []).filter(t => t.status === 'Efetivada');
     const receitas = efektivaj.filter(t => t.tipo === 'Receita').reduce((acc, t) => acc + (parseFloat(t.valor) || 0), 0);
     const despesas = efektivaj.filter(t => t.tipo === 'Despesa').reduce((acc, t) => acc + (parseFloat(t.valor) || 0), 0);
     const saldo = receitas - despesas;
 
     set('fin-saldo-atual-pag', saldo.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
-    set('total-income', receitas.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
-    set('total-expenses', despesas.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
     set('dash-saldo', saldo.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
-    
-    // Dados de Saúde
     set('dash-water-cur', window.appState.water_ml);
     set('water-current-display', window.appState.water_ml);
-    set('dash-energy-val', window.appState.energy_mg);
-    
-    // NPS
     set('dash-nps-val', window.appState.nps_mes || "0");
 
     if (window.lucide) lucide.createIcons();
@@ -189,7 +180,6 @@ const injectInterface = () => {
     const sidebarPlaceholder = document.getElementById('sidebar-placeholder');
     const headerPlaceholder = document.getElementById('header-placeholder');
     
-    // Só injeta se o placeholder existir e a barra ainda não estiver lá
     if (sidebarPlaceholder && !sidebarPlaceholder.querySelector('aside')) {
         const path = (window.location.pathname.split('/').pop() || 'dashboard.html').split('.')[0];
         const items = [
@@ -201,12 +191,13 @@ const injectInterface = () => {
             { id: 'perfil', label: 'Perfil', icon: 'user', color: 'text-purple-500' }
         ];
 
+        // Removi a classe 'hidden' inicial para o JS gerenciar a exibição
         sidebarPlaceholder.innerHTML = `
-            <aside class="hidden md:flex flex-col bg-slate-900 border-r border-white/5 fixed h-full z-50 transition-all duration-300 italic">
+            <aside class="flex flex-col bg-slate-900 border-r border-white/5 fixed h-full z-50 transition-all duration-300 italic">
                 <div class="p-6 flex items-center justify-between">
                     <h1 class="text-2xl font-black text-blue-500 italic">PULSE</h1>
                     <button onclick="window.toggleSidebar()" class="p-2 bg-white/5 rounded-xl text-slate-500 hover:text-white transition-colors">
-                        <i data-lucide="${window.appState.sidebarCollapsed ? 'chevron-right' : 'chevron-left'}" class="w-4 h-4"></i>
+                        <i data-lucide="chevron-left" class="w-4 h-4"></i>
                     </button>
                 </div>
                 <nav class="flex-1 px-3 mt-4 space-y-1 overflow-y-auto">
@@ -248,47 +239,13 @@ window.toggleSidebar = () => {
 
 window.openTab = (p) => { window.location.href = p + ".html"; };
 
-// --- ACTIONS FINANCEIRAS ---
-
-window.processarLancamento = async (tipo) => {
-    const desc = document.getElementById('fin-desc')?.value.trim();
-    const valor = parseFloat(document.getElementById('fin-valor')?.value);
-    const venc = document.getElementById('fin-vencimento')?.value;
-    const status = document.getElementById('fin-status')?.value;
-    
-    if (!desc || isNaN(valor)) return;
-
-    const lancamento = {
-        id: Date.now(),
-        tipo: tipo === 'receita' ? 'Receita' : 'Despesa',
-        desc: desc.toUpperCase(),
-        valor: valor,
-        vencimento: venc || new Date().toISOString().split('T')[0],
-        status: status || 'Efetivada',
-        cat: document.getElementById('fin-categoria')?.value || 'Geral'
-    };
-
-    if (!window.appState.transacoes) window.appState.transacoes = [];
-    window.appState.transacoes.push(lancamento);
-    
-    // Persiste e atualiza
-    await pushState();
-    updateGlobalUI();
-    
-    // Fecha modal se a função existir
-    if (typeof toggleModal === 'function') toggleModal();
-};
-
 // --- INIT ---
 window.addEventListener('DOMContentLoaded', () => { 
-    // Garante uma tentativa de render inicial
     updateGlobalUI();
 
-    // Atalho Ctrl+B para o menu
     window.addEventListener('keydown', (e) => {
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
-            const active = document.activeElement;
-            if (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA') return;
+            if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') return;
             e.preventDefault(); 
             window.toggleSidebar();
         }
