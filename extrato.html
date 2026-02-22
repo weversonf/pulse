@@ -36,9 +36,9 @@
                 <div class="glass-card p-6 flex flex-col md:flex-row gap-4 italic items-center">
                     <div class="relative flex-1 w-full">
                         <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600"></i>
-                        <input type="text" id="extrato-search" onkeyup="filterExtrato()" placeholder="BUSCAR POR DESCRIÇÃO..." class="pulse-input w-full pl-12">
+                        <input type="text" id="extrato-search" onkeyup="window.filterExtrato()" placeholder="BUSCAR POR DESCRIÇÃO..." class="pulse-input w-full pl-12">
                     </div>
-                    <select id="filter-type" onchange="filterExtrato()" class="pulse-input md:w-48">
+                    <select id="filter-type" onchange="window.filterExtrato()" class="pulse-input md:w-48 cursor-pointer">
                         <option value="todos">TODOS OS TIPOS</option>
                         <option value="Receita">RECEITAS</option>
                         <option value="Despesa">DESPESAS</option>
@@ -46,29 +46,36 @@
                 </div>
 
                 <!-- Lista de Transações -->
-                <div class="glass-card overflow-hidden">
+                <div class="glass-card overflow-hidden shadow-2xl">
                     <div class="p-6 border-b border-white/5 bg-white/2">
-                        <h3 class="text-[10px] font-black uppercase tracking-widest text-slate-500 italic">Lista de Lançamentos</h3>
+                        <h3 class="text-[10px] font-black uppercase tracking-widest text-slate-500 italic">Lista de Lançamentos Sincronizada</h3>
                     </div>
                     <div id="extrato-full-list" class="divide-y divide-white/5">
-                        <!-- Injetado via script -->
+                        <!-- Injetado via app.js -->
+                        <div class="p-12 text-center text-[10px] font-black uppercase text-slate-700 italic animate-pulse">
+                            Sincronizando com Makro Cloud...
+                        </div>
                     </div>
                 </div>
             </main>
         </div>
     </div>
 
-<script type="module" src="js/app.js"></script>
+    <!-- CARREGAMENTO COMO MÓDULO (ESSENCIAL PARA FIREBASE) -->
+    <script type="module" src="js/app.js"></script>
+
     <script>
-        function filterExtrato() {
+        // Função de Filtro
+        window.filterExtrato = () => {
             const query = document.getElementById('extrato-search').value.toLowerCase();
             const type = document.getElementById('filter-type').value;
-            renderFullExtrato(query, type);
-        }
+            window.renderFullExtrato(query, type);
+        };
 
-        function renderFullExtrato(query = "", typeFilter = "todos") {
+        // Função de Renderização (Chamada automaticamente pelo app.js v10.1)
+        window.renderFullExtrato = (query = "", typeFilter = "todos") => {
             const list = document.getElementById('extrato-full-list');
-            if (!list || !window.appState.transacoes) return;
+            if (!list || !window.appState || !window.appState.transacoes) return;
 
             const filtered = window.appState.transacoes.filter(t => {
                 const matchesDesc = (t.desc || "").toLowerCase().includes(query);
@@ -77,22 +84,22 @@
             }).sort((a, b) => b.id - a.id);
 
             if (filtered.length === 0) {
-                list.innerHTML = `<div class="p-12 text-center text-[10px] font-black uppercase text-slate-700 italic">Nenhum registro encontrado</div>`;
+                list.innerHTML = `<div class="p-12 text-center text-[10px] font-black uppercase text-slate-700 italic">Nenhum registro encontrado em Fortaleza</div>`;
                 return;
             }
 
             list.innerHTML = filtered.map(t => `
-                <div class="p-6 flex items-center justify-between hover:bg-white/2 transition-all italic">
+                <div class="p-6 flex items-center justify-between hover:bg-white/2 transition-all italic group">
                     <div class="flex items-center gap-6">
-                        <div class="w-12 h-12 rounded-2xl ${t.tipo === 'Receita' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'} flex items-center justify-center shadow-lg">
-                            <i data-lucide="${t.tipo === 'Receita' ? 'plus-circle' : 'minus-circle'}" class="w-6 h-6"></i>
+                        <div class="w-12 h-12 rounded-2xl ${t.tipo === 'Receita' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                            <i data-lucide="${t.tipo === 'Receita' ? 'trending-up' : 'trending-down'}" class="w-6 h-6"></i>
                         </div>
                         <div>
                             <p class="text-sm font-black text-white uppercase italic">${t.desc || 'Sem descrição'}</p>
                             <div class="flex items-center gap-2 mt-1">
                                 <span class="text-[8px] font-black text-slate-600 uppercase tracking-widest">${t.data}</span>
                                 <span class="w-1 h-1 bg-slate-800 rounded-full"></span>
-                                <span class="text-[8px] font-black text-slate-500 uppercase tracking-widest">${t.cat || 'Geral'}</span>
+                                <span class="text-[8px] font-black text-blue-500/60 uppercase tracking-widest">${t.cat || 'Geral'}</span>
                             </div>
                         </div>
                     </div>
@@ -100,18 +107,26 @@
                         <p class="text-xl font-black ${t.tipo === 'Receita' ? 'text-emerald-400' : 'text-red-400'} italic tracking-tighter">
                             ${t.tipo === 'Receita' ? '+' : '-'} R$ ${parseFloat(t.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2})}
                         </p>
-                        <p class="text-[8px] font-bold text-slate-600 uppercase italic mt-1">${t.status}</p>
+                        <p class="text-[8px] font-bold text-slate-600 uppercase italic mt-1 flex items-center justify-end gap-1">
+                            <i data-lucide="${t.status === 'Efetivada' ? 'shield-check' : 'clock'}" class="w-2 h-2"></i>
+                            ${t.status}
+                        </p>
                     </div>
                 </div>
             `).join('');
 
             if (window.lucide) lucide.createIcons();
-        }
+        };
 
+        // Renderização inicial forçada
         document.addEventListener('DOMContentLoaded', () => {
-            setTimeout(() => renderFullExtrato(), 500);
+            const checkSync = setInterval(() => {
+                if (window.appState && window.appState.transacoes) {
+                    window.renderFullExtrato();
+                    clearInterval(checkSync);
+                }
+            }, 500);
         });
     </script>
 </body>
-
 </html>
