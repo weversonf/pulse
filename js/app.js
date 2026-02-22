@@ -1,7 +1,7 @@
 /**
- * PULSE OS - Central Intelligence v8.3 (Sidebar Stability & Firebase)
+ * PULSE OS - Central Intelligence v8.5 (Sidebar Absolute Fix)
  * Makro Engenharia - Fortaleza
- * Gestão em Tempo Real: Saúde, Finanças, Veículo, WORK e NPS.
+ * Gestão em Tempo Real com Sincronização Google & Email via Firebase.
  */
 
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
@@ -30,17 +30,15 @@ const firebaseConfig = {
     appId: "1:360386380741:web:d45af208f595b5799a81ac"
 };
 
-// Inicialização de Serviços
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const googleProvider = new GoogleAuthProvider();
 const appId = 'pulse-os-makro';
 
-// URL do Script de NPS da Makro Engenharia
 const NPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwcsfpw1_uglhD6JtF4jAvjJ4hqgnHTcgKL8CBtb_i6pRmck7POOBvuqYykjIIE9sLdyQ/exec";
 
-// Estado Global Inicial
+// Estado Global Inicial (Importante para o Financas.html)
 window.appState = {
     login: "USUÁRIO",
     email: "",
@@ -48,21 +46,20 @@ window.appState = {
     water_ml: 0,
     lastHealthReset: new Date().toLocaleDateString('pt-BR'),
     sidebarCollapsed: false,
-    perfil: { 
-        peso: 90, altura: 175, idade: 32, sexo: 'M', estado: 'CE', cidade: 'Fortaleza',
-        avatarConfig: { color: 'blue', icon: 'user' }
-    },
+    perfil: { peso: 90, altura: 175, idade: 32, sexo: 'M', estado: 'CE', cidade: 'Fortaleza' },
     veiculo: { tipo: 'Moto', km: 0, oleo: 38000, historico: [], viagens: [] },
     tarefas: [],
     transacoes: [],
-    nps_mes: "85", 
-    weather: { temp: "--", icon: "sun" }
+    nps_mes: "85"
 };
 
-// --- SISTEMA DE AUTENTICAÇÃO ---
+// --- AUTENTICAÇÃO ---
 
 window.loginWithGoogle = async () => {
-    try { await signInWithPopup(auth, googleProvider); } catch (err) { throw err; }
+    try { 
+        const result = await signInWithPopup(auth, googleProvider);
+        return { success: true, user: result.user };
+    } catch (err) { throw err; }
 };
 
 window.loginWithEmail = async (email, pass) => {
@@ -83,7 +80,13 @@ window.logout = async () => {
 onAuthStateChanged(auth, (user) => {
     if (user) {
         window.appState.login = user.displayName ? user.displayName.split(' ')[0].toUpperCase() : user.email.split('@')[0].toUpperCase();
+        window.appState.email = user.email;
+        
+        // Renderiza a interface básica antes mesmo do Firebase responder os dados
+        updateGlobalUI();
+        
         setupRealtimeSync(user.uid);
+        
         if (window.location.pathname.endsWith('index.html') || window.location.pathname === '/' || window.location.pathname.endsWith('pulse/')) {
             window.location.href = "dashboard.html";
         }
@@ -94,65 +97,90 @@ onAuthStateChanged(auth, (user) => {
     }
 });
 
-// --- SINCRONIZAÇÃO FIRESTORE ---
+// --- FIRESTORE ---
 
 const setupRealtimeSync = (userId) => {
     const stateDoc = doc(db, 'artifacts', appId, 'users', userId, 'state', 'current');
     onSnapshot(stateDoc, (snapshot) => {
         if (snapshot.exists()) {
             window.appState = { ...window.appState, ...snapshot.data() };
-            checkDailyReset();
             updateGlobalUI();
         } else {
+            // Inicializa se não existir nada na nuvem
             setDoc(stateDoc, window.appState);
         }
+    }, (error) => {
+        console.error("Erro na sincronização:", error);
     });
 };
 
 const pushState = async () => {
     if (!auth.currentUser) return;
     const stateDoc = doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'state', 'current');
-    try { await setDoc(stateDoc, window.appState); } catch (e) { console.error("Cloud Error:", e); }
+    try {
+        await setDoc(stateDoc, window.appState);
+    } catch (e) { console.error("Erro ao salvar:", e); }
 };
 
-// --- LÓGICA DE INTERFACE ---
+// --- INTERFACE (SIDEBAR BLINDADA) ---
 
 const updateGlobalUI = () => {
-    injectInterface(); 
+    // 1. Garante a injeção do HTML do menu
+    injectInterface();
     
     const isCollapsed = window.appState.sidebarCollapsed;
     const mainContent = document.getElementById('main-content');
     const sidebar = document.querySelector('aside');
     
-    // Sincroniza o layout principal
-    if (mainContent) {
-        mainContent.style.marginLeft = window.innerWidth < 768 ? '0' : (isCollapsed ? '80px' : '256px');
-    }
-    
+    // 2. Controla o layout baseado no estado colapsado
     if (sidebar) {
         sidebar.style.width = isCollapsed ? '80px' : '256px';
         sidebar.classList.toggle('sidebar-collapsed', isCollapsed);
         sidebar.classList.toggle('sidebar-expanded', !isCollapsed);
         
-        // Controla visibilidade de textos de forma robusta
-        const labels = sidebar.querySelectorAll('span, h1');
-        labels.forEach(l => {
-            l.style.display = isCollapsed ? 'none' : 'block';
+        // Esconde textos do menu se estiver fechado
+        const texts = sidebar.querySelectorAll('span, h1');
+        texts.forEach(el => {
+            el.style.display = isCollapsed ? 'none' : 'block';
         });
+
+        // Ajusta ícone do botão de toggle
+        const toggleIcon = sidebar.querySelector('[data-lucide="chevron-left"], [data-lucide="chevron-right"]');
+        if (toggleIcon) {
+            toggleIcon.setAttribute('data-lucide', isCollapsed ? 'chevron-right' : 'chevron-left');
+        }
     }
 
-    // Atualização de Dados
+    if (mainContent) {
+        // Se mobile (< 768px), ignora margem. Se desktop, ajusta.
+        if (window.innerWidth >= 768) {
+            mainContent.style.marginLeft = isCollapsed ? '80px' : '256px';
+        } else {
+            mainContent.style.marginLeft = '0';
+        }
+    }
+
+    // 3. Atualiza dados comuns que existem em múltiplas telas
     const set = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
     
+    // Cálculos de Finanças (Efetivados)
     const efektivaj = (window.appState.transacoes || []).filter(t => t.status === 'Efetivada');
-    const saldo = efektivaj.reduce((acc, t) => acc + (t.tipo === 'Receita' ? t.valor : -t.valor), 0);
-    
+    const receitas = efektivaj.filter(t => t.tipo === 'Receita').reduce((acc, t) => acc + (parseFloat(t.valor) || 0), 0);
+    const despesas = efektivaj.filter(t => t.tipo === 'Despesa').reduce((acc, t) => acc + (parseFloat(t.valor) || 0), 0);
+    const saldo = receitas - despesas;
+
+    set('fin-saldo-atual-pag', saldo.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
+    set('total-income', receitas.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
+    set('total-expenses', despesas.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
     set('dash-saldo', saldo.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
-    set('dash-water-cur', window.appState.water_ml);
-    set('dash-nps-val', window.appState.nps_mes || "0");
     
-    const wBar = document.getElementById('dash-water-bar');
-    if (wBar) wBar.style.width = Math.min(100, (window.appState.water_ml / 3500) * 100) + '%';
+    // Dados de Saúde
+    set('dash-water-cur', window.appState.water_ml);
+    set('water-current-display', window.appState.water_ml);
+    set('dash-energy-val', window.appState.energy_mg);
+    
+    // NPS
+    set('dash-nps-val', window.appState.nps_mes || "0");
 
     if (window.lucide) lucide.createIcons();
 };
@@ -161,6 +189,7 @@ const injectInterface = () => {
     const sidebarPlaceholder = document.getElementById('sidebar-placeholder');
     const headerPlaceholder = document.getElementById('header-placeholder');
     
+    // Só injeta se o placeholder existir e a barra ainda não estiver lá
     if (sidebarPlaceholder && !sidebarPlaceholder.querySelector('aside')) {
         const path = (window.location.pathname.split('/').pop() || 'dashboard.html').split('.')[0];
         const items = [
@@ -219,28 +248,49 @@ window.toggleSidebar = () => {
 
 window.openTab = (p) => { window.location.href = p + ".html"; };
 
-// --- ACTIONS ---
-window.addWater = (ml) => { window.appState.water_ml += ml; pushState(); updateGlobalUI(); };
-window.addMonster = () => { window.appState.energy_mg += 160; pushState(); updateGlobalUI(); };
+// --- ACTIONS FINANCEIRAS ---
 
-const checkDailyReset = () => {
-    const today = new Date().toLocaleDateString('pt-BR');
-    if (window.appState.lastHealthReset !== today) {
-        window.appState.water_ml = 0; 
-        window.appState.energy_mg = 0; 
-        window.appState.lastHealthReset = today; 
-        pushState();
-    }
+window.processarLancamento = async (tipo) => {
+    const desc = document.getElementById('fin-desc')?.value.trim();
+    const valor = parseFloat(document.getElementById('fin-valor')?.value);
+    const venc = document.getElementById('fin-vencimento')?.value;
+    const status = document.getElementById('fin-status')?.value;
+    
+    if (!desc || isNaN(valor)) return;
+
+    const lancamento = {
+        id: Date.now(),
+        tipo: tipo === 'receita' ? 'Receita' : 'Despesa',
+        desc: desc.toUpperCase(),
+        valor: valor,
+        vencimento: venc || new Date().toISOString().split('T')[0],
+        status: status || 'Efetivada',
+        cat: document.getElementById('fin-categoria')?.value || 'Geral'
+    };
+
+    if (!window.appState.transacoes) window.appState.transacoes = [];
+    window.appState.transacoes.push(lancamento);
+    
+    // Persiste e atualiza
+    await pushState();
+    updateGlobalUI();
+    
+    // Fecha modal se a função existir
+    if (typeof toggleModal === 'function') toggleModal();
 };
 
 // --- INIT ---
 window.addEventListener('DOMContentLoaded', () => { 
+    // Garante uma tentativa de render inicial
     updateGlobalUI();
+
+    // Atalho Ctrl+B para o menu
     window.addEventListener('keydown', (e) => {
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
             const active = document.activeElement;
             if (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA') return;
-            e.preventDefault(); window.toggleSidebar();
+            e.preventDefault(); 
+            window.toggleSidebar();
         }
     });
 });
