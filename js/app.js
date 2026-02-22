@@ -1,5 +1,5 @@
 /**
- * PULSE OS - Central Intelligence v11.1 (Mobile Bottom Nav & Full Actions)
+ * PULSE OS - Central Intelligence v11.2 (Local UI & Full Actions)
  * Makro Engenharia - Fortaleza
  * Gestão em Tempo Real com Sincronização Google & Email via Firebase.
  */
@@ -43,7 +43,7 @@ window.appState = {
     energy_mg: 0,
     water_ml: 0,
     lastHealthReset: new Date().toLocaleDateString('pt-BR'),
-    sidebarCollapsed: false,
+    sidebarCollapsed: false, // Este estado agora será tratado apenas localmente
     activeSubmenu: null,
     perfil: { peso: 90, altura: 175, idade: 32, sexo: 'M', estado: 'CE', cidade: 'Fortaleza' },
     veiculo: { tipo: 'Moto', km: 0, oleo: 38000, historico: [], viagens: [] },
@@ -101,7 +101,13 @@ const setupRealtimeSync = (userId) => {
     const stateDoc = doc(db, 'artifacts', appId, 'users', userId, 'state', 'current');
     onSnapshot(stateDoc, (snapshot) => {
         if (snapshot.exists()) {
-            window.appState = { ...window.appState, ...snapshot.data() };
+            const cloudData = snapshot.data();
+            // Preservamos o estado local da barra lateral ao sincronizar
+            const currentLocalSidebar = window.appState.sidebarCollapsed;
+            
+            window.appState = { ...window.appState, ...cloudData };
+            window.appState.sidebarCollapsed = currentLocalSidebar;
+            
             updateGlobalUI();
         } else {
             setDoc(stateDoc, window.appState);
@@ -112,7 +118,12 @@ const setupRealtimeSync = (userId) => {
 const pushState = async () => {
     if (!auth.currentUser) return;
     const stateDoc = doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'state', 'current');
-    try { await setDoc(stateDoc, window.appState); } catch (e) { console.error("Save Error:", e); }
+    
+    // Criamos uma cópia para enviar à nuvem sem o estado da barra lateral
+    const dataToSync = { ...window.appState };
+    delete dataToSync.sidebarCollapsed; 
+
+    try { await setDoc(stateDoc, dataToSync); } catch (e) { console.error("Save Error:", e); }
 };
 
 // --- INTERFACE (SIDEBAR DESKTOP + BOTTOM NAV MOBILE) ---
@@ -319,7 +330,7 @@ window.saveBikeEntry = async () => {
 
 window.toggleSidebar = () => { 
     window.appState.sidebarCollapsed = !window.appState.sidebarCollapsed; 
-    pushState(); 
+    // Removemos o pushState daqui para que a preferência de menu seja local ao dispositivo
     updateGlobalUI(); 
 };
 
