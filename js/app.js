@@ -1,5 +1,5 @@
 /**
- * PULSE OS - Central Intelligence v8.8 (Global Sidebar Fix)
+ * PULSE OS - Central Intelligence v8.9 (Sub-menu & Sidebar Absolute Fix)
  * Makro Engenharia - Fortaleza
  * Gestão em Tempo Real com Sincronização Google & Email via Firebase.
  */
@@ -20,7 +20,7 @@ import {
     onSnapshot 
 } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
 
-// --- CONFIGURAÇÃO FIREBASE (Projeto: pulse-68c1c) ---
+// --- CONFIGURAÇÃO FIREBASE ---
 const firebaseConfig = {
     apiKey: "AIzaSyAyqPiFoq6s7L6J3pPeCG-ib66H8mueoZs",
     authDomain: "pulse-68c1c.firebaseapp.com",
@@ -36,8 +36,6 @@ const db = getFirestore(app);
 const googleProvider = new GoogleAuthProvider();
 const appId = 'pulse-os-makro';
 
-const NPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwcsfpw1_uglhD6JtF4jAvjJ4hqgnHTcgKL8CBtb_i6pRmck7POOBvuqYykjIIE9sLdyQ/exec";
-
 // Estado Global Inicial
 window.appState = {
     login: "USUÁRIO",
@@ -46,6 +44,7 @@ window.appState = {
     water_ml: 0,
     lastHealthReset: new Date().toLocaleDateString('pt-BR'),
     sidebarCollapsed: false,
+    activeSubmenu: null, // Controla qual sub-menu está aberto
     perfil: { peso: 90, altura: 175, idade: 32, sexo: 'M', estado: 'CE', cidade: 'Fortaleza' },
     veiculo: { tipo: 'Moto', km: 0, oleo: 38000, historico: [], viagens: [] },
     tarefas: [],
@@ -56,10 +55,7 @@ window.appState = {
 // --- AUTENTICAÇÃO ---
 
 window.loginWithGoogle = async () => {
-    try { 
-        const result = await signInWithPopup(auth, googleProvider);
-        return { success: true, user: result.user };
-    } catch (err) { throw err; }
+    try { await signInWithPopup(auth, googleProvider); } catch (err) { throw err; }
 };
 
 window.loginWithEmail = async (email, pass) => {
@@ -76,14 +72,12 @@ window.logout = async () => {
     window.location.href = "index.html";
 };
 
-// Monitor de Sessão
 onAuthStateChanged(auth, (user) => {
     if (user) {
         window.appState.login = user.displayName ? user.displayName.split(' ')[0].toUpperCase() : user.email.split('@')[0].toUpperCase();
         window.appState.email = user.email;
         
-        // Renderização imediata
-        updateGlobalUI();
+        updateGlobalUI(); // Render imediato
         setupRealtimeSync(user.uid);
         
         const path = window.location.pathname;
@@ -109,23 +103,18 @@ const setupRealtimeSync = (userId) => {
         } else {
             setDoc(stateDoc, window.appState);
         }
-    }, (error) => {
-        console.error("Erro na sincronização:", error);
-    });
+    }, (error) => console.error("Erro Sync:", error));
 };
 
 const pushState = async () => {
     if (!auth.currentUser) return;
     const stateDoc = doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'state', 'current');
-    try {
-        await setDoc(stateDoc, window.appState);
-    } catch (e) { console.error("Erro ao salvar:", e); }
+    try { await setDoc(stateDoc, window.appState); } catch (e) { console.error("Erro Save:", e); }
 };
 
-// --- INTERFACE (CONTROLE DE VISIBILIDADE) ---
+// --- INTERFACE (SIDEBAR COM SUB-MENU) ---
 
 const updateGlobalUI = () => {
-    // 1. Injeta o HTML se não existir
     injectInterface();
     
     const isCollapsed = window.appState.sidebarCollapsed;
@@ -133,74 +122,31 @@ const updateGlobalUI = () => {
     const sidebar = document.querySelector('aside');
     
     if (sidebar) {
-        // Força a exibição e o comportamento de flexbox
         sidebar.classList.remove('hidden');
         sidebar.style.display = 'flex';
-        
-        // Aplica as classes do style.css
         sidebar.classList.toggle('sidebar-collapsed', isCollapsed);
         sidebar.classList.toggle('sidebar-expanded', !isCollapsed);
-        
-        // Ajusta a largura via estilo para garantir consistência
         sidebar.style.width = isCollapsed ? '5rem' : '16rem';
         
-        // Esconde os textos quando colapsado
-        const texts = sidebar.querySelectorAll('span, h1');
+        const texts = sidebar.querySelectorAll('.menu-label, h1');
         texts.forEach(el => el.style.display = isCollapsed ? 'none' : 'block');
-
-        // Atualiza o ícone do botão de toggle
-        const toggleIcon = sidebar.querySelector('[data-lucide="chevron-left"], [data-lucide="chevron-right"]');
-        if (toggleIcon) {
-            toggleIcon.setAttribute('data-lucide', isCollapsed ? 'chevron-right' : 'chevron-left');
-        }
     }
 
-    if (mainContent) {
-        // Remove classes estáticas que podem bloquear a margem dinâmica
-        mainContent.classList.remove('md:ml-64');
-        
-        if (window.innerWidth >= 768) {
-            mainContent.classList.toggle('content-collapsed', isCollapsed);
-            mainContent.classList.toggle('content-expanded', !isCollapsed);
-            // Garante que a margem bata com o CSS
-            mainContent.style.marginLeft = isCollapsed ? '5rem' : '16rem';
-        } else {
-            mainContent.classList.remove('content-collapsed', 'content-expanded');
-            mainContent.style.marginLeft = '0';
-        }
+    if (mainContent && window.innerWidth >= 768) {
+        mainContent.style.marginLeft = isCollapsed ? '5rem' : '16rem';
     }
 
-    // Atualização de Displays Dinâmicos
+    // Atualização de Saldos e Saúde
     const set = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
-    
     const efektivaj = (window.appState.transacoes || []).filter(t => t.status === 'Efetivada');
-    const receitas = efektivaj.filter(t => t.tipo === 'Receita').reduce((acc, t) => acc + (parseFloat(t.valor) || 0), 0);
-    const despesas = efektivaj.filter(t => t.tipo === 'Despesa').reduce((acc, t) => acc + (parseFloat(t.valor) || 0), 0);
-    const saldo = receitas - despesas;
-    const fundoRota = efektivaj.filter(t => t.cat === 'Transporte').reduce((acc, t) => acc + (parseFloat(t.valor) || 0), 0);
+    const saldo = efektivaj.reduce((acc, t) => acc + (t.tipo === 'Receita' ? parseFloat(t.valor) : -parseFloat(t.valor)), 0);
+    const fundoRota = efektivaj.filter(t => t.cat === 'Transporte').reduce((acc, t) => acc + parseFloat(t.valor), 0);
 
-    set('fin-saldo-atual-pag', saldo.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
     set('dash-saldo', saldo.toLocaleString('pt-BR', { minimumFractionDigits: 0 }));
     set('dash-fundo', fundoRota.toLocaleString('pt-BR', { minimumFractionDigits: 0 }));
+    set('fin-saldo-atual-pag', saldo.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
     set('dash-water-cur', window.appState.water_ml);
-    set('water-current-display', window.appState.water_ml);
-    set('dash-energy-val', window.appState.energy_mg);
-    set('energy-current-display', window.appState.energy_mg);
     set('dash-nps-val', window.appState.nps_mes || "0");
-
-    // Gauge de Cafeína (Se existir no Dashboard)
-    const energyPath = document.getElementById('energy-gauge-path');
-    if (energyPath) {
-        const percentage = Math.min(100, (window.appState.energy_mg / 400) * 100);
-        const offset = 226.2 - (226.2 * percentage) / 100;
-        energyPath.style.strokeDashoffset = offset;
-    }
-
-    // Barra de Água
-    const waterBar = document.getElementById('dash-water-bar');
-    if (waterBar) {
-        waterBar.style.width = Math.min(100, (window.appState.water_ml / 3500) * 100) + '%';
-    }
 
     if (window.lucide) lucide.createIcons();
 };
@@ -209,15 +155,24 @@ const injectInterface = () => {
     const sidebarPlaceholder = document.getElementById('sidebar-placeholder');
     const headerPlaceholder = document.getElementById('header-placeholder');
     
-    // Injeção da Barra Lateral
     if (sidebarPlaceholder && !sidebarPlaceholder.querySelector('aside')) {
         const path = (window.location.pathname.split('/').pop() || 'dashboard.html').split('.')[0];
+        
+        // Definição dos itens com suporte a sub-menu
         const items = [
             { id: 'dashboard', label: 'Home', icon: 'layout-dashboard', color: 'text-blue-500' },
             { id: 'saude', label: 'Saúde', icon: 'activity', color: 'text-rose-500' },
             { id: 'veiculo', label: 'Máquina', icon: 'bike', color: 'text-orange-500' },
             { id: 'work', label: 'WORK', icon: 'briefcase', color: 'text-sky-400' },
-            { id: 'financas', label: 'Money', icon: 'wallet', color: 'text-emerald-500' },
+            { 
+                id: 'financas', 
+                label: 'Money', 
+                icon: 'wallet', 
+                color: 'text-emerald-500',
+                submenu: [
+                    { id: 'extrato', label: 'Extrato', icon: 'list' }
+                ]
+            },
             { id: 'perfil', label: 'Perfil', icon: 'user', color: 'text-purple-500' }
         ];
 
@@ -226,26 +181,48 @@ const injectInterface = () => {
                 <div class="p-6 flex items-center justify-between">
                     <h1 class="text-2xl font-black text-blue-500 italic">PULSE</h1>
                     <button onclick="window.toggleSidebar()" class="p-2 bg-white/5 rounded-xl text-slate-500 hover:text-white transition-colors">
-                        <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                        <i data-lucide="${window.appState.sidebarCollapsed ? 'chevron-right' : 'chevron-left'}" class="w-4 h-4"></i>
                     </button>
                 </div>
                 <nav class="flex-1 px-3 mt-4 space-y-1 overflow-y-auto">
-                    ${items.map(i => `
-                        <button onclick="window.openTab('${i.id}')" class="w-full flex items-center gap-4 px-4 py-4 rounded-xl font-black uppercase text-[10px] tracking-widest ${path === i.id ? 'bg-white/5 text-blue-500' : 'text-slate-400 hover:bg-white/5'} transition-all">
-                            <i data-lucide="${i.icon}" class="w-5 h-5 ${i.color}"></i>
-                            <span>${i.label}</span>
-                        </button>
-                    `).join('')}
+                    ${items.map(i => {
+                        const hasSub = i.submenu && i.submenu.length > 0;
+                        const isOpen = window.appState.activeSubmenu === i.id;
+                        const isActive = path === i.id || (hasSub && i.submenu.some(s => s.id === path));
+                        
+                        return `
+                            <div class="space-y-1">
+                                <button onclick="${hasSub ? `window.toggleSubmenu('${i.id}')` : `window.openTab('${i.id}')`}" 
+                                    class="w-full flex items-center gap-4 px-4 py-4 rounded-xl font-black uppercase text-[10px] tracking-widest ${isActive ? 'bg-white/5 text-blue-500' : 'text-slate-400 hover:bg-white/5'} transition-all">
+                                    <i data-lucide="${i.icon}" class="w-5 h-5 ${i.color}"></i>
+                                    <span class="menu-label flex-1 text-left">${i.label}</span>
+                                    ${hasSub && !window.appState.sidebarCollapsed ? `<i data-lucide="${isOpen ? 'chevron-up' : 'chevron-down'}" class="w-3 h-3 opacity-50"></i>` : ''}
+                                </button>
+                                
+                                ${hasSub && isOpen && !window.appState.sidebarCollapsed ? `
+                                    <div class="pl-12 space-y-1 animate-in slide-in-from-top-2 duration-200">
+                                        ${i.submenu.map(sub => `
+                                            <button onclick="window.openTab('${sub.id}')" 
+                                                class="w-full flex items-center gap-3 py-3 text-slate-500 hover:text-white transition-colors text-[9px] font-black uppercase tracking-widest ${path === sub.id ? 'text-blue-500' : ''}">
+                                                <i data-lucide="${sub.icon}" class="w-3 h-3"></i>
+                                                <span>${sub.label}</span>
+                                            </button>
+                                        `).join('')}
+                                    </div>
+                                ` : ''}
+                            </div>
+                        `;
+                    }).join('')}
+                    
                     <button onclick="window.logout()" class="w-full flex items-center gap-4 px-4 py-4 mt-10 text-red-500/40 hover:text-red-500 transition-all italic font-black text-[10px] tracking-widest">
                         <i data-lucide="log-out" class="w-5 h-5"></i>
-                        <span>Sair</span>
+                        <span class="menu-label">Sair</span>
                     </button>
                 </nav>
             </aside>
         `;
     }
 
-    // Injeção do Cabeçalho
     if (headerPlaceholder && !headerPlaceholder.querySelector('header')) {
         headerPlaceholder.innerHTML = `
             <header class="bg-slate-900/80 backdrop-blur-xl sticky top-0 z-40 px-6 py-5 flex items-center justify-between border-b border-white/5 italic">
@@ -259,6 +236,12 @@ const injectInterface = () => {
             </header>
         `;
     }
+    if (window.lucide) lucide.createIcons();
+};
+
+window.toggleSubmenu = (id) => {
+    window.appState.activeSubmenu = window.appState.activeSubmenu === id ? null : id;
+    updateGlobalUI();
 };
 
 window.toggleSidebar = () => { 
@@ -269,15 +252,12 @@ window.toggleSidebar = () => {
 
 window.openTab = (p) => { window.location.href = p + ".html"; };
 
-// --- ACTIONS SAÚDE ---
+// --- ACTIONS ---
 window.addWater = (ml) => { window.appState.water_ml += ml; pushState(); updateGlobalUI(); };
 window.addMonster = () => { window.appState.energy_mg += 160; pushState(); updateGlobalUI(); };
-window.resetHealthDay = () => { window.appState.water_ml = 0; window.appState.energy_mg = 0; pushState(); updateGlobalUI(); };
 
-// --- INIT ---
 window.addEventListener('DOMContentLoaded', () => { 
     updateGlobalUI();
-
     window.addEventListener('keydown', (e) => {
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
             if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') return;
