@@ -1,5 +1,5 @@
 /**
- * PULSE OS - Central Intelligence v11.2 (Local UI & Full Actions)
+ * PULSE OS - Central Intelligence v11.3 (Settings & Profile Sync Fix)
  * Makro Engenharia - Fortaleza
  * Gestão em Tempo Real com Sincronização Google & Email via Firebase.
  */
@@ -43,10 +43,11 @@ window.appState = {
     energy_mg: 0,
     water_ml: 0,
     lastHealthReset: new Date().toLocaleDateString('pt-BR'),
-    sidebarCollapsed: false, // Este estado agora será tratado apenas localmente
+    sidebarCollapsed: false,
     activeSubmenu: null,
     perfil: { peso: 90, altura: 175, idade: 32, sexo: 'M', estado: 'CE', cidade: 'Fortaleza' },
     veiculo: { tipo: 'Moto', km: 0, oleo: 38000, historico: [], viagens: [] },
+    calibragem: { monster_mg: 160, coffee_ml: 0 },
     tarefas: [],
     transacoes: [],
     nps_mes: "85"
@@ -102,7 +103,6 @@ const setupRealtimeSync = (userId) => {
     onSnapshot(stateDoc, (snapshot) => {
         if (snapshot.exists()) {
             const cloudData = snapshot.data();
-            // Preservamos o estado local da barra lateral ao sincronizar
             const currentLocalSidebar = window.appState.sidebarCollapsed;
             
             window.appState = { ...window.appState, ...cloudData };
@@ -119,14 +119,13 @@ const pushState = async () => {
     if (!auth.currentUser) return;
     const stateDoc = doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'state', 'current');
     
-    // Criamos uma cópia para enviar à nuvem sem o estado da barra lateral
     const dataToSync = { ...window.appState };
     delete dataToSync.sidebarCollapsed; 
 
     try { await setDoc(stateDoc, dataToSync); } catch (e) { console.error("Save Error:", e); }
 };
 
-// --- INTERFACE (SIDEBAR DESKTOP + BOTTOM NAV MOBILE) ---
+// --- INTERFACE ---
 
 const updateGlobalUI = () => {
     injectInterface();
@@ -135,7 +134,6 @@ const updateGlobalUI = () => {
     const mainContent = document.getElementById('main-content');
     const sidebar = document.querySelector('aside');
     
-    // Configuração Desktop (Sidebar)
     if (sidebar) {
         sidebar.classList.toggle('sidebar-collapsed', isCollapsed);
         sidebar.classList.toggle('sidebar-expanded', !isCollapsed);
@@ -154,7 +152,6 @@ const updateGlobalUI = () => {
         }
     }
 
-    // Atualização de Displays
     const set = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
     const efektivaj = (window.appState.transacoes || []).filter(t => t.status === 'Efetivada');
     const receitas = efektivaj.filter(t => t.tipo === 'Receita').reduce((acc, t) => acc + parseFloat(t.valor || 0), 0);
@@ -247,6 +244,42 @@ const injectInterface = () => {
 
 // --- AÇÕES DO SISTEMA ---
 
+window.savePulseSettings = async () => {
+    // Coleta dados de Ajustes.html (Veículo)
+    if (document.getElementById('set-bike-tipo')) {
+        window.appState.veiculo.tipo = document.getElementById('set-bike-tipo').value;
+        window.appState.veiculo.montadora = document.getElementById('set-bike-montadora').value;
+        window.appState.veiculo.modelo = document.getElementById('set-bike-modelo').value;
+        window.appState.veiculo.km = parseInt(document.getElementById('set-bike-km').value) || 0;
+        window.appState.veiculo.oleo = parseInt(document.getElementById('set-bike-oleo').value) || 0;
+        window.appState.veiculo.consumo = parseFloat(document.getElementById('set-bike-consumo').value) || 29;
+    }
+
+    // Coleta dados de Ajustes.html (Cafeína e Propósito)
+    if (document.getElementById('set-calib-monster')) {
+        if (!window.appState.calibragem) window.appState.calibragem = {};
+        window.appState.calibragem.monster_mg = parseInt(document.getElementById('set-calib-monster').value) || 160;
+        window.appState.calibragem.coffee_ml = parseInt(document.getElementById('set-calib-ml').value) || 0;
+        
+        window.appState.perfil.alcoholTitle = document.getElementById('set-alcohol-title').value;
+        window.appState.perfil.alcoholStart = document.getElementById('set-alcohol-start').value;
+        window.appState.perfil.alcoholTarget = parseInt(document.getElementById('set-alcohol-target').value) || 30;
+    }
+
+    // Coleta dados de Perfil.html (Biometria)
+    if (document.getElementById('set-peso')) {
+        window.appState.perfil.peso = parseFloat(document.getElementById('set-peso').value) || 0;
+        window.appState.perfil.altura = parseInt(document.getElementById('set-altura').value) || 0;
+        window.appState.perfil.idade = parseInt(document.getElementById('set-idade').value) || 0;
+        window.appState.perfil.sexo = document.getElementById('set-sexo').value;
+        window.appState.perfil.estado = document.getElementById('set-estado').value;
+        window.appState.perfil.cidade = document.getElementById('set-cidade').value;
+    }
+
+    await pushState();
+    updateGlobalUI();
+};
+
 window.processarLancamento = async (tipo) => {
     const desc = document.getElementById('fin-desc')?.value.trim();
     const valor = parseFloat(document.getElementById('fin-valor')?.value);
@@ -330,7 +363,6 @@ window.saveBikeEntry = async () => {
 
 window.toggleSidebar = () => { 
     window.appState.sidebarCollapsed = !window.appState.sidebarCollapsed; 
-    // Removemos o pushState daqui para que a preferência de menu seja local ao dispositivo
     updateGlobalUI(); 
 };
 
