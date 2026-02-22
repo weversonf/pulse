@@ -1,5 +1,5 @@
 /**
- * PULSE OS - Central Intelligence v11.3 (Settings & Profile Sync Fix)
+ * PULSE OS - Central Intelligence v11.4 (Save Feedback & Toast System)
  * Makro Engenharia - Fortaleza
  * Gestão em Tempo Real com Sincronização Google & Email via Firebase.
  */
@@ -53,11 +53,38 @@ window.appState = {
     nps_mes: "85"
 };
 
+// --- SISTEMA DE NOTIFICAÇÃO (TOAST) ---
+
+window.showToast = (message, type = 'success') => {
+    const toast = document.createElement('div');
+    toast.className = `fixed top-6 left-1/2 -translate-x-1/2 z-[200] px-6 py-3 rounded-2xl font-black uppercase text-[10px] tracking-[0.2em] shadow-2xl transition-all duration-500 transform translate-y-[-20px] opacity-0 italic flex items-center gap-3 border ${
+        type === 'success' ? 'bg-emerald-950/90 border-emerald-500/50 text-emerald-400' : 'bg-red-950/90 border-red-500/50 text-red-400'
+    }`;
+    
+    const icon = type === 'success' ? 'check-circle' : 'alert-circle';
+    toast.innerHTML = `<i data-lucide="${icon}" class="w-4 h-4"></i> ${message}`;
+    
+    document.body.appendChild(toast);
+    if (window.lucide) lucide.createIcons();
+
+    // Animar entrada
+    setTimeout(() => {
+        toast.classList.remove('translate-y-[-20px]', 'opacity-0');
+    }, 10);
+
+    // Remover após 3 segundos
+    setTimeout(() => {
+        toast.classList.add('translate-y-[-20px]', 'opacity-0');
+        setTimeout(() => toast.remove(), 500);
+    }, 3000);
+};
+
 // --- AUTENTICAÇÃO ---
 
 window.loginWithGoogle = async () => {
     try { 
         const result = await signInWithPopup(auth, googleProvider);
+        window.showToast("Login Efetuado!");
         return { success: true, user: result.user };
     } catch (err) { throw err; }
 };
@@ -65,8 +92,10 @@ window.loginWithGoogle = async () => {
 window.loginWithEmail = async (email, pass) => {
     try {
         await signInWithEmailAndPassword(auth, email, pass);
+        window.showToast("Sessão Iniciada!");
         return { success: true };
     } catch (err) {
+        window.showToast("Falha no Login", "error");
         return { success: false, error: "Falha na Autenticação" };
     }
 };
@@ -122,7 +151,14 @@ const pushState = async () => {
     const dataToSync = { ...window.appState };
     delete dataToSync.sidebarCollapsed; 
 
-    try { await setDoc(stateDoc, dataToSync); } catch (e) { console.error("Save Error:", e); }
+    try { 
+        await setDoc(stateDoc, dataToSync); 
+        return true;
+    } catch (e) { 
+        console.error("Save Error:", e);
+        window.showToast("Erro ao Sincronizar", "error");
+        return false;
+    }
 };
 
 // --- INTERFACE ---
@@ -245,6 +281,8 @@ const injectInterface = () => {
 // --- AÇÕES DO SISTEMA ---
 
 window.savePulseSettings = async () => {
+    let changed = false;
+
     // Coleta dados de Ajustes.html (Veículo)
     if (document.getElementById('set-bike-tipo')) {
         window.appState.veiculo.tipo = document.getElementById('set-bike-tipo').value;
@@ -253,6 +291,7 @@ window.savePulseSettings = async () => {
         window.appState.veiculo.km = parseInt(document.getElementById('set-bike-km').value) || 0;
         window.appState.veiculo.oleo = parseInt(document.getElementById('set-bike-oleo').value) || 0;
         window.appState.veiculo.consumo = parseFloat(document.getElementById('set-bike-consumo').value) || 29;
+        changed = true;
     }
 
     // Coleta dados de Ajustes.html (Cafeína e Propósito)
@@ -264,6 +303,7 @@ window.savePulseSettings = async () => {
         window.appState.perfil.alcoholTitle = document.getElementById('set-alcohol-title').value;
         window.appState.perfil.alcoholStart = document.getElementById('set-alcohol-start').value;
         window.appState.perfil.alcoholTarget = parseInt(document.getElementById('set-alcohol-target').value) || 30;
+        changed = true;
     }
 
     // Coleta dados de Perfil.html (Biometria)
@@ -274,10 +314,16 @@ window.savePulseSettings = async () => {
         window.appState.perfil.sexo = document.getElementById('set-sexo').value;
         window.appState.perfil.estado = document.getElementById('set-estado').value;
         window.appState.perfil.cidade = document.getElementById('set-cidade').value;
+        changed = true;
     }
 
-    await pushState();
-    updateGlobalUI();
+    if (changed) {
+        const success = await pushState();
+        if (success) {
+            window.showToast("Configurações Salvas!");
+            updateGlobalUI();
+        }
+    }
 };
 
 window.processarLancamento = async (tipo) => {
@@ -287,7 +333,10 @@ window.processarLancamento = async (tipo) => {
     const status = document.getElementById('fin-status')?.value || 'Efetivada';
     const cat = document.getElementById('fin-categoria')?.value || 'Geral';
 
-    if (!desc || isNaN(valor)) return;
+    if (!desc || isNaN(valor)) {
+        window.showToast("Dados Inválidos", "error");
+        return;
+    }
 
     const lancamento = {
         id: Date.now(),
@@ -303,12 +352,14 @@ window.processarLancamento = async (tipo) => {
     if (!window.appState.transacoes) window.appState.transacoes = [];
     window.appState.transacoes.push(lancamento);
 
-    await pushState();
-    updateGlobalUI();
-
-    if (typeof window.toggleModal === 'function') window.toggleModal();
-    if(document.getElementById('fin-desc')) document.getElementById('fin-desc').value = "";
-    if(document.getElementById('fin-valor')) document.getElementById('fin-valor').value = "";
+    const success = await pushState();
+    if (success) {
+        window.showToast("Lançamento Efetuado!");
+        updateGlobalUI();
+        if (typeof window.toggleModal === 'function') window.toggleModal();
+        if(document.getElementById('fin-desc')) document.getElementById('fin-desc').value = "";
+        if(document.getElementById('fin-valor')) document.getElementById('fin-valor').value = "";
+    }
 };
 
 window.addWorkTask = async () => {
@@ -328,10 +379,13 @@ window.addWorkTask = async () => {
 
     if (!window.appState.tarefas) window.appState.tarefas = [];
     window.appState.tarefas.push(newTask);
-    if (document.getElementById('work-task-title')) document.getElementById('work-task-title').value = "";
     
-    await pushState();
-    updateGlobalUI();
+    const success = await pushState();
+    if (success) {
+        window.showToast("Atividade Lançada!");
+        if (document.getElementById('work-task-title')) document.getElementById('work-task-title').value = "";
+        updateGlobalUI();
+    }
 };
 
 window.saveBikeEntry = async () => {
@@ -354,9 +408,13 @@ window.saveBikeEntry = async () => {
     if (!window.appState.veiculo.historico) window.appState.veiculo.historico = [];
     window.appState.veiculo.historico.push(entry);
     
-    await pushState();
-    updateGlobalUI();
-    return true;
+    const success = await pushState();
+    if (success) {
+        window.showToast("Registro da Máquina Salvo!");
+        updateGlobalUI();
+        return true;
+    }
+    return false;
 };
 
 // --- NAVEGAÇÃO E CONTROLES ---
@@ -369,9 +427,25 @@ window.toggleSidebar = () => {
 window.openTab = (p) => { window.location.href = p + ".html"; };
 
 // --- ACTIONS SAÚDE ---
-window.addWater = (ml) => { window.appState.water_ml += ml; pushState(); updateGlobalUI(); };
-window.addMonster = () => { window.appState.energy_mg += 160; pushState(); updateGlobalUI(); };
-window.resetHealthDay = () => { window.appState.water_ml = 0; window.appState.energy_mg = 0; pushState(); updateGlobalUI(); };
+window.addWater = (ml) => { 
+    window.appState.water_ml += ml; 
+    pushState(); 
+    updateGlobalUI(); 
+    window.showToast(`+${ml}ml Hidratado`);
+};
+window.addMonster = () => { 
+    window.appState.energy_mg += 160; 
+    pushState(); 
+    updateGlobalUI(); 
+    window.showToast("Energia Recarregada!");
+};
+window.resetHealthDay = () => { 
+    window.appState.water_ml = 0; 
+    window.appState.energy_mg = 0; 
+    pushState(); 
+    updateGlobalUI(); 
+    window.showToast("Ciclo Biométrico Reiniciado");
+};
 
 // --- INIT ---
 updateGlobalUI();
