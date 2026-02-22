@@ -1,5 +1,5 @@
 /**
- * PULSE OS - Central Intelligence v9.0 (Full Functional Sync)
+ * PULSE OS - Central Intelligence v10.0 (Production Ready)
  * Makro Engenharia - Fortaleza
  * Gestão em Tempo Real com Sincronização Google & Email via Firebase.
  */
@@ -11,7 +11,8 @@ import {
     signInWithPopup, 
     GoogleAuthProvider, 
     signInWithEmailAndPassword, 
-    signOut 
+    signOut,
+    signInAnonymously
 } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
 import { 
     getFirestore, 
@@ -20,7 +21,7 @@ import {
     onSnapshot 
 } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
 
-// --- CONFIGURAÇÃO FIREBASE ---
+// --- CONFIGURAÇÃO FIREBASE (Projeto: pulse-68c1c) ---
 const firebaseConfig = {
     apiKey: "AIzaSyAyqPiFoq6s7L6J3pPeCG-ib66H8mueoZs",
     authDomain: "pulse-68c1c.firebaseapp.com",
@@ -34,7 +35,9 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const googleProvider = new GoogleAuthProvider();
-const appId = 'pulse-os-makro';
+const appId = typeof __app_id !== 'undefined' ? __app_id : 'pulse-os-makro';
+
+const NPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwcsfpw1_uglhD6JtF4jAvjJ4hqgnHTcgKL8CBtb_i6pRmck7POOBvuqYykjIIE9sLdyQ/exec";
 
 // Estado Global Inicial
 window.appState = {
@@ -55,7 +58,13 @@ window.appState = {
 // --- AUTENTICAÇÃO ---
 
 window.loginWithGoogle = async () => {
-    try { await signInWithPopup(auth, googleProvider); } catch (err) { throw err; }
+    try { 
+        const result = await signInWithPopup(auth, googleProvider);
+        return { success: true, user: result.user };
+    } catch (err) { 
+        console.error("Erro Google Login:", err);
+        throw err; 
+    }
 };
 
 window.loginWithEmail = async (email, pass) => {
@@ -72,6 +81,7 @@ window.logout = async () => {
     window.location.href = "index.html";
 };
 
+// Monitor de Sessão (MANDATÓRIO: Auth antes de Firestore)
 onAuthStateChanged(auth, (user) => {
     if (user) {
         window.appState.login = user.displayName ? user.displayName.split(' ')[0].toUpperCase() : user.email.split('@')[0].toUpperCase();
@@ -92,27 +102,36 @@ onAuthStateChanged(auth, (user) => {
     }
 });
 
-// --- FIRESTORE ---
+// --- FIRESTORE (SINCRONIZAÇÃO EM TEMPO REAL) ---
 
 const setupRealtimeSync = (userId) => {
+    if (!userId) return;
+    // Path: /artifacts/{appId}/users/{userId}/state/current
     const stateDoc = doc(db, 'artifacts', appId, 'users', userId, 'state', 'current');
+    
     onSnapshot(stateDoc, (snapshot) => {
         if (snapshot.exists()) {
-            window.appState = { ...window.appState, ...snapshot.data() };
+            const data = snapshot.data();
+            window.appState = { ...window.appState, ...data };
             updateGlobalUI();
         } else {
+            // Inicializa dados na nuvem para novo usuário
             setDoc(stateDoc, window.appState);
         }
-    }, (error) => console.error("Erro Sync:", error));
+    }, (error) => console.error("Firestore Sync Error:", error));
 };
 
 const pushState = async () => {
     if (!auth.currentUser) return;
     const stateDoc = doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'state', 'current');
-    try { await setDoc(stateDoc, window.appState); } catch (e) { console.error("Erro Save:", e); }
+    try { 
+        await setDoc(stateDoc, window.appState); 
+    } catch (e) { 
+        console.error("Erro ao salvar dados na Makro Cloud:", e); 
+    }
 };
 
-// --- INTERFACE (SIDEBAR COM SUB-MENU) ---
+// --- INTERFACE (SIDEBAR E LAYOUT) ---
 
 const updateGlobalUI = () => {
     injectInterface();
@@ -124,6 +143,8 @@ const updateGlobalUI = () => {
     if (sidebar) {
         sidebar.classList.remove('hidden');
         sidebar.style.display = 'flex';
+        
+        // Sincroniza classes com style.css
         sidebar.classList.toggle('sidebar-collapsed', isCollapsed);
         sidebar.classList.toggle('sidebar-expanded', !isCollapsed);
         sidebar.style.width = isCollapsed ? '5rem' : '16rem';
@@ -132,15 +153,23 @@ const updateGlobalUI = () => {
         texts.forEach(el => el.style.display = isCollapsed ? 'none' : 'block');
     }
 
-    if (mainContent && window.innerWidth >= 768) {
-        mainContent.style.marginLeft = isCollapsed ? '5rem' : '16rem';
+    if (mainContent) {
+        // Remove margens estáticas e usa as classes do CSS
+        mainContent.classList.remove('md:ml-64');
+        if (window.innerWidth >= 768) {
+            mainContent.classList.toggle('content-collapsed', isCollapsed);
+            mainContent.classList.toggle('content-expanded', !isCollapsed);
+        } else {
+            mainContent.style.marginLeft = '0';
+        }
     }
 
-    // Atualização de Displays
+    // Displays Dinâmicos
     const set = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
     
-    // Cálculos Financeiros
-    const efektivaj = (window.appState.transacoes || []).filter(t => t.status === 'Efetivada');
+    // Cálculo de Finanças (Baseado no Toggle 'Efetivada')
+    const transacoes = window.appState.transacoes || [];
+    const efektivaj = transacoes.filter(t => t.status === 'Efetivada');
     const receitasTotal = efektivaj.filter(t => t.tipo === 'Receita').reduce((acc, t) => acc + parseFloat(t.valor || 0), 0);
     const despesasTotal = efektivaj.filter(t => t.tipo === 'Despesa').reduce((acc, t) => acc + parseFloat(t.valor || 0), 0);
     const saldo = receitasTotal - despesasTotal;
@@ -152,16 +181,24 @@ const updateGlobalUI = () => {
     set('total-income', receitasTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
     set('total-expenses', despesasTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
 
-    // Saúde e NPS
+    // Saúde e Veículo
     set('dash-water-cur', window.appState.water_ml);
     set('water-current-display', window.appState.water_ml);
     set('dash-energy-val', window.appState.energy_mg);
-    set('energy-current-display', window.appState.energy_mg);
     set('dash-nps-val', window.appState.nps_mes || "0");
     set('bike-km-display', window.appState.veiculo.km);
 
+    // Barras de Progresso
+    const waterBar = document.getElementById('dash-water-bar');
+    if (waterBar) waterBar.style.width = Math.min(100, (window.appState.water_ml / 3500) * 100) + '%';
+    
+    const energyPath = document.getElementById('energy-gauge-path');
+    if (energyPath) {
+        const percentage = Math.min(100, (window.appState.energy_mg / 400) * 100);
+        energyPath.style.strokeDashoffset = 226.2 - (226.2 * percentage) / 100;
+    }
+
     if (window.lucide) lucide.createIcons();
-    if (typeof renderWorkTasks === 'function') renderWorkTasks();
 };
 
 const injectInterface = () => {
@@ -204,7 +241,7 @@ const injectInterface = () => {
                                     ${hasSub && !window.appState.sidebarCollapsed ? `<i data-lucide="${isOpen ? 'chevron-up' : 'chevron-down'}" class="w-3 h-3 opacity-50"></i>` : ''}
                                 </button>
                                 ${hasSub && isOpen && !window.appState.sidebarCollapsed ? `
-                                    <div class="pl-12 space-y-1 animate-in slide-in-from-top-2 duration-200">
+                                    <div class="pl-12 space-y-1">
                                         ${i.submenu.map(sub => `
                                             <button onclick="window.openTab('${sub.id}')" 
                                                 class="w-full flex items-center gap-3 py-3 text-slate-500 hover:text-white transition-colors text-[9px] font-black uppercase tracking-widest ${path === sub.id ? 'text-blue-500' : ''}">
@@ -242,117 +279,35 @@ const injectInterface = () => {
     if (window.lucide) lucide.createIcons();
 };
 
-// --- AÇÕES FINANCEIRAS ---
+// --- AÇÕES DO SISTEMA ---
+
 window.processarLancamento = async (tipo) => {
     const desc = document.getElementById('fin-desc')?.value.trim();
     const valor = parseFloat(document.getElementById('fin-valor')?.value);
-    const venc = document.getElementById('fin-vencimento')?.value;
     const status = document.getElementById('fin-status')?.value || 'Efetivada';
-    const cat = document.getElementById('fin-categoria')?.value || 'Geral';
-
     if (!desc || isNaN(valor)) return;
 
-    const lancamento = {
+    window.appState.transacoes.push({
         id: Date.now(),
         tipo: tipo === 'receita' ? 'Receita' : 'Despesa',
         desc: desc.toUpperCase(),
         valor: valor,
-        vencimento: venc || new Date().toISOString().split('T')[0],
+        data: new Date().toLocaleDateString('pt-BR'),
         status: status,
-        cat: cat,
-        data: new Date().toLocaleDateString('pt-BR')
-    };
-
-    if (!window.appState.transacoes) window.appState.transacoes = [];
-    window.appState.transacoes.push(lancamento);
+        cat: 'Geral'
+    });
 
     await pushState();
     updateGlobalUI();
-
-    if (typeof window.toggleModal === 'function') window.toggleModal();
-    if(document.getElementById('fin-desc')) document.getElementById('fin-desc').value = "";
-    if(document.getElementById('fin-valor')) document.getElementById('fin-valor').value = "";
+    if (typeof toggleModal === 'function') toggleModal();
 };
 
-// --- AÇÕES DE TRABALHO (WORK) ---
-window.addWorkTask = async () => {
-    const title = document.getElementById('work-task-title')?.value;
-    const type = document.getElementById('work-task-type')?.value || "Geral";
-    const req = document.getElementById('work-task-requester')?.value || "Próprio";
-    if (!title) return;
+window.addWater = (ml) => { window.appState.water_ml += ml; updateGlobalUI(); pushState(); };
+window.addMonster = () => { window.appState.energy_mg += 160; updateGlobalUI(); pushState(); };
 
-    const newTask = {
-        id: Date.now(),
-        title: title.toUpperCase(),
-        type: type,
-        requester: req,
-        status: 'Pendente',
-        data: new Date().toLocaleDateString('pt-BR')
-    };
-
-    if (!window.appState.tarefas) window.appState.tarefas = [];
-    window.appState.tarefas.push(newTask);
-    if (document.getElementById('work-task-title')) document.getElementById('work-task-title').value = "";
-    
-    await pushState();
-    updateGlobalUI();
-};
-
-// --- AÇÕES DE VEÍCULO ---
-window.saveBikeEntry = async () => {
-    const desc = document.getElementById('bike-log-desc')?.value;
-    const km = parseInt(document.getElementById('bike-log-km')?.value);
-    const valor = parseFloat(document.getElementById('bike-log-valor')?.value) || 0;
-    const tipo = document.getElementById('bike-log-tipo')?.value || 'Manutenção';
-    if (!desc || isNaN(km)) return false;
-
-    const entry = {
-        id: Date.now(),
-        desc: desc.toUpperCase(),
-        km: km,
-        valor: valor,
-        tipo: tipo,
-        data: new Date().toLocaleDateString('pt-BR')
-    };
-
-    window.appState.veiculo.km = km;
-    if (!window.appState.veiculo.historico) window.appState.veiculo.historico = [];
-    window.appState.veiculo.historico.push(entry);
-    
-    await pushState();
-    updateGlobalUI();
-    return true;
-};
-
-// --- CONTROLES DE NAVEGAÇÃO E SIDEBAR ---
-window.toggleSubmenu = (id) => {
-    window.appState.activeSubmenu = window.appState.activeSubmenu === id ? null : id;
-    updateGlobalUI();
-};
-
-window.toggleSidebar = () => { 
-    window.appState.sidebarCollapsed = !window.appState.sidebarCollapsed; 
-    pushState(); 
-    updateGlobalUI(); 
-};
-
+window.toggleSubmenu = (id) => { window.appState.activeSubmenu = window.appState.activeSubmenu === id ? null : id; updateGlobalUI(); };
+window.toggleSidebar = () => { window.appState.sidebarCollapsed = !window.appState.sidebarCollapsed; pushState(); updateGlobalUI(); };
 window.openTab = (p) => { window.location.href = p + ".html"; };
 
-// --- AÇÕES DE SAÚDE ---
-window.addWater = (ml) => { window.appState.water_ml += ml; pushState(); updateGlobalUI(); };
-window.addMonster = () => { window.appState.energy_mg += 160; pushState(); updateGlobalUI(); };
-window.resetHealthDay = () => { window.appState.water_ml = 0; window.appState.energy_mg = 0; pushState(); updateGlobalUI(); };
-
 // --- INIT ---
-window.addEventListener('DOMContentLoaded', () => { 
-    updateGlobalUI();
-    window.addEventListener('keydown', (e) => {
-        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
-            if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') return;
-            e.preventDefault(); 
-            window.toggleSidebar();
-        }
-    });
-});
-
-window.addEventListener('resize', updateGlobalUI);
+updateGlobalUI();
