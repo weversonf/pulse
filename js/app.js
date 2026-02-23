@@ -1,5 +1,5 @@
 /**
- * PULSE OS - Central Intelligence v14.5
+ * PULSE OS - Central Intelligence v14.6
  * Gestão Total: Saúde, Finanças e Veículo.
  * Sincronização em Tempo Real via Firebase & Google Auth.
  */
@@ -20,8 +20,14 @@ import {
     collection
 } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
 
-// --- CONFIGURAÇÃO FIREBASE ---
-const firebaseConfig = JSON.parse(__firebase_config);
+// --- CONFIGURAÇÃO FIREBASE (SEGURANÇA) ---
+let firebaseConfig = {};
+try {
+    firebaseConfig = JSON.parse(__firebase_config);
+} catch (e) {
+    console.error("Configuração Firebase ausente ou inválida.");
+}
+
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -45,7 +51,7 @@ window.appState = {
 
 window.currentSystemDate = new Date();
 
-// --- NOTIFICAÇÕES ---
+// --- NOTIFICAÇÕES (TOAST) ---
 window.showToast = (message, type = 'success') => {
     const toast = document.createElement('div');
     toast.className = `fixed top-6 left-1/2 -translate-x-1/2 z-[200] px-6 py-3 rounded-2xl font-bold uppercase text-[10px] tracking-[0.2em] shadow-2xl transition-all duration-500 flex items-center gap-3 border ${type === 'success' ? 'bg-emerald-950/90 border-emerald-500/50 text-emerald-400' : 'bg-red-950/90 border-red-500/50 text-red-400'}`;
@@ -65,30 +71,41 @@ const initAuth = async () => {
         }
     } catch (error) {
         console.error("Erro na autenticação:", error);
+        window.showToast("Erro ao conectar à nuvem", "error");
     }
 };
 
 onAuthStateChanged(auth, (user) => {
     if (user) {
         window.appState.login = user.displayName ? user.displayName.split(' ')[0].toUpperCase() : "USUÁRIO";
+        // Inicia sincronização e UI
         setupRealtimeSync(user.uid);
+        updateGlobalUI(); 
+    } else {
+        // Redireciona para login se não estiver na index
+        if (!window.location.pathname.endsWith('index.html') && !window.location.pathname.endsWith('/')) {
+            window.location.href = "index.html";
+        }
     }
 });
 
-// --- SINCRONIZAÇÃO ---
+// --- SINCRONIZAÇÃO EM TEMPO REAL ---
 const setupRealtimeSync = (userId) => {
     if (!userId) return;
     const stateDocRef = doc(db, 'artifacts', appId, 'users', userId, 'state', 'current');
+    
     onSnapshot(stateDocRef, (snapshot) => {
         if (snapshot.exists()) {
             const cloudData = snapshot.data();
             window.appState = { ...window.appState, ...cloudData };
             updateGlobalUI();
         } else {
+            // Se o documento não existe, cria o estado inicial
             pushState();
+            updateGlobalUI();
         }
     }, (error) => {
-        console.error("Erro no Sync:", error);
+        console.error("Erro na sincronização:", error);
     });
 };
 
@@ -96,8 +113,11 @@ const pushState = async () => {
     if (!auth.currentUser) return;
     const userId = auth.currentUser.uid;
     const stateDocRef = doc(db, 'artifacts', appId, 'users', userId, 'state', 'current');
+    
+    // Filtramos dados que não precisam de persistência (como estado do menu local)
     const dataToSync = { ...window.appState };
     delete dataToSync.sidebarCollapsed; 
+    
     try { 
         await setDoc(stateDocRef, dataToSync, { merge: true }); 
         return true; 
@@ -106,7 +126,7 @@ const pushState = async () => {
     }
 };
 
-// --- INTERFACE ---
+// --- INJEÇÃO DE INTERFACE ---
 const injectInterface = () => {
     const sidebarPlaceholder = document.getElementById('sidebar-placeholder') || document.getElementById('menu-container');
     const headerPlaceholder = document.getElementById('header-placeholder');
@@ -131,7 +151,7 @@ const injectInterface = () => {
     const path = (window.location.pathname.split('/').pop() || 'dashboard.html').split('.')[0];
     const isCollapsed = window.appState.sidebarCollapsed;
 
-    // Sidebar Desktop/Mobile - Reinjeção controlada para evitar "sumiço"
+    // Sidebar - Injeção sempre que houver atualização para refletir colapso
     sidebarPlaceholder.innerHTML = `
         <aside class="hidden md:flex flex-col bg-slate-900 border-r border-white/5 fixed h-full z-50 transition-all duration-300" style="width: ${isCollapsed ? '5rem' : '16rem'}">
             <div class="p-6 flex items-center justify-between">
@@ -141,7 +161,9 @@ const injectInterface = () => {
             <nav class="flex-1 px-3 mt-4 space-y-1 overflow-y-auto">
                 ${items.map(i => `
                     <div>
-                        <button onclick="${i.id === 'financas' ? `window.openTab('financas')` : (i.sub ? `window.toggleSubmenu('${i.id}')` : `window.openTab('${i.id}')`)}" class="w-full flex items-center justify-between px-4 py-4 rounded-xl font-black uppercase text-[10px] tracking-widest ${path === i.id || (i.sub && i.sub.some(s => path === s.target)) ? 'bg-white/5 text-blue-500' : 'text-slate-400 hover:bg-white/5'} transition-all">
+                        <button onclick="${i.id === 'financas' ? `window.openTab('financas')` : (i.sub ? `window.toggleSubmenu('${i.id}')` : `window.openTab('${i.id}')`)}" 
+                            class="w-full flex items-center justify-between px-4 py-4 rounded-xl font-black uppercase text-[10px] tracking-widest 
+                            ${path === i.id || (i.sub && i.sub.some(s => path === s.target)) ? 'bg-white/5 text-blue-500' : 'text-slate-400 hover:bg-white/5'} transition-all">
                             <div class="flex items-center gap-4">
                                 <i data-lucide="${i.icon}" class="w-5 h-5 ${i.color}"></i>
                                 <span class="menu-label ${isCollapsed ? 'hidden' : ''}">${i.label}</span>
@@ -157,14 +179,14 @@ const injectInterface = () => {
                 `).join('')}
             </nav>
         </aside>
-        <!-- Nav Mobile -->
+        <!-- Navegação Mobile -->
         <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-xl border-t border-white/5 flex items-center justify-around px-2 py-3 z-[100] shadow-2xl">
             ${items.filter(i => i.id !== 'ajustes').slice(0, 5).map(i => `<button onclick="window.openTab('${i.id}')" class="flex flex-col items-center gap-1 p-2 ${path === i.id || (i.sub && i.sub.some(s => path === s.target)) ? 'text-blue-500' : 'text-slate-500'}"><i data-lucide="${i.icon}" class="w-5 h-5"></i><span class="text-[7px] font-black uppercase">${i.label}</span></button>`).join('')}
             <button onclick="window.openTab('ajustes')" class="flex flex-col items-center gap-1 p-2 ${path === 'ajustes' ? 'text-blue-500' : 'text-slate-500'}"><i data-lucide="settings" class="w-5 h-5"></i><span class="text-[7px] font-black uppercase">Ajustes</span></button>
         </nav>
     `;
 
-    // Header Dinâmico (Reduzido para py-2 conforme solicitado)
+    // Header Dinâmico (Compacto)
     if (headerPlaceholder) {
         headerPlaceholder.innerHTML = `
             <header class="bg-transparent sticky top-0 z-40 px-6 py-2 flex items-center justify-end">
@@ -181,17 +203,19 @@ const updateGlobalUI = () => {
     const isCollapsed = window.appState.sidebarCollapsed;
     const mainContent = document.getElementById('main-content');
     
-    // Ajuste de margem do conteúdo principal baseado no menu
+    // Ajuste de margem responsivo
     if (mainContent && window.innerWidth >= 768) {
         mainContent.style.marginLeft = isCollapsed ? '5rem' : '16rem';
     }
 
+    // Aciona refrescos locais das páginas
     if (typeof refreshDisplays === 'function') refreshDisplays();
     if (typeof renderFullExtrato === 'function') renderFullExtrato();
+    
     if (window.lucide) lucide.createIcons();
 };
 
-// --- LOGICA FINANCEIRA ---
+// --- LÓGICA DE DADOS (FINANÇAS) ---
 window.getProjectionData = (mode) => {
     const now = new Date();
     const trans = window.appState.transacoes || [];
@@ -233,7 +257,7 @@ window.getProjectionData = (mode) => {
     return { labels, income, expenses, balance };
 };
 
-// --- AÇÕES GERAIS ---
+// --- AÇÕES DO SISTEMA ---
 window.processarLancamento = async (tipo) => {
     const val = parseFloat(document.getElementById('fin-valor').value);
     const venc = document.getElementById('fin-vencimento').value;
@@ -246,6 +270,8 @@ window.processarLancamento = async (tipo) => {
         data: new Date().toLocaleDateString('pt-BR') 
     };
     window.appState.transacoes.push(novaTransacao);
+    
+    // Lançamento Fixo (12 meses)
     if (document.getElementById('fin-fixa')?.checked) {
         for (let i = 1; i < 12; i++) {
             const nextDate = new Date(venc + "T12:00:00");
@@ -254,7 +280,7 @@ window.processarLancamento = async (tipo) => {
         }
     }
     const ok = await pushState(); 
-    if (ok) { window.showToast("Lançamento Registrado!"); updateGlobalUI(); }
+    if (ok) { window.showToast("Lançamento Efetuado!"); updateGlobalUI(); }
 };
 
 window.saveBikeEntry = async () => {
@@ -268,6 +294,7 @@ window.saveBikeEntry = async () => {
     return false;
 };
 
+// --- UTILITÁRIOS ---
 window.addWater = async (ml) => { window.appState.water_ml += ml; const ok = await pushState(); if (ok) { updateGlobalUI(); window.showToast(`+${ml}ml Hidratado`); } };
 window.addMonster = async () => { window.appState.energy_mg += window.appState.calibragem.monster_mg; const ok = await pushState(); if (ok) { updateGlobalUI(); window.showToast("Energia Injetada!"); } };
 window.resetHealthDay = async () => { window.appState.water_ml = 0; window.appState.energy_mg = 0; const ok = await pushState(); if (ok) { updateGlobalUI(); window.showToast("Ciclo Zerado"); } };
@@ -279,6 +306,7 @@ window.toggleSubmenu = (id) => {
 };
 window.openTab = (p) => { window.location.href = p + ".html"; };
 
+// --- INICIALIZAÇÃO ---
 document.addEventListener('DOMContentLoaded', () => { 
     initAuth();
     updateGlobalUI(); 
