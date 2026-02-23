@@ -1,5 +1,5 @@
 /**
- * PULSE OS - Central Intelligence v14.7
+ * PULSE OS - Central Intelligence v14.8
  * Gestão Total: Saúde, Finanças e Veículo.
  * Sincronização em Tempo Real via Firebase & Google Auth.
  */
@@ -9,7 +9,10 @@ import {
     getAuth, 
     onAuthStateChanged, 
     signInWithCustomToken, 
-    signInAnonymously 
+    signInAnonymously,
+    signInWithEmailAndPassword,
+    signInWithPopup,
+    GoogleAuthProvider
 } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
 import { 
     getFirestore, 
@@ -18,12 +21,20 @@ import {
     onSnapshot 
 } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
 
-// --- CONFIGURAÇÃO FIREBASE (SEGURANÇA & AMBIENTE) ---
-const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+// --- CONFIGURAÇÃO FIREBASE (PROTEGIDA) ---
+let app, auth, db;
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'pulse-os-personal-weverson';
+
+try {
+    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+    if (firebaseConfig) {
+        app = initializeApp(firebaseConfig);
+        auth = getAuth(app);
+        db = getFirestore(app);
+    }
+} catch (e) {
+    console.error("Falha ao inicializar Firebase. Verifique as chaves de configuração.");
+}
 
 // --- ESTADO GLOBAL ---
 window.appState = {
@@ -51,33 +62,63 @@ window.showToast = (message, type = 'success') => {
     setTimeout(() => toast.remove(), 3500);
 };
 
-// --- AUTENTICAÇÃO (REGRA 3) ---
+// --- LOGICA DE AUTENTICAÇÃO (SOLUÇÃO PARA O ERRO DE SCRIPT) ---
+
+window.loginWithGoogle = async () => {
+    if (!auth) return;
+    const provider = new GoogleAuthProvider();
+    try {
+        await signInWithPopup(auth, provider);
+        window.location.href = "dashboard.html";
+    } catch (error) {
+        console.error("Erro Google Login:", error);
+        throw error;
+    }
+};
+
+window.loginWithEmail = async (email, password) => {
+    if (!auth) return { success: false, error: "Firebase não iniciado" };
+    try {
+        await signInWithEmailAndPassword(auth, email, password);
+        window.location.href = "dashboard.html";
+        return { success: true };
+    } catch (error) {
+        return { success: false, error: "Credenciais inválidas" };
+    }
+};
+
 const initAuth = async () => {
+    if (!auth) return;
     try {
         if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
             await signInWithCustomToken(auth, __initial_auth_token);
         } else {
-            await signInAnonymously(auth);
+            // Apenas tenta anónimo se não houver utilizador ativo e não estivermos na página de login
+            if (!auth.currentUser && !window.location.pathname.endsWith('index.html')) {
+                await signInAnonymously(auth);
+            }
         }
     } catch (error) {
-        console.error("Erro na autenticação:", error);
+        console.error("Erro initAuth:", error);
     }
 };
 
-onAuthStateChanged(auth, (user) => {
-    if (user) {
-        window.appState.login = user.displayName ? user.displayName.split(' ')[0].toUpperCase() : "USUÁRIO";
-        setupRealtimeSync(user.uid);
-    } else {
-        if (!window.location.pathname.endsWith('index.html') && window.location.pathname !== '/') {
-            window.location.href = "index.html";
+if (auth) {
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            window.appState.login = user.displayName ? user.displayName.split(' ')[0].toUpperCase() : (user.email ? user.email.split('@')[0].toUpperCase() : "USUÁRIO");
+            setupRealtimeSync(user.uid);
+        } else {
+            if (!window.location.pathname.endsWith('index.html') && window.location.pathname !== '/') {
+                window.location.href = "index.html";
+            }
         }
-    }
-});
+    });
+}
 
 // --- SINCRONIZAÇÃO EM TEMPO REAL ---
 const setupRealtimeSync = (userId) => {
-    if (!userId) return;
+    if (!userId || !db) return;
     const stateDocRef = doc(db, 'artifacts', appId, 'users', userId, 'state', 'current');
     
     onSnapshot(stateDocRef, (snapshot) => {
@@ -94,7 +135,7 @@ const setupRealtimeSync = (userId) => {
 };
 
 const pushState = async () => {
-    if (!auth.currentUser) return;
+    if (!auth || !auth.currentUser) return;
     const userId = auth.currentUser.uid;
     const stateDocRef = doc(db, 'artifacts', appId, 'users', userId, 'state', 'current');
     const dataToSync = { ...window.appState };
@@ -109,7 +150,6 @@ const pushState = async () => {
 
 // --- INJEÇÃO DE INTERFACE ---
 const injectInterface = () => {
-    // Unificação de placeholders (Suporta tanto sidebar-placeholder quanto menu-container)
     const sidebarPlaceholder = document.getElementById('sidebar-placeholder') || document.getElementById('menu-container');
     const headerPlaceholder = document.getElementById('header-placeholder');
     
@@ -133,7 +173,6 @@ const injectInterface = () => {
     const path = (window.location.pathname.split('/').pop() || 'dashboard.html').split('.')[0];
     const isCollapsed = window.appState.sidebarCollapsed;
 
-    // Sidebar - Garante injeção limpa
     sidebarPlaceholder.innerHTML = `
         <aside class="hidden md:flex flex-col bg-slate-900 border-r border-white/5 fixed h-full z-50 transition-all duration-300 overflow-hidden" style="width: ${isCollapsed ? '5rem' : '16rem'}">
             <div class="p-6 flex items-center justify-between overflow-hidden">
@@ -184,7 +223,6 @@ const injectInterface = () => {
         </nav>
     `;
 
-    // Header Dinâmico
     if (headerPlaceholder) {
         headerPlaceholder.innerHTML = `
             <header class="bg-transparent sticky top-0 z-40 px-6 py-2 flex items-center justify-end">
@@ -207,11 +245,12 @@ const updateGlobalUI = () => {
 
     if (typeof refreshDisplays === 'function') refreshDisplays();
     if (typeof renderFullExtrato === 'function') renderFullExtrato();
+    if (typeof fillAjustesForm === 'function') fillAjustesForm();
     
     if (window.lucide) lucide.createIcons();
 };
 
-// --- LÓGICA DE DADOS (FINANÇAS) ---
+// --- LOGICA DE DADOS (FINANÇAS) ---
 window.getProjectionData = (mode) => {
     const now = new Date();
     const trans = window.appState.transacoes || [];
@@ -283,6 +322,42 @@ window.saveBikeEntry = async () => {
     const ok = await pushState(); 
     if (ok) { window.showToast("Registro Salvo!"); updateGlobalUI(); return true; } 
     return false;
+};
+
+window.savePulseSettings = async () => {
+    if (!window.appState) return;
+    
+    // Captura dados do perfil (Saúde/Regional) se os campos existirem
+    const setPeso = document.getElementById('set-peso');
+    if (setPeso) {
+        window.appState.perfil.peso = parseFloat(setPeso.value);
+        window.appState.perfil.altura = parseFloat(document.getElementById('set-altura').value);
+        window.appState.perfil.idade = parseInt(document.getElementById('set-idade').value);
+        window.appState.perfil.sexo = document.getElementById('set-sexo').value;
+        window.appState.perfil.estado = document.getElementById('set-estado').value;
+        window.appState.perfil.cidade = document.getElementById('set-cidade').value;
+    }
+
+    // Captura dados do Ajustes.html
+    const setBikeKm = document.getElementById('set-bike-km');
+    if (setBikeKm) {
+        window.appState.veiculo.tipo = document.getElementById('set-bike-tipo').value;
+        window.appState.veiculo.montadora = document.getElementById('set-bike-montadora').value;
+        window.appState.veiculo.modelo = document.getElementById('set-bike-modelo').value;
+        window.appState.veiculo.km = parseInt(setBikeKm.value);
+        window.appState.veiculo.oleo = parseInt(document.getElementById('set-bike-oleo').value);
+        window.appState.veiculo.consumo = parseFloat(document.getElementById('set-bike-consumo').value);
+        
+        window.appState.calibragem.monster_mg = parseInt(document.getElementById('set-calib-monster').value);
+        window.appState.calibragem.coffee_ml = parseInt(document.getElementById('set-calib-ml').value);
+        
+        window.appState.perfil.alcoholTitle = document.getElementById('set-alcohol-title').value;
+        window.appState.perfil.alcoholStart = document.getElementById('set-alcohol-start').value;
+        window.appState.perfil.alcoholTarget = parseInt(document.getElementById('set-alcohol-target').value);
+    }
+
+    const ok = await pushState();
+    if (ok) window.showToast("Perfil Atualizado com Sucesso!");
 };
 
 // --- UTILITÁRIOS ---
