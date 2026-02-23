@@ -83,7 +83,7 @@
         <div class="flex items-center justify-center min-h-screen">
             <div class="text-center animate-pulse">
                 <h1 class="text-4xl font-bold text-blue-500 uppercase leading-none italic">Pulse - All in 1</h1>
-                <p class="text-[10px] uppercase tracking-widest text-slate-500 mt-4 italic">Sincronizando Sistema...</p>
+                <p id="loading-text" class="text-[10px] uppercase tracking-widest text-slate-500 mt-4 italic">Sincronizando Sistema...</p>
             </div>
         </div>
     </div>
@@ -97,7 +97,34 @@
         import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
         import { getFirestore, doc, setDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
 
-        const firebaseConfig = JSON.parse(__firebase_config);
+        // =========================================================================
+        // CONFIGURAÇÃO DO FIREBASE
+        // Atualizado com os teus dados reais
+        // =========================================================================
+        let firebaseConfig = {
+            apiKey: "AIzaSyAyqPiFoq6s7L6J3pPeCG-ib66H8mueoZs",
+            authDomain: "pulse-68c1c.firebaseapp.com",
+            projectId: "pulse-68c1c",
+            storageBucket: "pulse-68c1c.firebasestorage.app",
+            messagingSenderId: "360386380741",
+            appId: "1:360386380741:web:d45af208f595b5799a81ac"
+        };
+
+        // Fallback para o ambiente de testes do AI
+        try {
+            if (typeof __firebase_config !== 'undefined') {
+                firebaseConfig = JSON.parse(__firebase_config);
+            }
+        } catch (e) {
+            console.warn("Usando configuração manual do Firebase.");
+        }
+
+        // Verifica se a config está vazia (comum erro no servidor externo)
+        if (!firebaseConfig.apiKey) {
+            document.getElementById('loading-text').innerHTML = "ERRO: Credenciais do Firebase não configuradas.<br><span class='text-[8px]'>Edita o código e insere a tua firebaseConfig.</span>";
+            document.getElementById('loading-text').classList.remove('animate-pulse');
+        }
+
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
@@ -131,7 +158,12 @@
                 await signInWithPopup(auth, googleProvider);
                 window.showToast("Bem-vindo ao Pulse!");
             } catch (error) {
-                window.showToast("Falha ao entrar", "error");
+                console.error("Login Error:", error);
+                if (error.code === 'auth/unauthorized-domain') {
+                    window.showToast("Domínio não autorizado no Firebase console!", "error");
+                } else {
+                    window.showToast("Falha ao entrar", "error");
+                }
             }
         };
 
@@ -334,8 +366,8 @@
                         <div class="grid grid-cols-2 md:grid-cols-3 gap-6"><div><p class="text-[8px] font-bold text-slate-600 uppercase mb-1">KM Atual</p><h3 class="text-2xl font-bold text-white italic leading-none">${v.km} KM</h3></div><div><p class="text-[8px] font-bold text-slate-600 uppercase mb-1">Óleo Vence em</p><h3 class="text-2xl font-bold text-sky-400 italic leading-none">${v.oleo} KM</h3></div><div class="col-span-2 md:col-span-1"><p class="text-[8px] font-bold text-slate-600 uppercase mb-1">Média Real</p><h3 class="text-2xl font-bold text-emerald-400 italic leading-none">${v.consumo} KM/L</h3></div></div></div>
                         <button onclick="window.showToast('Funcionalidade Fortaleza brevemente')" class="w-full bg-orange-600 p-4 rounded-3xl font-bold uppercase text-xs shadow-xl active:scale-95 transition-all">Registar Abastecimento</button>`;
                 case 'financas':
-                    const fRec = (d.transacoes || []).filter(t => t.tipo === 'Receita').reduce((a, b) => a + b.valor, 0);
-                    const fDes = (d.transacoes || []).filter(t => t.tipo === 'Despesa').reduce((a, b) => a + b.valor, 0);
+                    const fRec = (d.transacoes || []).filter(t => t.tipo === 'Receita').reduce((a, b) => a + (b.valor || 0), 0);
+                    const fDes = (d.transacoes || []).filter(t => t.tipo === 'Despesa').reduce((a, b) => a + (b.valor || 0), 0);
                     const fComp = getFinComp();
                     return `${header}<div class="flex justify-between items-center mb-8"><h1 class="text-4xl font-bold text-white uppercase italic leading-none">Finanças</h1><div class="flex gap-2"><button onclick="window.openTab('extrato')" class="bg-blue-500/20 text-blue-500 px-4 py-3 rounded-2xl font-bold uppercase text-[10px] border border-blue-500/20">Extrato</button><button onclick="window.openTransactionModal()" class="bg-emerald-600 text-white px-6 py-3 rounded-2xl font-bold uppercase text-[10px] shadow-lg"><i data-lucide="plus" class="w-4 h-4 inline mr-1"></i> Lançar</button></div></div>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
@@ -408,7 +440,12 @@
                     if (s.exists()) { window.appState.data = { ...DEFAULT_DATA, ...s.data() }; render(); } 
                     else { pushState(); render(); }
                     fetchNPS();
-                }, (err) => console.error("Firestore error:", err));
+                }, (err) => {
+                    console.error("Firestore error:", err);
+                    if (err.code === 'permission-denied') {
+                        window.showToast("Erro de permissão no Firebase", "error");
+                    }
+                });
             }
         });
 
