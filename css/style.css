@@ -1,19 +1,28 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&display=swap');
 
 :root {
-    --sidebar-width: 16rem; /* 256px */
-    --sidebar-collapsed-width: 5rem; /* 80px */
+    --sidebar-width: 16rem;
+    --sidebar-collapsed-width: 5rem;
     --glass-bg: rgba(15, 23, 42, 0.4);
     --glass-border: rgba(255, 255, 255, 0.05);
+    --pulse-blue: #3b82f6;
+    --pulse-emerald: #10b981;
+    --pulse-rose: #f43f5e;
 }
 
+/* Reset de itálico e definição de fonte global */
 body { 
-    font-family: 'Inter', sans-serif; 
+    font-family: 'Ubuntu', sans-serif !important; 
     background-color: #020617;
     color: #f1f5f9;
-    font-style: italic;
     margin: 0;
     overflow-x: hidden;
+    font-style: normal !important; /* Remove itálico global */
+}
+
+/* Forçar remoção de itálico em classes utilitárias ou herdadas */
+.italic, i, em, address {
+    font-style: normal !important;
 }
 
 /* Layout Estrutural */
@@ -23,36 +32,42 @@ body {
     transition: margin-left 300ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Classes de Controlo de Largura (Geridas pelo JS) */
 @media (min-width: 768px) {
     .content-expanded { margin-left: var(--sidebar-width); width: calc(100% - var(--sidebar-width)) !important; }
     .content-collapsed { margin-left: var(--sidebar-collapsed-width); width: calc(100% - var(--sidebar-collapsed-width)) !important; }
-    
-    .sidebar-expanded { width: var(--sidebar-width); }
-    .sidebar-collapsed { width: var(--sidebar-collapsed-width); }
 }
 
-/* Utilitários */
-.pb-safe-bottom { padding-bottom: 6rem; }
-@media (min-width: 768px) { .pb-safe-bottom { padding-bottom: 0; } }
+/* Utilitários de Espaçamento e Estilo */
+.pb-safe-bottom { padding-bottom: 7rem; }
+@media (min-width: 768px) { .pb-safe-bottom { padding-bottom: 2rem; } }
 
 .glass-card {
     background: var(--glass-bg);
-    backdrop-filter: blur(12px);
+    backdrop-filter: blur(16px);
     border: 1px solid var(--glass-border);
-    border-radius: 1rem;
+    border-radius: 1.5rem;
 }
 
+/* Input padrão Pulse OS (Ubuntu + Bold) */
 .pulse-input { 
     background: rgba(15, 23, 42, 0.6) !important; 
     border: 1px solid var(--glass-border) !important; 
-    border-radius: 0.75rem !important;
-    padding: 1rem !important;
+    border-radius: 1rem !important;
+    padding: 1.25rem !important;
     color: white !important;
     font-weight: 700 !important;
     outline: none !important;
-    font-style: italic !important;
     width: 100%;
+    transition: all 0.2s ease;
 }
 
-.pulse-input:focus { border-color: #3b82f6 !important; box-shadow: 0 0 15px rgba(59, 130, 246, 0.15); }
+.pulse-input:focus { 
+    border-color: var(--pulse-blue) !important; 
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.15); 
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.05); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.1); }
