@@ -1,10 +1,9 @@
 /**
- * PULSE OS - Central Intelligence v13.0 (Firebase 12.9.0 SDK)
+ * PULSE OS - Central Intelligence v13.1 (Merged Settings Edition)
  * Gestão Total: Saúde, Finanças e Veículo (Yamaha Fazer 250).
- * Sincronização em Tempo Real via Firebase & Identidade Google.
+ * Sincronização em Tempo Real via Firebase 12.9.0 & Identidade Google.
  */
 
-// Importando a versão 12.9.0 sugerida pelo console do Firebase
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js';
 import { 
     getAuth, 
@@ -30,7 +29,6 @@ const firebaseConfig = {
     appId: "1:360386380741:web:d45af208f595b5799a81ac"
 };
 
-// Inicialização
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -47,14 +45,22 @@ window.appState = {
     water_ml: 0,
     lastHealthReset: new Date().toLocaleDateString('pt-BR'),
     sidebarCollapsed: false,
-    perfil: { peso: 90, altura: 175, idade: 32, sexo: 'M', estado: 'CE', cidade: 'Fortaleza', alcoholTitle: "ZERO ÁLCOOL", alcoholStart: "", alcoholTarget: 30 },
-    veiculo: { tipo: 'Moto', km: 0, oleo: 38000, consumo: 29, montadora: "YAMAHA", modelo: "FAZER 250", historico: [], viagens: [] },
+    perfil: { 
+        peso: 90, altura: 175, idade: 32, sexo: 'M', 
+        estado: 'CE', cidade: 'Fortaleza', 
+        alcoholTitle: "ZERO ÁLCOOL", alcoholStart: "", alcoholTarget: 30 
+    },
+    veiculo: { 
+        tipo: 'Moto', km: 0, oleo: 38000, consumo: 29, 
+        montadora: "YAMAHA", modelo: "FAZER 250", 
+        historico: [], viagens: [] 
+    },
     calibragem: { monster_mg: 160, coffee_ml: 300 },
     tarefas: [],
     transacoes: []
 };
 
-// --- NOTIFICAÇÕES (TOAST) ---
+// --- SISTEMA DE NOTIFICAÇÃO (TOAST) ---
 window.showToast = (message, type = 'success') => {
     const toast = document.createElement('div');
     toast.className = `fixed top-6 left-1/2 -translate-x-1/2 z-[200] px-6 py-3 rounded-2xl font-black uppercase text-[10px] tracking-[0.2em] shadow-2xl transition-all duration-500 transform translate-y-[-20px] opacity-0 italic flex items-center gap-3 border ${
@@ -74,10 +80,10 @@ window.showToast = (message, type = 'success') => {
 window.loginWithGoogle = async () => {
     try { 
         await signInWithPopup(auth, googleProvider); 
-        window.showToast("Login Google Ok!"); 
+        window.showToast("Google Sync Ativado!"); 
     } catch (err) { 
         console.error(err);
-        window.showToast("Erro ao conectar Google", "error");
+        window.showToast("Erro na Autenticação", "error");
     }
 };
 
@@ -87,8 +93,12 @@ onAuthStateChanged(auth, (user) => {
     if (user) {
         window.appState.login = user.displayName ? user.displayName.split(' ')[0].toUpperCase() : "USUÁRIO";
         window.appState.fullName = user.displayName || "USUÁRIO";
-        window.appState.photoURL = user.photoURL || null;
+        // Só usa a foto do Google se não houver um avatar personalizado (ICON:...)
+        if(!window.appState.photoURL || !window.appState.photoURL.startsWith('ICON:')) {
+            window.appState.photoURL = user.photoURL || null;
+        }
         window.appState.email = user.email;
+        
         setupRealtimeSync(user.uid);
         updateGlobalUI(); 
         if (window.location.pathname.endsWith('index.html') || window.location.pathname === '/') window.location.href = "dashboard.html";
@@ -97,7 +107,7 @@ onAuthStateChanged(auth, (user) => {
     }
 });
 
-// --- SINCRONIZAÇÃO CLOUD ---
+// --- FIRESTORE ---
 const setupRealtimeSync = (userId) => {
     if (!userId) return;
     const stateDoc = doc(db, 'artifacts', appId, 'users', userId, 'state', 'current');
@@ -105,21 +115,30 @@ const setupRealtimeSync = (userId) => {
     onSnapshot(stateDoc, (snapshot) => {
         if (snapshot.exists()) {
             const cloudData = snapshot.data();
-            const session = {
+            const currentSidebar = window.appState.sidebarCollapsed;
+            
+            // Mescla dados prevenindo perda de sessão do Google
+            window.appState = { 
+                ...window.appState, 
+                ...cloudData,
+                sidebarCollapsed: currentSidebar,
                 login: window.appState.login,
                 fullName: window.appState.fullName,
-                photoURL: window.appState.photoURL,
-                email: window.appState.email,
-                sidebarCollapsed: window.appState.sidebarCollapsed
+                email: window.appState.email
             };
-            window.appState = { ...window.appState, ...cloudData, ...session };
+
             updateGlobalUI();
+            
+            // Se estiver na página de ajustes, popula o formulário
+            if (typeof window.fillAjustesForm === 'function') {
+                window.fillAjustesForm();
+            }
         } else {
-            pushState(); // Salva estado inicial se for novo usuário
+            pushState(); 
         }
-    }, (err) => {
-        console.error("Erro Snapshot:", err);
-        if (err.code === 'permission-denied') window.showToast("Firebase: Sem Permissão!", "error");
+    }, (error) => {
+        console.error("Sync Error:", error);
+        if (error.code === 'permission-denied') window.showToast("Firebase: Sem Acesso", "error");
     });
 };
 
@@ -127,19 +146,19 @@ const pushState = async () => {
     if (!auth.currentUser) return false;
     const stateDoc = doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'state', 'current');
     
-    // Limpeza de dados para evitar erros de tipos complexos no Firestore
     const dataToSync = JSON.parse(JSON.stringify(window.appState));
+    // Removemos o que não deve ser persistido na nuvem como "preferência global"
     delete dataToSync.sidebarCollapsed; 
-    delete dataToSync.photoURL; 
     delete dataToSync.fullName;
     delete dataToSync.login;
+    delete dataToSync.email;
 
     try { 
         await setDoc(stateDoc, dataToSync, { merge: true }); 
+        console.log("PULSE: Cloud Sync Ok");
         return true; 
     } catch (e) { 
-        console.error("Erro ao salvar:", e);
-        window.showToast("Falha na Sincronização", "error");
+        console.error("Save Error:", e);
         return false; 
     }
 };
@@ -158,8 +177,12 @@ const updateGlobalUI = () => {
     }
 
     if (headerLogo) {
-        if (window.innerWidth < 768) headerLogo.style.opacity = '1';
-        else headerLogo.style.opacity = isCollapsed ? '1' : '0';
+        if (window.innerWidth < 768) {
+            headerLogo.style.opacity = '1';
+        } else {
+            headerLogo.style.opacity = isCollapsed ? '1' : '0';
+            headerLogo.style.pointerEvents = isCollapsed ? 'auto' : 'none';
+        }
     }
 
     if (mainContent) {
@@ -188,21 +211,27 @@ const updateGlobalUI = () => {
         eGauge.style.strokeDashoffset = 226.2 - (226.2 * percent) / 100;
     }
 
-    const alcStart = window.appState.perfil.alcoholStart;
+    const p = window.appState.perfil;
+    const alcStart = p.alcoholStart;
     if (alcStart && document.getElementById('alcohol-days-count')) {
         const diff = Math.floor((new Date() - new Date(alcStart)) / (1000 * 60 * 60 * 24));
         set('alcohol-days-count', Math.max(0, diff));
-        set('alcohol-target-display', window.appState.perfil.alcoholTarget || 30);
+        set('alcohol-target-display', p.alcoholTarget || 30);
         const aBar = document.getElementById('alcohol-bar');
-        if (aBar) aBar.style.width = Math.min(100, (diff / (window.appState.perfil.alcoholTarget || 30)) * 100) + '%';
-        set('alcohol-challenge-title', window.appState.perfil.alcoholTitle);
+        if (aBar) aBar.style.width = Math.min(100, (diff / (p.alcoholTarget || 30)) * 100) + '%';
+        set('alcohol-challenge-title', p.alcoholTitle);
     }
 
-    const profName = document.getElementById('profile-user-name') || document.getElementById('set-user-name');
-    if (profName) profName.innerText = window.appState.fullName;
-    
+    // Lógica de Avatar
     const avatar = document.getElementById('avatar-preview-container');
-    if (avatar && window.appState.photoURL) avatar.innerHTML = `<img src="${window.appState.photoURL}" class="w-full h-full object-cover rounded-full" />`;
+    if (avatar && window.appState.photoURL) {
+        if(window.appState.photoURL.startsWith('ICON:')) {
+            const [_, color, icon] = window.appState.photoURL.split(':');
+            avatar.innerHTML = `<i data-lucide="${icon}" class="w-10 h-10 text-${color}-500"></i>`;
+        } else {
+            avatar.innerHTML = `<img src="${window.appState.photoURL}" class="w-full h-full object-cover rounded-full" />`;
+        }
+    }
 
     const tasks = window.appState.tarefas || [];
     set('task-count', tasks.filter(t => t.status === 'Pendente').length);
@@ -224,7 +253,6 @@ const injectInterface = () => {
         { id: 'veiculo', label: 'Máquina', icon: 'bike', color: 'text-orange-500' },
         { id: 'work', label: 'Tarefas', icon: 'briefcase', color: 'text-sky-400' },
         { id: 'financas', label: 'Finanças', icon: 'wallet', color: 'text-emerald-500' },
-        { id: 'perfil', label: 'Perfil', icon: 'user', color: 'text-purple-500' },
         { id: 'ajustes', label: 'Ajustes', icon: 'settings', color: 'text-slate-400' }
     ];
     const path = (window.location.pathname.split('/').pop() || 'dashboard.html').split('.')[0];
@@ -269,14 +297,38 @@ const injectInterface = () => {
 // --- AÇÕES ---
 window.savePulseSettings = async () => {
     const v = window.appState.veiculo;
+    const p = window.appState.perfil;
+    const c = window.appState.calibragem;
+
+    // Captura campos unificados da página ajustes.html
     if (document.getElementById('set-bike-tipo')) {
         v.tipo = document.getElementById('set-bike-tipo').value;
+        v.montadora = document.getElementById('set-bike-montadora')?.value;
+        v.modelo = document.getElementById('set-bike-modelo')?.value;
         v.km = parseInt(document.getElementById('set-bike-km').value) || 0;
         v.oleo = parseInt(document.getElementById('set-bike-oleo').value) || 0;
         v.consumo = parseFloat(document.getElementById('set-bike-consumo').value) || 29;
+
+        p.peso = parseFloat(document.getElementById('set-peso').value) || 0;
+        p.altura = parseInt(document.getElementById('set-altura').value) || 0;
+        p.idade = parseInt(document.getElementById('set-idade').value) || 0;
+        p.sexo = document.getElementById('set-sexo').value;
+        p.estado = document.getElementById('set-estado').value;
+        p.cidade = document.getElementById('set-cidade').value;
+
+        c.monster_mg = parseInt(document.getElementById('set-calib-monster').value) || 160;
+        c.coffee_ml = parseInt(document.getElementById('set-calib-ml').value) || 0;
+
+        p.alcoholTitle = document.getElementById('set-alcohol-title').value;
+        p.alcoholStart = document.getElementById('set-alcohol-start').value;
+        p.alcoholTarget = parseInt(document.getElementById('set-alcohol-target').value) || 30;
     }
+    
     const success = await pushState();
-    if (success) { window.showToast("Sincronizado!"); updateGlobalUI(); }
+    if (success) { 
+        window.showToast("Cloud Sincronizado!"); 
+        updateGlobalUI(); 
+    }
 };
 
 window.renderWorkTasks = () => {
@@ -313,15 +365,43 @@ window.saveBikeEntry = async () => {
     const km = parseInt(document.getElementById('bike-log-km')?.value);
     if (!desc || isNaN(km)) return false;
     window.appState.veiculo.km = km;
-    window.appState.veiculo.historico.push({ id: Date.now(), desc: desc.toUpperCase(), km, valor: parseFloat(document.getElementById('bike-log-valor')?.value) || 0, data: new Date().toLocaleDateString('pt-BR') });
+    window.appState.veiculo.historico.push({ 
+        id: Date.now(), 
+        desc: desc.toUpperCase(), 
+        km, 
+        valor: parseFloat(document.getElementById('bike-log-valor')?.value) || 0, 
+        data: new Date().toLocaleDateString('pt-BR') 
+    });
     const ok = await pushState();
     if (ok) { window.showToast("Registo Salvo!"); updateGlobalUI(); return true; }
     return false;
 };
 
+window.processarLancamento = async (tipo) => {
+    const val = parseFloat(document.getElementById('fin-valor').value);
+    if (isNaN(val)) return;
+    window.appState.transacoes.push({ 
+        id: Date.now(), 
+        tipo: tipo === 'receita' ? 'Receita' : 'Despesa', 
+        desc: document.getElementById('fin-desc').value.toUpperCase(), 
+        valor: val, 
+        status: document.getElementById('fin-status').value, 
+        vencimento: document.getElementById('fin-vencimento').value,
+        cat: document.getElementById('fin-categoria').value,
+        data: new Date().toLocaleDateString('pt-BR') 
+    });
+    const ok = await pushState();
+    if (ok) { 
+        window.showToast("Lançamento Efetuado!"); 
+        updateGlobalUI();
+        if (typeof window.toggleModal === 'function') window.toggleModal();
+    }
+};
+
 window.addWater = async (ml) => { window.appState.water_ml += ml; const ok = await pushState(); if (ok) { updateGlobalUI(); window.showToast(`+${ml}ml Hidratado`); } };
 window.addMonster = async () => { window.appState.energy_mg += window.appState.calibragem.monster_mg; const ok = await pushState(); if (ok) { updateGlobalUI(); window.showToast("Energizado!"); } };
 window.resetHealthDay = async () => { window.appState.water_ml = 0; window.appState.energy_mg = 0; const ok = await pushState(); if (ok) { updateGlobalUI(); window.showToast("Ciclo Zerado"); } };
+
 window.toggleSidebar = () => { window.appState.sidebarCollapsed = !window.appState.sidebarCollapsed; updateGlobalUI(); };
 window.openTab = (p) => { window.location.href = p + ".html"; };
 
