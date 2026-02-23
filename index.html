@@ -142,10 +142,14 @@
             tarefas: []
         };
 
+        // Inicializa o mês do extrato com o mês atual
+        const now = new Date();
+        const currentMonthString = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}`;
+
         window.appState = {
             currentTab: 'dashboard',
             taskView: 'table', 
-            extratoMonth: '2026-02',
+            extratoMonth: currentMonthString,
             categoryView: 'Despesa',
             showBalance: true,
             npsData: { score: '--', status: 'Sincronizando...', color: 'text-slate-500' },
@@ -229,6 +233,10 @@
         window.setTaskView = (v) => { window.appState.taskView = v; render(); };
         window.toggleCategoryView = () => {
             window.appState.categoryView = window.appState.categoryView === 'Despesa' ? 'Receita' : 'Despesa';
+            render();
+        };
+        window.changeExtratoMonth = (m) => {
+            window.appState.extratoMonth = m;
             render();
         };
 
@@ -333,7 +341,7 @@
             switch(t) {
                 case 'dashboard':
                     const sDays = getElapsedDays(d.perfil.alcoholStart);
-                    const bal = (d.transacoes || []).reduce((a, b) => a + (b.tipo === 'Receita' ? b.valor : -b.valor), 0);
+                    const bal = (d.transacoes || []).reduce((a, b) => a + (b.tipo === 'Receita' ? (b.valor || 0) : -(b.valor || 0)), 0);
                     const comp = getFinComp();
                     return `${header}<div class="mb-10"><p class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.4em] mb-2 italic leading-none">Weverson OS</p><h1 class="text-5xl font-bold text-white uppercase italic tracking-tighter leading-none">Painel</h1></div>
                         <div class="grid grid-cols-1 md:grid-cols-4 gap-5">
@@ -381,7 +389,15 @@
                         </div>`;
                 case 'extrato':
                     const eTs = (d.transacoes || []).filter(t => t.data?.startsWith(window.appState.extratoMonth)).sort((a, b) => new Date(b.data) - new Date(a.data));
-                    return `${header}<h1 class="text-3xl font-bold text-white uppercase italic mb-8">Histórico</h1><div class="space-y-3 mb-24">${eTs.map(t => `<div class="glass p-5 flex justify-between items-center border-l-4 ${t.tipo === 'Receita' ? 'border-emerald-500' : 'border-red-500'}"><div><p class="text-xs font-bold text-white uppercase tracking-widest leading-none">${t.desc}</p><p class="text-[8px] font-bold text-slate-600 uppercase mt-1 italic leading-none">${t.cat} • ${t.data.split('-').reverse().join('/')}</p></div><h3 class="text-lg font-bold ${t.tipo === 'Receita' ? 'text-emerald-400' : 'text-red-400'} italic leading-none">${vis ? 'R$ ' + format(t.valor) : 'R$ •••'}</h3></div>`).join('')}</div>`;
+                    return `${header}
+                        <div class="flex justify-between items-center mb-8">
+                            <h1 class="text-3xl font-bold text-white uppercase italic leading-none">Histórico</h1>
+                            <input type="month" value="${window.appState.extratoMonth}" onchange="window.changeExtratoMonth(this.value)" class="pulse-input text-[10px] w-auto py-2 px-4 bg-white/5 border-white/10 rounded-xl font-bold">
+                        </div>
+                        <div class="space-y-3 mb-24">
+                            ${eTs.length > 0 ? eTs.map(t => `<div class="glass p-5 flex justify-between items-center border-l-4 ${t.tipo === 'Receita' ? 'border-emerald-500' : 'border-red-500'}"><div><p class="text-xs font-bold text-white uppercase tracking-widest leading-none">${t.desc}</p><p class="text-[8px] font-bold text-slate-600 uppercase mt-1 italic leading-none">${t.cat} • ${t.data.split('-').reverse().join('/')}</p></div><h3 class="text-lg font-bold ${t.tipo === 'Receita' ? 'text-emerald-400' : 'text-red-400'} italic leading-none">${vis ? 'R$ ' + format(t.valor) : 'R$ •••'}</h3></div>`).join('') : 
+                            `<div class="glass p-12 text-center text-slate-600 text-[10px] uppercase font-bold tracking-widest italic border-dashed border-white/20">Nenhum lançamento encontrado em ${window.appState.extratoMonth.split('-').reverse().join('/')}...</div>`}
+                        </div>`;
                 case 'ajustes':
                     return `${header}<h1 class="text-4xl font-bold text-white uppercase italic mb-8 leading-none">Ajustes Sync</h1><div class="space-y-6 pb-24">
                         <div class="glass p-6 border-blue-500/10"><h3 class="text-[10px] font-bold text-blue-500 uppercase mb-4 tracking-widest italic leading-none">1. Perfil</h3><div class="grid grid-cols-2 gap-4"><div><label class="text-[8px] font-bold text-slate-700 uppercase px-1">Peso (kg)</label><input type="number" value="${d.perfil.peso}" onchange="window.saveAdj('perfil', 'peso', this.value)" class="pulse-input text-xs"></div><div><label class="text-[8px] font-bold text-slate-700 uppercase px-1">Idade</label><input type="number" value="${d.perfil.idade}" onchange="window.saveAdj('perfil', 'idade', this.value)" class="pulse-input text-xs"></div></div></div>
