@@ -9,70 +9,98 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="css/style.css">
     <style>
-        /* Estilização da Chave (Toggle) personalizada */
-        .toggle-dot {
-            transition: all 0.3s ease-in-out;
-        }
-        input:checked ~ .toggle-bg {
-            background-color: #10b981; /* Verde Emerald-500 */
-        }
-        input:checked ~ .toggle-dot {
-            transform: translateX(100%);
-        }
+        .toggle-dot { transition: all 0.3s ease-in-out; }
+        input:checked ~ .toggle-bg { background-color: #10b981; }
+        input:checked ~ .toggle-dot { transform: translateX(100%); }
+        .privacy-mask { transition: all 0.2s ease-in-out; }
+        
+        /* Ajuste para scroll suave da lista */
+        #fin-extrato-list::-webkit-scrollbar { width: 4px; }
+        #fin-extrato-list::-webkit-scrollbar-track { background: transparent; }
+        #fin-extrato-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.05); border-radius: 10px; }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 italic">
     <div class="flex min-h-screen relative">
-        <!-- 1. Menu Lateral (Injetado pelo app.js) -->
+        <div id="menu-container"></div>
         
-<div id="menu-container"></div>
-        <!-- 2. Conteúdo Principal -->
         <div id="main-content" class="flex-1 md:ml-64 transition-all pb-safe-bottom">
-            
-            <!-- 3. Cabeçalho (Injetado pelo app.js) -->
             <div id="header-placeholder"></div>
 
             <main class="max-w-6xl mx-auto p-4 md:p-8 space-y-6 italic">
 
-                <!-- Resumo Geral -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 italic">
-                    <div class="bg-slate-900 border border-white/5 p-6 rounded-2xl flex flex-col justify-between shadow-xl italic">
+                <!-- Filtro de Mês e Navegação -->
+                <div class="flex flex-col items-center gap-4 mb-8">
+                    <div class="flex items-center gap-8">
+                        <button onclick="changeMonth(-1)" class="p-2 text-slate-600 hover:text-white transition-all"><i data-lucide="chevron-left"></i></button>
+                        <div class="text-center min-w-[180px]">
+                            <h2 id="display-month-year" class="text-xs font-black uppercase tracking-[0.4em] text-white">CARREGANDO...</h2>
+                        </div>
+                        <button onclick="changeMonth(1)" class="p-2 text-slate-600 hover:text-white transition-all"><i data-lucide="chevron-right"></i></button>
+                    </div>
+                    <button onclick="resetToCurrentMonth()" class="text-[8px] font-black uppercase tracking-widest text-blue-500 hover:text-blue-400 transition-all border border-blue-500/20 px-4 py-1.5 rounded-full bg-blue-500/5">Mês Atual</button>
+                </div>
+
+                <!-- Resumo Geral - Layout 1+2 no Mobile -->
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-4 italic">
+                    <!-- Cartão Saldo Real: Full width no mobile -->
+                    <div class="col-span-2 md:col-span-1 bg-slate-900 border border-white/5 p-6 rounded-2xl flex flex-col justify-between shadow-xl italic relative overflow-hidden min-h-[140px]">
                         <span class="text-blue-500 text-[9px] font-black uppercase tracking-widest italic flex items-center gap-2">
-                             <i data-lucide="shield-check" class="w-3 h-3"></i> Saldo Real (Efetivado)
+                             <i data-lucide="shield-check" class="w-3 h-3"></i> Saldo Efetivado
                         </span>
-                        <div class="text-3xl font-black tracking-tighter text-white italic leading-none mt-2">R$ <span id="fin-saldo-atual-pag">0,00</span></div>
+                        
+                        <button onclick="togglePrivacy()" class="absolute top-5 right-5 text-slate-700 hover:text-blue-500 transition-colors z-10">
+                            <i data-lucide="eye" id="privacy-icon" class="w-5 h-5"></i>
+                        </button>
+
+                        <div class="mt-4">
+                            <div class="text-4xl font-black tracking-tighter text-white italic leading-none">
+                                R$ <span id="fin-saldo-atual-pag" class="privacy-mask">0,00</span>
+                            </div>
+                            <p class="text-[8px] font-black text-slate-600 uppercase tracking-widest mt-2 italic">
+                                Saldo Previsto: <span class="text-blue-500/40">R$ <span id="fin-saldo-previsto">0</span></span>
+                            </p>
+                        </div>
                     </div>
-                    <div class="bg-emerald-950/10 border border-emerald-500/20 p-6 rounded-2xl italic">
-                        <span class="text-emerald-500 text-[9px] font-black uppercase tracking-widest italic">Receitas (Efetivadas)</span>
-                        <div class="text-3xl font-black tracking-tighter text-emerald-400 italic leading-none mt-2">R$ <span id="total-income">0,00</span></div>
+
+                    <!-- Cartão Receitas -->
+                    <div class="bg-emerald-950/10 border border-emerald-500/20 p-6 rounded-2xl italic flex flex-col justify-between min-h-[140px]">
+                        <span class="text-emerald-500 text-[9px] font-black uppercase tracking-widest italic flex items-center gap-2">
+                            <i data-lucide="trending-up" class="w-3 h-3"></i> Receitas
+                        </span>
+                        <div class="text-2xl font-black tracking-tighter text-emerald-400 italic leading-none mt-2">
+                            R$ <span id="total-income" class="privacy-mask">0,00</span>
+                        </div>
                     </div>
-                    <div class="bg-red-950/10 border border-red-500/20 p-6 rounded-2xl italic">
-                        <span class="text-red-500 text-[9px] font-black uppercase tracking-widest italic">Despesas (Efetivadas)</span>
-                        <div class="text-3xl font-black tracking-tighter text-red-400 italic leading-none mt-2">R$ <span id="total-expenses">0,00</span></div>
+
+                    <!-- Cartão Despesas -->
+                    <div class="bg-red-950/10 border border-red-500/20 p-6 rounded-2xl italic flex flex-col justify-between min-h-[140px]">
+                        <span class="text-red-500 text-[9px] font-black uppercase tracking-widest italic flex items-center gap-2">
+                            <i data-lucide="trending-down" class="w-3 h-3"></i> Despesas
+                        </span>
+                        <div class="text-2xl font-black tracking-tighter text-red-400 italic leading-none mt-2">
+                            R$ <span id="total-expenses" class="privacy-mask">0,00</span>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Balanço Previsível -->
+                <!-- Gráfico e Fluxo -->
                 <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 italic">
                     <div class="lg:col-span-3 bg-slate-900 border border-white/5 p-8 rounded-[2rem] italic shadow-2xl">
                         <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4 italic">
                             <h3 class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 flex items-center gap-2">
-                                <i data-lucide="trending-up" class="w-3 h-3 text-blue-500"></i> BALANÇO (PREVISÍVEL)
+                                <i data-lucide="bar-chart-3" class="w-3 h-3 text-blue-500"></i> PROJEÇÃO FINANCEIRA
                             </h3>
-                            
-                            <!-- Intervalos -->
                             <div class="flex bg-slate-950 p-1 rounded-xl border border-white/5 italic overflow-hidden">
-                                <button onclick="window.updateChartRange(-12)" class="range-btn px-3 py-1.5 text-[8px] font-black uppercase transition-all text-slate-500 hover:text-white" data-range="-12">Histórico</button>
                                 <button onclick="window.updateChartRange(6)" class="range-btn px-3 py-1.5 text-[8px] font-black uppercase bg-blue-600 text-white transition-all" data-range="6">6 Meses</button>
                                 <button onclick="window.updateChartRange(12)" class="range-btn px-3 py-1.5 text-[8px] font-black uppercase transition-all text-slate-500 hover:text-white" data-range="12">12 Meses</button>
                             </div>
                         </div>
-                        <div class="h-[320px] relative italic">
+                        <div class="h-[300px] relative italic">
                             <canvas id="financeChart"></canvas>
                         </div>
                     </div>
                     
-                    <!-- Fluxo Recente -->
                     <div class="lg:col-span-2 bg-slate-900 border border-white/5 p-8 rounded-[2rem] flex flex-col italic shadow-2xl">
                         <div class="flex items-center justify-between mb-6 italic">
                             <h3 class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 flex items-center gap-2 italic">
@@ -82,8 +110,8 @@
                                 Ver todas <i data-lucide="chevron-right" class="w-3 h-3"></i>
                             </button>
                         </div>
-                        <div class="space-y-3 overflow-y-auto max-h-[350px] pr-2 italic" id="fin-extrato-list">
-                            <!-- Injetado pelo app.js -->
+                        <div class="space-y-3 overflow-y-auto max-h-[300px] pr-2 italic" id="fin-extrato-list">
+                            <div class="p-8 text-center text-slate-700 text-[10px] font-black uppercase tracking-widest italic">Nenhum lançamento encontrado</div>
                         </div>
                     </div>
                 </div>
@@ -92,15 +120,15 @@
     </div>
 
     <!-- Botão Flutuante -->
-    <button onclick="toggleModal()" class="fixed bottom-24 right-6 md:bottom-8 md:right-8 w-16 h-16 bg-blue-600 hover:bg-blue-500 text-white rounded-full flex items-center justify-center shadow-lg shadow-blue-900/40 active:scale-90 z-[90] italic transition-all">
+    <button onclick="toggleModal()" class="fixed bottom-24 right-6 md:bottom-8 md:right-8 w-16 h-16 bg-blue-600 hover:bg-blue-500 text-white rounded-full flex items-center justify-center shadow-lg active:scale-90 z-[90] italic transition-all">
         <i data-lucide="plus" class="w-8 h-8"></i>
     </button>
 
     <!-- Modal Novo Lançamento -->
-    <div id="modal" class="hidden fixed inset-0 bg-slate-950/90 backdrop-blur-xl flex items-center justify-center p-4 z-[100] transition-all italic">
-        <div class="bg-slate-900 border border-white/5 rounded-3xl shadow-2xl w-full max-w-md p-8 italic">
-            <div class="flex justify-between items-center mb-6 italic">
-                <h2 class="text-sm font-black uppercase tracking-[0.2em] text-white italic">Novo Lançamento</h2>
+    <div id="modal" class="hidden fixed inset-0 bg-slate-950/95 backdrop-blur-xl flex items-center justify-center p-4 z-[100] transition-all italic">
+        <div class="bg-slate-900 border border-white/10 rounded-[2.5rem] shadow-2xl w-full max-w-md p-8 italic">
+            <div class="flex justify-between items-center mb-8 italic">
+                <h2 class="text-[10px] font-black uppercase tracking-[0.3em] text-white italic">Novo Lançamento</h2>
                 <button onclick="toggleModal()" class="text-slate-600 hover:text-white italic"><i data-lucide="x" class="w-6 h-6"></i></button>
             </div>
             <div class="space-y-4 italic">
@@ -111,19 +139,17 @@
                 </div>
                 
                 <div class="grid grid-cols-2 gap-3 italic">
-                    <!-- Chave de Status (Toggle) -->
                     <div class="flex items-center justify-between px-4 py-3 bg-slate-950/50 rounded-xl border border-white/5">
                         <span id="toggle-label" class="text-[9px] font-black uppercase text-emerald-500 italic">Efetivada</span>
                         <label for="status-toggle" class="flex items-center cursor-pointer">
                             <div class="relative">
                                 <input type="checkbox" id="status-toggle" class="sr-only" checked onchange="updateStatusValue(this.checked)">
-                                <div class="toggle-bg block bg-slate-700 w-10 h-6 rounded-full shadow-inner"></div>
-                                <div class="toggle-dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full shadow transition"></div>
+                                <div class="toggle-bg block bg-slate-700 w-10 h-6 rounded-full"></div>
+                                <div class="toggle-dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition"></div>
                             </div>
                         </label>
                         <input type="hidden" id="fin-status" value="Efetivada">
                     </div>
-
                     <div class="flex items-center gap-2 px-2 italic bg-slate-950/50 rounded-xl border border-white/5">
                         <input type="checkbox" id="fin-fixa" class="w-4 h-4 rounded border-white/10 bg-slate-950 text-blue-500">
                         <label for="fin-fixa" class="text-[8px] font-black uppercase text-slate-500 italic">Fixa (12x)</label>
@@ -131,51 +157,134 @@
                 </div>
                 <input type="hidden" id="fin-categoria" value="Geral">
                 
-                <div class="grid grid-cols-2 gap-3 pt-2 italic">
-                    <button onclick="window.processarLancamento('receita')" class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 py-4 rounded-xl font-black uppercase text-[10px] hover:bg-emerald-500 hover:text-white transition-all italic">Receita</button>
-                    <button onclick="window.processarLancamento('despesa')" class="bg-red-500/10 text-red-400 border border-red-500/20 py-4 rounded-xl font-black uppercase text-[10px] hover:bg-red-500 hover:text-white transition-all italic">Despesa</button>
+                <div class="grid grid-cols-2 gap-3 pt-4 italic">
+                    <button onclick="handleProcess('receita')" class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 py-4 rounded-2xl font-black uppercase text-[10px] hover:bg-emerald-500 hover:text-white transition-all italic">Receita</button>
+                    <button onclick="handleProcess('despesa')" class="bg-red-500/10 text-red-400 border border-red-500/20 py-4 rounded-2xl font-black uppercase text-[10px] hover:bg-red-500 hover:text-white transition-all italic">Despesa</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- CARREGAMENTO OBRIGATÓRIO COMO MODULE PARA FIREBASE -->
     <script type="module" src="./js/app.js"></script>
 
     <script>
         let myChart = null;
+        window.isPrivate = false;
+        window.viewDate = new Date();
 
-        function toggleModal() { 
-            document.getElementById('modal').classList.toggle('hidden'); 
+        function toggleModal() { document.getElementById('modal').classList.toggle('hidden'); }
+
+        // Navegação de Meses
+        window.changeMonth = (delta) => {
+            window.viewDate.setMonth(window.viewDate.getMonth() + delta);
+            updateUI();
+        };
+
+        window.resetToCurrentMonth = () => {
+            window.viewDate = new Date();
+            updateUI();
+        };
+
+        // Privacidade
+        window.togglePrivacy = () => {
+            window.isPrivate = !window.isPrivate;
+            const icon = document.getElementById('privacy-icon');
+            if (icon) icon.setAttribute('data-lucide', window.isPrivate ? 'eye-off' : 'eye');
+            if (window.lucide) lucide.createIcons();
+            refreshDisplays();
+        };
+
+        function refreshDisplays() {
+            if (!window.appState) return;
+            
+            const trans = window.appState.transacoes || [];
+            const filterMonth = window.viewDate.getMonth();
+            const filterYear = window.viewDate.getFullYear();
+
+            // Filtragem por mês selecionado
+            const currentMonthTrans = trans.filter(t => {
+                if(!t.vencimento) return false;
+                const d = new Date(t.vencimento + "T12:00:00");
+                return d.getMonth() === filterMonth && d.getFullYear() === filterYear;
+            });
+
+            const efektivaj = currentMonthTrans.filter(t => t.status === 'Efetivada');
+            const saldo = efektivaj.reduce((acc, t) => acc + (t.tipo === 'Receita' ? t.valor : -t.valor), 0);
+            const receitas = efektivaj.filter(t => t.tipo === 'Receita').reduce((a, b) => a + b.valor, 0);
+            const despesas = efektivaj.filter(t => t.tipo === 'Despesa').reduce((a, b) => a + b.valor, 0);
+            
+            const previstoTotal = currentMonthTrans.reduce((acc, t) => acc + (t.tipo === 'Receita' ? t.valor : -t.valor), 0);
+
+            const format = (val) => window.isPrivate ? "%" : val.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+            const formatSimple = (val) => window.isPrivate ? "%" : val.toLocaleString('pt-BR', { minimumFractionDigits: 0 });
+
+            document.getElementById('fin-saldo-atual-pag').innerText = format(saldo);
+            document.getElementById('total-income').innerText = format(receitas);
+            document.getElementById('total-expenses').innerText = format(despesas);
+            document.getElementById('fin-saldo-previsto').innerText = formatSimple(previstoTotal);
+            
+            document.getElementById('display-month-year').innerText = window.viewDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }).toUpperCase();
+            
+            renderFinanceList(currentMonthTrans);
+        }
+
+        function renderFinanceList(transactions) {
+            const list = document.getElementById('fin-extrato-list');
+            if (!list) return;
+
+            if (transactions.length === 0) {
+                list.innerHTML = `<div class="p-8 text-center text-slate-700 text-[10px] font-black uppercase tracking-widest italic">Nenhum lançamento no período</div>`;
+                return;
+            }
+
+            // Ordenar por data (mais recente primeiro)
+            const sorted = [...transactions].sort((a, b) => new Date(b.vencimento) - new Date(a.vencimento));
+
+            list.innerHTML = sorted.slice(0, 10).map(t => `
+                <div class="flex items-center justify-between p-4 bg-slate-950/30 border border-white/5 rounded-2xl group hover:bg-white/5 transition-all">
+                    <div class="flex items-center gap-4">
+                        <div class="w-8 h-8 rounded-lg flex items-center justify-center ${t.tipo === 'Receita' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}">
+                            <i data-lucide="${t.tipo === 'Receita' ? 'arrow-up-right' : 'arrow-down-right'}" class="w-4 h-4"></i>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-black text-white uppercase italic truncate max-w-[120px]">${t.desc}</p>
+                            <p class="text-[7px] font-bold text-slate-600 uppercase italic">${new Date(t.vencimento + "T12:00:00").toLocaleDateString('pt-BR')}</p>
+                        </div>
+                    </div>
+                    <p class="text-xs font-black italic ${t.tipo === 'Receita' ? 'text-emerald-400' : 'text-red-400'}">
+                        ${window.isPrivate ? "%" : "R$ " + t.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </p>
+                </div>
+            `).join('');
+            
+            if (window.lucide) lucide.createIcons();
+        }
+
+        async function handleProcess(type) {
+            if (typeof window.processarLancamento === 'function') {
+                await window.processarLancamento(type);
+                toggleModal();
+                updateUI();
+            }
+        }
+
+        function updateUI() {
+            refreshDisplays();
+            initFinanceChart(6);
         }
 
         function updateStatusValue(isEfetivada) {
             const hiddenInput = document.getElementById('fin-status');
             const label = document.getElementById('toggle-label');
-            
-            if (isEfetivada) {
-                hiddenInput.value = "Efetivada";
-                label.innerText = "Efetivada";
-                label.classList.remove('text-slate-500');
-                label.classList.add('text-emerald-500');
-            } else {
-                hiddenInput.value = "Previsível";
-                label.innerText = "Previsível";
-                label.classList.remove('text-emerald-500');
-                label.classList.add('text-slate-500');
-            }
+            hiddenInput.value = isEfetivada ? "Efetivada" : "Previsível";
+            label.innerText = isEfetivada ? "Efetivada" : "Previsível";
+            label.className = `text-[9px] font-black uppercase italic ${isEfetivada ? 'text-emerald-500' : 'text-slate-500'}`;
         }
 
         window.updateChartRange = (range) => {
             document.querySelectorAll('.range-btn').forEach(btn => {
                 const bRange = parseInt(btn.getAttribute('data-range'));
-                if(bRange === range) {
-                    btn.classList.add('bg-blue-600', 'text-white');
-                    btn.classList.remove('text-slate-500', 'hover:text-white');
-                } else {
-                    btn.classList.remove('bg-blue-600', 'text-white');
-                    btn.classList.add('text-slate-500', 'hover:text-white');
-                }
+                btn.className = `range-btn px-3 py-1.5 text-[8px] font-black uppercase transition-all ${bRange === range ? 'bg-blue-600 text-white' : 'text-slate-500 hover:text-white'}`;
             });
             initFinanceChart(range);
         };
@@ -187,93 +296,53 @@
 
             const labels = [];
             const now = new Date();
-            const startOffset = monthsRange < 0 ? monthsRange : 0;
-            const count = Math.abs(monthsRange);
-
-            for (let i = 0; i < count; i++) {
-                const d = new Date(now.getFullYear(), now.getMonth() + startOffset + i, 1);
-                labels.push(d.toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' }).toUpperCase());
+            for (let i = monthsRange - 1; i >= 0; i--) {
+                const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                labels.push(d.toLocaleDateString('pt-BR', { month: 'short' }).toUpperCase());
             }
 
-            const incomeData = new Array(count).fill(0);
-            const expenseData = new Array(count).fill(0);
-            const balanceData = new Array(count).fill(0);
-
+            const balanceData = labels.map(() => 0);
             if (window.appState && window.appState.transacoes) {
                 window.appState.transacoes.forEach(t => {
                     if (!t.vencimento) return;
                     const tDate = new Date(t.vencimento + "T12:00:00");
-                    const diffMonths = (tDate.getFullYear() - now.getFullYear()) * 12 + (tDate.getMonth() - now.getMonth());
-                    const index = diffMonths - startOffset;
-                    if (index >= 0 && index < count) {
-                        if (t.tipo === 'Receita') incomeData[index] += parseFloat(t.valor) || 0;
-                        else expenseData[index] += parseFloat(t.valor) || 0;
+                    const diff = (now.getFullYear() - tDate.getFullYear()) * 12 + (now.getMonth() - tDate.getMonth());
+                    const idx = (monthsRange - 1) - diff;
+                    if (idx >= 0 && idx < monthsRange) {
+                        balanceData[idx] += (t.tipo === 'Receita' ? t.valor : -t.valor);
                     }
                 });
-
-                for(let j=0; j<count; j++) {
-                    balanceData[j] = incomeData[j] - expenseData[j];
-                }
             }
 
             myChart = new Chart(ctx, {
+                type: 'line',
                 data: {
                     labels: labels,
-                    datasets: [
-                        {
-                            type: 'line',
-                            label: 'Saldo Previsível',
-                            data: balanceData,
-                            borderColor: '#3b82f6',
-                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                            borderWidth: 4,
-                            fill: true,
-                            tension: 0.4,
-                            pointRadius: 4,
-                            order: 1
-                        },
-                        {
-                            type: 'bar',
-                            label: 'Receitas (Prev)',
-                            data: incomeData,
-                            backgroundColor: 'rgba(16, 185, 129, 0.4)',
-                            borderRadius: 6,
-                            order: 2
-                        },
-                        {
-                            type: 'bar',
-                            label: 'Despesas (Prev)',
-                            data: expenseData,
-                            backgroundColor: 'rgba(239, 68, 68, 0.4)',
-                            borderRadius: 6,
-                            order: 3
-                        }
-                    ]
+                    datasets: [{
+                        data: balanceData,
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.05)',
+                        fill: true, tension: 0.4, borderWidth: 4, pointRadius: 4, pointBackgroundColor: '#3b82f6'
+                    }]
                 },
                 options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
+                    responsive: true, maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
                     scales: {
-                        y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#64748b' } },
-                        x: { grid: { display: false }, ticks: { color: '#64748b' } }
+                        y: { grid: { color: 'rgba(255,255,255,0.02)' }, ticks: { color: '#475569', font: { size: 9 } } },
+                        x: { grid: { display: false }, ticks: { color: '#475569', font: { size: 9, weight: 'bold' } } }
                     }
                 }
             });
         }
 
-        // Aguarda o appState do Firebase carregar para iniciar o gráfico
         document.addEventListener('DOMContentLoaded', () => {
-            const checkState = setInterval(() => {
+            const check = setInterval(() => {
                 if (window.appState) {
-                    initFinanceChart(6);
-                    clearInterval(checkState);
+                    updateUI();
+                    clearInterval(check);
                 }
             }, 500);
-            
-            setTimeout(() => {
-                if(window.lucide) lucide.createIcons();
-            }, 1000);
         });
     </script>
 </body>
