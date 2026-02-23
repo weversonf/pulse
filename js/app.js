@@ -1,14 +1,14 @@
 // =============================
-// FIREBASE IMPORTS
+// FIREBASE IMPORTS (CDN v12)
 // =============================
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
 import {
   getAuth,
   onAuthStateChanged,
   signInWithPopup,
   GoogleAuthProvider,
   signOut
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+} from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
 import {
   getFirestore,
   doc,
@@ -16,22 +16,22 @@ import {
   setDoc,
   updateDoc,
   onSnapshot
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
 // =============================
-// CONFIG FIREBASE
+// CONFIG FIREBASE (SEU PROJETO)
 // =============================
 const firebaseConfig = {
-  apiKey: "SUA_API_KEY",
-  authDomain: "SEU_AUTH_DOMAIN",
-  projectId: "SEU_PROJECT_ID",
-  storageBucket: "SEU_STORAGE_BUCKET",
-  messagingSenderId: "SEU_SENDER_ID",
-  appId: "SEU_APP_ID"
+  apiKey: "AIzaSyAyqPiFoq6s7L6J3pPeCG-ib66H8mueoZs",
+  authDomain: "pulse-68c1c.firebaseapp.com",
+  projectId: "pulse-68c1c",
+  storageBucket: "pulse-68c1c.firebasestorage.app",
+  messagingSenderId: "360386380741",
+  appId: "1:360386380741:web:d45af208f595b5799a81ac"
 };
 
 // =============================
-// INIT
+// INIT FIREBASE
 // =============================
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
@@ -42,18 +42,30 @@ let currentUser = null;
 let userData = {};
 
 // =============================
-// AGUARDAR DOM
+// AUTH STATE
 // =============================
 document.addEventListener("DOMContentLoaded", () => {
 
   onAuthStateChanged(auth, async (user) => {
 
+    const page = window.location.pathname.split("/").pop();
+
+    // Se não estiver logado
     if (!user) {
-      window.location.href = "index.html";
+      if (page !== "index.html" && page !== "") {
+        window.location.href = "./index.html";
+      }
+      return;
+    }
+
+    // Se estiver logado e ainda estiver no index
+    if (user && (page === "index.html" || page === "")) {
+      window.location.href = "./dashboard.html";
       return;
     }
 
     currentUser = user;
+
     await loadUserData();
     injectMenu();
     loadPageData();
@@ -64,9 +76,20 @@ document.addEventListener("DOMContentLoaded", () => {
 // =============================
 // LOGIN GOOGLE
 // =============================
-window.loginGoogle = async function () {
-  await signInWithPopup(auth, provider);
-  window.location.href = "dashboard.html";
+window.loginWithGoogle = async function () {
+  try {
+    await signInWithPopup(auth, provider);
+    window.location.href = "./dashboard.html";
+  } catch (error) {
+    alert("Erro ao logar: " + error.message);
+  }
+};
+
+// =============================
+// LOGIN EMAIL (placeholder)
+// =============================
+window.loginWithEmail = async function () {
+  return { success: false, error: "Login por email não configurado" };
 };
 
 // =============================
@@ -74,13 +97,14 @@ window.loginGoogle = async function () {
 // =============================
 window.logout = async function () {
   await signOut(auth);
-  window.location.href = "index.html";
+  window.location.href = "./index.html";
 };
 
 // =============================
 // CARREGAR DADOS USUÁRIO
 // =============================
 async function loadUserData() {
+
   const ref = doc(db, "users", currentUser.uid);
   const snap = await getDoc(ref);
 
@@ -91,101 +115,56 @@ async function loadUserData() {
     userData = {};
   }
 
-  // realtime
   onSnapshot(ref, (docSnap) => {
     userData = docSnap.data() || {};
   });
 }
 
 // =============================
-// MENU DINÂMICO
+// MENU DINÂMICO (CORRIGIDO)
 // =============================
 function injectMenu() {
 
-  const container = document.getElementById("menu-container");
+  const container = document.getElementById("sidebar-placeholder");
   if (!container) return;
 
   container.innerHTML = `
-    <nav class="sidebar">
-      <a href="dashboard.html">Dashboard</a>
-      <a href="perfil.html">Perfil</a>
-      <a href="financas.html">Finanças</a>
-      <a href="veiculo.html">Veículo</a>
-      <a href="work.html">Work</a>
-      <a href="ajustes.html">Ajustes</a>
-      <button onclick="logout()">Sair</button>
-    </nav>
+    <div class="fixed left-0 top-0 h-full w-64 bg-slate-900 border-r border-white/5 p-6 space-y-4 z-50">
+      <h2 class="text-xl font-black text-blue-500">PULSE</h2>
+      <nav class="flex flex-col gap-3 text-sm">
+        <a href="./dashboard.html">Dashboard</a>
+        <a href="./perfil.html">Perfil</a>
+        <a href="./financas.html">Finanças</a>
+        <a href="./veiculo.html">Veículo</a>
+        <a href="./work.html">Work</a>
+        <a href="./ajustes.html">Ajustes</a>
+        <button onclick="logout()" class="text-red-500 mt-4 text-left">Sair</button>
+      </nav>
+    </div>
   `;
 }
 
 // =============================
-// CARREGAR CONTEÚDO DA PÁGINA
+// CARREGAR PÁGINA
 // =============================
 function loadPageData() {
 
   const page = window.location.pathname.split("/").pop();
 
-  if (page === "dashboard.html") {
-    renderDashboard();
-  }
-
-  if (page === "perfil.html") {
-    fillForm("perfil-form");
-  }
-
-  if (page === "financas.html") {
-    fillForm("financas-form");
-  }
-
-  if (page === "veiculo.html") {
-    fillForm("veiculo-form");
-  }
-
-  if (page === "work.html") {
-    fillForm("work-form");
-  }
-
-  if (page === "ajustes.html") {
-    fillForm("ajustes-form");
-  }
-}
-
-// =============================
-// PREENCHER FORMULÁRIOS
-// =============================
-function fillForm(formId) {
-
-  const form = document.getElementById(formId);
-  if (!form) return;
-
-  Object.keys(userData).forEach(key => {
-    const field = form.querySelector(`[name="${key}"]`);
-    if (field) field.value = userData[key];
-  });
-
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-
-    const data = new FormData(form);
-    const obj = {};
-
-    data.forEach((value, key) => {
-      obj[key] = value;
-    });
-
-    await updateDoc(doc(db, "users", currentUser.uid), obj);
-    alert("Salvo com sucesso!");
-  });
+  if (page === "dashboard.html") renderDashboard();
 }
 
 // =============================
 // DASHBOARD
 // =============================
 function renderDashboard() {
+
   const el = document.getElementById("dashboard-content");
   if (!el) return;
 
   el.innerHTML = `
-    <h2>Bem-vindo, ${currentUser.displayName || "Usuário"}</h2>
+    <h2 class="text-2xl font-bold">
+      Bem-vindo, ${currentUser.displayName || "Usuário"}
+    </h2>
   `;
 }
