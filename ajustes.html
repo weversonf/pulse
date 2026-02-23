@@ -8,216 +8,175 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body class="bg-slate-950 text-slate-100 italic">
-    <div class="flex min-h-screen relative">
-        <div id="sidebar-placeholder"></div>
 
-        <div id="main-content" class="flex-1 md:ml-64 transition-all duration-300 pb-safe-bottom">
-            <div id="header-placeholder"></div>
+<div class="flex min-h-screen relative">
+    <div id="sidebar-placeholder"></div>
 
-            <main class="max-w-6xl mx-auto p-4 md:p-8 space-y-8 italic">
-                
-                <!-- Secção de Identidade -->
-                <section class="space-y-4 animate-fade-in relative">
-                    <div class="glass-card p-6 flex items-center gap-6 shadow-xl shadow-blue-950/10">
-                        <div class="relative group cursor-pointer" onclick="toggleAvatarSelector()">
-                            <div id="avatar-preview-container" class="w-20 h-20 rounded-full bg-slate-950 border border-white/10 flex items-center justify-center overflow-hidden transition-all duration-500 group-hover:border-blue-500/50">
-                                <i id="avatar-preview-icon" data-lucide="user" class="w-10 h-10 text-blue-500/50"></i>
-                                <div class="absolute inset-0 bg-blue-600/20 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity rounded-full">
-                                    <i data-lucide="pencil" class="w-5 h-5 text-white"></i>
-                                </div>
-                            </div>
-                            <div class="absolute bottom-1 right-1 w-5 h-5 bg-emerald-500 border-4 border-slate-950 rounded-full shadow-lg"></div>
-                        </div>
+    <div id="main-content" class="flex-1 md:ml-64 transition-all duration-300 pb-safe-bottom">
+        <div id="header-placeholder"></div>
 
-                        <div class="flex-1">
-                            <div class="flex items-center gap-2 mb-1">
-                                <i data-lucide="shield-check" class="w-3 h-3 text-blue-500"></i>
-                                <span class="text-[8px] font-black text-blue-500 uppercase tracking-widest italic">Acesso Verificado</span>
-                            </div>
-                            <h2 class="text-3xl font-black text-white uppercase tracking-tighter leading-none italic" id="set-user-name">CARREGANDO...</h2>
-                            <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] mt-3 italic flex items-center gap-2">
-                                <span class="w-1 h-1 bg-slate-700 rounded-full"></span>
-                                PULSE OPERATING SYSTEM
-                            </p>
-                        </div>
+        <main class="max-w-6xl mx-auto p-4 md:p-8 space-y-8 italic">
+
+            <!-- IDENTIDADE -->
+            <section class="space-y-4">
+                <div class="glass-card p-6 flex items-center gap-6">
+                    <div id="avatar-preview-container"
+                        class="w-20 h-20 rounded-full bg-slate-950 border border-white/10 flex items-center justify-center overflow-hidden">
+                        <i data-lucide="user" class="w-10 h-10 text-blue-500/50"></i>
                     </div>
-                </section>
 
-                <!-- Secção 01: Parâmetros do Veículo -->
-                <section class="space-y-4">
-                    <h3 class="text-[10px] font-black uppercase tracking-[0.3em] text-orange-500 px-2 flex items-center gap-2 italic">
-                        <i data-lucide="settings" class="w-3 h-3"></i> Parâmetros do Veículo
-                    </h3>
-                    <div class="glass-card p-6 space-y-6">
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 italic">
-                            <div class="space-y-2">
-                                <label class="text-[9px] font-black uppercase text-slate-500 px-2 tracking-widest italic">Tipo de Veículo</label>
-                                <select id="set-bike-tipo" onchange="window.updateBrands(); window.savePulseSettings();" class="pulse-input uppercase cursor-pointer">
-                                    <option value="Moto">Moto</option>
-                                    <option value="Carro">Carro</option>
-                                </select>
-                            </div>
-                            <div class="space-y-2">
-                                <label class="text-[9px] font-black uppercase text-slate-500 px-2 tracking-widest italic">Montadora</label>
-                                <select id="set-bike-montadora" onchange="window.updateModels(); window.savePulseSettings();" class="pulse-input uppercase cursor-pointer"></select>
-                            </div>
-                            <div class="space-y-2">
-                                <label class="text-[9px] font-black uppercase text-slate-500 px-2 tracking-widest italic">Modelo</label>
-                                <select id="set-bike-modelo" onchange="window.updateConsumoDefault(); window.savePulseSettings();" class="pulse-input uppercase cursor-pointer"></select>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 italic pt-4 border-t border-white/5">
-                            <div class="flex flex-col gap-2">
-                                <label class="text-[9px] font-black uppercase text-slate-500 px-2 tracking-widest italic">KM Atual Odómetro</label>
-                                <input type="number" id="set-bike-km" onchange="window.savePulseSettings()" class="pulse-input" placeholder="0">
-                            </div>
-                            <div class="flex flex-col gap-2">
-                                <label class="text-[9px] font-black uppercase text-slate-500 px-2 tracking-widest italic">Próxima Troca de Óleo</label>
-                                <input type="number" id="set-bike-oleo" onchange="window.savePulseSettings()" class="pulse-input text-orange-500" placeholder="0">
-                            </div>
-                            <div class="flex flex-col gap-2">
-                                <label class="text-[9px] font-black uppercase text-slate-500 px-2 tracking-widest italic">Consumo Médio (KM/LT)</label>
-                                <input type="number" id="set-bike-consumo" onchange="window.savePulseSettings()" class="pulse-input text-emerald-500" placeholder="0">
-                            </div>
-                        </div>
+                    <div class="flex-1">
+                        <h2 id="set-user-name"
+                            class="text-3xl font-black text-white uppercase tracking-tighter leading-none">
+                            CARREGANDO...
+                        </h2>
                     </div>
-                </section>
-
-                <!-- Secção 02: Calibragem Cafeína -->
-                <section class="space-y-4">
-                    <h3 class="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-500 px-2 flex items-center gap-2 italic">
-                        <i data-lucide="zap" class="w-3 h-3"></i> Calibragem de Cafeína
-                    </h3>
-                    <div class="glass-card p-6">
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 italic">
-                            <div class="space-y-2">
-                                <label class="text-[9px] font-black uppercase tracking-widest text-slate-500 px-4 italic">Cafeína / Monster (mg)</label>
-                                <input type="number" id="set-calib-monster" onchange="window.savePulseSettings()" class="pulse-input" placeholder="160">
-                            </div>
-                            <div class="space-y-2">
-                                <label class="text-[9px] font-black uppercase tracking-widest text-slate-500 px-4 italic">Volume da Caneca (ml)</label>
-                                <input type="number" id="set-calib-ml" oninput="window.autoCalcCaffeine()" onchange="window.savePulseSettings()" class="pulse-input" placeholder="300">
-                            </div>
-                            <div class="space-y-2">
-                                <label class="text-[9px] font-black uppercase tracking-widest text-slate-500 px-4 italic">Cafeína / Caneca (mg)</label>
-                                <input type="number" id="set-calib-total-mg" class="pulse-input bg-slate-900/40 text-emerald-500 border-emerald-500/20 cursor-not-allowed" readonly>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Secção 03: Propósito -->
-                <section class="space-y-4">
-                    <h3 class="text-[10px] font-black uppercase tracking-[0.3em] text-purple-500 px-2 flex items-center gap-2 italic">
-                        <i data-lucide="wine-off" class="w-3 h-3"></i> Configuração do Propósito
-                    </h3>
-                    <div class="glass-card p-6">
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 italic">
-                            <div class="space-y-2">
-                                <label class="text-[9px] font-black uppercase tracking-widest text-slate-500 px-4 italic">Título do Desafio</label>
-                                <input type="text" id="set-alcohol-title" onchange="window.savePulseSettings()" class="pulse-input uppercase" placeholder="ZERO ÁLCOOL">
-                            </div>
-                            <div class="space-y-2">
-                                <label class="text-[9px] font-black uppercase tracking-widest text-slate-500 px-4 italic">Data de Início</label>
-                                <input type="date" id="set-alcohol-start" onchange="window.savePulseSettings()" class="pulse-input">
-                            </div>
-                            <div class="space-y-2">
-                                <label class="text-[9px] font-black uppercase tracking-widest text-slate-500 px-4 italic">Meta de Dias</label>
-                                <input type="number" id="set-alcohol-target" onchange="window.savePulseSettings()" class="pulse-input" placeholder="30">
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <div class="pt-6">
-                    <button onclick="window.savePulseSettings()" class="...">
-                        <i data-lucide="save" class="w-4 h-4"></i>
-                        Salvar
-                    </button>
                 </div>
-            </main>
-        </div>
+            </section>
+
+            <!-- VEÍCULO -->
+            <section class="space-y-4">
+                <h3 class="text-xs font-black uppercase text-orange-500">Parâmetros do Veículo</h3>
+
+                <div class="glass-card p-6 space-y-6">
+                    <div class="grid md:grid-cols-3 gap-4">
+                        <select id="set-bike-tipo" onchange="updateBrands(); savePulseSettings()" class="pulse-input">
+                            <option value="Moto">Moto</option>
+                            <option value="Carro">Carro</option>
+                        </select>
+
+                        <select id="set-bike-montadora" onchange="updateModels(); savePulseSettings()" class="pulse-input"></select>
+
+                        <select id="set-bike-modelo" onchange="updateConsumoDefault(); savePulseSettings()" class="pulse-input"></select>
+                    </div>
+
+                    <div class="grid md:grid-cols-3 gap-4 pt-4 border-t border-white/5">
+                        <input type="number" id="set-bike-km" onchange="savePulseSettings()" class="pulse-input" placeholder="KM Atual">
+                        <input type="number" id="set-bike-oleo" onchange="savePulseSettings()" class="pulse-input" placeholder="Troca Óleo">
+                        <input type="number" id="set-bike-consumo" onchange="savePulseSettings()" class="pulse-input" placeholder="KM/L">
+                    </div>
+                </div>
+            </section>
+
+            <!-- CAFEÍNA -->
+            <section class="space-y-4">
+                <h3 class="text-xs font-black uppercase text-emerald-500">Calibragem de Cafeína</h3>
+
+                <div class="glass-card p-6 grid md:grid-cols-3 gap-4">
+                    <input type="number" id="set-calib-monster" onchange="savePulseSettings()" class="pulse-input" placeholder="Monster mg">
+                    <input type="number" id="set-calib-ml" oninput="autoCalcCaffeine()" onchange="savePulseSettings()" class="pulse-input" placeholder="Caneca ml">
+                    <input type="number" id="set-calib-total-mg" readonly class="pulse-input bg-slate-900/40 text-emerald-500">
+                </div>
+            </section>
+
+            <!-- PROPÓSITO -->
+            <section class="space-y-4">
+                <h3 class="text-xs font-black uppercase text-purple-500">Configuração do Propósito</h3>
+
+                <div class="glass-card p-6 grid md:grid-cols-3 gap-4">
+                    <input type="text" id="set-alcohol-title" onchange="savePulseSettings()" class="pulse-input uppercase" placeholder="Título">
+                    <input type="date" id="set-alcohol-start" onchange="savePulseSettings()" class="pulse-input">
+                    <input type="number" id="set-alcohol-target" onchange="savePulseSettings()" class="pulse-input" placeholder="Meta Dias">
+                </div>
+            </section>
+
+        </main>
     </div>
-    
-    <script type="module" src="js/app.js"></script>
-    <script>
-        const VEICULOS_DATABASE = {
-            "Moto": {
-                "YAMAHA": { "FAZER 250": 35, "LANDER 250": 32, "MT-03": 22 },
-                "HONDA": { "CB 300F": 33, "XRE 300": 28, "CG 160": 42 }
-            },
-            "Carro": {
-                "TOYOTA": { "COROLLA CROSS": 14, "HILUX": 10, "COROLLA": 12 },
-                "VW": { "GOL": 13, "POLO": 15 }
-            }
-        };
+</div>
 
-        window.updateBrands = () => {
-            const tipo = document.getElementById('set-bike-tipo').value;
-            const select = document.getElementById('set-bike-montadora');
-            select.innerHTML = "";
-            Object.keys(VEICULOS_DATABASE[tipo]).forEach(m => {
-                const opt = document.createElement('option');
-                opt.value = m; opt.innerText = m; select.appendChild(opt);
-            });
-            window.updateModels();
-        };
+<script type="module" src="js/app.js"></script>
 
-        window.updateModels = () => {
-            const tipo = document.getElementById('set-bike-tipo').value;
-            const marca = document.getElementById('set-bike-montadora').value;
-            const select = document.getElementById('set-bike-modelo');
-            select.innerHTML = "";
-            if(VEICULOS_DATABASE[tipo][marca]) {
-                Object.keys(VEICULOS_DATABASE[tipo][marca]).forEach(mod => {
-                    const opt = document.createElement('option');
-                    opt.value = mod; opt.innerText = mod; select.appendChild(opt);
-                });
-            }
-            window.updateConsumoDefault();
-        };
+<script>
+/* ---------- DATABASE VEÍCULOS ---------- */
+const VEICULOS_DATABASE = {
+    Moto: {
+        YAMAHA: { "FAZER 250": 35, "LANDER 250": 32, "MT-03": 22 },
+        HONDA: { "CB 300F": 33, "XRE 300": 28, "CG 160": 42 }
+    },
+    Carro: {
+        TOYOTA: { "COROLLA": 12, "HILUX": 10 },
+        VW: { "GOL": 13, "POLO": 15 }
+    }
+};
 
-        window.updateConsumoDefault = () => {
-            const tipo = document.getElementById('set-bike-tipo').value;
-            const marca = document.getElementById('set-bike-montadora').value;
-            const modelo = document.getElementById('set-bike-modelo').value;
-            const input = document.getElementById('set-bike-consumo');
-            if(VEICULOS_DATABASE[tipo][marca][modelo]) input.value = VEICULOS_DATABASE[tipo][marca][modelo];
-        };
+window.updateBrands = () => {
+    const tipo = document.getElementById('set-bike-tipo').value;
+    const select = document.getElementById('set-bike-montadora');
+    select.innerHTML = "";
 
-        window.autoCalcCaffeine = () => {
-            const ml = parseFloat(document.getElementById('set-calib-ml').value) || 0;
-            const res = document.getElementById('set-calib-total-mg');
-            if (ml > 0) res.value = Math.round((ml / 100) * 40);
-            else res.value = "";
-        };
+    Object.keys(VEICULOS_DATABASE[tipo]).forEach(m => {
+        select.add(new Option(m, m));
+    });
 
-        window.addEventListener('DOMContentLoaded', () => {
-            if (window.appState) {
-                if (window.appState.login) document.getElementById('set-user-name').innerText = window.appState.login;
-                const v = window.appState.veiculo;
-                document.getElementById('set-bike-tipo').value = v.tipo || "Moto";
-                window.updateBrands();
-                if (v.montadora) document.getElementById('set-bike-montadora').value = v.montadora;
-                window.updateModels();
-                if (v.modelo) document.getElementById('set-bike-modelo').value = v.modelo;
-                document.getElementById('set-bike-km').value = v.km || "";
-                document.getElementById('set-bike-oleo').value = v.oleo || "";
-                document.getElementById('set-bike-consumo').value = v.consumo || "";
-                
-                const c = window.appState.calibragem;
-                document.getElementById('set-calib-monster').value = c.monster_mg || 160;
-                document.getElementById('set-calib-ml').value = c.coffee_ml || "";
-                window.autoCalcCaffeine();
+    updateModels();
+};
 
-                const p = window.appState.perfil;
-                document.getElementById('set-alcohol-title').value = p.alcoholTitle || "ZERO ÁLCOOL";
-                document.getElementById('set-alcohol-start').value = p.alcoholStart || "";
-                document.getElementById('set-alcohol-target').value = p.alcoholTarget || 30;
-            }
+window.updateModels = () => {
+    const tipo = document.getElementById('set-bike-tipo').value;
+    const marca = document.getElementById('set-bike-montadora').value;
+    const select = document.getElementById('set-bike-modelo');
+    select.innerHTML = "";
+
+    if (VEICULOS_DATABASE[tipo][marca]) {
+        Object.keys(VEICULOS_DATABASE[tipo][marca]).forEach(mod => {
+            select.add(new Option(mod, mod));
         });
-    </script>
+    }
+
+    updateConsumoDefault();
+};
+
+window.updateConsumoDefault = () => {
+    const tipo = document.getElementById('set-bike-tipo').value;
+    const marca = document.getElementById('set-bike-montadora').value;
+    const modelo = document.getElementById('set-bike-modelo').value;
+
+    const consumo = VEICULOS_DATABASE?.[tipo]?.[marca]?.[modelo];
+    if (consumo)
+        document.getElementById('set-bike-consumo').value = consumo;
+};
+
+window.autoCalcCaffeine = () => {
+    const ml = parseFloat(document.getElementById('set-calib-ml').value) || 0;
+    document.getElementById('set-calib-total-mg').value = ml > 0 ? Math.round((ml / 100) * 40) : "";
+};
+
+/* ---------- FUNÇÃO REATIVA ---------- */
+window.fillAjustesForm = () => {
+    if (!window.appState) return;
+
+    document.getElementById('set-user-name').innerText = window.appState.login || "USUÁRIO";
+
+    const v = window.appState.veiculo || {};
+    const c = window.appState.calibragem || {};
+    const p = window.appState.perfil || {};
+
+    document.getElementById('set-bike-tipo').value = v.tipo || "Moto";
+    updateBrands();
+
+    if (v.montadora)
+        document.getElementById('set-bike-montadora').value = v.montadora;
+
+    updateModels();
+
+    if (v.modelo)
+        document.getElementById('set-bike-modelo').value = v.modelo;
+
+    document.getElementById('set-bike-km').value = v.km || "";
+    document.getElementById('set-bike-oleo').value = v.oleo || "";
+    document.getElementById('set-bike-consumo').value = v.consumo || "";
+
+    document.getElementById('set-calib-monster').value = c.monster_mg || 160;
+    document.getElementById('set-calib-ml').value = c.coffee_ml || "";
+    autoCalcCaffeine();
+
+    document.getElementById('set-alcohol-title').value = p.alcoholTitle || "ZERO ÁLCOOL";
+    document.getElementById('set-alcohol-start').value = p.alcoholStart || "";
+    document.getElementById('set-alcohol-target').value = p.alcoholTarget || 30;
+};
+</script>
+
 </body>
 </html>
