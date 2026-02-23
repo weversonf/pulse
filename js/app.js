@@ -1,5 +1,5 @@
 /**
- * PULSE OS - Central Intelligence v12.0 (Ultimate Personal Edition)
+ * PULSE OS - Central Intelligence v12.2 (Ultimate Resilient Edition)
  * Gestão Total: Saúde, Finanças e Veículo (Yamaha Fazer 250).
  * Sincronização em Tempo Real via Firebase & Identidade Google.
  */
@@ -100,7 +100,7 @@ const setupRealtimeSync = (userId) => {
             const currentLocalSidebar = window.appState.sidebarCollapsed;
             const googlePhoto = window.appState.photoURL;
             window.appState = { ...window.appState, ...cloudData };
-            window.appState.sidebarCollapsed = currentLocalSidebar; // Mantém preferência local do menu
+            window.appState.sidebarCollapsed = currentLocalSidebar; 
             window.appState.photoURL = googlePhoto;
             updateGlobalUI();
         } else {
@@ -135,7 +135,6 @@ const updateGlobalUI = () => {
         else mainContent.style.paddingBottom = '5rem';
     }
 
-    // Displays Dinâmicos
     const set = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
     const efektivaj = (window.appState.transacoes || []).filter(t => t.status === 'Efetivada');
     const saldo = efektivaj.reduce((acc, t) => acc + (t.tipo === 'Receita' ? t.valor : -t.valor), 0);
@@ -145,14 +144,22 @@ const updateGlobalUI = () => {
     set('dash-water-cur', window.appState.water_ml);
     set('water-current-display', window.appState.water_ml);
     set('energy-current-display', window.appState.energy_mg);
+    set('dash-energy-val', window.appState.energy_mg); // Para o gauge do Dashboard
     set('bike-km-display', window.appState.veiculo.km);
 
-    // Barras de Progresso
+    // Barras de Progresso e Gauges
     const wBar = document.getElementById('dash-water-bar');
     if (wBar) wBar.style.width = Math.min(100, (window.appState.water_ml / 3500) * 100) + '%';
     
     const eBar = document.getElementById('energy-bar');
     if (eBar) eBar.style.width = Math.min(100, (window.appState.energy_mg / 400) * 100) + '%';
+
+    const eGauge = document.getElementById('energy-gauge-path');
+    if (eGauge) {
+        const percent = Math.min(100, (window.appState.energy_mg / 400) * 100);
+        const offset = 226.2 - (226.2 * percent) / 100;
+        eGauge.style.strokeDashoffset = offset;
+    }
 
     // Propósito
     const alcStart = window.appState.perfil.alcoholStart;
@@ -172,14 +179,24 @@ const updateGlobalUI = () => {
     const avatar = document.getElementById('avatar-preview-container');
     if (avatar && window.appState.photoURL) avatar.innerHTML = `<img src="${window.appState.photoURL}" class="w-full h-full object-cover rounded-full" />`;
 
+    // Tasks Work
+    const tasks = window.appState.tarefas || [];
+    set('task-count', tasks.filter(t => t.status === 'Pendente').length);
+    set('dash-tasks-progress', tasks.length);
+    set('dash-tasks-remaining', tasks.filter(t => t.status === 'Pendente').length);
+
     if (window.lucide) lucide.createIcons();
     if (typeof renderFullExtrato === 'function') renderFullExtrato();
-    renderWorkTasks(); // Renderiza as tarefas se estiver na página work
+    if (typeof renderWorkTasks === 'function') renderWorkTasks();
 };
 
 const injectInterface = () => {
-    const sidebarPlaceholder = document.getElementById('sidebar-placeholder');
+    // Tenta encontrar o placeholder por vários IDs comuns para evitar erros
+    const sidebarPlaceholder = document.getElementById('sidebar-placeholder') || document.getElementById('menu-container');
     const headerPlaceholder = document.getElementById('header-placeholder');
+    
+    if (!sidebarPlaceholder) return;
+
     const items = [
         { id: 'dashboard', label: 'Home', icon: 'layout-dashboard', color: 'text-blue-500' },
         { id: 'saude', label: 'Saúde', icon: 'activity', color: 'text-rose-500' },
@@ -187,9 +204,11 @@ const injectInterface = () => {
         { id: 'work', label: 'Tarefas', icon: 'briefcase', color: 'text-sky-400' },
         { id: 'financas', label: 'Finanças', icon: 'wallet', color: 'text-emerald-500' }
     ];
+    
     const path = (window.location.pathname.split('/').pop() || 'dashboard.html').split('.')[0];
 
-    if (sidebarPlaceholder && !sidebarPlaceholder.querySelector('aside')) {
+    // Injeta Sidebar se ainda não existir
+    if (!sidebarPlaceholder.querySelector('aside')) {
         sidebarPlaceholder.innerHTML = `
             <aside class="hidden md:flex flex-col bg-slate-900 border-r border-white/5 fixed h-full z-50 transition-all duration-300 italic">
                 <div class="p-6 flex items-center justify-between">
@@ -198,7 +217,7 @@ const injectInterface = () => {
                         <i data-lucide="${window.appState.sidebarCollapsed ? 'chevron-right' : 'chevron-left'}" class="w-4 h-4"></i>
                     </button>
                 </div>
-                <nav class="flex-1 px-3 mt-4 space-y-1">
+                <nav class="flex-1 px-3 mt-4 space-y-1 overflow-y-auto">
                     ${items.map(i => `<button onclick="window.openTab('${i.id}')" class="w-full flex items-center gap-4 px-4 py-4 rounded-xl font-black uppercase text-[10px] tracking-widest ${path === i.id ? 'bg-white/5 text-blue-500' : 'text-slate-400 hover:bg-white/5'} transition-all"><i data-lucide="${i.icon}" class="w-5 h-5 ${i.color}"></i><span class="menu-label">${i.label}</span></button>`).join('')}
                     <button onclick="window.openTab('perfil')" class="w-full flex items-center gap-4 px-4 py-4 rounded-xl font-black uppercase text-[10px] tracking-widest ${path === 'perfil' ? 'bg-white/5 text-purple-500' : 'text-slate-400 hover:bg-white/5'}"><i data-lucide="user" class="w-5 h-5 text-purple-500"></i><span class="menu-label">Perfil</span></button>
                     <button onclick="window.logout()" class="w-full flex items-center gap-4 px-4 py-4 mt-10 text-red-500/40 hover:text-red-500 transition-all italic font-black text-[10px] tracking-widest"><i data-lucide="log-out" class="w-5 h-5"></i><span class="menu-label">Sair</span></button>
@@ -250,12 +269,11 @@ window.renderWorkTasks = () => {
     const list = document.getElementById('work-task-active-list');
     if (!list) return;
     const tasks = window.appState.tarefas || [];
-    document.getElementById('task-count').innerText = tasks.filter(t => t.status === 'Pendente').length;
     list.innerHTML = tasks.map(t => `
         <div class="glass-card p-4 flex justify-between items-center italic">
             <div>
                 <p class="text-[10px] font-black text-white uppercase italic">${t.title}</p>
-                <p class="text-[8px] font-bold text-slate-500 uppercase mt-1 italic">${t.type} • ${t.requester}</p>
+                <p class="text-[8px] font-bold text-slate-500 uppercase mt-1 italic">${t.type} • ${t.requester} ${t.deadline ? '• ' + t.deadline : ''}</p>
             </div>
             <button onclick="window.deleteTask(${t.id})" class="text-slate-700 hover:text-red-500 transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
         </div>
@@ -264,9 +282,16 @@ window.renderWorkTasks = () => {
 };
 
 window.addWorkTask = async () => {
-    const title = document.getElementById('work-task-title').value;
+    const title = document.getElementById('work-task-title')?.value;
     if (!title) return;
-    window.appState.tarefas.push({ id: Date.now(), title, type: document.getElementById('work-task-type').value, requester: document.getElementById('work-task-requester').value, status: 'Pendente' });
+    window.appState.tarefas.push({ 
+        id: Date.now(), 
+        title, 
+        type: document.getElementById('work-task-type').value, 
+        requester: document.getElementById('work-task-requester').value, 
+        deadline: document.getElementById('work-task-deadline')?.value || "",
+        status: 'Pendente' 
+    });
     document.getElementById('work-task-title').value = "";
     await pushState(); updateGlobalUI(); window.showToast("Atividade Registrada!");
 };
@@ -277,7 +302,8 @@ window.deleteTask = async (id) => {
 };
 
 window.processarLancamento = async (tipo) => {
-    const val = parseFloat(document.getElementById('fin-valor').value);
+    const valInput = document.getElementById('fin-valor');
+    const val = parseFloat(valInput?.value);
     if (isNaN(val)) return;
     window.appState.transacoes.push({ id: Date.now(), tipo: tipo === 'receita' ? 'Receita' : 'Despesa', desc: document.getElementById('fin-desc').value.toUpperCase(), valor: val, status: document.getElementById('fin-status').value, cat: 'Geral', data: new Date().toLocaleDateString('pt-BR') });
     await pushState(); updateGlobalUI(); window.showToast("Lançamento Efetuado!");
@@ -290,5 +316,8 @@ window.resetHealthDay = () => { window.appState.water_ml = 0; window.appState.en
 window.toggleSidebar = () => { window.appState.sidebarCollapsed = !window.appState.sidebarCollapsed; updateGlobalUI(); };
 window.openTab = (p) => { window.location.href = p + ".html"; };
 
-updateGlobalUI();
-window.addEventListener('resize', updateGlobalUI);
+// --- INIT ---
+document.addEventListener('DOMContentLoaded', () => {
+    updateGlobalUI();
+    window.addEventListener('resize', updateGlobalUI);
+});
