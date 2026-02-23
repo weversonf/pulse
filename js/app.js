@@ -229,17 +229,11 @@ const injectInterface = () => {
     }
 
     if (headerPlaceholder && !headerPlaceholder.querySelector('header')) {
-        const photo = window.appState.photoURL;
         headerPlaceholder.innerHTML = `
-            <header class="bg-slate-900/80 backdrop-blur-xl sticky top-0 z-40 px-6 py-5 flex items-center justify-between border-b border-white/5 italic">
-                <div class="flex items-center gap-3">
-                    ${photo ? `<img src="${photo}" class="w-8 h-8 rounded-full border border-white/10 shadow-lg"/>` : `<div class="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-500"><i data-lucide="user" class="w-4 h-4"></i></div>`}
-                    <div class="flex flex-col">
-                        <span class="text-[8px] font-black text-blue-500/60 uppercase tracking-[0.2em] mb-1 leading-none italic">MEU PULSE</span>
-                        <h2 class="text-sm font-black uppercase text-white leading-none italic">${window.appState.login}</h2>
-                    </div>
-                </div>
-                <button onclick="window.openTab('ajustes')" class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-slate-500 hover:text-white transition-all"><i data-lucide="settings" class="w-4 h-4"></i></button>
+            <header class="bg-slate-900/80 backdrop-blur-xl sticky top-0 z-40 px-6 py-5 flex items-center justify-end border-b border-white/5 italic">
+                <button onclick="window.openTab('ajustes')" class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-slate-500 hover:text-white transition-all">
+                    <i data-lucide="settings" class="w-4 h-4"></i>
+                </button>
             </header>
         `;
     }
