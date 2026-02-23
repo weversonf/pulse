@@ -1,24 +1,24 @@
 /**
- * PULSE OS - Central Intelligence v12.5 (Dynamic Logo UI)
+ * PULSE OS - Central Intelligence v13.0 (Firebase 12.9.0 SDK)
  * Gestão Total: Saúde, Finanças e Veículo (Yamaha Fazer 250).
  * Sincronização em Tempo Real via Firebase & Identidade Google.
  */
 
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
+// Importando a versão 12.9.0 sugerida pelo console do Firebase
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js';
 import { 
     getAuth, 
     onAuthStateChanged, 
     signInWithPopup, 
     GoogleAuthProvider, 
-    signInWithEmailAndPassword, 
     signOut 
-} from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
+} from 'https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js';
 import { 
     getFirestore, 
     doc, 
     setDoc, 
     onSnapshot 
-} from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
+} from 'https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js';
 
 // --- CONFIGURAÇÃO FIREBASE (pulse-68c1c) ---
 const firebaseConfig = {
@@ -30,6 +30,7 @@ const firebaseConfig = {
     appId: "1:360386380741:web:d45af208f595b5799a81ac"
 };
 
+// Inicialização
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -53,7 +54,7 @@ window.appState = {
     transacoes: []
 };
 
-// --- SISTEMA DE NOTIFICAÇÃO (TOAST) ---
+// --- NOTIFICAÇÕES (TOAST) ---
 window.showToast = (message, type = 'success') => {
     const toast = document.createElement('div');
     toast.className = `fixed top-6 left-1/2 -translate-x-1/2 z-[200] px-6 py-3 rounded-2xl font-black uppercase text-[10px] tracking-[0.2em] shadow-2xl transition-all duration-500 transform translate-y-[-20px] opacity-0 italic flex items-center gap-3 border ${
@@ -71,7 +72,13 @@ window.showToast = (message, type = 'success') => {
 
 // --- AUTENTICAÇÃO ---
 window.loginWithGoogle = async () => {
-    try { await signInWithPopup(auth, googleProvider); window.showToast("Google Sync Ativado!"); } catch (err) { console.error(err); }
+    try { 
+        await signInWithPopup(auth, googleProvider); 
+        window.showToast("Login Google Ok!"); 
+    } catch (err) { 
+        console.error(err);
+        window.showToast("Erro ao conectar Google", "error");
+    }
 };
 
 window.logout = async () => { await signOut(auth); window.location.href = "index.html"; };
@@ -82,40 +89,59 @@ onAuthStateChanged(auth, (user) => {
         window.appState.fullName = user.displayName || "USUÁRIO";
         window.appState.photoURL = user.photoURL || null;
         window.appState.email = user.email;
-        updateGlobalUI(); 
         setupRealtimeSync(user.uid);
+        updateGlobalUI(); 
         if (window.location.pathname.endsWith('index.html') || window.location.pathname === '/') window.location.href = "dashboard.html";
     } else if (!window.location.pathname.endsWith('index.html')) {
         window.location.href = "index.html";
     }
 });
 
-// --- FIRESTORE ---
+// --- SINCRONIZAÇÃO CLOUD ---
 const setupRealtimeSync = (userId) => {
     if (!userId) return;
     const stateDoc = doc(db, 'artifacts', appId, 'users', userId, 'state', 'current');
+    
     onSnapshot(stateDoc, (snapshot) => {
         if (snapshot.exists()) {
             const cloudData = snapshot.data();
-            const currentLocalSidebar = window.appState.sidebarCollapsed;
-            const googlePhoto = window.appState.photoURL;
-            window.appState = { ...window.appState, ...cloudData };
-            window.appState.sidebarCollapsed = currentLocalSidebar; 
-            window.appState.photoURL = googlePhoto;
+            const session = {
+                login: window.appState.login,
+                fullName: window.appState.fullName,
+                photoURL: window.appState.photoURL,
+                email: window.appState.email,
+                sidebarCollapsed: window.appState.sidebarCollapsed
+            };
+            window.appState = { ...window.appState, ...cloudData, ...session };
             updateGlobalUI();
         } else {
-            setDoc(stateDoc, window.appState);
+            pushState(); // Salva estado inicial se for novo usuário
         }
-    }, (error) => console.error("Sync Error:", error));
+    }, (err) => {
+        console.error("Erro Snapshot:", err);
+        if (err.code === 'permission-denied') window.showToast("Firebase: Sem Permissão!", "error");
+    });
 };
 
 const pushState = async () => {
-    if (!auth.currentUser) return;
+    if (!auth.currentUser) return false;
     const stateDoc = doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'state', 'current');
-    const dataToSync = { ...window.appState };
+    
+    // Limpeza de dados para evitar erros de tipos complexos no Firestore
+    const dataToSync = JSON.parse(JSON.stringify(window.appState));
     delete dataToSync.sidebarCollapsed; 
     delete dataToSync.photoURL; 
-    try { await setDoc(stateDoc, dataToSync); return true; } catch (e) { return false; }
+    delete dataToSync.fullName;
+    delete dataToSync.login;
+
+    try { 
+        await setDoc(stateDoc, dataToSync, { merge: true }); 
+        return true; 
+    } catch (e) { 
+        console.error("Erro ao salvar:", e);
+        window.showToast("Falha na Sincronização", "error");
+        return false; 
+    }
 };
 
 // --- INTERFACE ---
@@ -126,20 +152,14 @@ const updateGlobalUI = () => {
     const sidebar = document.querySelector('aside');
     const headerLogo = document.getElementById('header-logo');
     
-    // Controle Sidebar
     if (sidebar) {
         sidebar.style.width = isCollapsed ? '5rem' : '16rem';
         sidebar.querySelectorAll('.menu-label, h1').forEach(el => el.style.display = isCollapsed ? 'none' : 'block');
     }
 
-    // Controle Logo no Header (Só aparece se recolhido ou mobile)
     if (headerLogo) {
-        if (window.innerWidth < 768) {
-            headerLogo.style.opacity = '1';
-        } else {
-            headerLogo.style.opacity = isCollapsed ? '1' : '0';
-            headerLogo.style.pointerEvents = isCollapsed ? 'auto' : 'none';
-        }
+        if (window.innerWidth < 768) headerLogo.style.opacity = '1';
+        else headerLogo.style.opacity = isCollapsed ? '1' : '0';
     }
 
     if (mainContent) {
@@ -162,29 +182,25 @@ const updateGlobalUI = () => {
     const wBar = document.getElementById('dash-water-bar');
     if (wBar) wBar.style.width = Math.min(100, (window.appState.water_ml / 3500) * 100) + '%';
     
-    const eBar = document.getElementById('energy-bar');
-    if (eBar) eBar.style.width = Math.min(100, (window.appState.energy_mg / 400) * 100) + '%';
-
     const eGauge = document.getElementById('energy-gauge-path');
     if (eGauge) {
         const percent = Math.min(100, (window.appState.energy_mg / 400) * 100);
-        const offset = 226.2 - (226.2 * percent) / 100;
-        eGauge.style.strokeDashoffset = offset;
+        eGauge.style.strokeDashoffset = 226.2 - (226.2 * percent) / 100;
     }
 
     const alcStart = window.appState.perfil.alcoholStart;
     if (alcStart && document.getElementById('alcohol-days-count')) {
         const diff = Math.floor((new Date() - new Date(alcStart)) / (1000 * 60 * 60 * 24));
         set('alcohol-days-count', Math.max(0, diff));
-        const target = window.appState.perfil.alcoholTarget || 30;
-        set('alcohol-target-display', target);
+        set('alcohol-target-display', window.appState.perfil.alcoholTarget || 30);
         const aBar = document.getElementById('alcohol-bar');
-        if (aBar) aBar.style.width = Math.min(100, (diff / target) * 100) + '%';
+        if (aBar) aBar.style.width = Math.min(100, (diff / (window.appState.perfil.alcoholTarget || 30)) * 100) + '%';
         set('alcohol-challenge-title', window.appState.perfil.alcoholTitle);
     }
 
-    const profName = document.getElementById('profile-user-name');
+    const profName = document.getElementById('profile-user-name') || document.getElementById('set-user-name');
     if (profName) profName.innerText = window.appState.fullName;
+    
     const avatar = document.getElementById('avatar-preview-container');
     if (avatar && window.appState.photoURL) avatar.innerHTML = `<img src="${window.appState.photoURL}" class="w-full h-full object-cover rounded-full" />`;
 
@@ -194,14 +210,12 @@ const updateGlobalUI = () => {
     set('dash-tasks-remaining', tasks.filter(t => t.status === 'Pendente').length);
 
     if (window.lucide) lucide.createIcons();
-    if (typeof renderFullExtrato === 'function') renderFullExtrato();
     if (typeof renderWorkTasks === 'function') renderWorkTasks();
 };
 
 const injectInterface = () => {
     const sidebarPlaceholder = document.getElementById('sidebar-placeholder') || document.getElementById('menu-container');
     const headerPlaceholder = document.getElementById('header-placeholder');
-    
     if (!sidebarPlaceholder) return;
 
     const items = [
@@ -213,7 +227,6 @@ const injectInterface = () => {
         { id: 'perfil', label: 'Perfil', icon: 'user', color: 'text-purple-500' },
         { id: 'ajustes', label: 'Ajustes', icon: 'settings', color: 'text-slate-400' }
     ];
-    
     const path = (window.location.pathname.split('/').pop() || 'dashboard.html').split('.')[0];
 
     if (!sidebarPlaceholder.querySelector('aside')) {
@@ -227,34 +240,14 @@ const injectInterface = () => {
                 </div>
                 <nav class="flex-1 px-3 mt-4 space-y-1 overflow-y-auto">
                     ${items.map(i => `<button onclick="window.openTab('${i.id}')" class="w-full flex items-center gap-4 px-4 py-4 rounded-xl font-black uppercase text-[10px] tracking-widest ${path === i.id ? 'bg-white/5 text-blue-500' : 'text-slate-400 hover:bg-white/5'} transition-all"><i data-lucide="${i.icon}" class="w-5 h-5 ${i.color}"></i><span class="menu-label">${i.label}</span></button>`).join('')}
-                    
                     <button onclick="window.logout()" class="w-full flex items-center gap-4 px-4 py-4 mt-6 text-red-500/40 hover:text-red-500 transition-all italic font-black text-[10px] tracking-widest border-t border-white/5">
-                        <i data-lucide="log-out" class="w-5 h-5"></i>
-                        <span class="menu-label">Sair</span>
+                        <i data-lucide="log-out" class="w-5 h-5"></i><span class="menu-label">Sair</span>
                     </button>
                 </nav>
             </aside>
             <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-xl border-t border-white/5 flex items-center justify-around px-2 py-3 z-[100] italic shadow-2xl">
-                <button onclick="window.openTab('dashboard')" class="flex flex-col items-center gap-1 p-2 ${path === 'dashboard' ? 'text-blue-500' : 'text-slate-500'}">
-                    <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
-                    <span class="text-[7px] font-black uppercase">Home</span>
-                </button>
-                <button onclick="window.openTab('saude')" class="flex flex-col items-center gap-1 p-2 ${path === 'saude' ? 'text-rose-500' : 'text-slate-500'}">
-                    <i data-lucide="activity" class="w-5 h-5"></i>
-                    <span class="text-[7px] font-black uppercase">Saúde</span>
-                </button>
-                <button onclick="window.openTab('veiculo')" class="flex flex-col items-center gap-1 p-2 ${path === 'veiculo' ? 'text-orange-500' : 'text-slate-500'}">
-                    <i data-lucide="bike" class="w-5 h-5"></i>
-                    <span class="text-[7px] font-black uppercase">Máquina</span>
-                </button>
-                <button onclick="window.openTab('work')" class="flex flex-col items-center gap-1 p-2 ${path === 'work' ? 'text-sky-400' : 'text-slate-500'}">
-                    <i data-lucide="briefcase" class="w-5 h-5"></i>
-                    <span class="text-[7px] font-black uppercase">Tarefas</span>
-                </button>
-                <button onclick="window.openTab('ajustes')" class="flex flex-col items-center gap-1 p-2 ${path === 'ajustes' ? 'text-blue-500' : 'text-slate-500'}">
-                    <i data-lucide="settings" class="w-5 h-5"></i>
-                    <span class="text-[7px] font-black uppercase">Ajustes</span>
-                </button>
+                ${items.slice(0, 5).map(i => `<button onclick="window.openTab('${i.id}')" class="flex flex-col items-center gap-1 p-2 ${path === i.id ? 'text-blue-500' : 'text-slate-500'}"><i data-lucide="${i.icon}" class="w-5 h-5"></i><span class="text-[7px] font-black uppercase">${i.label}</span></button>`).join('')}
+                <button onclick="window.openTab('ajustes')" class="flex flex-col items-center gap-1 p-2 ${path === 'ajustes' ? 'text-blue-500' : 'text-slate-500'}"><i data-lucide="settings" class="w-5 h-5"></i><span class="text-[7px] font-black uppercase">Ajustes</span></button>
             </nav>
         `;
     }
@@ -262,12 +255,9 @@ const injectInterface = () => {
     if (headerPlaceholder && !headerPlaceholder.querySelector('header')) {
         headerPlaceholder.innerHTML = `
             <header class="bg-slate-900/80 backdrop-blur-xl sticky top-0 z-40 px-6 py-5 flex items-center justify-between border-b border-white/5 italic">
-                <!-- Logo dinâmico no Header -->
                 <div id="header-logo" class="transition-opacity duration-300">
                     <h1 class="text-xl font-black text-blue-500 italic tracking-tighter">PULSE</h1>
                 </div>
-
-                <!-- Botão de Abastecimento rápido no topo -->
                 <button onclick="window.openTab('veiculo')" class="w-10 h-10 rounded-xl bg-orange-600/20 border border-orange-500/30 flex items-center justify-center text-orange-500 hover:bg-orange-600 hover:text-white transition-all shadow-lg">
                     <i data-lucide="fuel" class="w-5 h-5"></i>
                 </button>
@@ -278,40 +268,15 @@ const injectInterface = () => {
 
 // --- AÇÕES ---
 window.savePulseSettings = async () => {
+    const v = window.appState.veiculo;
     if (document.getElementById('set-bike-tipo')) {
-        window.appState.veiculo.tipo = document.getElementById('set-bike-tipo').value;
-        window.appState.veiculo.montadora = document.getElementById('set-bike-montadora')?.value || "YAMAHA";
-        window.appState.veiculo.modelo = document.getElementById('set-bike-modelo')?.value || "FAZER 250";
-        window.appState.veiculo.km = parseInt(document.getElementById('set-bike-km').value) || 0;
-        window.appState.veiculo.oleo = parseInt(document.getElementById('set-bike-oleo').value) || 0;
-        window.appState.veiculo.consumo = parseFloat(document.getElementById('set-bike-consumo').value) || 29;
+        v.tipo = document.getElementById('set-bike-tipo').value;
+        v.km = parseInt(document.getElementById('set-bike-km').value) || 0;
+        v.oleo = parseInt(document.getElementById('set-bike-oleo').value) || 0;
+        v.consumo = parseFloat(document.getElementById('set-bike-consumo').value) || 29;
     }
-
-    if (document.getElementById('set-calib-monster')) {
-        window.appState.calibragem.monster_mg = parseInt(document.getElementById('set-calib-monster').value) || 160;
-        window.appState.calibragem.coffee_ml = parseInt(document.getElementById('set-calib-ml').value) || 300;
-    }
-
-    if (document.getElementById('set-alcohol-title')) {
-        window.appState.perfil.alcoholTitle = document.getElementById('set-alcohol-title').value;
-        window.appState.perfil.alcoholStart = document.getElementById('set-alcohol-start').value;
-        window.appState.perfil.alcoholTarget = parseInt(document.getElementById('set-alcohol-target').value) || 30;
-    }
-
-    if (document.getElementById('set-peso')) {
-        window.appState.perfil.peso = parseFloat(document.getElementById('set-peso').value) || 0;
-        window.appState.perfil.altura = parseInt(document.getElementById('set-altura').value) || 0;
-        window.appState.perfil.idade = parseInt(document.getElementById('set-idade').value) || 0;
-        window.appState.perfil.sexo = document.getElementById('set-sexo').value;
-        window.appState.perfil.estado = document.getElementById('set-estado').value;
-        window.appState.perfil.cidade = document.getElementById('set-cidade').value;
-    }
-
     const success = await pushState();
-    if (success) { 
-        window.showToast("Configurações Salvas!"); 
-        updateGlobalUI(); 
-    }
+    if (success) { window.showToast("Sincronizado!"); updateGlobalUI(); }
 };
 
 window.renderWorkTasks = () => {
@@ -333,68 +298,33 @@ window.renderWorkTasks = () => {
 window.addWorkTask = async () => {
     const title = document.getElementById('work-task-title')?.value;
     if (!title) return;
-    window.appState.tarefas.push({ 
-        id: Date.now(), 
-        title, 
-        type: document.getElementById('work-task-type').value, 
-        requester: document.getElementById('work-task-requester').value, 
-        deadline: document.getElementById('work-task-deadline')?.value || "",
-        status: 'Pendente' 
-    });
+    window.appState.tarefas.push({ id: Date.now(), title, type: document.getElementById('work-task-type').value, requester: document.getElementById('work-task-requester').value, deadline: document.getElementById('work-task-deadline')?.value || "", status: 'Pendente' });
     document.getElementById('work-task-title').value = "";
-    await pushState(); updateGlobalUI(); window.showToast("Atividade Registrada!");
+    await pushState(); updateGlobalUI(); window.showToast("Tarefa Adicionada!");
 };
 
 window.deleteTask = async (id) => {
     window.appState.tarefas = window.appState.tarefas.filter(t => t.id !== id);
-    await pushState(); updateGlobalUI(); window.showToast("Tarefa Removida", "error");
-};
-
-window.processarLancamento = async (tipo) => {
-    const valInput = document.getElementById('fin-valor');
-    const val = parseFloat(valInput?.value);
-    if (isNaN(val)) return;
-    window.appState.transacoes.push({ id: Date.now(), tipo: tipo === 'receita' ? 'Receita' : 'Despesa', desc: document.getElementById('fin-desc').value.toUpperCase(), valor: val, status: document.getElementById('fin-status').value, cat: 'Geral', data: new Date().toLocaleDateString('pt-BR') });
-    await pushState(); updateGlobalUI(); window.showToast("Lançamento Efetuado!");
-    if (typeof window.toggleModal === 'function') window.toggleModal();
+    await pushState(); updateGlobalUI(); window.showToast("Removido!", "error");
 };
 
 window.saveBikeEntry = async () => {
     const desc = document.getElementById('bike-log-desc')?.value;
     const km = parseInt(document.getElementById('bike-log-km')?.value);
-    const valor = parseFloat(document.getElementById('bike-log-valor')?.value) || 0;
-    const tipo = document.getElementById('bike-log-tipo')?.value || 'Abastecimento';
     if (!desc || isNaN(km)) return false;
-
-    const entry = {
-        id: Date.now(),
-        desc: desc.toUpperCase(),
-        km: km,
-        valor: valor,
-        tipo: tipo,
-        data: new Date().toLocaleDateString('pt-BR')
-    };
-
     window.appState.veiculo.km = km;
-    if (!window.appState.veiculo.historico) window.appState.veiculo.historico = [];
-    window.appState.veiculo.historico.push(entry);
-    
-    const success = await pushState();
-    if (success) {
-        window.showToast("Registro Salvo!");
-        updateGlobalUI();
-        return true;
-    }
+    window.appState.veiculo.historico.push({ id: Date.now(), desc: desc.toUpperCase(), km, valor: parseFloat(document.getElementById('bike-log-valor')?.value) || 0, data: new Date().toLocaleDateString('pt-BR') });
+    const ok = await pushState();
+    if (ok) { window.showToast("Registo Salvo!"); updateGlobalUI(); return true; }
     return false;
 };
 
-window.addWater = (ml) => { window.appState.water_ml += ml; pushState(); updateGlobalUI(); window.showToast(`+${ml}ml Hidratado`); };
-window.addMonster = () => { window.appState.energy_mg += window.appState.calibragem.monster_mg; pushState(); updateGlobalUI(); window.showToast("Cafeína Injetada!"); };
-window.resetHealthDay = () => { window.appState.water_ml = 0; window.appState.energy_mg = 0; pushState(); updateGlobalUI(); window.showToast("Ciclo Zerado"); };
+window.addWater = async (ml) => { window.appState.water_ml += ml; const ok = await pushState(); if (ok) { updateGlobalUI(); window.showToast(`+${ml}ml Hidratado`); } };
+window.addMonster = async () => { window.appState.energy_mg += window.appState.calibragem.monster_mg; const ok = await pushState(); if (ok) { updateGlobalUI(); window.showToast("Energizado!"); } };
+window.resetHealthDay = async () => { window.appState.water_ml = 0; window.appState.energy_mg = 0; const ok = await pushState(); if (ok) { updateGlobalUI(); window.showToast("Ciclo Zerado"); } };
 window.toggleSidebar = () => { window.appState.sidebarCollapsed = !window.appState.sidebarCollapsed; updateGlobalUI(); };
 window.openTab = (p) => { window.location.href = p + ".html"; };
 
-// --- INIT ---
 document.addEventListener('DOMContentLoaded', () => {
     updateGlobalUI();
     window.addEventListener('resize', updateGlobalUI);
