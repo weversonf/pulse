@@ -1,5 +1,5 @@
 /**
- * PULSE OS - Central Intelligence v14.6
+ * PULSE OS - Central Intelligence v14.7
  * Gestão Total: Saúde, Finanças e Veículo.
  * Sincronização em Tempo Real via Firebase & Google Auth.
  */
@@ -9,25 +9,17 @@ import {
     getAuth, 
     onAuthStateChanged, 
     signInWithCustomToken, 
-    signInAnonymously, 
-    signOut 
+    signInAnonymously 
 } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
 import { 
     getFirestore, 
     doc, 
     setDoc, 
-    onSnapshot,
-    collection
+    onSnapshot 
 } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
 
-// --- CONFIGURAÇÃO FIREBASE (SEGURANÇA) ---
-let firebaseConfig = {};
-try {
-    firebaseConfig = JSON.parse(__firebase_config);
-} catch (e) {
-    console.error("Configuração Firebase ausente ou inválida.");
-}
-
+// --- CONFIGURAÇÃO FIREBASE (SEGURANÇA & AMBIENTE) ---
+const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -37,16 +29,14 @@ const appId = typeof __app_id !== 'undefined' ? __app_id : 'pulse-os-personal-we
 window.appState = {
     login: "USUÁRIO", 
     fullName: "USUÁRIO", 
-    photoURL: null, 
-    email: "",
-    energy_mg: 0, 
-    water_ml: 0, 
     sidebarCollapsed: false,
     perfil: { peso: 90, altura: 175, idade: 32, sexo: 'M', estado: 'CE', cidade: 'Fortaleza', alcoholTitle: "ZERO ÁLCOOL", alcoholStart: "", alcoholTarget: 30 },
     veiculo: { tipo: 'Moto', km: 0, oleo: 38000, consumo: 29, montadora: "YAMAHA", modelo: "FAZER 250", historico: [], viagens: [] },
     calibragem: { monster_mg: 160, coffee_ml: 300 },
     tarefas: [], 
-    transacoes: []
+    transacoes: [],
+    water_ml: 0,
+    energy_mg: 0
 };
 
 window.currentSystemDate = new Date();
@@ -61,7 +51,7 @@ window.showToast = (message, type = 'success') => {
     setTimeout(() => toast.remove(), 3500);
 };
 
-// --- AUTENTICAÇÃO ---
+// --- AUTENTICAÇÃO (REGRA 3) ---
 const initAuth = async () => {
     try {
         if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
@@ -71,19 +61,15 @@ const initAuth = async () => {
         }
     } catch (error) {
         console.error("Erro na autenticação:", error);
-        window.showToast("Erro ao conectar à nuvem", "error");
     }
 };
 
 onAuthStateChanged(auth, (user) => {
     if (user) {
         window.appState.login = user.displayName ? user.displayName.split(' ')[0].toUpperCase() : "USUÁRIO";
-        // Inicia sincronização e UI
         setupRealtimeSync(user.uid);
-        updateGlobalUI(); 
     } else {
-        // Redireciona para login se não estiver na index
-        if (!window.location.pathname.endsWith('index.html') && !window.location.pathname.endsWith('/')) {
+        if (!window.location.pathname.endsWith('index.html') && window.location.pathname !== '/') {
             window.location.href = "index.html";
         }
     }
@@ -98,14 +84,12 @@ const setupRealtimeSync = (userId) => {
         if (snapshot.exists()) {
             const cloudData = snapshot.data();
             window.appState = { ...window.appState, ...cloudData };
-            updateGlobalUI();
         } else {
-            // Se o documento não existe, cria o estado inicial
             pushState();
-            updateGlobalUI();
         }
+        updateGlobalUI();
     }, (error) => {
-        console.error("Erro na sincronização:", error);
+        console.error("Erro no Sync:", error);
     });
 };
 
@@ -113,11 +97,8 @@ const pushState = async () => {
     if (!auth.currentUser) return;
     const userId = auth.currentUser.uid;
     const stateDocRef = doc(db, 'artifacts', appId, 'users', userId, 'state', 'current');
-    
-    // Filtramos dados que não precisam de persistência (como estado do menu local)
     const dataToSync = { ...window.appState };
     delete dataToSync.sidebarCollapsed; 
-    
     try { 
         await setDoc(stateDocRef, dataToSync, { merge: true }); 
         return true; 
@@ -128,6 +109,7 @@ const pushState = async () => {
 
 // --- INJEÇÃO DE INTERFACE ---
 const injectInterface = () => {
+    // Unificação de placeholders (Suporta tanto sidebar-placeholder quanto menu-container)
     const sidebarPlaceholder = document.getElementById('sidebar-placeholder') || document.getElementById('menu-container');
     const headerPlaceholder = document.getElementById('header-placeholder');
     
@@ -151,22 +133,28 @@ const injectInterface = () => {
     const path = (window.location.pathname.split('/').pop() || 'dashboard.html').split('.')[0];
     const isCollapsed = window.appState.sidebarCollapsed;
 
-    // Sidebar - Injeção sempre que houver atualização para refletir colapso
+    // Sidebar - Garante injeção limpa
     sidebarPlaceholder.innerHTML = `
-        <aside class="hidden md:flex flex-col bg-slate-900 border-r border-white/5 fixed h-full z-50 transition-all duration-300" style="width: ${isCollapsed ? '5rem' : '16rem'}">
-            <div class="p-6 flex items-center justify-between">
-                <h1 class="text-2xl font-black text-blue-500 tracking-tighter ${isCollapsed ? 'hidden' : ''}">PULSE</h1>
-                <button onclick="window.toggleSidebar()" class="p-2 bg-white/5 rounded-xl text-slate-500 hover:text-white mx-auto"><i data-lucide="menu" class="w-4 h-4"></i></button>
+        <aside class="hidden md:flex flex-col bg-slate-900 border-r border-white/5 fixed h-full z-50 transition-all duration-300 overflow-hidden" style="width: ${isCollapsed ? '5rem' : '16rem'}">
+            <div class="p-6 flex items-center justify-between overflow-hidden">
+                <h1 class="text-2xl font-black text-blue-500 tracking-tighter ${isCollapsed ? 'hidden' : 'block'}">PULSE</h1>
+                <button onclick="window.toggleSidebar()" class="p-2 bg-white/5 rounded-xl text-slate-500 hover:text-white mx-auto transition-colors">
+                    <i data-lucide="menu" class="w-4 h-4"></i>
+                </button>
             </div>
             <nav class="flex-1 px-3 mt-4 space-y-1 overflow-y-auto">
-                ${items.map(i => `
+                ${items.map(i => {
+                    const isActive = path === i.id || (i.sub && i.sub.some(s => path === s.target));
+                    const clickAction = i.id === 'financas' ? "window.openTab('financas')" : (i.sub ? `window.toggleSubmenu('${i.id}')` : `window.openTab('${i.id}')`);
+                    
+                    return `
                     <div>
-                        <button onclick="${i.id === 'financas' ? `window.openTab('financas')` : (i.sub ? `window.toggleSubmenu('${i.id}')` : `window.openTab('${i.id}')`)}" 
+                        <button onclick="${clickAction}" 
                             class="w-full flex items-center justify-between px-4 py-4 rounded-xl font-black uppercase text-[10px] tracking-widest 
-                            ${path === i.id || (i.sub && i.sub.some(s => path === s.target)) ? 'bg-white/5 text-blue-500' : 'text-slate-400 hover:bg-white/5'} transition-all">
+                            ${isActive ? 'bg-white/5 text-blue-500' : 'text-slate-400 hover:bg-white/5'} transition-all">
                             <div class="flex items-center gap-4">
                                 <i data-lucide="${i.icon}" class="w-5 h-5 ${i.color}"></i>
-                                <span class="menu-label ${isCollapsed ? 'hidden' : ''}">${i.label}</span>
+                                <span class="menu-label ${isCollapsed ? 'hidden' : 'block'}">${i.label}</span>
                             </div>
                             ${i.sub && !isCollapsed ? `<i data-lucide="chevron-right" id="arrow-${i.id}" class="w-3 h-3 transition-transform"></i>` : ''}
                         </button>
@@ -175,18 +163,28 @@ const injectInterface = () => {
                                 ${i.sub.map(s => `<button onclick="window.openTab('${s.target}')" class="w-full text-left py-2 text-[9px] font-black uppercase tracking-widest ${path === s.target ? 'text-blue-500' : 'text-slate-500 hover:text-white'}">${s.label}</button>`).join('')}
                             </div>
                         ` : ''}
-                    </div>
-                `).join('')}
+                    </div>`;
+                }).join('')}
             </nav>
         </aside>
-        <!-- Navegação Mobile -->
+        
+        <!-- Mobile Navigation -->
         <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-xl border-t border-white/5 flex items-center justify-around px-2 py-3 z-[100] shadow-2xl">
-            ${items.filter(i => i.id !== 'ajustes').slice(0, 5).map(i => `<button onclick="window.openTab('${i.id}')" class="flex flex-col items-center gap-1 p-2 ${path === i.id || (i.sub && i.sub.some(s => path === s.target)) ? 'text-blue-500' : 'text-slate-500'}"><i data-lucide="${i.icon}" class="w-5 h-5"></i><span class="text-[7px] font-black uppercase">${i.label}</span></button>`).join('')}
-            <button onclick="window.openTab('ajustes')" class="flex flex-col items-center gap-1 p-2 ${path === 'ajustes' ? 'text-blue-500' : 'text-slate-500'}"><i data-lucide="settings" class="w-5 h-5"></i><span class="text-[7px] font-black uppercase">Ajustes</span></button>
+            ${items.filter(i => i.id !== 'ajustes').slice(0, 5).map(i => {
+                const isActive = path === i.id || (i.sub && i.sub.some(s => path === s.target));
+                return `<button onclick="window.openTab('${i.id}')" class="flex flex-col items-center gap-1 p-2 ${isActive ? 'text-blue-500' : 'text-slate-500'}">
+                    <i data-lucide="${i.icon}" class="w-5 h-5"></i>
+                    <span class="text-[7px] font-black uppercase tracking-widest">${i.label}</span>
+                </button>`;
+            }).join('')}
+            <button onclick="window.openTab('ajustes')" class="flex flex-col items-center gap-1 p-2 ${path === 'ajustes' ? 'text-blue-500' : 'text-slate-500'}">
+                <i data-lucide="settings" class="w-5 h-5"></i>
+                <span class="text-[7px] font-black uppercase tracking-widest">Ajustes</span>
+            </button>
         </nav>
     `;
 
-    // Header Dinâmico (Compacto)
+    // Header Dinâmico
     if (headerPlaceholder) {
         headerPlaceholder.innerHTML = `
             <header class="bg-transparent sticky top-0 z-40 px-6 py-2 flex items-center justify-end">
@@ -203,12 +201,10 @@ const updateGlobalUI = () => {
     const isCollapsed = window.appState.sidebarCollapsed;
     const mainContent = document.getElementById('main-content');
     
-    // Ajuste de margem responsivo
     if (mainContent && window.innerWidth >= 768) {
         mainContent.style.marginLeft = isCollapsed ? '5rem' : '16rem';
     }
 
-    // Aciona refrescos locais das páginas
     if (typeof refreshDisplays === 'function') refreshDisplays();
     if (typeof renderFullExtrato === 'function') renderFullExtrato();
     
@@ -219,17 +215,9 @@ const updateGlobalUI = () => {
 window.getProjectionData = (mode) => {
     const now = new Date();
     const trans = window.appState.transacoes || [];
-    let count = 0;
-    let startMonth = 0;
-    let startYear = 2026;
-
-    if (mode === '2026') {
-        count = 12; startMonth = 0; startYear = 2026;
-    } else {
-        count = parseInt(mode);
-        startMonth = now.getMonth();
-        startYear = now.getFullYear();
-    }
+    let count = mode === '2026' ? 12 : parseInt(mode);
+    let startMonth = mode === '2026' ? 0 : now.getMonth();
+    let startYear = mode === '2026' ? 2026 : now.getFullYear();
 
     const labels = [];
     const income = [];
@@ -253,7 +241,6 @@ window.getProjectionData = (mode) => {
         expenses.push(expVal);
         balance.push(incVal - expVal);
     }
-
     return { labels, income, expenses, balance };
 };
 
@@ -262,16 +249,20 @@ window.processarLancamento = async (tipo) => {
     const val = parseFloat(document.getElementById('fin-valor').value);
     const venc = document.getElementById('fin-vencimento').value;
     if (isNaN(val) || !venc) return;
+    
     const novaTransacao = { 
-        id: Date.now(), tipo: tipo === 'receita' ? 'Receita' : 'Despesa', 
+        id: Date.now(), 
+        tipo: tipo === 'receita' ? 'Receita' : 'Despesa', 
         desc: document.getElementById('fin-desc').value.toUpperCase(), 
-        valor: val, status: document.getElementById('fin-status').value, 
-        vencimento: venc, cat: document.getElementById('fin-categoria').value, 
+        valor: val, 
+        status: document.getElementById('fin-status').value, 
+        vencimento: venc, 
+        cat: document.getElementById('fin-categoria').value, 
         data: new Date().toLocaleDateString('pt-BR') 
     };
+    
     window.appState.transacoes.push(novaTransacao);
     
-    // Lançamento Fixo (12 meses)
     if (document.getElementById('fin-fixa')?.checked) {
         for (let i = 1; i < 12; i++) {
             const nextDate = new Date(venc + "T12:00:00");
@@ -298,11 +289,17 @@ window.saveBikeEntry = async () => {
 window.addWater = async (ml) => { window.appState.water_ml += ml; const ok = await pushState(); if (ok) { updateGlobalUI(); window.showToast(`+${ml}ml Hidratado`); } };
 window.addMonster = async () => { window.appState.energy_mg += window.appState.calibragem.monster_mg; const ok = await pushState(); if (ok) { updateGlobalUI(); window.showToast("Energia Injetada!"); } };
 window.resetHealthDay = async () => { window.appState.water_ml = 0; window.appState.energy_mg = 0; const ok = await pushState(); if (ok) { updateGlobalUI(); window.showToast("Ciclo Zerado"); } };
-window.toggleSidebar = () => { window.appState.sidebarCollapsed = !window.appState.sidebarCollapsed; updateGlobalUI(); };
+window.toggleSidebar = () => { 
+    window.appState.sidebarCollapsed = !window.appState.sidebarCollapsed; 
+    updateGlobalUI(); 
+};
 window.toggleSubmenu = (id) => {
     const sub = document.getElementById(`submenu-${id}`);
     const arrow = document.getElementById(`arrow-${id}`);
-    if (sub) { sub.classList.toggle('hidden'); if (arrow) arrow.style.transform = sub.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(90deg)'; }
+    if (sub) { 
+        sub.classList.toggle('hidden'); 
+        if (arrow) arrow.style.transform = sub.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(90deg)'; 
+    }
 };
 window.openTab = (p) => { window.location.href = p + ".html"; };
 
