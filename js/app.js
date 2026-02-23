@@ -1,5 +1,5 @@
 /**
- * PULSE OS - Central Intelligence v14.4
+ * PULSE OS - Central Intelligence v14.5
  * Gestão Total: Saúde, Finanças e Veículo.
  * Sincronização em Tempo Real via Firebase & Google Auth.
  */
@@ -110,6 +110,7 @@ const pushState = async () => {
 const injectInterface = () => {
     const sidebarPlaceholder = document.getElementById('sidebar-placeholder') || document.getElementById('menu-container');
     const headerPlaceholder = document.getElementById('header-placeholder');
+    
     if (!sidebarPlaceholder) return;
 
     const items = [
@@ -128,43 +129,45 @@ const injectInterface = () => {
     ];
     
     const path = (window.location.pathname.split('/').pop() || 'dashboard.html').split('.')[0];
+    const isCollapsed = window.appState.sidebarCollapsed;
 
-    if (!sidebarPlaceholder.querySelector('aside')) {
-        sidebarPlaceholder.innerHTML = `
-            <aside class="hidden md:flex flex-col bg-slate-900 border-r border-white/5 fixed h-full z-50 transition-all duration-300">
-                <div class="p-6 flex items-center justify-between">
-                    <h1 class="text-2xl font-black text-blue-500 tracking-tighter">PULSE</h1>
-                    <button onclick="window.toggleSidebar()" class="p-2 bg-white/5 rounded-xl text-slate-500 hover:text-white"><i data-lucide="menu" class="w-4 h-4"></i></button>
-                </div>
-                <nav class="flex-1 px-3 mt-4 space-y-1 overflow-y-auto">
-                    ${items.map(i => `
-                        <div>
-                            <button onclick="${i.id === 'financas' ? `window.openTab('financas')` : (i.sub ? `window.toggleSubmenu('${i.id}')` : `window.openTab('${i.id}')`)}" class="w-full flex items-center justify-between px-4 py-4 rounded-xl font-black uppercase text-[10px] tracking-widest ${path === i.id || (i.sub && i.sub.some(s => path === s.target)) ? 'bg-white/5 text-blue-500' : 'text-slate-400 hover:bg-white/5'} transition-all">
-                                <div class="flex items-center gap-4">
-                                    <i data-lucide="${i.icon}" class="w-5 h-5 ${i.color}"></i>
-                                    <span class="menu-label ${window.appState.sidebarCollapsed ? 'hidden' : ''}">${i.label}</span>
-                                </div>
-                                ${i.sub && !window.appState.sidebarCollapsed ? `<i data-lucide="chevron-right" id="arrow-${i.id}" class="w-3 h-3 transition-transform"></i>` : ''}
-                            </button>
-                            ${i.sub && !window.appState.sidebarCollapsed ? `
-                                <div id="submenu-${i.id}" class="${i.sub.some(s => path === s.target) || path === i.id ? '' : 'hidden'} pl-12 mt-1 space-y-1">
-                                    ${i.sub.map(s => `<button onclick="window.openTab('${s.target}')" class="w-full text-left py-2 text-[9px] font-black uppercase tracking-widest ${path === s.target ? 'text-blue-500' : 'text-slate-500 hover:text-white'}">${s.label}</button>`).join('')}
-                                </div>
-                            ` : ''}
-                        </div>
-                    `).join('')}
-                </nav>
-            </aside>
-            <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-xl border-t border-white/5 flex items-center justify-around px-2 py-3 z-[100] shadow-2xl">
-                ${items.filter(i => i.id !== 'ajustes').slice(0, 5).map(i => `<button onclick="window.openTab('${i.id}')" class="flex flex-col items-center gap-1 p-2 ${path === i.id || (i.sub && i.sub.some(s => path === s.target)) ? 'text-blue-500' : 'text-slate-500'}"><i data-lucide="${i.icon}" class="w-5 h-5"></i><span class="text-[7px] font-black uppercase">${i.label}</span></button>`).join('')}
-                <button onclick="window.openTab('ajustes')" class="flex flex-col items-center gap-1 p-2 ${path === 'ajustes' ? 'text-blue-500' : 'text-slate-500'}"><i data-lucide="settings" class="w-5 h-5"></i><span class="text-[7px] font-black uppercase">Ajustes</span></button>
+    // Sidebar Desktop/Mobile - Reinjeção controlada para evitar "sumiço"
+    sidebarPlaceholder.innerHTML = `
+        <aside class="hidden md:flex flex-col bg-slate-900 border-r border-white/5 fixed h-full z-50 transition-all duration-300" style="width: ${isCollapsed ? '5rem' : '16rem'}">
+            <div class="p-6 flex items-center justify-between">
+                <h1 class="text-2xl font-black text-blue-500 tracking-tighter ${isCollapsed ? 'hidden' : ''}">PULSE</h1>
+                <button onclick="window.toggleSidebar()" class="p-2 bg-white/5 rounded-xl text-slate-500 hover:text-white mx-auto"><i data-lucide="menu" class="w-4 h-4"></i></button>
+            </div>
+            <nav class="flex-1 px-3 mt-4 space-y-1 overflow-y-auto">
+                ${items.map(i => `
+                    <div>
+                        <button onclick="${i.id === 'financas' ? `window.openTab('financas')` : (i.sub ? `window.toggleSubmenu('${i.id}')` : `window.openTab('${i.id}')`)}" class="w-full flex items-center justify-between px-4 py-4 rounded-xl font-black uppercase text-[10px] tracking-widest ${path === i.id || (i.sub && i.sub.some(s => path === s.target)) ? 'bg-white/5 text-blue-500' : 'text-slate-400 hover:bg-white/5'} transition-all">
+                            <div class="flex items-center gap-4">
+                                <i data-lucide="${i.icon}" class="w-5 h-5 ${i.color}"></i>
+                                <span class="menu-label ${isCollapsed ? 'hidden' : ''}">${i.label}</span>
+                            </div>
+                            ${i.sub && !isCollapsed ? `<i data-lucide="chevron-right" id="arrow-${i.id}" class="w-3 h-3 transition-transform"></i>` : ''}
+                        </button>
+                        ${i.sub && !isCollapsed ? `
+                            <div id="submenu-${i.id}" class="${i.sub.some(s => path === s.target) || path === i.id ? '' : 'hidden'} pl-12 mt-1 space-y-1">
+                                ${i.sub.map(s => `<button onclick="window.openTab('${s.target}')" class="w-full text-left py-2 text-[9px] font-black uppercase tracking-widest ${path === s.target ? 'text-blue-500' : 'text-slate-500 hover:text-white'}">${s.label}</button>`).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
+                `).join('')}
             </nav>
-        `;
-    }
+        </aside>
+        <!-- Nav Mobile -->
+        <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-xl border-t border-white/5 flex items-center justify-around px-2 py-3 z-[100] shadow-2xl">
+            ${items.filter(i => i.id !== 'ajustes').slice(0, 5).map(i => `<button onclick="window.openTab('${i.id}')" class="flex flex-col items-center gap-1 p-2 ${path === i.id || (i.sub && i.sub.some(s => path === s.target)) ? 'text-blue-500' : 'text-slate-500'}"><i data-lucide="${i.icon}" class="w-5 h-5"></i><span class="text-[7px] font-black uppercase">${i.label}</span></button>`).join('')}
+            <button onclick="window.openTab('ajustes')" class="flex flex-col items-center gap-1 p-2 ${path === 'ajustes' ? 'text-blue-500' : 'text-slate-500'}"><i data-lucide="settings" class="w-5 h-5"></i><span class="text-[7px] font-black uppercase">Ajustes</span></button>
+        </nav>
+    `;
 
-    if (headerPlaceholder && !headerPlaceholder.querySelector('header')) {
+    // Header Dinâmico (Reduzido para py-2 conforme solicitado)
+    if (headerPlaceholder) {
         headerPlaceholder.innerHTML = `
-            <header class="bg-transparent sticky top-0 z-40 px-6 py-6 flex items-center justify-end">
+            <header class="bg-transparent sticky top-0 z-40 px-6 py-2 flex items-center justify-end">
                 <button onclick="window.openTab('veiculo')" class="w-12 h-12 rounded-2xl bg-orange-600/10 border border-orange-500/30 flex items-center justify-center text-orange-500 shadow-lg active:scale-95 transition-all pointer-events-auto">
                     <i data-lucide="fuel" class="w-6 h-6"></i>
                 </button>
@@ -177,15 +180,18 @@ const updateGlobalUI = () => {
     injectInterface();
     const isCollapsed = window.appState.sidebarCollapsed;
     const mainContent = document.getElementById('main-content');
-    const sidebar = document.querySelector('aside');
-    if (sidebar) sidebar.style.width = isCollapsed ? '5rem' : '16rem';
-    if (mainContent && window.innerWidth >= 768) mainContent.style.marginLeft = isCollapsed ? '5rem' : '16rem';
+    
+    // Ajuste de margem do conteúdo principal baseado no menu
+    if (mainContent && window.innerWidth >= 768) {
+        mainContent.style.marginLeft = isCollapsed ? '5rem' : '16rem';
+    }
+
     if (typeof refreshDisplays === 'function') refreshDisplays();
     if (typeof renderFullExtrato === 'function') renderFullExtrato();
     if (window.lucide) lucide.createIcons();
 };
 
-// --- LOGICA FINANCEIRA MELHORADA (RETORNA MULTIPLOS DATASETS) ---
+// --- LOGICA FINANCEIRA ---
 window.getProjectionData = (mode) => {
     const now = new Date();
     const trans = window.appState.transacoes || [];
@@ -227,7 +233,7 @@ window.getProjectionData = (mode) => {
     return { labels, income, expenses, balance };
 };
 
-// --- AÇÕES DO SISTEMA ---
+// --- AÇÕES GERAIS ---
 window.processarLancamento = async (tipo) => {
     const val = parseFloat(document.getElementById('fin-valor').value);
     const venc = document.getElementById('fin-vencimento').value;
@@ -248,7 +254,7 @@ window.processarLancamento = async (tipo) => {
         }
     }
     const ok = await pushState(); 
-    if (ok) { window.showToast("Lançamento Registado!"); updateGlobalUI(); }
+    if (ok) { window.showToast("Lançamento Registrado!"); updateGlobalUI(); }
 };
 
 window.saveBikeEntry = async () => {
@@ -258,13 +264,13 @@ window.saveBikeEntry = async () => {
     window.appState.veiculo.km = km;
     window.appState.veiculo.historico.push({ id: Date.now(), desc: desc.toUpperCase(), km, valor: parseFloat(document.getElementById('bike-log-valor')?.value) || 0, data: new Date().toLocaleDateString('pt-BR'), tipo: document.getElementById('bike-log-tipo')?.value || 'Manutenção' });
     const ok = await pushState(); 
-    if (ok) { window.showToast("Registro na Máquina Salvo!"); updateGlobalUI(); return true; } 
+    if (ok) { window.showToast("Registro Salvo!"); updateGlobalUI(); return true; } 
     return false;
 };
 
 window.addWater = async (ml) => { window.appState.water_ml += ml; const ok = await pushState(); if (ok) { updateGlobalUI(); window.showToast(`+${ml}ml Hidratado`); } };
 window.addMonster = async () => { window.appState.energy_mg += window.appState.calibragem.monster_mg; const ok = await pushState(); if (ok) { updateGlobalUI(); window.showToast("Energia Injetada!"); } };
-window.resetHealthDay = async () => { window.appState.water_ml = 0; window.appState.energy_mg = 0; const ok = await pushState(); if (ok) { updateGlobalUI(); window.showToast("Metas de Saúde Zeradas"); } };
+window.resetHealthDay = async () => { window.appState.water_ml = 0; window.appState.energy_mg = 0; const ok = await pushState(); if (ok) { updateGlobalUI(); window.showToast("Ciclo Zerado"); } };
 window.toggleSidebar = () => { window.appState.sidebarCollapsed = !window.appState.sidebarCollapsed; updateGlobalUI(); };
 window.toggleSubmenu = (id) => {
     const sub = document.getElementById(`submenu-${id}`);
