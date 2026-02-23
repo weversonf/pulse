@@ -1,5 +1,5 @@
 /**
- * PULSE OS - Central Intelligence v12.2 (Ultimate Resilient Edition)
+ * PULSE OS - Central Intelligence v12.3 (Full Sync Fix)
  * Gestão Total: Saúde, Finanças e Veículo (Yamaha Fazer 250).
  * Sincronização em Tempo Real via Firebase & Identidade Google.
  */
@@ -47,7 +47,7 @@ window.appState = {
     lastHealthReset: new Date().toLocaleDateString('pt-BR'),
     sidebarCollapsed: false,
     perfil: { peso: 90, altura: 175, idade: 32, sexo: 'M', estado: 'CE', cidade: 'Fortaleza', alcoholTitle: "ZERO ÁLCOOL", alcoholStart: "", alcoholTarget: 30 },
-    veiculo: { tipo: 'Moto', km: 0, oleo: 38000, consumo: 29, historico: [], viagens: [] },
+    veiculo: { tipo: 'Moto', km: 0, oleo: 38000, consumo: 29, montadora: "YAMAHA", modelo: "FAZER 250", historico: [], viagens: [] },
     calibragem: { monster_mg: 160, coffee_ml: 300 },
     tarefas: [],
     transacoes: []
@@ -144,7 +144,7 @@ const updateGlobalUI = () => {
     set('dash-water-cur', window.appState.water_ml);
     set('water-current-display', window.appState.water_ml);
     set('energy-current-display', window.appState.energy_mg);
-    set('dash-energy-val', window.appState.energy_mg); // Para o gauge do Dashboard
+    set('dash-energy-val', window.appState.energy_mg); 
     set('bike-km-display', window.appState.veiculo.km);
 
     // Barras de Progresso e Gauges
@@ -191,7 +191,6 @@ const updateGlobalUI = () => {
 };
 
 const injectInterface = () => {
-    // Tenta encontrar o placeholder por vários IDs comuns para evitar erros
     const sidebarPlaceholder = document.getElementById('sidebar-placeholder') || document.getElementById('menu-container');
     const headerPlaceholder = document.getElementById('header-placeholder');
     
@@ -207,7 +206,6 @@ const injectInterface = () => {
     
     const path = (window.location.pathname.split('/').pop() || 'dashboard.html').split('.')[0];
 
-    // Injeta Sidebar se ainda não existir
     if (!sidebarPlaceholder.querySelector('aside')) {
         sidebarPlaceholder.innerHTML = `
             <aside class="hidden md:flex flex-col bg-slate-900 border-r border-white/5 fixed h-full z-50 transition-all duration-300 italic">
@@ -249,20 +247,44 @@ const injectInterface = () => {
 
 // --- AÇÕES ---
 window.savePulseSettings = async () => {
+    // CAPTURA DADOS DO VEÍCULO (AJUSTES.HTML)
     if (document.getElementById('set-bike-tipo')) {
         window.appState.veiculo.tipo = document.getElementById('set-bike-tipo').value;
+        window.appState.veiculo.montadora = document.getElementById('set-bike-montadora')?.value || "YAMAHA";
+        window.appState.veiculo.modelo = document.getElementById('set-bike-modelo')?.value || "FAZER 250";
         window.appState.veiculo.km = parseInt(document.getElementById('set-bike-km').value) || 0;
         window.appState.veiculo.oleo = parseInt(document.getElementById('set-bike-oleo').value) || 0;
         window.appState.veiculo.consumo = parseFloat(document.getElementById('set-bike-consumo').value) || 29;
     }
+
+    // CAPTURA CALIBRAGEM (AJUSTES.HTML)
     if (document.getElementById('set-calib-monster')) {
         window.appState.calibragem.monster_mg = parseInt(document.getElementById('set-calib-monster').value) || 160;
+        window.appState.calibragem.coffee_ml = parseInt(document.getElementById('set-calib-ml').value) || 300;
+    }
+
+    // CAPTURA PROPÓSITO (AJUSTES.HTML)
+    if (document.getElementById('set-alcohol-title')) {
         window.appState.perfil.alcoholTitle = document.getElementById('set-alcohol-title').value;
         window.appState.perfil.alcoholStart = document.getElementById('set-alcohol-start').value;
         window.appState.perfil.alcoholTarget = parseInt(document.getElementById('set-alcohol-target').value) || 30;
     }
+
+    // CAPTURA BIOMETRIA (PERFIL.HTML)
+    if (document.getElementById('set-peso')) {
+        window.appState.perfil.peso = parseFloat(document.getElementById('set-peso').value) || 0;
+        window.appState.perfil.altura = parseInt(document.getElementById('set-altura').value) || 0;
+        window.appState.perfil.idade = parseInt(document.getElementById('set-idade').value) || 0;
+        window.appState.perfil.sexo = document.getElementById('set-sexo').value;
+        window.appState.perfil.estado = document.getElementById('set-estado').value;
+        window.appState.perfil.cidade = document.getElementById('set-cidade').value;
+    }
+
     const success = await pushState();
-    if (success) { window.showToast("Configurações Salvas!"); updateGlobalUI(); }
+    if (success) { 
+        window.showToast("Configurações Salvas!"); 
+        updateGlobalUI(); 
+    }
 };
 
 window.renderWorkTasks = () => {
