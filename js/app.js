@@ -1,5 +1,5 @@
 /**
- * PULSE OS - Central Intelligence v14.9
+ * PULSE OS - Central Intelligence v15.0
  * Gestão Total: Saúde, Finanças e Veículo.
  * Sincronização em Tempo Real via Firebase & Google Auth.
  */
@@ -26,14 +26,18 @@ let app, auth, db;
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'pulse-os-personal-weverson';
 
 try {
-    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
-    if (firebaseConfig) {
+    const rawConfig = typeof __firebase_config !== 'undefined' ? __firebase_config : null;
+    const firebaseConfig = typeof rawConfig === 'string' ? JSON.parse(rawConfig) : rawConfig;
+    
+    if (firebaseConfig && firebaseConfig.apiKey) {
         app = initializeApp(firebaseConfig);
         auth = getAuth(app);
         db = getFirestore(app);
+    } else {
+        console.warn("Firebase Config incompleta ou ausente.");
     }
 } catch (e) {
-    console.error("Erro na inicialização do Firebase:", e);
+    console.error("Erro crítico na inicialização do Firebase:", e);
 }
 
 // --- ESTADO GLOBAL DO SISTEMA ---
@@ -60,14 +64,15 @@ window.showToast = (message, type = 'success') => {
     setTimeout(() => toast.remove(), 3500);
 };
 
-// --- AUTENTICAÇÃO E LOGIN ---
+// --- AUTENTICAÇÃO E LOGIN (EXPORTAÇÃO IMEDIATA) ---
 
 window.loginWithGoogle = async () => {
-    if (!auth) throw new Error("Serviço de autenticação indisponível");
+    if (!auth) throw new Error("Firebase não inicializado corretamente.");
     const provider = new GoogleAuthProvider();
     try {
         const result = await signInWithPopup(auth, provider);
         if (result.user) window.location.href = "dashboard.html";
+        return result;
     } catch (error) {
         console.error("Erro Google Login:", error);
         throw error;
@@ -82,51 +87,37 @@ window.loginWithEmail = async (email, password) => {
         return { success: true };
     } catch (error) {
         console.error("Erro Email Login:", error);
-        return { success: false, error: "Credenciais inválidas" };
+        return { success: false, error: error.code || "Erro na autenticação" };
     }
 };
 
 // Monitor de Estado de Autenticação
 if (auth) {
     onAuthStateChanged(auth, (user) => {
-        const isLoginPage = window.location.pathname.endsWith('index.html') || window.location.pathname === '/';
+        const isLoginPage = window.location.pathname.endsWith('index.html') || window.location.pathname === '/' || window.location.pathname === '';
         
         if (user) {
             window.appState.login = user.displayName ? user.displayName.split(' ')[0].toUpperCase() : "USUÁRIO";
             setupRealtimeSync(user.uid);
-            // Se estiver na login e já logado, vai para o dashboard
-            if (isLoginPage) window.location.href = "dashboard.html";
+            if (isLoginPage) {
+                console.log("Usuário logado detectado, redirecionando...");
+                window.location.href = "dashboard.html";
+            }
         } else {
-            // Se não estiver logado e não for a login, volta para a login
             if (!isLoginPage) window.location.href = "index.html";
         }
     });
 }
-
-// Inicialização automática de token se fornecido pelo ambiente
-const initAuth = async () => {
-    if (!auth) return;
-    try {
-        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-            await signInWithCustomToken(auth, __initial_auth_token);
-        }
-    } catch (error) {
-        console.error("Erro ao processar token inicial:", error);
-    }
-};
 
 // --- SINCRONIZAÇÃO EM TEMPO REAL ---
 const setupRealtimeSync = (userId) => {
     if (!userId || !db) return;
     const stateDocRef = doc(db, 'artifacts', appId, 'users', userId, 'state', 'current');
     
-    // Escuta mudanças na nuvem
     onSnapshot(stateDocRef, (snapshot) => {
         if (snapshot.exists()) {
-            const cloudData = snapshot.data();
-            window.appState = { ...window.appState, ...cloudData };
+            window.appState = { ...window.appState, ...snapshot.data() };
         } else {
-            // Cria o documento inicial se não existir
             pushState();
         }
         updateGlobalUI();
@@ -136,11 +127,10 @@ const setupRealtimeSync = (userId) => {
 };
 
 const pushState = async () => {
-    if (!auth || !auth.currentUser || !db) return;
+    if (!auth?.currentUser || !db) return;
     const userId = auth.currentUser.uid;
     const stateDocRef = doc(db, 'artifacts', appId, 'users', userId, 'state', 'current');
     
-    // Persiste apenas dados essenciais
     const dataToSync = { ...window.appState };
     delete dataToSync.sidebarCollapsed; 
     
@@ -148,7 +138,6 @@ const pushState = async () => {
         await setDoc(stateDocRef, dataToSync, { merge: true }); 
         return true; 
     } catch (e) { 
-        console.error("Erro ao salvar dados:", e);
         return false; 
     }
 };
@@ -178,7 +167,6 @@ const injectInterface = () => {
     const path = (window.location.pathname.split('/').pop() || 'dashboard.html').split('.')[0];
     const isCollapsed = window.appState.sidebarCollapsed;
 
-    // Render Sidebar
     sidebarPlaceholder.innerHTML = `
         <aside class="hidden md:flex flex-col bg-slate-900 border-r border-white/5 fixed h-full z-50 transition-all duration-300 overflow-hidden shadow-2xl" style="width: ${isCollapsed ? '5rem' : '16rem'}">
             <div class="p-6 flex items-center justify-between overflow-hidden">
@@ -212,8 +200,6 @@ const injectInterface = () => {
                 }).join('')}
             </nav>
         </aside>
-        
-        <!-- Mobile View (Bottom Nav) -->
         <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-xl border-t border-white/5 flex items-center justify-around px-2 py-3 z-[100] shadow-2xl">
             ${items.filter(i => i.id !== 'ajustes').slice(0, 5).map(i => {
                 const isActive = path === i.id || (i.sub && i.sub.some(s => path === s.target));
@@ -229,7 +215,6 @@ const injectInterface = () => {
         </nav>
     `;
 
-    // Render Header (Reduced margin as requested)
     if (headerPlaceholder) {
         headerPlaceholder.innerHTML = `
             <header class="bg-transparent sticky top-0 z-40 px-6 py-2 flex items-center justify-end">
@@ -245,20 +230,14 @@ const updateGlobalUI = () => {
     injectInterface();
     const isCollapsed = window.appState.sidebarCollapsed;
     const mainContent = document.getElementById('main-content');
-    
-    if (mainContent && window.innerWidth >= 768) {
-        mainContent.style.marginLeft = isCollapsed ? '5rem' : '16rem';
-    }
-
-    // Call local page functions
+    if (mainContent && window.innerWidth >= 768) mainContent.style.marginLeft = isCollapsed ? '5rem' : '16rem';
     if (typeof refreshDisplays === 'function') refreshDisplays();
     if (typeof renderFullExtrato === 'function') renderFullExtrato();
     if (typeof fillAjustesForm === 'function') fillAjustesForm();
-    
     if (window.lucide) lucide.createIcons();
 };
 
-// --- LOGICA DE DADOS FINANCEIROS ---
+// --- LOGICA FINANCEIRA ---
 window.getProjectionData = (mode) => {
     const now = new Date();
     const trans = window.appState.transacoes || [];
@@ -266,27 +245,18 @@ window.getProjectionData = (mode) => {
     let startMonth = mode === '2026' ? 0 : now.getMonth();
     let startYear = mode === '2026' ? 2026 : now.getFullYear();
 
-    const labels = [];
-    const income = [];
-    const expenses = [];
-    const balance = [];
-
+    const labels = [], income = [], expenses = [], balance = [];
     for (let i = 0; i < count; i++) {
         const d = new Date(startYear, startMonth + i, 1);
         labels.push(d.toLocaleDateString('pt-BR', { month: 'short' }).toUpperCase());
-
         const monthTrans = trans.filter(t => {
             if(!t.vencimento) return false;
             const tD = new Date(t.vencimento + "T12:00:00");
             return tD.getMonth() === d.getMonth() && tD.getFullYear() === d.getFullYear();
         });
-
         const incVal = monthTrans.filter(t => t.tipo === 'Receita').reduce((a, b) => a + b.valor, 0);
         const expVal = monthTrans.filter(t => t.tipo === 'Despesa').reduce((a, b) => a + b.valor, 0);
-        
-        income.push(incVal);
-        expenses.push(expVal);
-        balance.push(incVal - expVal);
+        income.push(incVal); expenses.push(expVal); balance.push(incVal - expVal);
     }
     return { labels, income, expenses, balance };
 };
@@ -296,20 +266,14 @@ window.processarLancamento = async (tipo) => {
     const val = parseFloat(document.getElementById('fin-valor').value);
     const venc = document.getElementById('fin-vencimento').value;
     if (isNaN(val) || !venc) return;
-    
     const novaTransacao = { 
-        id: Date.now(), 
-        tipo: tipo === 'receita' ? 'Receita' : 'Despesa', 
+        id: Date.now(), tipo: tipo === 'receita' ? 'Receita' : 'Despesa', 
         desc: document.getElementById('fin-desc').value.toUpperCase(), 
-        valor: val, 
-        status: document.getElementById('fin-status').value, 
-        vencimento: venc, 
-        cat: document.getElementById('fin-categoria').value, 
+        valor: val, status: document.getElementById('fin-status').value, 
+        vencimento: venc, cat: document.getElementById('fin-categoria').value, 
         data: new Date().toLocaleDateString('pt-BR') 
     };
-    
     window.appState.transacoes.push(novaTransacao);
-    
     if (document.getElementById('fin-fixa')?.checked) {
         for (let i = 1; i < 12; i++) {
             const nextDate = new Date(venc + "T12:00:00");
@@ -317,8 +281,7 @@ window.processarLancamento = async (tipo) => {
             window.appState.transacoes.push({ ...novaTransacao, id: Date.now() + i, vencimento: nextDate.toISOString().split('T')[0] });
         }
     }
-    const ok = await pushState(); 
-    if (ok) { window.showToast("Lançamento Efetuado!"); updateGlobalUI(); }
+    const ok = await pushState(); if (ok) { window.showToast("Lançamento Efetuado!"); updateGlobalUI(); }
 };
 
 window.saveBikeEntry = async () => {
@@ -327,8 +290,7 @@ window.saveBikeEntry = async () => {
     if (!desc || isNaN(km)) return false;
     window.appState.veiculo.km = km;
     window.appState.veiculo.historico.push({ id: Date.now(), desc: desc.toUpperCase(), km, valor: parseFloat(document.getElementById('bike-log-valor')?.value) || 0, data: new Date().toLocaleDateString('pt-BR'), tipo: document.getElementById('bike-log-tipo')?.value || 'Manutenção' });
-    const ok = await pushState(); 
-    if (ok) { window.showToast("Registro Salvo!"); updateGlobalUI(); return true; } 
+    const ok = await pushState(); if (ok) { window.showToast("Registro Salvo!"); updateGlobalUI(); return true; } 
     return false;
 };
 
@@ -357,29 +319,35 @@ window.savePulseSettings = async () => {
         window.appState.perfil.alcoholStart = document.getElementById('set-alcohol-start').value;
         window.appState.perfil.alcoholTarget = parseInt(document.getElementById('set-alcohol-target').value);
     }
-    const ok = await pushState();
-    if (ok) window.showToast("Perfil Atualizado!");
+    const ok = await pushState(); if (ok) window.showToast("Perfil Atualizado!");
 };
 
 // --- UTILITÁRIOS ---
 window.addWater = async (ml) => { window.appState.water_ml += ml; const ok = await pushState(); if (ok) { updateGlobalUI(); window.showToast(`+${ml}ml Hidratado`); } };
 window.addMonster = async () => { window.appState.energy_mg += window.appState.calibragem.monster_mg; const ok = await pushState(); if (ok) { updateGlobalUI(); window.showToast("Energia Injetada!"); } };
 window.resetHealthDay = async () => { window.appState.water_ml = 0; window.appState.energy_mg = 0; const ok = await pushState(); if (ok) { updateGlobalUI(); window.showToast("Ciclo Zerado"); } };
-window.toggleSidebar = () => { 
-    window.appState.sidebarCollapsed = !window.appState.sidebarCollapsed; 
-    updateGlobalUI(); 
-};
+window.toggleSidebar = () => { window.appState.sidebarCollapsed = !window.appState.sidebarCollapsed; updateGlobalUI(); };
 window.toggleSubmenu = (id) => {
     const sub = document.getElementById(`submenu-${id}`);
     const arrow = document.getElementById(`arrow-${id}`);
-    if (sub) { 
-        sub.classList.toggle('hidden'); 
-        if (arrow) arrow.style.transform = sub.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(90deg)'; 
-    }
+    if (sub) { sub.classList.toggle('hidden'); if (arrow) arrow.style.transform = sub.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(90deg)'; }
 };
 window.openTab = (p) => { window.location.href = p + ".html"; };
 
 // --- INICIALIZAÇÃO ---
+const initAuth = async () => {
+    if (!auth) return;
+    try {
+        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+            await signInWithCustomToken(auth, __initial_auth_token);
+        } else {
+            // Tenta anónimo apenas se não for a página de login para evitar loops
+            const isLogin = window.location.pathname.endsWith('index.html') || window.location.pathname === '/';
+            if (!isLogin && !auth.currentUser) await signInAnonymously(auth);
+        }
+    } catch (e) { console.error("Erro initAuth:", e); }
+};
+
 document.addEventListener('DOMContentLoaded', () => { 
     initAuth();
     updateGlobalUI(); 
