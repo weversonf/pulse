@@ -20,9 +20,25 @@ body {
     font-style: normal !important; /* Remove itálico global */
 }
 
-/* Forçar remoção de itálico em classes utilitárias ou herdadas */
-.italic, i, em, address {
+/* Forçar remoção de itálico em todas as tags e classes */
+.italic, i, em, address, h1, h2, h3, h4, p, span, button, input, select {
     font-style: normal !important;
+}
+
+/* Minimalismo: Esconder a barra de topo (Header) mas manter o botão de ação */
+header {
+    background: transparent !important;
+    backdrop-filter: none !important;
+    border-bottom: none !important;
+    pointer-events: none; /* Permite clicar no que estiver atrás do header vazio */
+}
+
+header * {
+    pointer-events: auto; /* Reativa o clique para os botões dentro do header */
+}
+
+#header-logo {
+    display: none !important; /* Remove o logo/título PULSE do topo */
 }
 
 /* Layout Estrutural */
