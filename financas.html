@@ -14,10 +14,14 @@
         input:checked ~ .toggle-dot { transform: translateX(100%); }
         .privacy-mask { transition: all 0.2s ease-in-out; }
         
-        /* Ajuste para scroll suave da lista */
-        #fin-extrato-list::-webkit-scrollbar { width: 4px; }
-        #fin-extrato-list::-webkit-scrollbar-track { background: transparent; }
-        #fin-extrato-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.05); border-radius: 10px; }
+        /* Grid de meses */
+        .month-picker-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+        .animate-pop { animation: pop 0.2s ease-out; }
+        @keyframes pop { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 italic">
@@ -29,74 +33,84 @@
 
             <main class="max-w-6xl mx-auto p-4 md:p-8 space-y-6 italic">
 
-                <!-- Filtro de Mês e Navegação -->
-                <div class="flex flex-col items-center gap-4 mb-8">
-                    <div class="flex items-center gap-8">
-                        <button onclick="changeMonth(-1)" class="p-2 text-slate-600 hover:text-white transition-all"><i data-lucide="chevron-left"></i></button>
-                        <div class="text-center min-w-[180px]">
-                            <h2 id="display-month-year" class="text-xs font-black uppercase tracking-[0.4em] text-white">CARREGANDO...</h2>
+                <!-- Filtro de Período Inteligente -->
+                <div class="relative flex flex-col items-center mb-12">
+                    <button onclick="toggleMonthPicker()" class="group flex flex-col items-center gap-1 focus:outline-none">
+                        <span class="text-[8px] font-black text-blue-500 uppercase tracking-[0.4em] mb-1 opacity-60 group-hover:opacity-100 transition-all">Selecionar Período</span>
+                        <div class="flex items-center gap-3">
+                            <h2 id="display-month-year" class="text-xl font-black uppercase tracking-[0.3em] text-white italic group-hover:text-blue-400 transition-all">FEVEREIRO</h2>
+                            <i data-lucide="chevron-down" class="w-4 h-4 text-slate-600 group-hover:text-blue-400 transition-all"></i>
                         </div>
-                        <button onclick="changeMonth(1)" class="p-2 text-slate-600 hover:text-white transition-all"><i data-lucide="chevron-right"></i></button>
+                    </button>
+
+                    <!-- Painel Seletor (Dropdown) -->
+                    <div id="month-picker" class="hidden absolute top-16 z-[110] w-72 bg-slate-900 border border-white/10 p-4 rounded-[2rem] shadow-2xl animate-pop">
+                        <div class="month-picker-grid mb-4">
+                            <button onclick="selectMonth(0)" class="p-3 text-[10px] font-black uppercase hover:bg-white/5 rounded-xl transition-all">Jan</button>
+                            <button onclick="selectMonth(1)" class="p-3 text-[10px] font-black uppercase hover:bg-white/5 rounded-xl transition-all">Fev</button>
+                            <button onclick="selectMonth(2)" class="p-3 text-[10px] font-black uppercase hover:bg-white/5 rounded-xl transition-all">Mar</button>
+                            <button onclick="selectMonth(3)" class="p-3 text-[10px] font-black uppercase hover:bg-white/5 rounded-xl transition-all">Abr</button>
+                            <button onclick="selectMonth(4)" class="p-3 text-[10px] font-black uppercase hover:bg-white/5 rounded-xl transition-all">Mai</button>
+                            <button onclick="selectMonth(5)" class="p-3 text-[10px] font-black uppercase hover:bg-white/5 rounded-xl transition-all">Jun</button>
+                            <button onclick="selectMonth(6)" class="p-3 text-[10px] font-black uppercase hover:bg-white/5 rounded-xl transition-all">Jul</button>
+                            <button onclick="selectMonth(7)" class="p-3 text-[10px] font-black uppercase hover:bg-white/5 rounded-xl transition-all">Ago</button>
+                            <button onclick="selectMonth(8)" class="p-3 text-[10px] font-black uppercase hover:bg-white/5 rounded-xl transition-all">Set</button>
+                            <button onclick="selectMonth(9)" class="p-3 text-[10px] font-black uppercase hover:bg-white/5 rounded-xl transition-all">Out</button>
+                            <button onclick="selectMonth(10)" class="p-3 text-[10px] font-black uppercase hover:bg-white/5 rounded-xl transition-all">Nov</button>
+                            <button onclick="selectMonth(11)" class="p-3 text-[10px] font-black uppercase hover:bg-white/5 rounded-xl transition-all">Dez</button>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 pt-4 border-t border-white/5">
+                            <button onclick="selectFullYear()" class="py-3 text-[9px] font-black uppercase bg-white/5 hover:bg-white/10 rounded-xl transition-all">2026 Total</button>
+                            <button onclick="resetToCurrentMonth()" class="py-3 text-[9px] font-black uppercase bg-blue-600/20 text-blue-400 hover:bg-blue-600 hover:text-white rounded-xl transition-all">Mês Atual</button>
+                        </div>
                     </div>
-                    <button onclick="resetToCurrentMonth()" class="text-[8px] font-black uppercase tracking-widest text-blue-500 hover:text-blue-400 transition-all border border-blue-500/20 px-4 py-1.5 rounded-full bg-blue-500/5">Mês Atual</button>
                 </div>
 
-                <!-- Resumo Geral - Layout 1+2 no Mobile -->
+                <!-- Resumo Geral - Layout 1+2 Mobile -->
                 <div class="grid grid-cols-2 md:grid-cols-3 gap-4 italic">
-                    <!-- Cartão Saldo Real: Full width no mobile -->
-                    <div class="col-span-2 md:col-span-1 bg-slate-900 border border-white/5 p-6 rounded-2xl flex flex-col justify-between shadow-xl italic relative overflow-hidden min-h-[140px]">
+                    <div class="col-span-2 md:col-span-1 bg-slate-900 border border-white/5 p-6 rounded-2xl flex flex-col justify-between shadow-xl italic relative overflow-hidden min-h-[150px]">
                         <span class="text-blue-500 text-[9px] font-black uppercase tracking-widest italic flex items-center gap-2">
-                             <i data-lucide="shield-check" class="w-3 h-3"></i> Saldo Efetivado
+                             <i data-lucide="shield-check" class="w-3 h-3"></i> Saldo Real (Efetivado)
                         </span>
-                        
                         <button onclick="togglePrivacy()" class="absolute top-5 right-5 text-slate-700 hover:text-blue-500 transition-colors z-10">
                             <i data-lucide="eye" id="privacy-icon" class="w-5 h-5"></i>
                         </button>
-
                         <div class="mt-4">
                             <div class="text-4xl font-black tracking-tighter text-white italic leading-none">
                                 R$ <span id="fin-saldo-atual-pag" class="privacy-mask">0,00</span>
                             </div>
-                            <p class="text-[8px] font-black text-slate-600 uppercase tracking-widest mt-2 italic">
-                                Saldo Previsto: <span class="text-blue-500/40">R$ <span id="fin-saldo-previsto">0</span></span>
-                            </p>
+                            <p class="text-[8px] font-black text-slate-600 uppercase tracking-widest mt-2 italic">Saldo Previsto: <span class="text-blue-500/30">R$ <span id="fin-saldo-previsto">0</span></span></p>
                         </div>
                     </div>
 
-                    <!-- Cartão Receitas -->
-                    <div class="bg-emerald-950/10 border border-emerald-500/20 p-6 rounded-2xl italic flex flex-col justify-between min-h-[140px]">
-                        <span class="text-emerald-500 text-[9px] font-black uppercase tracking-widest italic flex items-center gap-2">
-                            <i data-lucide="trending-up" class="w-3 h-3"></i> Receitas
-                        </span>
+                    <div class="bg-emerald-950/10 border border-emerald-500/20 p-6 rounded-2xl italic flex flex-col justify-between min-h-[150px]">
+                        <span class="text-emerald-500 text-[9px] font-black uppercase tracking-widest italic">Receitas</span>
                         <div class="text-2xl font-black tracking-tighter text-emerald-400 italic leading-none mt-2">
                             R$ <span id="total-income" class="privacy-mask">0,00</span>
                         </div>
                     </div>
 
-                    <!-- Cartão Despesas -->
-                    <div class="bg-red-950/10 border border-red-500/20 p-6 rounded-2xl italic flex flex-col justify-between min-h-[140px]">
-                        <span class="text-red-500 text-[9px] font-black uppercase tracking-widest italic flex items-center gap-2">
-                            <i data-lucide="trending-down" class="w-3 h-3"></i> Despesas
-                        </span>
+                    <div class="bg-red-950/10 border border-red-500/20 p-6 rounded-2xl italic flex flex-col justify-between min-h-[150px]">
+                        <span class="text-red-500 text-[9px] font-black uppercase tracking-widest italic">Despesas</span>
                         <div class="text-2xl font-black tracking-tighter text-red-400 italic leading-none mt-2">
                             R$ <span id="total-expenses" class="privacy-mask">0,00</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Gráfico e Fluxo -->
+                <!-- Balanço Previsível e Fluxo -->
                 <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 italic">
                     <div class="lg:col-span-3 bg-slate-900 border border-white/5 p-8 rounded-[2rem] italic shadow-2xl">
                         <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4 italic">
                             <h3 class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 flex items-center gap-2">
-                                <i data-lucide="bar-chart-3" class="w-3 h-3 text-blue-500"></i> PROJEÇÃO FINANCEIRA
+                                <i data-lucide="trending-up" class="w-3 h-3 text-blue-500"></i> PROJEÇÃO FINANCEIRA
                             </h3>
                             <div class="flex bg-slate-950 p-1 rounded-xl border border-white/5 italic overflow-hidden">
                                 <button onclick="window.updateChartRange(6)" class="range-btn px-3 py-1.5 text-[8px] font-black uppercase bg-blue-600 text-white transition-all" data-range="6">6 Meses</button>
                                 <button onclick="window.updateChartRange(12)" class="range-btn px-3 py-1.5 text-[8px] font-black uppercase transition-all text-slate-500 hover:text-white" data-range="12">12 Meses</button>
                             </div>
                         </div>
-                        <div class="h-[300px] relative italic">
+                        <div class="h-[320px] relative italic">
                             <canvas id="financeChart"></canvas>
                         </div>
                     </div>
@@ -110,8 +124,8 @@
                                 Ver todas <i data-lucide="chevron-right" class="w-3 h-3"></i>
                             </button>
                         </div>
-                        <div class="space-y-3 overflow-y-auto max-h-[300px] pr-2 italic" id="fin-extrato-list">
-                            <div class="p-8 text-center text-slate-700 text-[10px] font-black uppercase tracking-widest italic">Nenhum lançamento encontrado</div>
+                        <div class="space-y-3 overflow-y-auto max-h-[350px] pr-2 italic" id="fin-extrato-list">
+                            <!-- Injetado via JS -->
                         </div>
                     </div>
                 </div>
@@ -125,20 +139,19 @@
     </button>
 
     <!-- Modal Novo Lançamento -->
-    <div id="modal" class="hidden fixed inset-0 bg-slate-950/95 backdrop-blur-xl flex items-center justify-center p-4 z-[100] transition-all italic">
-        <div class="bg-slate-900 border border-white/10 rounded-[2.5rem] shadow-2xl w-full max-w-md p-8 italic">
-            <div class="flex justify-between items-center mb-8 italic">
-                <h2 class="text-[10px] font-black uppercase tracking-[0.3em] text-white italic">Novo Lançamento</h2>
-                <button onclick="toggleModal()" class="text-slate-600 hover:text-white italic"><i data-lucide="x" class="w-6 h-6"></i></button>
+    <div id="modal" class="hidden fixed inset-0 bg-slate-950/90 backdrop-blur-xl flex items-center justify-center p-4 z-[100] transition-all italic">
+        <div class="bg-slate-900 border border-white/10 rounded-3xl shadow-2xl w-full max-w-md p-8 italic">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-sm font-black uppercase tracking-[0.2em] text-white italic">Novo Lançamento</h2>
+                <button onclick="toggleModal()" class="text-slate-600 hover:text-white"><i data-lucide="x" class="w-6 h-6"></i></button>
             </div>
-            <div class="space-y-4 italic">
+            <div class="space-y-4">
                 <input type="text" id="fin-desc" placeholder="DESCRIÇÃO" class="pulse-input uppercase">
-                <div class="grid grid-cols-2 gap-3 italic">
+                <div class="grid grid-cols-2 gap-3">
                     <input type="number" id="fin-valor" placeholder="VALOR R$" class="pulse-input">
                     <input type="date" id="fin-vencimento" class="pulse-input">
                 </div>
-                
-                <div class="grid grid-cols-2 gap-3 italic">
+                <div class="grid grid-cols-2 gap-3">
                     <div class="flex items-center justify-between px-4 py-3 bg-slate-950/50 rounded-xl border border-white/5">
                         <span id="toggle-label" class="text-[9px] font-black uppercase text-emerald-500 italic">Efetivada</span>
                         <label for="status-toggle" class="flex items-center cursor-pointer">
@@ -156,10 +169,9 @@
                     </div>
                 </div>
                 <input type="hidden" id="fin-categoria" value="Geral">
-                
-                <div class="grid grid-cols-2 gap-3 pt-4 italic">
-                    <button onclick="handleProcess('receita')" class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 py-4 rounded-2xl font-black uppercase text-[10px] hover:bg-emerald-500 hover:text-white transition-all italic">Receita</button>
-                    <button onclick="handleProcess('despesa')" class="bg-red-500/10 text-red-400 border border-red-500/20 py-4 rounded-2xl font-black uppercase text-[10px] hover:bg-red-500 hover:text-white transition-all italic">Despesa</button>
+                <div class="grid grid-cols-2 gap-3 pt-2">
+                    <button onclick="handleProcess('receita')" class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 py-4 rounded-xl font-black uppercase text-[10px] hover:bg-emerald-500 hover:text-white transition-all italic">Receita</button>
+                    <button onclick="handleProcess('despesa')" class="bg-red-500/10 text-red-400 border border-red-500/20 py-4 rounded-xl font-black uppercase text-[10px] hover:bg-red-500 hover:text-white transition-all italic">Despesa</button>
                 </div>
             </div>
         </div>
@@ -171,21 +183,37 @@
         let myChart = null;
         window.isPrivate = false;
         window.viewDate = new Date();
+        window.viewMode = 'month'; // 'month' ou 'year'
 
         function toggleModal() { document.getElementById('modal').classList.toggle('hidden'); }
 
-        // Navegação de Meses
-        window.changeMonth = (delta) => {
-            window.viewDate.setMonth(window.viewDate.getMonth() + delta);
+        window.toggleMonthPicker = () => {
+            const picker = document.getElementById('month-picker');
+            picker.classList.toggle('hidden');
+        };
+
+        window.selectMonth = (monthIndex) => {
+            window.viewMode = 'month';
+            window.viewDate.setMonth(monthIndex);
+            window.viewDate.setFullYear(2026);
+            toggleMonthPicker();
+            updateUI();
+        };
+
+        window.selectFullYear = () => {
+            window.viewMode = 'year';
+            window.viewDate.setFullYear(2026);
+            toggleMonthPicker();
             updateUI();
         };
 
         window.resetToCurrentMonth = () => {
+            window.viewMode = 'month';
             window.viewDate = new Date();
+            toggleMonthPicker();
             updateUI();
         };
 
-        // Privacidade
         window.togglePrivacy = () => {
             window.isPrivate = !window.isPrivate;
             const icon = document.getElementById('privacy-icon');
@@ -196,24 +224,33 @@
 
         function refreshDisplays() {
             if (!window.appState) return;
-            
             const trans = window.appState.transacoes || [];
-            const filterMonth = window.viewDate.getMonth();
-            const filterYear = window.viewDate.getFullYear();
+            
+            let filteredTrans;
+            if (window.viewMode === 'month') {
+                const filterMonth = window.viewDate.getMonth();
+                const filterYear = window.viewDate.getFullYear();
+                filteredTrans = trans.filter(t => {
+                    if(!t.vencimento) return false;
+                    const d = new Date(t.vencimento + "T12:00:00");
+                    return d.getMonth() === filterMonth && d.getFullYear() === filterYear;
+                });
+                document.getElementById('display-month-year').innerText = window.viewDate.toLocaleDateString('pt-BR', { month: 'long' }).toUpperCase();
+            } else {
+                const filterYear = window.viewDate.getFullYear();
+                filteredTrans = trans.filter(t => {
+                    if(!t.vencimento) return false;
+                    const d = new Date(t.vencimento + "T12:00:00");
+                    return d.getFullYear() === filterYear;
+                });
+                document.getElementById('display-month-year').innerText = "ANO " + filterYear;
+            }
 
-            // Filtragem por mês selecionado
-            const currentMonthTrans = trans.filter(t => {
-                if(!t.vencimento) return false;
-                const d = new Date(t.vencimento + "T12:00:00");
-                return d.getMonth() === filterMonth && d.getFullYear() === filterYear;
-            });
-
-            const efektivaj = currentMonthTrans.filter(t => t.status === 'Efetivada');
+            const efektivaj = filteredTrans.filter(t => t.status === 'Efetivada');
             const saldo = efektivaj.reduce((acc, t) => acc + (t.tipo === 'Receita' ? t.valor : -t.valor), 0);
             const receitas = efektivaj.filter(t => t.tipo === 'Receita').reduce((a, b) => a + b.valor, 0);
             const despesas = efektivaj.filter(t => t.tipo === 'Despesa').reduce((a, b) => a + b.valor, 0);
-            
-            const previstoTotal = currentMonthTrans.reduce((acc, t) => acc + (t.tipo === 'Receita' ? t.valor : -t.valor), 0);
+            const previsto = filteredTrans.reduce((acc, t) => acc + (t.tipo === 'Receita' ? t.valor : -t.valor), 0);
 
             const format = (val) => window.isPrivate ? "%" : val.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
             const formatSimple = (val) => window.isPrivate ? "%" : val.toLocaleString('pt-BR', { minimumFractionDigits: 0 });
@@ -221,33 +258,27 @@
             document.getElementById('fin-saldo-atual-pag').innerText = format(saldo);
             document.getElementById('total-income').innerText = format(receitas);
             document.getElementById('total-expenses').innerText = format(despesas);
-            document.getElementById('fin-saldo-previsto').innerText = formatSimple(previstoTotal);
+            document.getElementById('fin-saldo-previsto').innerText = formatSimple(previsto);
             
-            document.getElementById('display-month-year').innerText = window.viewDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }).toUpperCase();
-            
-            renderFinanceList(currentMonthTrans);
+            renderLocalRecent(filteredTrans);
         }
 
-        function renderFinanceList(transactions) {
+        function renderLocalRecent(transactions) {
             const list = document.getElementById('fin-extrato-list');
             if (!list) return;
-
             if (transactions.length === 0) {
-                list.innerHTML = `<div class="p-8 text-center text-slate-700 text-[10px] font-black uppercase tracking-widest italic">Nenhum lançamento no período</div>`;
+                list.innerHTML = `<div class="p-8 text-center text-slate-700 text-[10px] font-black uppercase tracking-widest italic">Sem lançamentos</div>`;
                 return;
             }
-
-            // Ordenar por data (mais recente primeiro)
-            const sorted = [...transactions].sort((a, b) => new Date(b.vencimento) - new Date(a.vencimento));
-
+            const sorted = [...transactions].sort((a, b) => b.id - a.id);
             list.innerHTML = sorted.slice(0, 10).map(t => `
-                <div class="flex items-center justify-between p-4 bg-slate-950/30 border border-white/5 rounded-2xl group hover:bg-white/5 transition-all">
+                <div class="flex items-center justify-between p-4 bg-slate-950/30 border border-white/5 rounded-2xl group hover:bg-white/5 transition-all italic">
                     <div class="flex items-center gap-4">
                         <div class="w-8 h-8 rounded-lg flex items-center justify-center ${t.tipo === 'Receita' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}">
-                            <i data-lucide="${t.tipo === 'Receita' ? 'arrow-up-right' : 'arrow-down-right'}" class="w-4 h-4"></i>
+                            <i data-lucide="${t.tipo === 'Receita' ? 'trending-up' : 'trending-down'}" class="w-4 h-4"></i>
                         </div>
                         <div>
-                            <p class="text-[10px] font-black text-white uppercase italic truncate max-w-[120px]">${t.desc}</p>
+                            <p class="text-[10px] font-black text-white uppercase italic truncate max-w-[150px]">${t.desc}</p>
                             <p class="text-[7px] font-bold text-slate-600 uppercase italic">${new Date(t.vencimento + "T12:00:00").toLocaleDateString('pt-BR')}</p>
                         </div>
                     </div>
@@ -256,7 +287,6 @@
                     </p>
                 </div>
             `).join('');
-            
             if (window.lucide) lucide.createIcons();
         }
 
@@ -293,14 +323,12 @@
             const ctx = document.getElementById('financeChart');
             if (!ctx) return;
             if (myChart) myChart.destroy();
-
             const labels = [];
             const now = new Date();
             for (let i = monthsRange - 1; i >= 0; i--) {
                 const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
                 labels.push(d.toLocaleDateString('pt-BR', { month: 'short' }).toUpperCase());
             }
-
             const balanceData = labels.map(() => 0);
             if (window.appState && window.appState.transacoes) {
                 window.appState.transacoes.forEach(t => {
@@ -308,12 +336,9 @@
                     const tDate = new Date(t.vencimento + "T12:00:00");
                     const diff = (now.getFullYear() - tDate.getFullYear()) * 12 + (now.getMonth() - tDate.getMonth());
                     const idx = (monthsRange - 1) - diff;
-                    if (idx >= 0 && idx < monthsRange) {
-                        balanceData[idx] += (t.tipo === 'Receita' ? t.valor : -t.valor);
-                    }
+                    if (idx >= 0 && idx < monthsRange) balanceData[idx] += (t.tipo === 'Receita' ? t.valor : -t.valor);
                 });
             }
-
             myChart = new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -338,11 +363,16 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             const check = setInterval(() => {
-                if (window.appState) {
-                    updateUI();
-                    clearInterval(check);
-                }
+                if (window.appState) { updateUI(); clearInterval(check); }
             }, 500);
+            // Fechar seletor ao clicar fora
+            document.addEventListener('click', (e) => {
+                const picker = document.getElementById('month-picker');
+                const btn = document.querySelector('button[onclick="toggleMonthPicker()"]');
+                if (!picker.classList.contains('hidden') && !picker.contains(e.target) && !btn.contains(e.target)) {
+                    picker.classList.add('hidden');
+                }
+            });
         });
     </script>
 </body>
