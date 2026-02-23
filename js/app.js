@@ -1,5 +1,5 @@
 /**
- * PULSE OS - Central Intelligence v14.2
+ * PULSE OS - Central Intelligence v14.4
  * Gestão Total: Saúde, Finanças e Veículo.
  * Sincronização em Tempo Real via Firebase & Google Auth.
  */
@@ -43,7 +43,6 @@ window.appState = {
     transacoes: []
 };
 
-// Configuração de data inicial para filtros de Finanças e Extrato
 window.currentSystemDate = new Date();
 
 // --- NOTIFICAÇÕES ---
@@ -56,7 +55,7 @@ window.showToast = (message, type = 'success') => {
     setTimeout(() => toast.remove(), 3500);
 };
 
-// --- AUTENTICAÇÃO (REGRA 3) ---
+// --- AUTENTICAÇÃO ---
 const initAuth = async () => {
     try {
         if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
@@ -76,13 +75,10 @@ onAuthStateChanged(auth, (user) => {
     }
 });
 
-// --- SINCRONIZAÇÃO (REGRA 1) ---
+// --- SINCRONIZAÇÃO ---
 const setupRealtimeSync = (userId) => {
     if (!userId) return;
-    
-    // Caminho rigoroso conforme REGRA 1
     const stateDocRef = doc(db, 'artifacts', appId, 'users', userId, 'state', 'current');
-    
     onSnapshot(stateDocRef, (snapshot) => {
         if (snapshot.exists()) {
             const cloudData = snapshot.data();
@@ -100,11 +96,8 @@ const pushState = async () => {
     if (!auth.currentUser) return;
     const userId = auth.currentUser.uid;
     const stateDocRef = doc(db, 'artifacts', appId, 'users', userId, 'state', 'current');
-    
     const dataToSync = { ...window.appState };
-    // Removemos campos de UI local para não sujar o banco
     delete dataToSync.sidebarCollapsed; 
-    
     try { 
         await setDoc(stateDocRef, dataToSync, { merge: true }); 
         return true; 
@@ -113,9 +106,9 @@ const pushState = async () => {
     }
 };
 
-// --- INTERFACE (SIDEBAR & HEADER) ---
+// --- INTERFACE ---
 const injectInterface = () => {
-    const sidebarPlaceholder = document.getElementById('sidebar-placeholder');
+    const sidebarPlaceholder = document.getElementById('sidebar-placeholder') || document.getElementById('menu-container');
     const headerPlaceholder = document.getElementById('header-placeholder');
     if (!sidebarPlaceholder) return;
 
@@ -129,17 +122,13 @@ const injectInterface = () => {
             label: 'Finanças', 
             icon: 'wallet', 
             color: 'text-emerald-500',
-            sub: [
-                { label: 'Resumo', target: 'financas' },
-                { label: 'Extrato', target: 'extrato' }
-            ]
+            sub: [ { label: 'Extrato', target: 'extrato' } ]
         },
         { id: 'ajustes', label: 'Ajustes', icon: 'settings', color: 'text-slate-400' }
     ];
     
     const path = (window.location.pathname.split('/').pop() || 'dashboard.html').split('.')[0];
 
-    // Sidebar Desktop/Mobile
     if (!sidebarPlaceholder.querySelector('aside')) {
         sidebarPlaceholder.innerHTML = `
             <aside class="hidden md:flex flex-col bg-slate-900 border-r border-white/5 fixed h-full z-50 transition-all duration-300">
@@ -150,7 +139,7 @@ const injectInterface = () => {
                 <nav class="flex-1 px-3 mt-4 space-y-1 overflow-y-auto">
                     ${items.map(i => `
                         <div>
-                            <button onclick="${i.sub ? `window.toggleSubmenu('${i.id}')` : `window.openTab('${i.id}')`}" class="w-full flex items-center justify-between px-4 py-4 rounded-xl font-black uppercase text-[10px] tracking-widest ${path === i.id || (i.sub && i.sub.some(s => path === s.target)) ? 'bg-white/5 text-blue-500' : 'text-slate-400 hover:bg-white/5'} transition-all">
+                            <button onclick="${i.id === 'financas' ? `window.openTab('financas')` : (i.sub ? `window.toggleSubmenu('${i.id}')` : `window.openTab('${i.id}')`)}" class="w-full flex items-center justify-between px-4 py-4 rounded-xl font-black uppercase text-[10px] tracking-widest ${path === i.id || (i.sub && i.sub.some(s => path === s.target)) ? 'bg-white/5 text-blue-500' : 'text-slate-400 hover:bg-white/5'} transition-all">
                                 <div class="flex items-center gap-4">
                                     <i data-lucide="${i.icon}" class="w-5 h-5 ${i.color}"></i>
                                     <span class="menu-label ${window.appState.sidebarCollapsed ? 'hidden' : ''}">${i.label}</span>
@@ -158,7 +147,7 @@ const injectInterface = () => {
                                 ${i.sub && !window.appState.sidebarCollapsed ? `<i data-lucide="chevron-right" id="arrow-${i.id}" class="w-3 h-3 transition-transform"></i>` : ''}
                             </button>
                             ${i.sub && !window.appState.sidebarCollapsed ? `
-                                <div id="submenu-${i.id}" class="${i.sub.some(s => path === s.target) ? '' : 'hidden'} pl-12 mt-1 space-y-1">
+                                <div id="submenu-${i.id}" class="${i.sub.some(s => path === s.target) || path === i.id ? '' : 'hidden'} pl-12 mt-1 space-y-1">
                                     ${i.sub.map(s => `<button onclick="window.openTab('${s.target}')" class="w-full text-left py-2 text-[9px] font-black uppercase tracking-widest ${path === s.target ? 'text-blue-500' : 'text-slate-500 hover:text-white'}">${s.label}</button>`).join('')}
                                 </div>
                             ` : ''}
@@ -166,7 +155,6 @@ const injectInterface = () => {
                     `).join('')}
                 </nav>
             </aside>
-            <!-- Mobile Bottom Nav -->
             <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-xl border-t border-white/5 flex items-center justify-around px-2 py-3 z-[100] shadow-2xl">
                 ${items.filter(i => i.id !== 'ajustes').slice(0, 5).map(i => `<button onclick="window.openTab('${i.id}')" class="flex flex-col items-center gap-1 p-2 ${path === i.id || (i.sub && i.sub.some(s => path === s.target)) ? 'text-blue-500' : 'text-slate-500'}"><i data-lucide="${i.icon}" class="w-5 h-5"></i><span class="text-[7px] font-black uppercase">${i.label}</span></button>`).join('')}
                 <button onclick="window.openTab('ajustes')" class="flex flex-col items-center gap-1 p-2 ${path === 'ajustes' ? 'text-blue-500' : 'text-slate-500'}"><i data-lucide="settings" class="w-5 h-5"></i><span class="text-[7px] font-black uppercase">Ajustes</span></button>
@@ -174,7 +162,6 @@ const injectInterface = () => {
         `;
     }
 
-    // Header (Minimalista: Apenas botão de abastecer)
     if (headerPlaceholder && !headerPlaceholder.querySelector('header')) {
         headerPlaceholder.innerHTML = `
             <header class="bg-transparent sticky top-0 z-40 px-6 py-6 flex items-center justify-end">
@@ -191,18 +178,14 @@ const updateGlobalUI = () => {
     const isCollapsed = window.appState.sidebarCollapsed;
     const mainContent = document.getElementById('main-content');
     const sidebar = document.querySelector('aside');
-    
     if (sidebar) sidebar.style.width = isCollapsed ? '5rem' : '16rem';
     if (mainContent && window.innerWidth >= 768) mainContent.style.marginLeft = isCollapsed ? '5rem' : '16rem';
-
-    // Dispara atualizações locais das páginas se existirem
     if (typeof refreshDisplays === 'function') refreshDisplays();
     if (typeof renderFullExtrato === 'function') renderFullExtrato();
-
     if (window.lucide) lucide.createIcons();
 };
 
-// --- LOGICA FINANCEIRA (FILTROS DE PROJEÇÃO) ---
+// --- LOGICA FINANCEIRA MELHORADA (RETORNA MULTIPLOS DATASETS) ---
 window.getProjectionData = (mode) => {
     const now = new Date();
     const trans = window.appState.transacoes || [];
@@ -211,35 +194,37 @@ window.getProjectionData = (mode) => {
     let startYear = 2026;
 
     if (mode === '2026') {
-        count = 12;
-        startMonth = 0;
-        startYear = 2026;
+        count = 12; startMonth = 0; startYear = 2026;
     } else {
         count = parseInt(mode);
-        // Filtros +6M e +12M começam no mês atual
         startMonth = now.getMonth();
         startYear = now.getFullYear();
     }
 
     const labels = [];
+    const income = [];
+    const expenses = [];
     const balance = [];
 
     for (let i = 0; i < count; i++) {
         const d = new Date(startYear, startMonth + i, 1);
-        const mLabel = d.toLocaleDateString('pt-BR', { month: 'short' }).toUpperCase();
-        labels.push(mLabel);
+        labels.push(d.toLocaleDateString('pt-BR', { month: 'short' }).toUpperCase());
 
-        // Calcula balanço mensal (Receitas - Despesas)
-        const monthVal = trans.filter(t => {
+        const monthTrans = trans.filter(t => {
             if(!t.vencimento) return false;
             const tD = new Date(t.vencimento + "T12:00:00");
             return tD.getMonth() === d.getMonth() && tD.getFullYear() === d.getFullYear();
-        }).reduce((acc, t) => acc + (t.tipo === 'Receita' ? t.valor : -t.valor), 0);
+        });
+
+        const incVal = monthTrans.filter(t => t.tipo === 'Receita').reduce((a, b) => a + b.valor, 0);
+        const expVal = monthTrans.filter(t => t.tipo === 'Despesa').reduce((a, b) => a + b.valor, 0);
         
-        balance.push(monthVal);
+        income.push(incVal);
+        expenses.push(expVal);
+        balance.push(incVal - expVal);
     }
 
-    return { labels, balance };
+    return { labels, income, expenses, balance };
 };
 
 // --- AÇÕES DO SISTEMA ---
@@ -247,102 +232,47 @@ window.processarLancamento = async (tipo) => {
     const val = parseFloat(document.getElementById('fin-valor').value);
     const venc = document.getElementById('fin-vencimento').value;
     if (isNaN(val) || !venc) return;
-
     const novaTransacao = { 
-        id: Date.now(), 
-        tipo: tipo === 'receita' ? 'Receita' : 'Despesa', 
+        id: Date.now(), tipo: tipo === 'receita' ? 'Receita' : 'Despesa', 
         desc: document.getElementById('fin-desc').value.toUpperCase(), 
-        valor: val, 
-        status: document.getElementById('fin-status').value, 
-        vencimento: venc,
-        cat: document.getElementById('fin-categoria').value, 
+        valor: val, status: document.getElementById('fin-status').value, 
+        vencimento: venc, cat: document.getElementById('fin-categoria').value, 
         data: new Date().toLocaleDateString('pt-BR') 
     };
-
     window.appState.transacoes.push(novaTransacao);
-
-    // Lógica de Conta Fixa (12 meses)
     if (document.getElementById('fin-fixa')?.checked) {
         for (let i = 1; i < 12; i++) {
             const nextDate = new Date(venc + "T12:00:00");
             nextDate.setMonth(nextDate.getMonth() + i);
-            window.appState.transacoes.push({
-                ...novaTransacao,
-                id: Date.now() + i,
-                vencimento: nextDate.toISOString().split('T')[0]
-            });
+            window.appState.transacoes.push({ ...novaTransacao, id: Date.now() + i, vencimento: nextDate.toISOString().split('T')[0] });
         }
     }
-
     const ok = await pushState(); 
-    if (ok) { 
-        window.showToast("Lançamento Registado!"); 
-        updateGlobalUI(); 
-    }
+    if (ok) { window.showToast("Lançamento Registado!"); updateGlobalUI(); }
 };
 
 window.saveBikeEntry = async () => {
     const desc = document.getElementById('bike-log-desc')?.value;
     const km = parseInt(document.getElementById('bike-log-km')?.value);
     if (!desc || isNaN(km)) return false;
-    
     window.appState.veiculo.km = km;
-    window.appState.veiculo.historico.push({ 
-        id: Date.now(), 
-        desc: desc.toUpperCase(), 
-        km, 
-        valor: parseFloat(document.getElementById('bike-log-valor')?.value) || 0, 
-        data: new Date().toLocaleDateString('pt-BR'),
-        tipo: document.getElementById('bike-log-tipo')?.value || 'Manutenção'
-    });
-    
+    window.appState.veiculo.historico.push({ id: Date.now(), desc: desc.toUpperCase(), km, valor: parseFloat(document.getElementById('bike-log-valor')?.value) || 0, data: new Date().toLocaleDateString('pt-BR'), tipo: document.getElementById('bike-log-tipo')?.value || 'Manutenção' });
     const ok = await pushState(); 
-    if (ok) { 
-        window.showToast("Registro na Máquina Salvo!"); 
-        updateGlobalUI(); 
-        return true; 
-    } 
+    if (ok) { window.showToast("Registro na Máquina Salvo!"); updateGlobalUI(); return true; } 
     return false;
 };
 
-// --- FUNÇÕES DE SAÚDE ---
-window.addWater = async (ml) => { 
-    window.appState.water_ml += ml; 
-    const ok = await pushState(); 
-    if (ok) { updateGlobalUI(); window.showToast(`+${ml}ml Hidratado`); } 
-};
-
-window.addMonster = async () => { 
-    window.appState.energy_mg += window.appState.calibragem.monster_mg; 
-    const ok = await pushState(); 
-    if (ok) { updateGlobalUI(); window.showToast("Energia Injetada!"); } 
-};
-
-window.resetHealthDay = async () => { 
-    window.appState.water_ml = 0; 
-    window.appState.energy_mg = 0; 
-    const ok = await pushState(); 
-    if (ok) { updateGlobalUI(); window.showToast("Metas de Saúde Zeradas"); } 
-};
-
-// --- CONTROLES DE NAVEGAÇÃO ---
-window.toggleSidebar = () => { 
-    window.appState.sidebarCollapsed = !window.appState.sidebarCollapsed; 
-    updateGlobalUI(); 
-};
-
+window.addWater = async (ml) => { window.appState.water_ml += ml; const ok = await pushState(); if (ok) { updateGlobalUI(); window.showToast(`+${ml}ml Hidratado`); } };
+window.addMonster = async () => { window.appState.energy_mg += window.appState.calibragem.monster_mg; const ok = await pushState(); if (ok) { updateGlobalUI(); window.showToast("Energia Injetada!"); } };
+window.resetHealthDay = async () => { window.appState.water_ml = 0; window.appState.energy_mg = 0; const ok = await pushState(); if (ok) { updateGlobalUI(); window.showToast("Metas de Saúde Zeradas"); } };
+window.toggleSidebar = () => { window.appState.sidebarCollapsed = !window.appState.sidebarCollapsed; updateGlobalUI(); };
 window.toggleSubmenu = (id) => {
     const sub = document.getElementById(`submenu-${id}`);
     const arrow = document.getElementById(`arrow-${id}`);
-    if (sub) {
-        sub.classList.toggle('hidden');
-        if (arrow) arrow.style.transform = sub.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(90deg)';
-    }
+    if (sub) { sub.classList.toggle('hidden'); if (arrow) arrow.style.transform = sub.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(90deg)'; }
 };
-
 window.openTab = (p) => { window.location.href = p + ".html"; };
 
-// --- INICIALIZAÇÃO ---
 document.addEventListener('DOMContentLoaded', () => { 
     initAuth();
     updateGlobalUI(); 
