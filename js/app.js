@@ -1,203 +1,191 @@
-/**
- * PULSE OS - Central Intelligence v11.6
- * Versão Estável Completa
- */
-
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
+// =============================
+// FIREBASE IMPORTS
+// =============================
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
-    getAuth,
-    onAuthStateChanged,
-    signInWithPopup,
-    GoogleAuthProvider,
-    signInWithEmailAndPassword,
-    signOut
-} from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
+  getAuth,
+  onAuthStateChanged,
+  signInWithPopup,
+  GoogleAuthProvider,
+  signOut
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import {
-    getFirestore,
-    doc,
-    setDoc,
-    onSnapshot
-} from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc,
+  updateDoc,
+  onSnapshot
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-// 🔥 CONFIG FIREBASE (SEU ORIGINAL)
+// =============================
+// CONFIG FIREBASE
+// =============================
 const firebaseConfig = {
-    apiKey: "AIzaSyAyqPiFoq6s7L6J3pPeCG-ib66H8mueoZs",
-    authDomain: "pulse-68c1c.firebaseapp.com",
-    projectId: "pulse-68c1c",
-    storageBucket: "pulse-68c1c.firebasestorage.app",
-    messagingSenderId: "360386380741",
-    appId: "1:360386380741:web:d45af208f595b5799a81ac"
+  apiKey: "SUA_API_KEY",
+  authDomain: "SEU_AUTH_DOMAIN",
+  projectId: "SEU_PROJECT_ID",
+  storageBucket: "SEU_STORAGE_BUCKET",
+  messagingSenderId: "SEU_SENDER_ID",
+  appId: "SEU_APP_ID"
 };
 
+// =============================
+// INIT
+// =============================
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const googleProvider = new GoogleAuthProvider();
+const provider = new GoogleAuthProvider();
 
-// --------------------------------------------------
-// ESTADO GLOBAL
-// --------------------------------------------------
+let currentUser = null;
+let userData = {};
 
-window.appState = {
-    login: "USUÁRIO",
-    fullName: "USUÁRIO",
-    photoURL: null,
-    email: "",
-    perfil: {},
-    veiculo: {},
-    calibragem: {},
-    tarefas: [],
-    transacoes: [],
-    water_ml: 0,
-    energy_mg: 0,
-    sidebarCollapsed: false
-};
+// =============================
+// AGUARDAR DOM
+// =============================
+document.addEventListener("DOMContentLoaded", () => {
 
-// --------------------------------------------------
-// LOGIN
-// --------------------------------------------------
+  onAuthStateChanged(auth, async (user) => {
 
-window.loginWithGoogle = async () => {
-    try {
-        const result = await signInWithPopup(auth, googleProvider);
-        return { success: true, user: result.user };
-    } catch (error) {
-        console.error(error);
-        return { success: false };
+    if (!user) {
+      window.location.href = "index.html";
+      return;
     }
-};
 
-window.loginWithEmail = async (email, pass) => {
-    try {
-        await signInWithEmailAndPassword(auth, email, pass);
-        return { success: true };
-    } catch (error) {
-        console.error(error);
-        return { success: false, error: "Falha na autenticação" };
-    }
-};
+    currentUser = user;
+    await loadUserData();
+    injectMenu();
+    loadPageData();
+  });
 
-window.logout = async () => {
-    await signOut(auth);
-    window.location.href = "index.html";
-};
-
-// --------------------------------------------------
-// AUTH STATE
-// --------------------------------------------------
-
-onAuthStateChanged(auth, (user) => {
-
-    const path = window.location.pathname;
-
-    if (user) {
-
-        window.appState.login = user.displayName
-            ? user.displayName.split(' ')[0].toUpperCase()
-            : "USUÁRIO";
-
-        window.appState.fullName = user.displayName || "USUÁRIO";
-        window.appState.photoURL = user.photoURL || null;
-        window.appState.email = user.email;
-
-        setupRealtimeSync(user.uid);
-
-        if (path.endsWith("index.html") || path === "/" || path === "") {
-            window.location.href = "dashboard.html";
-        }
-
-    } else {
-
-        if (!path.endsWith("index.html") && path !== "/" && path !== "") {
-            window.location.href = "index.html";
-        }
-    }
 });
 
-// --------------------------------------------------
-// FIRESTORE REALTIME
-// --------------------------------------------------
+// =============================
+// LOGIN GOOGLE
+// =============================
+window.loginGoogle = async function () {
+  await signInWithPopup(auth, provider);
+  window.location.href = "dashboard.html";
+};
 
-const setupRealtimeSync = (uid) => {
+// =============================
+// LOGOUT
+// =============================
+window.logout = async function () {
+  await signOut(auth);
+  window.location.href = "index.html";
+};
 
-    const ref = doc(db, "users", uid);
+// =============================
+// CARREGAR DADOS USUÁRIO
+// =============================
+async function loadUserData() {
+  const ref = doc(db, "users", currentUser.uid);
+  const snap = await getDoc(ref);
 
-    onSnapshot(ref, (snap) => {
+  if (snap.exists()) {
+    userData = snap.data();
+  } else {
+    await setDoc(ref, {});
+    userData = {};
+  }
 
-        if (snap.exists()) {
+  // realtime
+  onSnapshot(ref, (docSnap) => {
+    userData = docSnap.data() || {};
+  });
+}
 
-            const cloudData = snap.data();
+// =============================
+// MENU DINÂMICO
+// =============================
+function injectMenu() {
 
-            window.appState = {
-                ...window.appState,
-                ...cloudData
-            };
+  const container = document.getElementById("menu-container");
+  if (!container) return;
 
-            updateGlobalUI();
+  container.innerHTML = `
+    <nav class="sidebar">
+      <a href="dashboard.html">Dashboard</a>
+      <a href="perfil.html">Perfil</a>
+      <a href="financas.html">Finanças</a>
+      <a href="veiculo.html">Veículo</a>
+      <a href="work.html">Work</a>
+      <a href="ajustes.html">Ajustes</a>
+      <button onclick="logout()">Sair</button>
+    </nav>
+  `;
+}
 
-        } else {
-            setDoc(ref, window.appState);
-        }
+// =============================
+// CARREGAR CONTEÚDO DA PÁGINA
+// =============================
+function loadPageData() {
 
-    }, (error) => {
-        console.error("Erro Sync:", error);
+  const page = window.location.pathname.split("/").pop();
+
+  if (page === "dashboard.html") {
+    renderDashboard();
+  }
+
+  if (page === "perfil.html") {
+    fillForm("perfil-form");
+  }
+
+  if (page === "financas.html") {
+    fillForm("financas-form");
+  }
+
+  if (page === "veiculo.html") {
+    fillForm("veiculo-form");
+  }
+
+  if (page === "work.html") {
+    fillForm("work-form");
+  }
+
+  if (page === "ajustes.html") {
+    fillForm("ajustes-form");
+  }
+}
+
+// =============================
+// PREENCHER FORMULÁRIOS
+// =============================
+function fillForm(formId) {
+
+  const form = document.getElementById(formId);
+  if (!form) return;
+
+  Object.keys(userData).forEach(key => {
+    const field = form.querySelector(`[name="${key}"]`);
+    if (field) field.value = userData[key];
+  });
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const data = new FormData(form);
+    const obj = {};
+
+    data.forEach((value, key) => {
+      obj[key] = value;
     });
-};
 
-const pushState = async () => {
+    await updateDoc(doc(db, "users", currentUser.uid), obj);
+    alert("Salvo com sucesso!");
+  });
+}
 
-    if (!auth.currentUser) return false;
+// =============================
+// DASHBOARD
+// =============================
+function renderDashboard() {
+  const el = document.getElementById("dashboard-content");
+  if (!el) return;
 
-    const ref = doc(db, "users", auth.currentUser.uid);
-
-    try {
-        await setDoc(ref, window.appState);
-        return true;
-    } catch (e) {
-        console.error("Erro ao salvar:", e);
-        return false;
-    }
-};
-
-// --------------------------------------------------
-// UPDATE GLOBAL UI
-// --------------------------------------------------
-
-const updateGlobalUI = () => {
-
-    // 🔥 ATUALIZA AJUSTES SE EXISTIR
-    if (typeof window.fillAjustesForm === "function") {
-        window.fillAjustesForm();
-    }
-
-};
-
-// --------------------------------------------------
-// SALVAR AJUSTES
-// --------------------------------------------------
-
-window.savePulseSettings = async () => {
-
-    let changed = false;
-
-    if (document.getElementById('set-bike-km')) {
-        window.appState.veiculo.km =
-            parseInt(document.getElementById('set-bike-km').value) || 0;
-        changed = true;
-    }
-
-    if (document.getElementById('set-peso')) {
-        window.appState.perfil.peso =
-            parseFloat(document.getElementById('set-peso').value) || 0;
-        changed = true;
-    }
-
-    if (changed) {
-        const ok = await pushState();
-        if (ok) updateGlobalUI();
-    }
-};
-
-// --------------------------------------------------
-
-updateGlobalUI();
+  el.innerHTML = `
+    <h2>Bem-vindo, ${currentUser.displayName || "Usuário"}</h2>
+  `;
+}
