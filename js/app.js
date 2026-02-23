@@ -1,33 +1,32 @@
 /**
- * PULSE OS - Central Intelligence v11.5 (Personal Edition)
- * Gestão Pessoal: Saúde, Finanças e Veículo.
- * Sincronização em Tempo Real via Firebase & Identidade Google.
+ * PULSE OS - Central Intelligence v11.6
+ * Versão Estável Completa
  */
 
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
-import { 
-    getAuth, 
-    onAuthStateChanged, 
-    signInWithPopup, 
-    GoogleAuthProvider, 
-    signInWithEmailAndPassword, 
-    signOut 
+import {
+    getAuth,
+    onAuthStateChanged,
+    signInWithPopup,
+    GoogleAuthProvider,
+    signInWithEmailAndPassword,
+    signOut
 } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
-import { 
-    getFirestore, 
-    doc, 
-    setDoc, 
-    onSnapshot 
+import {
+    getFirestore,
+    doc,
+    setDoc,
+    onSnapshot
 } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
 
-// --- CONFIGURAÇÃO FIREBASE ---
+// 🔥 CONFIG FIREBASE (SEU ORIGINAL)
 const firebaseConfig = {
-    apiKey: "SUA_API_AQUI",
-    authDomain: "SEU_AUTH_DOMAIN",
-    projectId: "SEU_PROJECT_ID",
-    storageBucket: "SEU_BUCKET",
-    messagingSenderId: "SEU_SENDER_ID",
-    appId: "SEU_APP_ID"
+    apiKey: "AIzaSyAyqPiFoq6s7L6J3pPeCG-ib66H8mueoZs",
+    authDomain: "pulse-68c1c.firebaseapp.com",
+    projectId: "pulse-68c1c",
+    storageBucket: "pulse-68c1c.firebasestorage.app",
+    messagingSenderId: "360386380741",
+    appId: "1:360386380741:web:d45af208f595b5799a81ac"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -35,11 +34,15 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const googleProvider = new GoogleAuthProvider();
 
-// ------------------------------------------------------------
-// 🔥 ESTADO GLOBAL
-// ------------------------------------------------------------
+// --------------------------------------------------
+// ESTADO GLOBAL
+// --------------------------------------------------
 
-window.appState = window.appState || {
+window.appState = {
+    login: "USUÁRIO",
+    fullName: "USUÁRIO",
+    photoURL: null,
+    email: "",
     perfil: {},
     veiculo: {},
     calibragem: {},
@@ -50,112 +53,151 @@ window.appState = window.appState || {
     sidebarCollapsed: false
 };
 
-// ------------------------------------------------------------
-// 🔔 TOAST
-// ------------------------------------------------------------
+// --------------------------------------------------
+// LOGIN
+// --------------------------------------------------
 
-window.showToast = (msg, type = "success") => {
-    console.log(`[${type.toUpperCase()}] ${msg}`);
+window.loginWithGoogle = async () => {
+    try {
+        const result = await signInWithPopup(auth, googleProvider);
+        return { success: true, user: result.user };
+    } catch (error) {
+        console.error(error);
+        return { success: false };
+    }
 };
 
-// ------------------------------------------------------------
-// 🔐 AUTH
-// ------------------------------------------------------------
+window.loginWithEmail = async (email, pass) => {
+    try {
+        await signInWithEmailAndPassword(auth, email, pass);
+        return { success: true };
+    } catch (error) {
+        console.error(error);
+        return { success: false, error: "Falha na autenticação" };
+    }
+};
+
+window.logout = async () => {
+    await signOut(auth);
+    window.location.href = "index.html";
+};
+
+// --------------------------------------------------
+// AUTH STATE
+// --------------------------------------------------
 
 onAuthStateChanged(auth, (user) => {
+
+    const path = window.location.pathname;
+
     if (user) {
+
+        window.appState.login = user.displayName
+            ? user.displayName.split(' ')[0].toUpperCase()
+            : "USUÁRIO";
+
+        window.appState.fullName = user.displayName || "USUÁRIO";
+        window.appState.photoURL = user.photoURL || null;
+        window.appState.email = user.email;
+
         setupRealtimeSync(user.uid);
+
+        if (path.endsWith("index.html") || path === "/" || path === "") {
+            window.location.href = "dashboard.html";
+        }
+
     } else {
-        window.location.href = "index.html";
+
+        if (!path.endsWith("index.html") && path !== "/" && path !== "") {
+            window.location.href = "index.html";
+        }
     }
 });
 
-// ------------------------------------------------------------
-// 🔄 FIRESTORE REALTIME
-// ------------------------------------------------------------
+// --------------------------------------------------
+// FIRESTORE REALTIME
+// --------------------------------------------------
 
 const setupRealtimeSync = (uid) => {
+
     const ref = doc(db, "users", uid);
 
     onSnapshot(ref, (snap) => {
+
         if (snap.exists()) {
-            window.appState = { ...window.appState, ...snap.data() };
+
+            const cloudData = snap.data();
+
+            window.appState = {
+                ...window.appState,
+                ...cloudData
+            };
+
             updateGlobalUI();
+
         } else {
             setDoc(ref, window.appState);
         }
+
+    }, (error) => {
+        console.error("Erro Sync:", error);
     });
 };
 
 const pushState = async () => {
+
     if (!auth.currentUser) return false;
+
     const ref = doc(db, "users", auth.currentUser.uid);
 
     try {
         await setDoc(ref, window.appState);
         return true;
     } catch (e) {
-        console.error(e);
+        console.error("Erro ao salvar:", e);
         return false;
     }
 };
 
-// ------------------------------------------------------------
-// 🧠 UPDATE GLOBAL UI
-// ------------------------------------------------------------
+// --------------------------------------------------
+// UPDATE GLOBAL UI
+// --------------------------------------------------
 
 const updateGlobalUI = () => {
 
-    // Atualiza valores gerais se existirem
-    const set = (id, val) => {
-        const el = document.getElementById(id);
-        if (el) el.innerText = val;
-    };
-
-    set('dash-water-cur', window.appState.water_ml || 0);
-    set('dash-energy-val', window.appState.energy_mg || 0);
-
-    // 🔥 AQUI ESTÁ O AJUSTE IMPORTANTE
-    if (typeof window.fillAjustesForm === 'function') {
+    // 🔥 ATUALIZA AJUSTES SE EXISTIR
+    if (typeof window.fillAjustesForm === "function") {
         window.fillAjustesForm();
     }
 
 };
 
-// ------------------------------------------------------------
-// ⚙️ SALVAR AJUSTES
-// ------------------------------------------------------------
+// --------------------------------------------------
+// SALVAR AJUSTES
+// --------------------------------------------------
 
 window.savePulseSettings = async () => {
+
+    let changed = false;
 
     if (document.getElementById('set-bike-km')) {
         window.appState.veiculo.km =
             parseInt(document.getElementById('set-bike-km').value) || 0;
+        changed = true;
     }
 
     if (document.getElementById('set-peso')) {
         window.appState.perfil.peso =
             parseFloat(document.getElementById('set-peso').value) || 0;
+        changed = true;
     }
 
-    const ok = await pushState();
-
-    if (ok) {
-        window.showToast("Dados salvos!");
-        updateGlobalUI();
+    if (changed) {
+        const ok = await pushState();
+        if (ok) updateGlobalUI();
     }
 };
 
-// ------------------------------------------------------------
-// 🧭 NAVEGAÇÃO
-// ------------------------------------------------------------
-
-window.openTab = (page) => {
-    window.location.href = page + ".html";
-};
-
-// ------------------------------------------------------------
-// 🧪 INIT
-// ------------------------------------------------------------
+// --------------------------------------------------
 
 updateGlobalUI();
