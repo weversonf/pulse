@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pulse - All in 1 - v03</title>
+    <title>Pulse - v04</title>
     <!-- Tags para transformar em App no Android -->
     <meta name="theme-color" content="#020617">
     <meta name="mobile-web-app-capable" content="yes">
@@ -249,18 +249,77 @@
             const ctxLine = document.getElementById('financeChart');
             const ctxDonut = document.getElementById('categoryChart');
             if (!ctxLine) return;
+
             const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-            const data = months.map((_, i) => {
+            
+            // Dados apenas efetivados
+            const realData = months.map((_, i) => {
                 const mStr = `2026-${(i + 1).toString().padStart(2, '0')}`;
                 const ts = (window.appState.data.transacoes || []).filter(t => t.data?.startsWith(mStr) && (t.status === 'Efetivada' || !t.status));
                 return ts.filter(t => t.tipo === 'Receita').reduce((a, b) => a + b.valor, 0) - ts.filter(t => t.tipo === 'Despesa').reduce((a, b) => a + b.valor, 0);
             });
+
+            // Dados totais (Efetivados + Planejados)
+            const projData = months.map((_, i) => {
+                const mStr = `2026-${(i + 1).toString().padStart(2, '0')}`;
+                const ts = (window.appState.data.transacoes || []).filter(t => t.data?.startsWith(mStr));
+                return ts.filter(t => t.tipo === 'Receita').reduce((a, b) => a + b.valor, 0) - ts.filter(t => t.tipo === 'Despesa').reduce((a, b) => a + b.valor, 0);
+            });
+
             if (window.financeChartInstance) window.financeChartInstance.destroy();
             window.financeChartInstance = new Chart(ctxLine, {
                 type: 'line',
-                data: { labels: months, datasets: [{ data, borderColor: '#3b82f6', borderWidth: 2, tension: 0.4, fill: true, backgroundColor: 'rgba(59, 130, 246, 0.05)' }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false }, ticks: { color: '#475569', font: { size: 9 } } } } }
+                data: { 
+                    labels: months, 
+                    datasets: [
+                        { 
+                            label: 'Efetivado',
+                            data: realData, 
+                            borderColor: '#3b82f6', 
+                            borderWidth: 3, 
+                            tension: 0.4, 
+                            fill: true, 
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            pointRadius: 2
+                        },
+                        { 
+                            label: 'Projeção',
+                            data: projData, 
+                            borderColor: '#94a3b8', 
+                            borderWidth: 2, 
+                            borderDash: [5, 5], 
+                            tension: 0.4, 
+                            fill: false,
+                            pointRadius: 0
+                        }
+                    ] 
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    plugins: { 
+                        legend: { 
+                            display: true, 
+                            position: 'top',
+                            align: 'end',
+                            labels: { 
+                                color: '#475569', 
+                                font: { size: 9, weight: 'bold' },
+                                boxWidth: 8,
+                                usePointStyle: true
+                            } 
+                        } 
+                    }, 
+                    scales: { 
+                        y: { display: false }, 
+                        x: { 
+                            grid: { display: false }, 
+                            ticks: { color: '#475569', font: { size: 9 } } 
+                        } 
+                    } 
+                }
             });
+
             if (ctxDonut) {
                 const currentM = window.appState.extratoMonth;
                 const view = window.appState.categoryView;
@@ -338,8 +397,8 @@
                 case 'financas':
                     const statsF = getFinanceStats(), fRec = (d.transacoes || []).filter(t => t.tipo === 'Receita' && (t.status === 'Efetivada' || !t.status)).reduce((a, b) => a + (b.valor || 0), 0), fDes = (d.transacoes || []).filter(t => t.tipo === 'Despesa' && (t.status === 'Efetivada' || !t.status)).reduce((a, b) => a + (b.valor || 0), 0);
                     return `${header}<div class="flex justify-between items-center mb-8"><h1 class="text-4xl font-bold text-white uppercase italic leading-none">Finanças</h1><div class="flex gap-2"><button onclick="window.openTab('extrato')" class="bg-blue-500/20 text-blue-500 px-4 py-3 rounded-2xl font-bold uppercase text-[10px] border border-blue-500/20">Ir para Extrato</button><button onclick="window.openTransactionModal()" class="bg-emerald-600 text-white px-6 py-3 rounded-2xl font-bold uppercase text-[10px] shadow-lg"><i data-lucide="plus" class="w-4 h-4 inline mr-1"></i> Lançar</button></div></div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8"><div class="glass p-8 border-blue-500/30"><div class="flex justify-between items-center mb-2"><p class="text-[9px] font-bold uppercase text-blue-500 tracking-widest leading-none italic">Saldo Efetivado</p><button onclick="window.toggleBalancePrivacy()"><i data-lucide="${vis ? 'eye' : 'eye-off'}" class="w-4 h-4 text-slate-600"></i></button></div><h2 class="text-4xl font-bold text-white italic leading-none">${vis ? 'R$ ' + format(statsF.balEfetivado) : 'R$ ••••••'}</h2><p class="text-[8px] font-bold uppercase mt-4 text-slate-500 italic leading-none tracking-widest">Previsão: <span class="text-white">${vis ? 'R$ ' + format(statsF.balProjetado) : 'R$ •••'}</span></p></div><div class="grid grid-cols-2 gap-4"><div class="glass p-6 border-emerald-500/20 flex flex-col justify-between"><p class="text-[9px] font-bold uppercase text-emerald-500 mb-2 italic leading-none">Entradas</p><h3 class="text-xl font-bold text-white italic leading-none">${vis ? 'R$ ' + format(fRec) : 'R$ •••'}</h3></div><div class="glass p-6 border-red-500/20 flex flex-col justify-between"><p class="text-[9px] font-bold uppercase text-red-500 mb-2 italic leading-none">Saídas</p><h3 class="text-xl font-bold text-white italic leading-none">${vis ? 'R$ ' + format(fDes) : 'R$ •••'}</h3></div></div></div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div class="glass p-8 h-[350px] border-white/10 flex flex-col"><h3 class="text-[10px] font-bold uppercase text-slate-500 mb-4 tracking-widest italic leading-none">Evolução Real (Efetivado)</h3><div class="flex-1 min-h-0"><canvas id="financeChart"></canvas></div></div><div class="glass p-8 h-[350px] border-white/10 flex flex-col"><div class="flex justify-between items-center mb-4"><h3 class="text-[10px] font-bold uppercase text-slate-500 tracking-widest italic leading-none">Distribuição: ${window.appState.categoryView}s</h3><button onclick="window.toggleCategoryView()" class="bg-white/5 border border-white/10 px-3 py-1 rounded-full text-[8px] font-bold uppercase tracking-widest text-slate-400 hover:text-white transition-colors">Ver ${window.appState.categoryView === 'Despesa' ? 'Receitas' : 'Despesas'}</button></div><div class="flex-1 min-h-0 relative"><canvas id="categoryChart"></canvas></div></div></div>`;
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8"><div class="glass p-8 border-blue-500/30"><div class="flex justify-between items-center mb-2"><p class="text-[9px] font-bold uppercase text-blue-500 tracking-widest leading-none italic">Saldo Efetivado</p><button onclick="window.toggleBalancePrivacy()"><i data-lucide="${vis ? 'eye' : 'eye-off'}" class="w-4 h-4 text-slate-600"></i></button></div><h2 class="text-4xl font-bold text-white italic leading-none">${vis ? 'R$ ' + format(statsF.balEfetivado) : 'R$ ••••••'}</h2><p class="text-[8px] font-bold uppercase mt-4 text-slate-500 italic leading-none tracking-widest">Previsão Acumulada: <span class="text-white">${vis ? 'R$ ' + format(statsF.balProjetado) : 'R$ •••'}</span></p></div><div class="grid grid-cols-2 gap-4"><div class="glass p-6 border-emerald-500/20 flex flex-col justify-between"><p class="text-[9px] font-bold uppercase text-emerald-500 mb-2 italic leading-none">Entradas</p><h3 class="text-xl font-bold text-white italic leading-none">${vis ? 'R$ ' + format(fRec) : 'R$ •••'}</h3></div><div class="glass p-6 border-red-500/20 flex flex-col justify-between"><p class="text-[9px] font-bold uppercase text-red-500 mb-2 italic leading-none">Saídas</p><h3 class="text-xl font-bold text-white italic leading-none">${vis ? 'R$ ' + format(fDes) : 'R$ •••'}</h3></div></div></div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div class="glass p-8 h-[350px] border-white/10 flex flex-col"><h3 class="text-[10px] font-bold uppercase text-slate-500 mb-4 tracking-widest italic leading-none">Evolução Real vs Projeção</h3><div class="flex-1 min-h-0"><canvas id="financeChart"></canvas></div></div><div class="glass p-8 h-[350px] border-white/10 flex flex-col"><div class="flex justify-between items-center mb-4"><h3 class="text-[10px] font-bold uppercase text-slate-500 tracking-widest italic leading-none">Distribuição: ${window.appState.categoryView}s</h3><button onclick="window.toggleCategoryView()" class="bg-white/5 border border-white/10 px-3 py-1 rounded-full text-[8px] font-bold uppercase tracking-widest text-slate-400 hover:text-white transition-colors">Ver ${window.appState.categoryView === 'Despesa' ? 'Receitas' : 'Despesas'}</button></div><div class="flex-1 min-h-0 relative"><canvas id="categoryChart"></canvas></div></div></div>`;
                 case 'extrato':
                     const allTs = d.transacoes || [], filteredTs = window.appState.showAllHistory ? allTs : allTs.filter(t => t.data?.startsWith(window.appState.extratoMonth)), sortedTs = [...filteredTs].sort((a, b) => new Date(b.data) - new Date(a.data));
                     return `${header}<div class="flex justify-between items-center flex-wrap gap-4 mb-8"><div><h1 class="text-3xl font-bold text-white uppercase italic leading-none">Histórico</h1><p class="text-[8px] text-slate-500 mt-2 uppercase">${window.appState.showAllHistory ? 'Exibindo Tudo' : 'Exibindo: ' + window.appState.extratoMonth}</p></div><div class="flex gap-2"><button onclick="window.toggleShowAllHistory()" class="px-4 py-2 glass border-white/10 text-[8px] font-bold uppercase tracking-widest ${window.appState.showAllHistory ? 'text-blue-400 border-blue-500/30' : 'text-slate-500'}">Ver Tudo</button>${!window.appState.showAllHistory ? `<input type="month" value="${window.appState.extratoMonth}" onchange="window.changeExtratoMonth(this.value)" class="pulse-input text-[10px] w-auto py-2 px-4 bg-white/5 border-white/10 rounded-xl font-bold">` : ''}</div></div>
@@ -371,7 +430,6 @@
         window.updateAction = async (t, v) => { if(t==='water') window.appState.data.water_ml+=v; if(t==='energy') window.appState.data.energy_mg+=v; render(); await pushState(); };
         window.saveAdj = async (c, k, v) => { const n = parseFloat(v); window.appState.data[c][k] = isNaN(n) || v.includes('-') ? v : n; render(); await pushState(); window.showToast("Sincronizado!"); };
         
-        // MODAL FINANÇAS UX
         window.setModalOption = (key, val) => {
             window.modalState[key] = val;
             const btns = document.querySelectorAll(`[data-modal-key="${key}"]`);
@@ -400,7 +458,7 @@
                             <button onclick="window.setModalOption('status', 'Efetivada')" data-modal-key="status" data-modal-val="Efetivada" class="segmented-btn active status">Efetivada</button>
                             <button onclick="window.setModalOption('status', 'Planejada')" data-modal-key="status" data-modal-val="Planejada" class="segmented-btn">Planejada</button>
                         </div>
-                        <input type="text" id="f-desc" placeholder="DESCRIÇÃO (EX: SALÁRIO MAKRO)" class="pulse-input uppercase">
+                        <input type="text" id="f-desc" placeholder="DESCRIÇÃO" class="pulse-input uppercase">
                         <input type="number" id="f-valor" placeholder="VALOR R$" class="pulse-input font-bold text-lg">
                         <select id="f-cat" class="pulse-input uppercase">${window.appState.data.categorias.map(c => `<option value="${c}">${c}</option>`).join('')}</select>
                         <input type="date" id="f-data" value="${new Date().toISOString().split('T')[0]}" class="pulse-input">
@@ -416,76 +474,55 @@
         };
 
         window.saveTransaction = async () => {
-            const v = parseFloat(document.getElementById('f-valor').value);
-            const desc = document.getElementById('f-desc').value.toUpperCase();
-            const cat = document.getElementById('f-cat').value;
-            const baseDateInput = document.getElementById('f-data').value;
-            const isFixa = document.getElementById('f-fixa').checked;
-
-            if(isNaN(v) || !desc) return window.showToast("Preencha descrição e valor", "error");
-
-            const count = isFixa ? 12 : 1;
-            const baseDate = new Date(baseDateInput + 'T12:00:00');
-
+            const v = parseFloat(document.getElementById('f-valor').value), desc = document.getElementById('f-desc').value.toUpperCase(), cat = document.getElementById('f-cat').value, baseDateInput = document.getElementById('f-data').value, isFixa = document.getElementById('f-fixa').checked;
+            if(isNaN(v) || !desc) return window.showToast("Erro no preenchimento", "error");
+            const count = isFixa ? 12 : 1; const baseDate = new Date(baseDateInput + 'T12:00:00');
             for(let i = 0; i < count; i++) {
-                const loopDate = new Date(baseDate);
-                loopDate.setMonth(baseDate.getMonth() + i);
-                const dateStr = loopDate.toISOString().split('T')[0];
-
-                window.appState.data.transacoes.push({ 
-                    id: Date.now() + i, 
-                    tipo: window.modalState.tipo, 
-                    status: window.modalState.status,
-                    desc: desc + (isFixa ? ` [${i+1}/12]` : ''), 
-                    valor: v, 
-                    cat: cat, 
-                    data: dateStr 
-                });
+                const loopDate = new Date(baseDate); loopDate.setMonth(baseDate.getMonth() + i);
+                window.appState.data.transacoes.push({ id: Date.now() + i, tipo: window.modalState.tipo, status: window.modalState.status, desc: desc + (isFixa ? ` [${i+1}/12]` : ''), valor: v, cat: cat, data: loopDate.toISOString().split('T')[0] });
             }
-
-            document.getElementById('global-modal').classList.add('hidden'); render(); await pushState(); 
-            window.showToast(isFixa ? "12 Parcelas Geradas!" : "Lançado!");
+            document.getElementById('global-modal').classList.add('hidden'); render(); await pushState(); window.showToast("Sincronizado!");
         };
 
         // MODAIS VEÍCULO
         window.openRefuelModal = () => {
             const m = document.getElementById('global-modal');
-            m.innerHTML = `<div class="bg-slate-900 border border-orange-500/30 p-8 rounded-[2.5rem] w-full max-w-sm shadow-2xl"><h2 class="text-sm font-bold uppercase text-white mb-6 italic tracking-widest leading-none flex items-center gap-2"><i data-lucide="fuel" class="w-4 h-4 text-orange-500"></i> Abastecer</h2><div class="space-y-4"><input type="number" id="v-km" placeholder="KM ATUAL" value="${window.appState.data.veiculo.km}" class="pulse-input text-xs font-bold"><div class="grid grid-cols-2 gap-3"><input type="number" id="v-litros" placeholder="LITROS" class="pulse-input text-xs"><input type="number" id="v-valor" placeholder="VALOR R$" class="pulse-input text-xs font-bold"></div><input type="date" id="v-data" value="${new Date().toISOString().split('T')[0]}" class="pulse-input text-xs"></div><button onclick="window.saveRefuel()" class="w-full bg-orange-600 text-white py-5 rounded-2xl font-bold uppercase text-[10px] mt-8 shadow-xl">Confirmar</button><button onclick="document.getElementById('global-modal').classList.add('hidden')" class="w-full text-slate-700 font-bold uppercase text-[8px] mt-4">Cancelar</button></div>`;
+            m.innerHTML = `<div class="bg-slate-900 border border-orange-500/30 p-8 rounded-[2.5rem] w-full max-sm shadow-2xl"><h2 class="text-sm font-bold uppercase text-white mb-6 italic tracking-widest leading-none flex items-center gap-2"><i data-lucide="fuel" class="w-4 h-4 text-orange-500"></i> Abastecer</h2><div class="space-y-4"><input type="number" id="v-km" placeholder="KM ATUAL" value="${window.appState.data.veiculo.km}" class="pulse-input text-xs font-bold"><div class="grid grid-cols-2 gap-3"><input type="number" id="v-litros" placeholder="LITROS" class="pulse-input text-xs"><input type="number" id="v-valor" placeholder="VALOR R$" class="pulse-input text-xs font-bold"></div><input type="date" id="v-data" value="${new Date().toISOString().split('T')[0]}" class="pulse-input text-xs"></div><button onclick="window.saveRefuel()" class="w-full bg-orange-600 text-white py-5 rounded-2xl font-bold uppercase text-[10px] mt-8 shadow-xl">Confirmar</button><button onclick="document.getElementById('global-modal').classList.add('hidden')" class="w-full text-slate-700 font-bold uppercase text-[8px] mt-4">Cancelar</button></div>`;
             m.classList.remove('hidden'); lucide.createIcons();
         };
 
         window.saveRefuel = async () => {
             const km = parseFloat(document.getElementById('v-km').value), l = parseFloat(document.getElementById('v-litros').value), v = parseFloat(document.getElementById('v-valor').value);
-            if(isNaN(v) || isNaN(km)) return window.showToast("Erro no KM ou Valor", "error");
+            if(isNaN(v) || isNaN(km)) return window.showToast("Dados inválidos", "error");
             if(km > window.appState.data.veiculo.km) window.appState.data.veiculo.km = km;
             window.appState.data.transacoes.push({ id: Date.now(), tipo: 'Despesa', status: 'Efetivada', desc: `⛽ ABASTECIMENTO (${l || 0}L)`, valor: v, cat: 'Veículo', data: document.getElementById('v-data').value, km_ref: km });
-            document.getElementById('global-modal').classList.add('hidden'); render(); await pushState(); window.showToast("Drivvo Sync Ativo!");
+            document.getElementById('global-modal').classList.add('hidden'); render(); await pushState(); window.showToast("Lançado!");
         };
 
         window.openServiceModal = () => {
             const m = document.getElementById('global-modal');
-            m.innerHTML = `<div class="bg-slate-900 border border-blue-500/30 p-8 rounded-[2.5rem] w-full max-w-sm shadow-2xl"><h2 class="text-sm font-bold uppercase text-white mb-6 italic tracking-widest leading-none flex items-center gap-2"><i data-lucide="wrench" class="w-4 h-4 text-blue-500"></i> Serviço</h2><div class="space-y-4"><input type="text" id="s-desc" placeholder="DESCRIÇÃO (EX: ÓLEO)" class="pulse-input uppercase text-xs"><input type="number" id="s-km" placeholder="KM DO SERVIÇO" value="${window.appState.data.veiculo.km}" class="pulse-input text-xs font-bold"><input type="number" id="s-valor" placeholder="VALOR R$" class="pulse-input text-xs font-bold"><input type="date" id="s-data" value="${new Date().toISOString().split('T')[0]}" class="pulse-input text-xs"></div><button onclick="window.saveService()" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-bold uppercase text-[10px] mt-8 shadow-xl">Gravar</button><button onclick="document.getElementById('global-modal').classList.add('hidden')" class="w-full text-slate-700 font-bold uppercase text-[8px] mt-4">Cancelar</button></div>`;
+            m.innerHTML = `<div class="bg-slate-900 border border-blue-500/30 p-8 rounded-[2.5rem] w-full max-w-sm shadow-2xl"><h2 class="text-sm font-bold uppercase text-white mb-6 italic tracking-widest leading-none flex items-center gap-2"><i data-lucide="wrench" class="w-4 h-4 text-blue-500"></i> Serviço</h2><div class="space-y-4"><input type="text" id="s-desc" placeholder="DESCRIÇÃO" class="pulse-input uppercase text-xs"><input type="number" id="s-km" placeholder="KM" value="${window.appState.data.veiculo.km}" class="pulse-input text-xs font-bold"><input type="number" id="s-valor" placeholder="VALOR R$" class="pulse-input text-xs font-bold"><input type="date" id="s-data" value="${new Date().toISOString().split('T')[0]}" class="pulse-input text-xs"></div><button onclick="window.saveService()" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-bold uppercase text-[10px] mt-8 shadow-xl">Gravar</button><button onclick="document.getElementById('global-modal').classList.add('hidden')" class="w-full text-slate-700 font-bold uppercase text-[8px] mt-4">Cancelar</button></div>`;
             m.classList.remove('hidden'); lucide.createIcons();
         };
 
         window.saveService = async () => {
             const d = document.getElementById('s-desc').value.toUpperCase(), v = parseFloat(document.getElementById('s-valor').value), k = parseFloat(document.getElementById('s-km').value);
-            if(!d || isNaN(v)) return window.showToast("Erro no preenchimento", "error");
+            if(!d || isNaN(v)) return window.showToast("Erro no valor", "error");
             if(k > window.appState.data.veiculo.km) window.appState.data.veiculo.km = k;
             window.appState.data.transacoes.push({ id: Date.now(), tipo: 'Despesa', status: 'Efetivada', desc: `🔧 SERVIÇO: ${d}`, valor: v, cat: 'Veículo', data: document.getElementById('s-data').value, km_ref: k });
-            document.getElementById('global-modal').classList.add('hidden'); render(); await pushState(); window.showToast("Manutenção Registada!");
+            document.getElementById('global-modal').classList.add('hidden'); render(); await pushState(); window.showToast("Registado!");
         };
 
         window.openTaskModal = () => {
             const m = document.getElementById('global-modal');
-            m.innerHTML = `<div class="bg-slate-900 border border-white/10 p-8 rounded-[2rem] w-full max-w-sm shadow-2xl"><h2 class="text-sm font-bold uppercase text-white mb-6 italic tracking-widest leading-none">Nova Tarefa</h2><div class="space-y-4"><input type="text" id="t-desc" placeholder="ATIVIDADE" class="pulse-input uppercase text-xs"><select id="t-tipo" class="pulse-input text-xs uppercase"><option value="Makro">Makro Engenharia</option><option value="Trabalho">Trabalho</option><option value="Pessoal">Pessoal</option></select><input type="text" id="t-sol" placeholder="SOLICITANTE" class="pulse-input uppercase text-xs"><input type="date" id="t-prazo" value="${new Date().toISOString().split('T')[0]}" class="pulse-input text-xs"><select id="t-status" class="pulse-input text-xs uppercase"><option value="Pendente">Pendente</option><option value="Fazendo">Fazendo</option><option value="Concluido">Concluido</option></select></div><button onclick="window.saveTask()" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-bold uppercase text-[10px] mt-8 shadow-xl">Criar</button><button onclick="document.getElementById('global-modal').classList.add('hidden')" class="w-full text-slate-700 font-bold uppercase text-[8px] mt-4">Fechar</button></div>`;
+            m.innerHTML = `<div class="bg-slate-900 border border-white/10 p-8 rounded-[2rem] w-full max-w-sm shadow-2xl"><h2 class="text-sm font-bold uppercase text-white mb-6 italic tracking-widest leading-none">Tarefa</h2><div class="space-y-4"><input type="text" id="t-desc" placeholder="ATIVIDADE" class="pulse-input uppercase text-xs"><select id="t-tipo" class="pulse-input text-xs uppercase"><option value="Makro">Makro Engenharia</option><option value="Pessoal">Pessoal</option></select><input type="date" id="t-prazo" value="${new Date().toISOString().split('T')[0]}" class="pulse-input text-xs"></div><button onclick="window.saveTask()" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-bold uppercase text-[10px] mt-8 shadow-xl">Criar</button><button onclick="document.getElementById('global-modal').classList.add('hidden')" class="w-full text-slate-700 font-bold uppercase text-[8px] mt-4">Fechar</button></div>`;
             m.classList.remove('hidden'); lucide.createIcons();
         };
 
         window.saveTask = async () => {
             const d = document.getElementById('t-desc').value; if(!d) return;
-            window.appState.data.tarefas.push({ id: Date.now(), desc: d.toUpperCase(), tipo: document.getElementById('t-tipo').value, solicitante: document.getElementById('t-sol').value.toUpperCase(), prazo: document.getElementById('t-prazo').value, status: document.getElementById('t-status').value });
-            document.getElementById('global-modal').classList.add('hidden'); render(); await pushState(); window.showToast("Board Criado!");
+            window.appState.data.tarefas.push({ id: Date.now(), desc: d.toUpperCase(), tipo: document.getElementById('t-tipo').value, solicitante: 'Eu', prazo: document.getElementById('t-prazo').value, status: 'Pendente' });
+            document.getElementById('global-modal').classList.add('hidden'); render(); await pushState();
         };
 
         window.showToast = (m, t='success') => {
@@ -501,11 +538,11 @@
                     if (s.exists()) { window.appState.data = { ...DEFAULT_DATA, ...s.data() }; render(); } 
                     else { pushState(); render(); }
                     fetchNPS();
-                }, (err) => { document.getElementById('loading-text').innerText = "A aguardar base de dados..."; });
+                }, (err) => { document.getElementById('loading-text').innerText = "A carregar dados..."; });
             }
         });
 
-        setTimeout(() => { if(!auth.currentUser) render(); }, 5000);
+        setTimeout(() => { if(!auth.currentUser) render(); }, 3000);
         window.addEventListener('resize', render);
     </script>
 </body>
