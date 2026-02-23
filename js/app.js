@@ -1,5 +1,5 @@
 /**
- * PULSE OS - Central Intelligence v14.8
+ * PULSE OS - Central Intelligence v14.9
  * Gestão Total: Saúde, Finanças e Veículo.
  * Sincronização em Tempo Real via Firebase & Google Auth.
  */
@@ -21,7 +21,7 @@ import {
     onSnapshot 
 } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
 
-// --- CONFIGURAÇÃO FIREBASE (PROTEGIDA) ---
+// --- CONFIGURAÇÃO FIREBASE ---
 let app, auth, db;
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'pulse-os-personal-weverson';
 
@@ -33,10 +33,10 @@ try {
         db = getFirestore(app);
     }
 } catch (e) {
-    console.error("Falha ao inicializar Firebase. Verifique as chaves de configuração.");
+    console.error("Erro na inicialização do Firebase:", e);
 }
 
-// --- ESTADO GLOBAL ---
+// --- ESTADO GLOBAL DO SISTEMA ---
 window.appState = {
     login: "USUÁRIO", 
     fullName: "USUÁRIO", 
@@ -50,9 +50,7 @@ window.appState = {
     energy_mg: 0
 };
 
-window.currentSystemDate = new Date();
-
-// --- NOTIFICAÇÕES (TOAST) ---
+// --- NOTIFICAÇÕES ---
 window.showToast = (message, type = 'success') => {
     const toast = document.createElement('div');
     toast.className = `fixed top-6 left-1/2 -translate-x-1/2 z-[200] px-6 py-3 rounded-2xl font-bold uppercase text-[10px] tracking-[0.2em] shadow-2xl transition-all duration-500 flex items-center gap-3 border ${type === 'success' ? 'bg-emerald-950/90 border-emerald-500/50 text-emerald-400' : 'bg-red-950/90 border-red-500/50 text-red-400'}`;
@@ -62,14 +60,14 @@ window.showToast = (message, type = 'success') => {
     setTimeout(() => toast.remove(), 3500);
 };
 
-// --- LOGICA DE AUTENTICAÇÃO (SOLUÇÃO PARA O ERRO DE SCRIPT) ---
+// --- AUTENTICAÇÃO E LOGIN ---
 
 window.loginWithGoogle = async () => {
-    if (!auth) return;
+    if (!auth) throw new Error("Serviço de autenticação indisponível");
     const provider = new GoogleAuthProvider();
     try {
-        await signInWithPopup(auth, provider);
-        window.location.href = "dashboard.html";
+        const result = await signInWithPopup(auth, provider);
+        if (result.user) window.location.href = "dashboard.html";
     } catch (error) {
         console.error("Erro Google Login:", error);
         throw error;
@@ -77,78 +75,85 @@ window.loginWithGoogle = async () => {
 };
 
 window.loginWithEmail = async (email, password) => {
-    if (!auth) return { success: false, error: "Firebase não iniciado" };
+    if (!auth) return { success: false, error: "Serviço indisponível" };
     try {
         await signInWithEmailAndPassword(auth, email, password);
         window.location.href = "dashboard.html";
         return { success: true };
     } catch (error) {
+        console.error("Erro Email Login:", error);
         return { success: false, error: "Credenciais inválidas" };
     }
 };
 
+// Monitor de Estado de Autenticação
+if (auth) {
+    onAuthStateChanged(auth, (user) => {
+        const isLoginPage = window.location.pathname.endsWith('index.html') || window.location.pathname === '/';
+        
+        if (user) {
+            window.appState.login = user.displayName ? user.displayName.split(' ')[0].toUpperCase() : "USUÁRIO";
+            setupRealtimeSync(user.uid);
+            // Se estiver na login e já logado, vai para o dashboard
+            if (isLoginPage) window.location.href = "dashboard.html";
+        } else {
+            // Se não estiver logado e não for a login, volta para a login
+            if (!isLoginPage) window.location.href = "index.html";
+        }
+    });
+}
+
+// Inicialização automática de token se fornecido pelo ambiente
 const initAuth = async () => {
     if (!auth) return;
     try {
         if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
             await signInWithCustomToken(auth, __initial_auth_token);
-        } else {
-            // Apenas tenta anónimo se não houver utilizador ativo e não estivermos na página de login
-            if (!auth.currentUser && !window.location.pathname.endsWith('index.html')) {
-                await signInAnonymously(auth);
-            }
         }
     } catch (error) {
-        console.error("Erro initAuth:", error);
+        console.error("Erro ao processar token inicial:", error);
     }
 };
-
-if (auth) {
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-            window.appState.login = user.displayName ? user.displayName.split(' ')[0].toUpperCase() : (user.email ? user.email.split('@')[0].toUpperCase() : "USUÁRIO");
-            setupRealtimeSync(user.uid);
-        } else {
-            if (!window.location.pathname.endsWith('index.html') && window.location.pathname !== '/') {
-                window.location.href = "index.html";
-            }
-        }
-    });
-}
 
 // --- SINCRONIZAÇÃO EM TEMPO REAL ---
 const setupRealtimeSync = (userId) => {
     if (!userId || !db) return;
     const stateDocRef = doc(db, 'artifacts', appId, 'users', userId, 'state', 'current');
     
+    // Escuta mudanças na nuvem
     onSnapshot(stateDocRef, (snapshot) => {
         if (snapshot.exists()) {
             const cloudData = snapshot.data();
             window.appState = { ...window.appState, ...cloudData };
         } else {
+            // Cria o documento inicial se não existir
             pushState();
         }
         updateGlobalUI();
     }, (error) => {
-        console.error("Erro no Sync:", error);
+        console.error("Erro na sincronização Firestore:", error);
     });
 };
 
 const pushState = async () => {
-    if (!auth || !auth.currentUser) return;
+    if (!auth || !auth.currentUser || !db) return;
     const userId = auth.currentUser.uid;
     const stateDocRef = doc(db, 'artifacts', appId, 'users', userId, 'state', 'current');
+    
+    // Persiste apenas dados essenciais
     const dataToSync = { ...window.appState };
     delete dataToSync.sidebarCollapsed; 
+    
     try { 
         await setDoc(stateDocRef, dataToSync, { merge: true }); 
         return true; 
     } catch (e) { 
+        console.error("Erro ao salvar dados:", e);
         return false; 
     }
 };
 
-// --- INJEÇÃO DE INTERFACE ---
+// --- INJEÇÃO DINÂMICA DE INTERFACE ---
 const injectInterface = () => {
     const sidebarPlaceholder = document.getElementById('sidebar-placeholder') || document.getElementById('menu-container');
     const headerPlaceholder = document.getElementById('header-placeholder');
@@ -173,8 +178,9 @@ const injectInterface = () => {
     const path = (window.location.pathname.split('/').pop() || 'dashboard.html').split('.')[0];
     const isCollapsed = window.appState.sidebarCollapsed;
 
+    // Render Sidebar
     sidebarPlaceholder.innerHTML = `
-        <aside class="hidden md:flex flex-col bg-slate-900 border-r border-white/5 fixed h-full z-50 transition-all duration-300 overflow-hidden" style="width: ${isCollapsed ? '5rem' : '16rem'}">
+        <aside class="hidden md:flex flex-col bg-slate-900 border-r border-white/5 fixed h-full z-50 transition-all duration-300 overflow-hidden shadow-2xl" style="width: ${isCollapsed ? '5rem' : '16rem'}">
             <div class="p-6 flex items-center justify-between overflow-hidden">
                 <h1 class="text-2xl font-black text-blue-500 tracking-tighter ${isCollapsed ? 'hidden' : 'block'}">PULSE</h1>
                 <button onclick="window.toggleSidebar()" class="p-2 bg-white/5 rounded-xl text-slate-500 hover:text-white mx-auto transition-colors">
@@ -207,7 +213,7 @@ const injectInterface = () => {
             </nav>
         </aside>
         
-        <!-- Mobile Navigation -->
+        <!-- Mobile View (Bottom Nav) -->
         <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-xl border-t border-white/5 flex items-center justify-around px-2 py-3 z-[100] shadow-2xl">
             ${items.filter(i => i.id !== 'ajustes').slice(0, 5).map(i => {
                 const isActive = path === i.id || (i.sub && i.sub.some(s => path === s.target));
@@ -223,11 +229,12 @@ const injectInterface = () => {
         </nav>
     `;
 
+    // Render Header (Reduced margin as requested)
     if (headerPlaceholder) {
         headerPlaceholder.innerHTML = `
             <header class="bg-transparent sticky top-0 z-40 px-6 py-2 flex items-center justify-end">
-                <button onclick="window.openTab('veiculo')" class="w-12 h-12 rounded-2xl bg-orange-600/10 border border-orange-500/30 flex items-center justify-center text-orange-500 shadow-lg active:scale-95 transition-all pointer-events-auto">
-                    <i data-lucide="fuel" class="w-6 h-6"></i>
+                <button onclick="window.openTab('veiculo')" class="w-10 h-10 rounded-2xl bg-orange-600/10 border border-orange-500/30 flex items-center justify-center text-orange-500 shadow-lg active:scale-95 transition-all">
+                    <i data-lucide="fuel" class="w-5 h-5"></i>
                 </button>
             </header>
         `;
@@ -243,6 +250,7 @@ const updateGlobalUI = () => {
         mainContent.style.marginLeft = isCollapsed ? '5rem' : '16rem';
     }
 
+    // Call local page functions
     if (typeof refreshDisplays === 'function') refreshDisplays();
     if (typeof renderFullExtrato === 'function') renderFullExtrato();
     if (typeof fillAjustesForm === 'function') fillAjustesForm();
@@ -250,7 +258,7 @@ const updateGlobalUI = () => {
     if (window.lucide) lucide.createIcons();
 };
 
-// --- LOGICA DE DADOS (FINANÇAS) ---
+// --- LOGICA DE DADOS FINANCEIROS ---
 window.getProjectionData = (mode) => {
     const now = new Date();
     const trans = window.appState.transacoes || [];
@@ -326,8 +334,6 @@ window.saveBikeEntry = async () => {
 
 window.savePulseSettings = async () => {
     if (!window.appState) return;
-    
-    // Captura dados do perfil (Saúde/Regional) se os campos existirem
     const setPeso = document.getElementById('set-peso');
     if (setPeso) {
         window.appState.perfil.peso = parseFloat(setPeso.value);
@@ -337,8 +343,6 @@ window.savePulseSettings = async () => {
         window.appState.perfil.estado = document.getElementById('set-estado').value;
         window.appState.perfil.cidade = document.getElementById('set-cidade').value;
     }
-
-    // Captura dados do Ajustes.html
     const setBikeKm = document.getElementById('set-bike-km');
     if (setBikeKm) {
         window.appState.veiculo.tipo = document.getElementById('set-bike-tipo').value;
@@ -347,17 +351,14 @@ window.savePulseSettings = async () => {
         window.appState.veiculo.km = parseInt(setBikeKm.value);
         window.appState.veiculo.oleo = parseInt(document.getElementById('set-bike-oleo').value);
         window.appState.veiculo.consumo = parseFloat(document.getElementById('set-bike-consumo').value);
-        
         window.appState.calibragem.monster_mg = parseInt(document.getElementById('set-calib-monster').value);
         window.appState.calibragem.coffee_ml = parseInt(document.getElementById('set-calib-ml').value);
-        
         window.appState.perfil.alcoholTitle = document.getElementById('set-alcohol-title').value;
         window.appState.perfil.alcoholStart = document.getElementById('set-alcohol-start').value;
         window.appState.perfil.alcoholTarget = parseInt(document.getElementById('set-alcohol-target').value);
     }
-
     const ok = await pushState();
-    if (ok) window.showToast("Perfil Atualizado com Sucesso!");
+    if (ok) window.showToast("Perfil Atualizado!");
 };
 
 // --- UTILITÁRIOS ---
