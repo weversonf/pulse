@@ -1,5 +1,5 @@
 /**
- * PULSE OS - Central Intelligence v12.3 (Full Sync Fix)
+ * PULSE OS - Central Intelligence v12.5 (Dynamic Logo UI)
  * Gestão Total: Saúde, Finanças e Veículo (Yamaha Fazer 250).
  * Sincronização em Tempo Real via Firebase & Identidade Google.
  */
@@ -124,10 +124,22 @@ const updateGlobalUI = () => {
     const isCollapsed = window.appState.sidebarCollapsed;
     const mainContent = document.getElementById('main-content');
     const sidebar = document.querySelector('aside');
+    const headerLogo = document.getElementById('header-logo');
     
+    // Controle Sidebar
     if (sidebar) {
         sidebar.style.width = isCollapsed ? '5rem' : '16rem';
         sidebar.querySelectorAll('.menu-label, h1').forEach(el => el.style.display = isCollapsed ? 'none' : 'block');
+    }
+
+    // Controle Logo no Header (Só aparece se recolhido ou mobile)
+    if (headerLogo) {
+        if (window.innerWidth < 768) {
+            headerLogo.style.opacity = '1';
+        } else {
+            headerLogo.style.opacity = isCollapsed ? '1' : '0';
+            headerLogo.style.pointerEvents = isCollapsed ? 'auto' : 'none';
+        }
     }
 
     if (mainContent) {
@@ -147,7 +159,6 @@ const updateGlobalUI = () => {
     set('dash-energy-val', window.appState.energy_mg); 
     set('bike-km-display', window.appState.veiculo.km);
 
-    // Barras de Progresso e Gauges
     const wBar = document.getElementById('dash-water-bar');
     if (wBar) wBar.style.width = Math.min(100, (window.appState.water_ml / 3500) * 100) + '%';
     
@@ -161,7 +172,6 @@ const updateGlobalUI = () => {
         eGauge.style.strokeDashoffset = offset;
     }
 
-    // Propósito
     const alcStart = window.appState.perfil.alcoholStart;
     if (alcStart && document.getElementById('alcohol-days-count')) {
         const diff = Math.floor((new Date() - new Date(alcStart)) / (1000 * 60 * 60 * 24));
@@ -173,13 +183,11 @@ const updateGlobalUI = () => {
         set('alcohol-challenge-title', window.appState.perfil.alcoholTitle);
     }
 
-    // Identidade Perfil
     const profName = document.getElementById('profile-user-name');
     if (profName) profName.innerText = window.appState.fullName;
     const avatar = document.getElementById('avatar-preview-container');
     if (avatar && window.appState.photoURL) avatar.innerHTML = `<img src="${window.appState.photoURL}" class="w-full h-full object-cover rounded-full" />`;
 
-    // Tasks Work
     const tasks = window.appState.tarefas || [];
     set('task-count', tasks.filter(t => t.status === 'Pendente').length);
     set('dash-tasks-progress', tasks.length);
@@ -201,7 +209,9 @@ const injectInterface = () => {
         { id: 'saude', label: 'Saúde', icon: 'activity', color: 'text-rose-500' },
         { id: 'veiculo', label: 'Máquina', icon: 'bike', color: 'text-orange-500' },
         { id: 'work', label: 'Tarefas', icon: 'briefcase', color: 'text-sky-400' },
-        { id: 'financas', label: 'Finanças', icon: 'wallet', color: 'text-emerald-500' }
+        { id: 'financas', label: 'Finanças', icon: 'wallet', color: 'text-emerald-500' },
+        { id: 'perfil', label: 'Perfil', icon: 'user', color: 'text-purple-500' },
+        { id: 'ajustes', label: 'Ajustes', icon: 'settings', color: 'text-slate-400' }
     ];
     
     const path = (window.location.pathname.split('/').pop() || 'dashboard.html').split('.')[0];
@@ -217,22 +227,49 @@ const injectInterface = () => {
                 </div>
                 <nav class="flex-1 px-3 mt-4 space-y-1 overflow-y-auto">
                     ${items.map(i => `<button onclick="window.openTab('${i.id}')" class="w-full flex items-center gap-4 px-4 py-4 rounded-xl font-black uppercase text-[10px] tracking-widest ${path === i.id ? 'bg-white/5 text-blue-500' : 'text-slate-400 hover:bg-white/5'} transition-all"><i data-lucide="${i.icon}" class="w-5 h-5 ${i.color}"></i><span class="menu-label">${i.label}</span></button>`).join('')}
-                    <button onclick="window.openTab('perfil')" class="w-full flex items-center gap-4 px-4 py-4 rounded-xl font-black uppercase text-[10px] tracking-widest ${path === 'perfil' ? 'bg-white/5 text-purple-500' : 'text-slate-400 hover:bg-white/5'}"><i data-lucide="user" class="w-5 h-5 text-purple-500"></i><span class="menu-label">Perfil</span></button>
-                    <button onclick="window.logout()" class="w-full flex items-center gap-4 px-4 py-4 mt-10 text-red-500/40 hover:text-red-500 transition-all italic font-black text-[10px] tracking-widest"><i data-lucide="log-out" class="w-5 h-5"></i><span class="menu-label">Sair</span></button>
+                    
+                    <button onclick="window.logout()" class="w-full flex items-center gap-4 px-4 py-4 mt-6 text-red-500/40 hover:text-red-500 transition-all italic font-black text-[10px] tracking-widest border-t border-white/5">
+                        <i data-lucide="log-out" class="w-5 h-5"></i>
+                        <span class="menu-label">Sair</span>
+                    </button>
                 </nav>
             </aside>
             <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-xl border-t border-white/5 flex items-center justify-around px-2 py-3 z-[100] italic shadow-2xl">
-                ${items.map(i => `<button onclick="window.openTab('${i.id}')" class="flex flex-col items-center gap-1 p-2 ${path === i.id ? 'text-blue-500' : 'text-slate-500'}"><i data-lucide="${i.icon}" class="w-5 h-5"></i><span class="text-[7px] font-black uppercase">${i.label}</span></button>`).join('')}
-                <button onclick="window.openTab('perfil')" class="flex flex-col items-center gap-1 p-2 ${path === 'perfil' ? 'text-purple-500' : 'text-slate-500'}"><i data-lucide="user" class="w-5 h-5"></i><span class="text-[7px] font-black uppercase">Perfil</span></button>
+                <button onclick="window.openTab('dashboard')" class="flex flex-col items-center gap-1 p-2 ${path === 'dashboard' ? 'text-blue-500' : 'text-slate-500'}">
+                    <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                    <span class="text-[7px] font-black uppercase">Home</span>
+                </button>
+                <button onclick="window.openTab('saude')" class="flex flex-col items-center gap-1 p-2 ${path === 'saude' ? 'text-rose-500' : 'text-slate-500'}">
+                    <i data-lucide="activity" class="w-5 h-5"></i>
+                    <span class="text-[7px] font-black uppercase">Saúde</span>
+                </button>
+                <button onclick="window.openTab('veiculo')" class="flex flex-col items-center gap-1 p-2 ${path === 'veiculo' ? 'text-orange-500' : 'text-slate-500'}">
+                    <i data-lucide="bike" class="w-5 h-5"></i>
+                    <span class="text-[7px] font-black uppercase">Máquina</span>
+                </button>
+                <button onclick="window.openTab('work')" class="flex flex-col items-center gap-1 p-2 ${path === 'work' ? 'text-sky-400' : 'text-slate-500'}">
+                    <i data-lucide="briefcase" class="w-5 h-5"></i>
+                    <span class="text-[7px] font-black uppercase">Tarefas</span>
+                </button>
+                <button onclick="window.openTab('ajustes')" class="flex flex-col items-center gap-1 p-2 ${path === 'ajustes' ? 'text-blue-500' : 'text-slate-500'}">
+                    <i data-lucide="settings" class="w-5 h-5"></i>
+                    <span class="text-[7px] font-black uppercase">Ajustes</span>
+                </button>
             </nav>
         `;
     }
 
     if (headerPlaceholder && !headerPlaceholder.querySelector('header')) {
         headerPlaceholder.innerHTML = `
-            <header class="bg-slate-900/80 backdrop-blur-xl sticky top-0 z-40 px-6 py-5 flex items-center justify-end border-b border-white/5 italic">
-                <button onclick="window.openTab('ajustes')" class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-slate-500 hover:text-white transition-all">
-                    <i data-lucide="settings" class="w-4 h-4"></i>
+            <header class="bg-slate-900/80 backdrop-blur-xl sticky top-0 z-40 px-6 py-5 flex items-center justify-between border-b border-white/5 italic">
+                <!-- Logo dinâmico no Header -->
+                <div id="header-logo" class="transition-opacity duration-300">
+                    <h1 class="text-xl font-black text-blue-500 italic tracking-tighter">PULSE</h1>
+                </div>
+
+                <!-- Botão de Abastecimento rápido no topo -->
+                <button onclick="window.openTab('veiculo')" class="w-10 h-10 rounded-xl bg-orange-600/20 border border-orange-500/30 flex items-center justify-center text-orange-500 hover:bg-orange-600 hover:text-white transition-all shadow-lg">
+                    <i data-lucide="fuel" class="w-5 h-5"></i>
                 </button>
             </header>
         `;
@@ -241,7 +278,6 @@ const injectInterface = () => {
 
 // --- AÇÕES ---
 window.savePulseSettings = async () => {
-    // CAPTURA DADOS DO VEÍCULO (AJUSTES.HTML)
     if (document.getElementById('set-bike-tipo')) {
         window.appState.veiculo.tipo = document.getElementById('set-bike-tipo').value;
         window.appState.veiculo.montadora = document.getElementById('set-bike-montadora')?.value || "YAMAHA";
@@ -251,20 +287,17 @@ window.savePulseSettings = async () => {
         window.appState.veiculo.consumo = parseFloat(document.getElementById('set-bike-consumo').value) || 29;
     }
 
-    // CAPTURA CALIBRAGEM (AJUSTES.HTML)
     if (document.getElementById('set-calib-monster')) {
         window.appState.calibragem.monster_mg = parseInt(document.getElementById('set-calib-monster').value) || 160;
         window.appState.calibragem.coffee_ml = parseInt(document.getElementById('set-calib-ml').value) || 300;
     }
 
-    // CAPTURA PROPÓSITO (AJUSTES.HTML)
     if (document.getElementById('set-alcohol-title')) {
         window.appState.perfil.alcoholTitle = document.getElementById('set-alcohol-title').value;
         window.appState.perfil.alcoholStart = document.getElementById('set-alcohol-start').value;
         window.appState.perfil.alcoholTarget = parseInt(document.getElementById('set-alcohol-target').value) || 30;
     }
 
-    // CAPTURA BIOMETRIA (PERFIL.HTML)
     if (document.getElementById('set-peso')) {
         window.appState.perfil.peso = parseFloat(document.getElementById('set-peso').value) || 0;
         window.appState.perfil.altura = parseInt(document.getElementById('set-altura').value) || 0;
@@ -324,6 +357,35 @@ window.processarLancamento = async (tipo) => {
     window.appState.transacoes.push({ id: Date.now(), tipo: tipo === 'receita' ? 'Receita' : 'Despesa', desc: document.getElementById('fin-desc').value.toUpperCase(), valor: val, status: document.getElementById('fin-status').value, cat: 'Geral', data: new Date().toLocaleDateString('pt-BR') });
     await pushState(); updateGlobalUI(); window.showToast("Lançamento Efetuado!");
     if (typeof window.toggleModal === 'function') window.toggleModal();
+};
+
+window.saveBikeEntry = async () => {
+    const desc = document.getElementById('bike-log-desc')?.value;
+    const km = parseInt(document.getElementById('bike-log-km')?.value);
+    const valor = parseFloat(document.getElementById('bike-log-valor')?.value) || 0;
+    const tipo = document.getElementById('bike-log-tipo')?.value || 'Abastecimento';
+    if (!desc || isNaN(km)) return false;
+
+    const entry = {
+        id: Date.now(),
+        desc: desc.toUpperCase(),
+        km: km,
+        valor: valor,
+        tipo: tipo,
+        data: new Date().toLocaleDateString('pt-BR')
+    };
+
+    window.appState.veiculo.km = km;
+    if (!window.appState.veiculo.historico) window.appState.veiculo.historico = [];
+    window.appState.veiculo.historico.push(entry);
+    
+    const success = await pushState();
+    if (success) {
+        window.showToast("Registro Salvo!");
+        updateGlobalUI();
+        return true;
+    }
+    return false;
 };
 
 window.addWater = (ml) => { window.appState.water_ml += ml; pushState(); updateGlobalUI(); window.showToast(`+${ml}ml Hidratado`); };
