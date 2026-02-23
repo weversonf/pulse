@@ -3,48 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PULSE OS - WORK</title>
+    <title>PULSE OS - Atividades</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body class="bg-slate-950 text-slate-100 italic">
     <div class="flex min-h-screen relative">
-        <!-- Placeholder para a Navegação (Injetada pelo app.js) -->
-        <div id="menu-container"></div>
+        <!-- Placeholder para a Barra Lateral (ID Corrigido para o motor app.js) -->
+        <div id="sidebar-placeholder"></div>
 
-        <!-- Conteúdo Principal com ID para controle de margem -->
-        <div id="main-content" class="flex-1 md:ml-64 transition-all duration-300 pb-mobile-nav">
+        <!-- Conteúdo Principal -->
+        <div id="main-content" class="flex-1 md:ml-64 transition-all duration-300 pb-safe-bottom">
             
-            <!-- Placeholder para o Cabeçalho Dinâmico (Injetado pelo app.js) -->
+            <!-- Placeholder para o Cabeçalho Dinâmico -->
             <div id="header-placeholder"></div>
 
             <main class="max-w-6xl mx-auto p-4 md:p-8 space-y-6 italic">
-                <!-- Branding Card -->
+                <!-- Branding Card Pessoal -->
                 <div class="glass-card p-8 rounded-[2.5rem] italic">
                     <div class="flex items-center gap-2 text-sky-400 mb-3 opacity-80 italic">
                         <i data-lucide="briefcase" class="w-4 h-4"></i>
-                        <p class="text-[10px] font-black uppercase tracking-[0.4em] italic">MAKRO ENGENHARIA</p>
+                        <p class="text-[10px] font-black uppercase tracking-[0.4em] italic">PLANEJAMENTO PESSOAL</p>
                     </div>
                     <p class="text-5xl font-black tracking-tighter text-white leading-none italic uppercase">Atividades</p>
                 </div>
 
                 <!-- Formulário de Lançamento -->
-                <div class="glass-card p-6 rounded-[2.5rem] space-y-3 italic">
+                <div class="glass-card p-6 rounded-[2.5rem] space-y-3 italic shadow-2xl">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-2 italic">
-                        <input type="text" id="work-task-title" placeholder="O QUE PRECISA SER FEITO?" class="w-full p-4 bg-slate-950/50 border border-white/5 rounded-2xl text-xs font-bold text-slate-300 outline-none uppercase italic focus:border-sky-500/30 transition-all">
-                        <select id="work-task-type" class="w-full p-4 bg-slate-950/50 border border-white/5 rounded-2xl text-xs font-bold text-slate-300 outline-none uppercase italic">
+                        <input type="text" id="work-task-title" placeholder="O QUE PRECISA SER FEITO?" class="pulse-input uppercase">
+                        <select id="work-task-type" class="pulse-input uppercase cursor-pointer">
                             <option value="Operacional">Operacional</option>
                             <option value="Engenharia">Engenharia</option>
                             <option value="Financeiro">Financeiro</option>
                             <option value="Reunião">Reunião</option>
+                            <option value="Estudo">Estudo</option>
                         </select>
                     </div>
                     <div class="grid grid-cols-2 gap-2 italic">
-                        <input type="text" id="work-task-requester" placeholder="SOLICITANTE..." class="w-full p-4 bg-slate-950/50 border border-white/5 rounded-2xl text-xs font-bold text-slate-300 outline-none uppercase italic">
-                        <input type="date" id="work-task-deadline" class="w-full p-4 bg-slate-950/50 border border-white/5 rounded-2xl text-xs font-bold text-slate-400 outline-none italic">
+                        <input type="text" id="work-task-requester" placeholder="SOLICITANTE..." class="pulse-input uppercase">
+                        <input type="date" id="work-task-deadline" class="pulse-input uppercase text-slate-400">
                     </div>
-                    <button onclick="window.addWorkTask()" class="w-full bg-sky-600 hover:bg-sky-500 text-white py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest mt-2 transition-all shadow-lg active:scale-[0.98] italic">
+                    <button onclick="window.addWorkTask()" class="w-full bg-sky-600 hover:bg-sky-500 text-white py-5 rounded-3xl font-black uppercase text-[10px] tracking-widest mt-2 transition-all shadow-lg active:scale-[0.98] italic flex items-center justify-center gap-2">
+                        <i data-lucide="plus-circle" class="w-4 h-4"></i>
                         Lançar Atividade
                     </button>
                 </div>
@@ -58,7 +60,7 @@
                             <span class="text-[8px] font-bold text-slate-700 uppercase italic">Pendentes</span>
                         </div>
                     </div>
-                    <div id="work-task-active-list" class="space-y-2 italic">
+                    <div id="work-task-active-list" class="space-y-2 italic pb-20">
                         <!-- Gerado dinamicamente pelo app.js -->
                     </div>
                 </div>
@@ -66,12 +68,6 @@
         </div>
     </div>
     
-<script type="module" src="./js/app.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            if (window.lucide) lucide.createIcons();
-        });
-    </script>
+    <script type="module" src="js/app.js"></script>
 </body>
 </html>
-
