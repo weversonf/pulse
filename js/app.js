@@ -1,5 +1,5 @@
 /**
- * PULSE OS - Central Intelligence v15.1
+ * PULSE OS - Central Intelligence v15.2
  * Gestão Total: Saúde, Finanças e Veículo.
  * Sincronização em Tempo Real via Firebase & Google Auth.
  */
@@ -21,37 +21,46 @@ import {
     onSnapshot 
 } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
 
-// --- CONFIGURAÇÃO MANUAL (COLA AS TUAS CHAVES DO FIREBASE AQUI PARA O GITHUB FUNCIONAR) ---
+// ============================================================================
+// --- CONFIGURAÇÃO MANUAL (CRÍTICO PARA O GITHUB PAGES) ---
+// VAI AO TEU CONSOLE DO FIREBASE > CONFIGURAÇÕES DO PROJETO E COLA OS DADOS AQUI:
+// ============================================================================
 const MANUAL_CONFIG = {
-    apiKey: "",
-    authDomain: "",
-    projectId: "",
-    storageBucket: "",
-    messagingSenderId: "",
-    appId: ""
+    apiKey: "",            // Ex: "AIzaSy..."
+    authDomain: "",        // Ex: "teu-projeto.firebaseapp.com"
+    projectId: "",         // Ex: "teu-projeto"
+    storageBucket: "",     // Ex: "teu-projeto.appspot.com"
+    messagingSenderId: "", // Ex: "123456789"
+    appId: ""              // Ex: "1:123456:web:abcdef"
 };
+// ============================================================================
 
 // --- INICIALIZAÇÃO DO MOTOR ---
 let app, auth, db;
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'pulse-os-personal-weverson';
 
 try {
-    // Tenta usar a config do ambiente ou a manual
-    const envConfig = typeof __firebase_config !== 'undefined' ? (typeof __firebase_config === 'string' ? JSON.parse(__firebase_config) : __firebase_config) : null;
+    // Tenta usar a config do ambiente (se existir) ou a manual (Github)
+    let envConfig = null;
+    if (typeof __firebase_config !== 'undefined') {
+        envConfig = typeof __firebase_config === 'string' ? JSON.parse(__firebase_config) : __firebase_config;
+    }
+    
     const finalConfig = (envConfig && envConfig.apiKey) ? envConfig : MANUAL_CONFIG;
     
     if (finalConfig && finalConfig.apiKey) {
         app = initializeApp(finalConfig);
         auth = getAuth(app);
         db = getFirestore(app);
+        console.log("PULSE OS: Firebase Conectado com Sucesso.");
     } else {
-        console.warn("Firebase: Aguardando configuração válida (apiKey ausente).");
+        console.warn("PULSE OS: Firebase aguardando chaves de API no MANUAL_CONFIG.");
     }
 } catch (e) {
     console.error("Erro na inicialização do Firebase:", e);
 }
 
-// --- ESTADO GLOBAL (Sincronizado com os teus cards de 1.500,00) ---
+// --- ESTADO GLOBAL ---
 window.appState = {
     login: "USUÁRIO", 
     fullName: "USUÁRIO", 
@@ -65,7 +74,7 @@ window.appState = {
     energy_mg: 0
 };
 
-// --- NOTIFICAÇÕES ---
+// --- NOTIFICAÇÕES (TOAST) ---
 window.showToast = (message, type = 'success') => {
     const toast = document.createElement('div');
     toast.className = `fixed top-6 left-1/2 -translate-x-1/2 z-[200] px-6 py-3 rounded-2xl font-bold uppercase text-[10px] tracking-[0.2em] shadow-2xl transition-all duration-500 flex items-center gap-3 border ${type === 'success' ? 'bg-emerald-950/90 border-emerald-500/50 text-emerald-400' : 'bg-red-950/90 border-red-500/50 text-red-400'}`;
@@ -75,10 +84,10 @@ window.showToast = (message, type = 'success') => {
     setTimeout(() => toast.remove(), 3500);
 };
 
-// --- LOGIN ---
+// --- LOGIN (GOOGLE / EMAIL) ---
 window.loginWithGoogle = async () => {
     if (!auth) {
-        window.showToast("Configuração de Nuvem ausente no ficheiro js/app.js", "error");
+        window.showToast("Configuração de nuvem ausente no ficheiro js/app.js", "error");
         return;
     }
     const provider = new GoogleAuthProvider();
@@ -98,10 +107,12 @@ window.loginWithEmail = async (email, password) => {
         window.location.href = "dashboard.html";
         return { success: true };
     } catch (error) {
-        return { success: false, error: "Acesso Negado" };
+        console.error("Erro Login:", error.code);
+        return { success: false, error: "Acesso Negado: Verifique os dados" };
     }
 };
 
+// Monitor de Sessão
 if (auth) {
     onAuthStateChanged(auth, (user) => {
         const isLoginPage = window.location.pathname.endsWith('index.html') || window.location.pathname === '/' || window.location.pathname === '';
@@ -115,7 +126,7 @@ if (auth) {
     });
 }
 
-// --- SINCRONIZAÇÃO ---
+// --- SINCRONIZAÇÃO NUVEM ---
 const setupRealtimeSync = (userId) => {
     if (!userId || !db) return;
     const stateDocRef = doc(db, 'artifacts', appId, 'users', userId, 'state', 'current');
@@ -126,7 +137,7 @@ const setupRealtimeSync = (userId) => {
             pushState();
         }
         updateGlobalUI();
-    }, (error) => console.error("Sync Error:", error));
+    }, (error) => console.error("Erro no Fluxo de Dados:", error));
 };
 
 const pushState = async () => {
@@ -135,10 +146,15 @@ const pushState = async () => {
     const stateDocRef = doc(db, 'artifacts', appId, 'users', userId, 'state', 'current');
     const dataToSync = { ...window.appState };
     delete dataToSync.sidebarCollapsed; 
-    try { await setDoc(stateDocRef, dataToSync, { merge: true }); return true; } catch (e) { return false; }
+    try { 
+        await setDoc(stateDocRef, dataToSync, { merge: true }); 
+        return true; 
+    } catch (e) { 
+        return false; 
+    }
 };
 
-// --- INTERFACE (Ubuntu, Sem Itálico) ---
+// --- INTERFACE DINÂMICA (Ubuntu) ---
 const injectInterface = () => {
     const sidebarPlaceholder = document.getElementById('sidebar-placeholder') || document.getElementById('menu-container');
     const headerPlaceholder = document.getElementById('header-placeholder');
@@ -160,7 +176,9 @@ const injectInterface = () => {
         <aside class="hidden md:flex flex-col bg-slate-900 border-r border-white/5 fixed h-full z-50 transition-all duration-300 overflow-hidden" style="width: ${isCollapsed ? '5rem' : '16rem'}">
             <div class="p-6 flex items-center justify-between">
                 <h1 class="text-2xl font-black text-blue-500 tracking-tighter ${isCollapsed ? 'hidden' : 'block'}">PULSE</h1>
-                <button onclick="window.toggleSidebar()" class="p-2 bg-white/5 rounded-xl text-slate-500 hover:text-white mx-auto"><i data-lucide="menu" class="w-4 h-4"></i></button>
+                <button onclick="window.toggleSidebar()" class="p-2 bg-white/5 rounded-xl text-slate-500 hover:text-white mx-auto transition-colors">
+                    <i data-lucide="menu" class="w-4 h-4"></i>
+                </button>
             </div>
             <nav class="flex-1 px-3 mt-4 space-y-1">
                 ${items.map(i => {
@@ -194,8 +212,11 @@ const updateGlobalUI = () => {
     const isCollapsed = window.appState.sidebarCollapsed;
     const mainContent = document.getElementById('main-content');
     if (mainContent && window.innerWidth >= 768) mainContent.style.marginLeft = isCollapsed ? '5rem' : '16rem';
+    
+    // Atualiza widgets das páginas
     if (typeof refreshDisplays === 'function') refreshDisplays();
     if (typeof renderFullExtrato === 'function') renderFullExtrato();
+    
     if (window.lucide) lucide.createIcons();
 };
 
@@ -223,7 +244,7 @@ window.getProjectionData = (mode) => {
     return { labels, income, expenses, balance };
 };
 
-// --- ACÇÕES ---
+// --- AÇÕES ---
 window.processarLancamento = async (tipo) => {
     const val = parseFloat(document.getElementById('fin-valor').value);
     const venc = document.getElementById('fin-vencimento').value;
