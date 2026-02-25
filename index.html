@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pulse v01.18</title>
+    <title>Pulse v01.19</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -462,37 +462,41 @@
             </button>
         </nav>
 
-        <!-- Menu Hambúrguer (Bottom Sheet) -->
-        <div id="menu-overlay" class="absolute inset-0 bg-black/60 z-[60] hidden opacity-0 transition-opacity duration-300" onclick="closeAllBottomSheets()"></div>
-        <div id="bottom-sheet" class="absolute bottom-0 w-full bg-[#1E2128] rounded-t-3xl z-[70] transform translate-y-full transition-transform duration-300 shadow-[0_-15px_40px_rgba(0,0,0,0.7)] flex flex-col">
-            <div class="w-full flex justify-center pt-4 pb-2" onclick="closeAllBottomSheets()">
-                <div class="w-12 h-1.5 bg-gray-600 rounded-full cursor-pointer"></div>
+<!-- Menu Hambúrguer (Bottom Sheet) Corrigido -->
+<div id="bottom-sheet" class="absolute bottom-0 w-full bg-[#1E2128] rounded-t-3xl z-[70] transform translate-y-full transition-transform duration-300 shadow-[0_-15px_40px_rgba(0,0,0,0.7)] flex flex-col">
+    <div class="w-full flex justify-center pt-4 pb-2" onclick="closeAllBottomSheets()">
+        <div class="w-12 h-1.5 bg-gray-600 rounded-full cursor-pointer"></div>
+    </div>
+    <div class="px-6 pb-10 pt-4 space-y-3">
+        <!-- Botão 1: Veículo -->
+        <button class="w-full flex items-center space-x-4 p-4 rounded-2xl bg-[#121418]/50 hover:bg-gray-800 transition-colors border border-transparent hover:border-orange-500/30" onclick="navigate(null, 'page-veiculo', 'Seu Veículo'); closeAllBottomSheets();">
+            <div class="w-12 h-12 rounded-full bg-orange-500/10 flex items-center justify-center text-orange-500">
+                <i data-lucide="bike" id="menu-veiculo-icon" class="w-6 h-6"></i>
             </div>
-            <div class="px-6 pb-10 pt-4 space-y-3">
-                <button class="w-full flex items-center space-x-4 p-4 rounded-2xl bg-[#121418]/50 hover:bg-gray-800 transition-colors border border-transparent hover:border-orange-500/30" onclick="navigate(null, 'page-veiculo', 'Seu Veículo'); closeAllBottomSheets();">
-                    <div class="w-12 h-12 rounded-full bg-orange-500/10 flex items-center justify-center text-orange-500">
-                        <i data-lucide="bike" id="menu-veiculo-icon" class="w-6 h-6"></i>
-                    </div>
-                    <div class="flex flex-col items-start">
-                        <span class="text-white font-medium text-lg">Veículo</span>
-                        <span class="text-xs text-gray-500" id="menu-veiculo-nome">Sua Fazer 250</span>
-                    </div>
-                </button>
-                <button class="w-full flex items-center space-x-4 p-4 rounded-2xl bg-[#121418]/50 hover:bg-gray-800 transition-colors border border-transparent hover:border-[#38bdf8]/30" onclick="abrirGerenciar()">
-                    <div class="w-12 h-12 rounded-full bg-[#38bdf8]/10 flex items-center justify-center text-[#38bdf8]">
-                        <i data-lucide="layers" class="w-6 h-6"></i>
-                    </div>
-                    <div class="flex flex-col items-start">
-                        <span class="text-white font-medium text-lg">Contas e Categorias</span>
-						<button id="btn-zerar"
-        class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl mt-4 w-full">
-    Zerar Tudo
-</button>
-                        <span class="text-xs text-gray-500">Gerir bancos e classificações</span>
-                    </div>
-                </button>
+            <div class="flex flex-col items-start">
+                <span class="text-white font-medium text-lg">Veículo</span>
+                <span class="text-xs text-gray-500" id="menu-veiculo-nome">Sua Fazer 250</span>
             </div>
-        </div>
+        </button>
+
+        <!-- Botão 2: Contas -->
+        <button class="w-full flex items-center space-x-4 p-4 rounded-2xl bg-[#121418]/50 hover:bg-gray-800 transition-colors border border-transparent hover:border-[#38bdf8]/30" onclick="abrirGerenciar()">
+            <div class="w-12 h-12 rounded-full bg-[#38bdf8]/10 flex items-center justify-center text-[#38bdf8]">
+                <i data-lucide="layers" class="w-6 h-6"></i>
+            </div>
+            <div class="flex flex-col items-start">
+                <span class="text-white font-medium text-lg">Contas e Categorias</span>
+                <span class="text-xs text-gray-500">Gerir bancos e classificações</span>
+            </div>
+        </button>
+
+        <!-- Botão 3: Zerar Dados (Agora fora dos outros botões) -->
+        <button id="btn-zerar" class="w-full flex items-center justify-center space-x-2 p-4 rounded-2xl bg-red-600/10 hover:bg-red-600 text-red-500 hover:text-white transition-all border border-red-600/20 font-bold mt-4">
+            <i data-lucide="trash-2" class="w-5 h-5"></i>
+            <span>Zerar Tudo</span>
+        </button>
+    </div>
+</div>
 
         <!-- ================= MODAIS COMPLEMENTARES ================= -->
         
@@ -1473,78 +1477,84 @@
     </script>
 
 	
-<!-- Limpar Tudo -->
 <script type="module">
-import { 
-  collection, 
-  getDocs, 
-  deleteDoc, 
-  doc 
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  // 1. Importações (adicionámos funções de login)
+  import { initializeApp } from "[https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js](https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js)";
+  import { getFirestore, collection, getDocs, deleteDoc, doc } from "[https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js](https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js)";
+  import { getAuth, signInAnonymously, onAuthStateChanged } from "[https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js](https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js)";
 
-const btnZerar = document.getElementById("btn-zerar");
-
-btnZerar.addEventListener("click", async () => {
-
-  const confirmar = confirm("Tem certeza que deseja apagar TODAS as transações?");
-
-  if (!confirmar) return;
-
-  const user = auth.currentUser;
-
-  if (!user) {
-    alert("Usuário não autenticado.");
-    return;
-  }
-
-  try {
-
-    const transacoesRef = collection(db, "users", user.uid, "transacoes");
-    const snapshot = await getDocs(transacoesRef);
-
-    const promises = [];
-
-    snapshot.forEach((docSnap) => {
-      const docRef = doc(db, "users", user.uid, "transacoes", docSnap.id);
-      promises.push(deleteDoc(docRef));
-    });
-
-    await Promise.all(promises);
-
-    alert("Dados zerados com sucesso ✅");
-
-  } catch (error) {
-    console.error(error);
-    alert("Erro ao zerar dados.");
-  }
-
-});	
-</script>
-	
-	
-<!-- 🔥 Firebase -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-  import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-
+  // 2. Configuração (igual à anterior)
   const firebaseConfig = {
-	  apiKey: "AIzaSyCZbIVkAcv6UITkC8RHWV1JlK1ZDnLyR1I",
-	  authDomain: "mucuripe-finance.firebaseapp.com",
-	  projectId: "mucuripe-finance",
-	  storageBucket: "mucuripe-finance.firebasestorage.app",
-	  messagingSenderId: "524788134673",
-	  appId: "1:524788134673:web:6d82be6c4a8a625b3092b0"
+    apiKey: "AIzaSyCZbIVkAcv6UITkC8RHWV1JlK1ZDnLyR1I",
+    authDomain: "mucuripe-finance.firebaseapp.com",
+    projectId: "mucuripe-finance",
+    storageBucket: "mucuripe-finance.firebasestorage.app",
+    messagingSenderId: "524788134673",
+    appId: "1:524788134673:web:6d82be6c4a8a625b3092b0"
   };
 
+  // 3. Inicialização
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
   const auth = getAuth(app);
 
+  // Tornamos global para os outros scripts do site
   window.db = db;
   window.auth = auth;
 
-  console.log("Firebase conectado 🚀");
+  // --- NOVIDADE: Login Automático ---
+  signInAnonymously(auth)
+    .then(() => {
+      console.log("Login anónimo realizado com sucesso! 🔑");
+    })
+    .catch((error) => {
+      console.error("Erro ao autenticar:", error);
+    });
+
+  // Monitoriza quando o utilizador entra ou sai
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      console.log("ID do utilizador ativo:", user.uid);
+    } else {
+      console.log("Utilizador deslogado.");
+    }
+  });
+
+  // --- Lógica do Botão Zerar Tudo (Ajustada) ---
+  const btnZerar = document.getElementById("btn-zerar");
+  if (btnZerar) {
+    btnZerar.addEventListener("click", async () => {
+      const user = auth.currentUser;
+      if (!user) {
+        alert("O sistema ainda está a carregar a sua sessão. Tente novamente em 2 segundos.");
+        return;
+      }
+
+      const confirmar = confirm("Deseja apagar todas as transações do banco de dados?");
+      if (!confirmar) return;
+
+      try {
+        btnZerar.disabled = true;
+        btnZerar.innerText = "A apagar...";
+
+        // Caminho correto das suas transações no Firebase
+        const transacoesRef = collection(db, "users", user.uid, "transacoes");
+        const snapshot = await getDocs(transacoesRef);
+        
+        const promessas = snapshot.docs.map(d => deleteDoc(doc(db, "users", user.uid, "transacoes", d.id)));
+        await Promise.all(promessas);
+
+        alert("Base de dados limpa! ✅");
+        location.reload();
+      } catch (err) {
+        console.error(err);
+        alert("Erro ao zerar dados.");
+      } finally {
+        btnZerar.disabled = false;
+        btnZerar.innerText = "Zerar Tudo";
+      }
+    });
+  }
 </script>
 	
 </body>
