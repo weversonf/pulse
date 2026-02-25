@@ -1,605 +1,409 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pulse v07</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&display=swap');
-
-        :root {
-            --sidebar-width: 16rem;
-            --glass-bg: rgba(15, 23, 42, 0.85);
-            --glass-border: rgba(255, 255, 255, 0.1);
-            --ring-circumference: 339.292;
-        }
-
-        body { 
-            font-family: 'Ubuntu', sans-serif; 
-            background-color: #020617 !important;
-            color: #f1f5f9;
-            margin: 0;
-            overflow-x: hidden;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        .glass {
-            background: var(--glass-bg);
-            backdrop-filter: blur(16px);
-            border: 1px solid var(--glass-border) !important;
-            border-radius: 2rem;
-            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.5);
-        }
-
-        .pulse-input { 
-            background: rgba(15, 23, 42, 0.95) !important; 
-            border: 1px solid var(--glass-border) !important; 
-            border-radius: 1rem !important;
-            padding: 1rem !important;
-            color: white !important;
-            outline: none !important;
-        }
-
-        .bottom-nav {
-            background: rgba(7, 10, 25, 0.98);
-            backdrop-filter: blur(20px);
-            border-top: 1px solid var(--glass-border);
-        }
-
-        .progress-ring__circle {
-            transform: rotate(-90deg);
-            transform-origin: 50% 50%;
-            transition: stroke-dashoffset 0.8s ease;
-        }
-
-        .spinner {
-            border: 3px solid rgba(255, 255, 255, 0.1);
-            border-top: 3px solid #3b82f6;
-            border-radius: 50%;
-            width: 32px;
-            height: 32px;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        .animate-in { animation: fadeIn 0.4s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        .sidebar-transition {
-            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s ease;
-        }
-        .main-transition {
-            transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .nav-label {
-            transition: opacity 0.2s ease, transform 0.2s ease;
-            white-space: nowrap;
-        }
-        
-        .notification-dot {
-            position: absolute;
-            top: -2px;
-            right: -2px;
-            width: 8px;
-            height: 8px;
-            background-color: #ef4444;
-            border-radius: 50%;
-            border: 2px solid #0f172a;
-        }
-
-        .btn-health {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 0.75rem;
-            padding: 0.75rem;
-            font-size: 10px;
-            font-weight: bold;
-            text-transform: uppercase;
-            color: #94a3b8;
-            transition: all 0.2s;
-        }
-        .btn-health:active { transform: scale(0.95); background: rgba(255,255,255,0.1); }
-
-        /* Switch Toggle Style */
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 48px;
-            height: 24px;
-        }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-color: rgba(255,255,255,0.05);
-            transition: .4s;
-            border-radius: 34px;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 16px; width: 16px;
-            left: 4px; bottom: 3px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-        input:checked + .slider { background-color: #3b82f6; }
-        input:checked + .slider:before { transform: translateX(24px); }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SaaS Pessoal v2</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body class="bg-slate-950">
 
-    <div id="app-root">
-        <!-- LOGIN SECTION (UNCHANGED) -->
-        <div class="flex flex-col items-center justify-center min-h-screen p-6 text-center">
-            <div class="mb-12">
-                <h1 class="text-4xl font-bold text-blue-500 uppercase italic tracking-tighter leading-none">Pulse - All in 1</h1>
-                <p class="text-[8px] uppercase tracking-[0.5em] text-slate-600 mt-2 italic">Weverson Personal OS</p>
-            </div>
-            <div id="loading-container" class="flex flex-col items-center gap-4">
-                <div class="spinner"></div>
-                <p class="text-[10px] uppercase tracking-widest text-slate-500 italic">Sincronizando Universo...</p>
-            </div>
-            <div id="auth-actions" class="hidden w-full max-sm space-y-4 animate-in">
-                <div class="glass p-8 border-white/5 space-y-4 text-center">
-                    <input type="email" id="login-email" placeholder="E-MAIL" class="pulse-input w-full text-center">
-                    <input type="password" id="login-pass" placeholder="PALAVRA-PASSE" class="pulse-input w-full text-center">
-                    <div class="grid grid-cols-2 gap-3">
-                        <button onclick="window.handleAuth('login')" class="bg-blue-600 text-white py-4 rounded-2xl font-bold uppercase text-[10px] active:scale-95 transition-all">Entrar</button>
-                        <button onclick="window.handleAuth('signup')" class="bg-slate-800 text-slate-400 py-4 rounded-2xl font-bold uppercase text-[10px] active:scale-95 transition-all">Criar</button>
-                    </div>
-                    <button onclick="window.loginWithGoogle()" class="w-full bg-white text-slate-950 py-4 rounded-2xl font-bold uppercase text-[10px] active:scale-95 transition-all flex items-center justify-center gap-2">
-                        Google Sync
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
+<body class="bg-black text-white flex justify-center">
 
-    <div id="global-modal" class="hidden fixed inset-0 bg-slate-950/60 backdrop-blur-2xl flex items-center justify-center p-4 z-[500] animate-in"></div>
-    <div id="toast-container" class="fixed top-6 left-1/2 -translate-x-1/2 z-[600] pointer-events-none space-y-2"></div>
+<div class="w-full max-w-md min-h-screen bg-[#121418] relative pb-24">
 
-    <script type="module">
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
-        import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signInWithCustomToken, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
-        import { getFirestore, doc, setDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
+<!-- =======================================================
+HEADER
+======================================================= -->
+<header class="p-6 flex justify-between items-center">
+  <h1 id="header-title" class="text-xl font-bold">Home</h1>
+  <span id="plan-badge" class="text-xs bg-blue-500 px-2 py-1 rounded">Free</span>
+</header>
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyAyqPiFoq6s7L6J3pPeCG-ib66H8mueoZs",
-            authDomain: "pulse-68c1c.firebaseapp.com",
-            projectId: "pulse-68c1c",
-            storageBucket: "pulse-68c1c.firebasestorage.app",
-            messagingSenderId: "360386380741",
-            appId: "1:360386380741:web:d45af208f595b5799a81ac"
-        };
+<!-- =======================================================
+HOME
+======================================================= -->
+<div id="page-home" class="page p-6 space-y-4">
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const provider = new GoogleAuthProvider();
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'pulse-os-personal-weverson';
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwcsfpw1_uglhD6JtF4jAvjJ4hqgnHTcgKL8CBtb_i6pRmck7POOBvuqYykjIIE9sLdyQ/exec';
+<div class="bg-[#1E2128] p-4 rounded">
+<h2 class="text-gray-400 text-sm">Saldo</h2>
+<p id="home-balance" class="text-2xl font-bold">R$ 0</p>
+</div>
 
-        const DEFAULT_DATA = {
-            water_ml: 0, energy_mg: 0,
-            perfil: { 
-                peso: 100, alcoholStart: "2026-02-09", alcoholTitle: "ZERO ÁLCOOL", alcoholTarget: 30, idade: 30,
-                energy_drink_mg: 160, coffee_mg: 80, water_office_ml: 473, water_home_ml: 250
-            },
-            veiculo: { tipo: 'Moto', km_inicial: 28450, km_atual: 28450, oleo_intervalo: 1000, montadora: "YAMAHA", modelo: "FAZER 250", consumo: 29 },
-            categorias: ["Salário", "Veículo", "Moradia", "Saúde", "Lazer", "Alimentação", "Outros"],
-            transacoes: [], tarefas: []
-        };
+<div class="bg-[#1E2128] p-4 rounded">
+<h2 class="text-gray-400 text-sm">Água Hoje</h2>
+<p id="home-water"></p>
+</div>
 
-        window.appState = {
-            currentTab: 'dashboard',
-            sidebarOpen: true,
-            taskView: 'kanban',
-            globalMonth: '2026-02',
-            showBalance: true,
-            npsData: { score: '--', status: 'Carregando...', color: 'text-slate-500' },
-            data: { ...DEFAULT_DATA }
-        };
+<div class="bg-[#1E2128] p-4 rounded">
+<h2 class="text-gray-400 text-sm">Cafeína Hoje</h2>
+<p id="home-caffeine"></p>
+</div>
 
-        // UI Helpers
-        window.toggleSidebar = () => { window.appState.sidebarOpen = !window.appState.sidebarOpen; render(); };
-        window.openTab = (t) => { window.appState.currentTab = t; render(); window.scrollTo(0,0); };
-        window.toggleBalance = () => { window.appState.showBalance = !window.appState.showBalance; render(); };
-        window.showToast = (m, t='success') => {
-            const c = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = `px-6 py-3 rounded-2xl font-bold uppercase text-[10px] tracking-widest border shadow-2xl ${t==='success'?'bg-emerald-950/90 border-emerald-500 text-emerald-400':'bg-red-950/90 border-red-500 text-red-400'}`;
-            toast.innerHTML = m; c.appendChild(toast); setTimeout(()=>toast.remove(), 3000);
-        };
+<div class="bg-[#1E2128] p-4 rounded">
+<h2 class="text-gray-400 text-sm">Propósito Ativo</h2>
+<p id="home-purpose"></p>
+</div>
 
-        // Month Navigation
-        window.changeMonth = (offset) => {
-            let [y, m] = window.appState.globalMonth.split('-').map(Number);
-            m += offset;
-            if (m > 12) { m = 1; y++; }
-            if (m < 1) { m = 12; y--; }
-            window.appState.globalMonth = `${y}-${m.toString().padStart(2, '0')}`;
-            render();
-        };
+</div>
 
-        window.getMonthName = () => {
-            const months = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
-            const [y, m] = window.appState.globalMonth.split('-');
-            return `${months[parseInt(m) - 1]} ${y}`;
-        };
+<!-- =======================================================
+SAÚDE
+======================================================= -->
+<div id="page-saude" class="page hidden p-6 space-y-4">
 
-        // Auth Logic
-        const initAuth = async () => {
-            try { if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) await signInWithCustomToken(auth, __initial_auth_token); } catch (e) {}
-            setTimeout(() => { if (!auth.currentUser) { document.getElementById('loading-container').classList.add('hidden'); document.getElementById('auth-actions').classList.remove('hidden'); lucide.createIcons(); } }, 1000);
-        };
-        window.handleAuth = async (mode) => {
-            const email = document.getElementById('login-email').value, pass = document.getElementById('login-pass').value;
-            if (!email || !pass) return window.showToast("Preencha os campos", "error");
-            try {
-                if (mode === 'login') await signInWithEmailAndPassword(auth, email, pass);
-                else await createUserWithEmailAndPassword(auth, email, pass);
-            } catch (e) { window.showToast("Erro: " + e.code, "error"); }
-        };
-        window.logout = () => signOut(auth).then(() => window.location.reload());
-        const pushState = async () => { if (auth.currentUser) await setDoc(doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'state', 'current'), window.appState.data); };
+<h2 class="font-bold">Água</h2>
+<p id="water-progress"></p>
+<button onclick="drinkWater('home')" class="bg-blue-500 px-3 py-2 rounded">Copo Casa</button>
+<button onclick="drinkWater('office')" class="bg-blue-700 px-3 py-2 rounded">Copo Escritório</button>
 
-        // Finance Logic
-        window.setTransactionType = (type) => {
-            window.modalState.type = type;
-            document.getElementById('btn-receita').className = type === 'Receita' ? 'flex-1 py-4 rounded-xl font-bold bg-emerald-600 text-white' : 'flex-1 py-4 rounded-xl font-bold bg-white/5 text-slate-500';
-            document.getElementById('btn-despesa').className = type === 'Despesa' ? 'flex-1 py-4 rounded-xl font-bold bg-red-600 text-white' : 'flex-1 py-4 rounded-xl font-bold bg-white/5 text-slate-500';
-        };
+<h2 class="font-bold mt-6">Cafeína</h2>
+<p id="caffeine-progress"></p>
+<button onclick="drinkCoffee(80)" class="bg-yellow-500 px-3 py-2 rounded">Café Pequeno</button>
+<button onclick="drinkCoffee(120)" class="bg-yellow-700 px-3 py-2 rounded">Café Grande</button>
 
-        window.openTransactionModal = () => {
-            window.modalState = { type: 'Despesa' };
-            const m = document.getElementById('global-modal');
-            m.innerHTML = `
-                <div class="glass p-10 w-full max-w-md animate-in scale-100 border-white/5">
-                    <h2 class="text-sm font-bold uppercase text-white mb-8 italic tracking-widest text-center">Nova Movimentação</h2>
-                    
-                    <div class="space-y-6">
-                        <div class="flex gap-2 p-1 bg-white/5 rounded-2xl">
-                            <button id="btn-despesa" onclick="window.setTransactionType('Despesa')" class="flex-1 py-4 rounded-xl font-bold bg-red-600 text-white transition-all">DESPESA</button>
-                            <button id="btn-receita" onclick="window.setTransactionType('Receita')" class="flex-1 py-4 rounded-xl font-bold bg-white/5 text-slate-500 transition-all">RECEITA</button>
-                        </div>
+<h2 class="font-bold mt-6">Propósito</h2>
+<input id="purpose-name" placeholder="Nome" class="w-full bg-[#1E2128] p-2 rounded mb-2">
+<input id="purpose-days" type="number" placeholder="Dias" class="w-full bg-[#1E2128] p-2 rounded mb-2">
+<button onclick="createPurpose()" class="bg-green-600 px-3 py-2 rounded">Criar</button>
+<div id="purpose-list" class="mt-4"></div>
 
-                        <div class="space-y-4">
-                            <input type="text" id="f-desc" placeholder="DESCRIÇÃO (EX: COMBUSTÍVEL)" class="pulse-input w-full uppercase text-xs">
-                            <div class="relative">
-                                <span class="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-500 text-xs">R$</span>
-                                <input type="number" id="f-valor" placeholder="0,00" class="pulse-input w-full pl-10 font-bold text-xl">
-                            </div>
-                            <select id="f-cat" class="pulse-input w-full uppercase text-xs">
-                                ${window.appState.data.categorias.map(c=>`<option value="${c}">${c}</option>`).join('')}
-                            </select>
-                            <input type="date" id="f-data" value="${new Date().toISOString().split('T')[0]}" class="pulse-input w-full uppercase text-xs">
-                        </div>
+</div>
 
-                        <div class="grid grid-cols-2 gap-3">
-                            <div class="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
-                                <div>
-                                    <p class="text-[10px] font-bold text-white uppercase leading-none">Status</p>
-                                    <p id="status-label" class="text-[8px] text-slate-500 uppercase mt-1 italic">Efetivada</p>
-                                </div>
-                                <label class="switch">
-                                    <input type="checkbox" id="f-status" onchange="document.getElementById('status-label').innerText = this.checked ? 'Planejada' : 'Efetivada'">
-                                    <span class="slider"></span>
-                                </label>
-                            </div>
+<!-- =======================================================
+FINANÇAS
+======================================================= -->
+<div id="page-financas" class="page hidden p-6 space-y-4">
 
-                            <div class="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
-                                <div>
-                                    <p class="text-[10px] font-bold text-white uppercase leading-none">Fixa</p>
-                                    <p id="fixa-label" class="text-[8px] text-slate-500 uppercase mt-1 italic">Não</p>
-                                </div>
-                                <label class="switch">
-                                    <input type="checkbox" id="f-fixa" onchange="document.getElementById('fixa-label').innerText = this.checked ? 'Sim' : 'Não'">
-                                    <span class="slider"></span>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
+<h2 class="font-bold">Nova Transação</h2>
 
-                    <div class="grid grid-cols-2 gap-3 mt-10">
-                        <button onclick="document.getElementById('global-modal').classList.add('hidden')" class="py-4 rounded-2xl font-bold uppercase text-[10px] text-slate-500 bg-white/5 hover:bg-white/10 transition-all">Cancelar</button>
-                        <button onclick="window.saveTransaction()" class="py-4 rounded-2xl font-bold uppercase text-[10px] text-white bg-blue-600 shadow-lg shadow-blue-500/20 active:scale-95 transition-all">Lançar</button>
-                    </div>
-                </div>`;
-            m.classList.remove('hidden');
-        };
+<input id="fin-value" type="number" placeholder="Valor" class="w-full bg-[#1E2128] p-2 rounded mb-2">
 
-        window.saveTransaction = async () => {
-            const v = parseFloat(document.getElementById('f-valor').value);
-            const d = document.getElementById('f-desc').value.toUpperCase();
-            const t = window.modalState.type;
-            const c = document.getElementById('f-cat').value;
-            const dt = document.getElementById('f-data').value;
-            const s = document.getElementById('f-status').checked ? 'Planejada' : 'Efetivada';
-            const fx = document.getElementById('f-fixa').checked;
-            
-            if(!v || !d) return window.showToast("Preencha valor e descrição", "error");
-            
-            window.appState.data.transacoes.push({ id: Date.now(), tipo: t, desc: d, valor: v, cat: c, data: dt, status: s, fixa: fx });
-            document.getElementById('global-modal').classList.add('hidden');
-            render();
-            await pushState();
-            window.showToast("Lançamento concluído!");
-        };
+<select id="fin-type" class="w-full bg-[#1E2128] p-2 rounded mb-2">
+<option value="income">Receita</option>
+<option value="expense">Despesa</option>
+</select>
 
-        // Core Render logic
-        const getElapsedDays = (dateStr) => {
-            if (!dateStr) return 0;
-            const diff = Math.floor((new Date() - new Date(dateStr + 'T00:00:00')) / (1000 * 60 * 60 * 24));
-            return Math.max(0, diff);
-        };
+<label class="flex items-center gap-2">
+<input type="checkbox" id="fin-fixed">
+Fixa (12 meses)
+</label>
 
-        window.initFinanceCharts = () => {
-            const ctxLine = document.getElementById('financeChart');
-            const ctxDonut = document.getElementById('categoryChart');
-            if (!ctxLine) return;
-            const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-            const [currentYear] = window.appState.globalMonth.split('-');
-            const data = months.map((_, i) => {
-                const mStr = `${currentYear}-${(i + 1).toString().padStart(2, '0')}`;
-                const ts = (window.appState.data.transacoes || []).filter(t => t.data?.startsWith(mStr));
-                return ts.reduce((a, b) => a + (b.tipo === 'Receita' ? b.valor : -b.valor), 0);
-            });
-            if (window.fChart) window.fChart.destroy();
-            window.fChart = new Chart(ctxLine, {
-                type: 'line',
-                data: { labels: months, datasets: [{ data, borderColor: '#3b82f6', borderWidth: 2, tension: 0.4, fill: true, backgroundColor: 'rgba(59, 130, 246, 0.05)' }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false }, ticks: { color: '#475569', font: { size: 9 } } } } }
-            });
-            if (ctxDonut) {
-                const mTs = (window.appState.data.transacoes || []).filter(t => t.data?.startsWith(window.appState.globalMonth) && t.tipo === 'Despesa');
-                const cats = {}; mTs.forEach(t => cats[t.cat] = (cats[t.cat] || 0) + t.valor);
-                if (window.dChart) window.dChart.destroy();
-                window.dChart = new Chart(ctxDonut, {
-                    type: 'doughnut',
-                    data: { labels: Object.keys(cats), datasets: [{ data: Object.values(cats), backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#a855f7'], borderWidth: 0 }] },
-                    options: { responsive: true, maintainAspectRatio: false, cutout: '80%', plugins: { legend: { display: false } } }
-                });
-            }
-        };
+<button onclick="addTransaction()" class="bg-green-600 px-3 py-2 rounded">Salvar</button>
 
-        function renderTabContent() {
-            const t = window.appState.currentTab, d = window.appState.data, vis = window.appState.showBalance;
-            const sectionHeader = (title, subtitle) => `<div class="mb-10 animate-in"><p class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.4em] mb-2 italic leading-none">${subtitle || 'Pulse Personal OS'}</p><h1 class="text-5xl font-bold text-white uppercase italic tracking-tighter leading-none">${title}</h1></div>`;
+<h2 class="font-bold mt-6">Extrato</h2>
+<div id="finance-list"></div>
 
-            // Pagination UI Component
-            const monthSelector = `
-                <div class="flex items-center justify-between mb-8 glass px-6 py-4 border-white/5">
-                    <button onclick="window.changeMonth(-1)" class="p-2 hover:bg-white/5 rounded-full transition-colors text-slate-500"><i data-lucide="chevron-left"></i></button>
-                    <div class="text-center">
-                        <p class="text-[10px] font-bold text-blue-500 uppercase tracking-widest leading-none">${window.getMonthName()}</p>
-                    </div>
-                    <button onclick="window.changeMonth(1)" class="p-2 hover:bg-white/5 rounded-full transition-colors text-slate-500"><i data-lucide="chevron-right"></i></button>
-                </div>
-            `;
+</div>
 
-            if (t === 'dashboard') {
-                const bal = d.transacoes.reduce((a, b) => a + (b.tipo === 'Receita' ? b.valor : -b.valor), 0);
-                return `
-                    ${sectionHeader('Painel')}
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                        <div class="glass p-8 border-emerald-500/20"><p class="text-[9px] font-bold text-slate-500 uppercase mb-4">NPS Makro</p><h2 class="text-4xl font-bold ${window.appState.npsData.color} italic">${window.appState.npsData.score}%</h2><p class="text-[8px] font-bold uppercase text-slate-600 mt-2">${window.appState.npsData.status}</p></div>
-                        <div class="glass p-8 border-purple-500/20"><p class="text-[9px] font-bold text-slate-500 uppercase mb-4">Propósito</p><h2 class="text-4xl font-bold text-white italic">${getElapsedDays(d.perfil.alcoholStart)} Dias</h2><p class="text-[8px] font-bold uppercase text-slate-600 mt-2">${d.perfil.alcoholTitle}</p></div>
-                        <div class="glass p-8 border-blue-500/20 md:col-span-2 flex flex-col justify-between">
-                            <div class="flex justify-between items-center"><p class="text-[9px] font-bold text-slate-500 uppercase">Saldo Líquido</p><button onclick="window.toggleBalance()"><i data-lucide="${vis ? 'eye' : 'eye-off'}" class="w-4 h-4 text-slate-600"></i></button></div>
-                            <h2 class="text-4xl font-bold text-white italic mt-4">${vis ? 'R$ ' + (bal).toLocaleString('pt-BR', {minimumFractionDigits: 2}) : 'R$ ••••••'}</h2>
-                        </div>
-                    </div>`;
-            }
+<!-- =======================================================
+VEÍCULO
+======================================================= -->
+<div id="page-veiculo" class="page hidden p-6 space-y-4">
 
-            if (t === 'saude') {
-                // UNCHANGED PER REQUEST
-                const wGoal = (d.perfil.peso || 100) * 35;
-                const wPerc = Math.min(100, (d.water_ml / wGoal) * 100);
-                const cLimit = 400, cPerc = Math.min(100, (d.energy_mg / cLimit) * 100);
-                const elapsedDays = getElapsedDays(d.perfil.alcoholStart);
-                const pGoal = d.perfil.alcoholTarget || 30;
-                const pPerc = Math.min(100, (elapsedDays / pGoal) * 100);
-                const cardTitleStyle = "text-sm font-medium text-slate-400 mb-6 uppercase tracking-[0.3em] leading-none text-center";
+<h2 class="font-bold">Abastecimento</h2>
 
-                return `
-                    ${sectionHeader('Saúde')}
-                    <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch">
-                        <div class="glass p-10 col-span-12 md:col-span-7 flex flex-col items-center justify-between h-full">
-                            <h3 class="${cardTitleStyle}">Hidratação</h3>
-                            <div class="relative w-64 h-64 flex items-center justify-center my-auto">
-                                <svg viewBox="0 0 120 120" class="w-full h-full">
-                                    <circle cx="60" cy="60" r="54" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="6" />
-                                    <circle cx="60" cy="60" r="54" fill="none" stroke="#3b82f6" stroke-width="6" stroke-dasharray="339.292" stroke-dashoffset="${339.292 - (339.292 * wPerc / 100)}" stroke-linecap="round" class="progress-ring__circle" />
-                                </svg>
-                                <div class="absolute inset-0 flex items-center justify-center"><span class="text-6xl font-bold text-white tracking-tighter">${Math.round(wPerc)}%</span></div>
-                            </div>
-                            <div class="w-full mt-auto">
-                                <div class="text-center mb-6">
-                                    <p class="text-[10px] font-bold uppercase tracking-widest ${d.water_ml >= wGoal ? 'text-emerald-400' : 'text-slate-500'}">Atingido: ${d.water_ml}ml / Meta: ${wGoal}ml</p>
-                                </div>
-                                <div class="grid grid-cols-2 gap-4">
-                                    <button onclick="window.updateAction('water', ${d.perfil.water_office_ml || 473})" class="btn-health">Escritório (${d.perfil.water_office_ml || 473}ml)</button>
-                                    <button onclick="window.updateAction('water', ${d.perfil.water_home_ml || 250})" class="btn-health">Casa (${d.perfil.water_home_ml || 250}ml)</button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-span-12 md:col-span-5 flex flex-col gap-6">
-                            <div class="glass p-8 flex flex-col items-center justify-between h-full">
-                                <h3 class="${cardTitleStyle}">Cafeína</h3>
-                                <div class="flex items-center justify-between gap-6 w-full">
-                                    <div class="relative w-32 h-32 flex items-center justify-center shrink-0">
-                                        <svg viewBox="0 0 120 120" class="w-full h-full">
-                                            <circle cx="60" cy="60" r="54" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="8" />
-                                            <circle cx="60" cy="60" r="54" fill="none" stroke="${d.energy_mg >= cLimit ? '#ef4444' : '#10b981'}" stroke-width="8" stroke-dasharray="339.292" stroke-dashoffset="${339.292 - (339.292 * cPerc / 100)}" stroke-linecap="round" class="progress-ring__circle" />
-                                        </svg>
-                                        <div class="absolute inset-0 flex items-center justify-center"><span class="text-2xl font-bold text-white">${Math.round(cPerc)}%</span></div>
-                                    </div>
-                                    <div class="flex flex-col gap-3 flex-1">
-                                        <button onclick="window.updateAction('energy', ${d.perfil.energy_drink_mg || 160})" class="w-full h-12 rounded-xl bg-emerald-900/30 border border-emerald-500/30 hover:bg-emerald-800/40 transition-colors flex items-center justify-center gap-2">
-                                            <i data-lucide="zap" class="w-3 h-3 text-emerald-400"></i><span class="text-[9px] font-bold text-white">${d.perfil.energy_drink_mg || 160}MG</span>
-                                        </button>
-                                        <button onclick="window.updateAction('energy', ${d.perfil.coffee_mg || 80})" class="w-full h-12 rounded-xl bg-orange-900/30 border border-orange-500/30 hover:bg-orange-800/40 transition-colors flex items-center justify-center gap-2">
-                                            <i data-lucide="coffee" class="w-3 h-3 text-orange-400"></i><span class="text-[9px] font-bold text-white">${d.perfil.coffee_mg || 80}MG</span>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="mt-6 text-center">
-                                    <p class="text-[9px] font-bold uppercase tracking-widest ${d.energy_mg >= cLimit ? 'text-red-500 animate-pulse' : 'text-slate-500'}">Atingido: ${d.energy_mg}mg / Limite: ${cLimit}mg</p>
-                                </div>
-                            </div>
-                            <div class="glass p-8 flex flex-col justify-center h-full">
-                                <h3 class="${cardTitleStyle} text-left">${d.perfil.alcoholTitle || 'Propósito'}</h3>
-                                <div class="flex items-end justify-between">
-                                    <h2 class="text-4xl font-bold text-white italic leading-none">${elapsedDays} Dias</h2>
-                                    <span class="text-[10px] font-bold text-slate-600 uppercase mb-1 leading-none">${Math.round(pPerc)}% Completo</span>
-                                </div>
-                                <div class="w-full bg-white/5 h-1.5 rounded-full mt-4 overflow-hidden"><div class="bg-purple-500 h-full transition-all duration-1000" style="width: ${pPerc}%"></div></div>
-                                <div class="mt-4 text-center"><p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest leading-none italic">Meta: ${pGoal} dias</p></div>
-                            </div>
-                        </div>
-                    </div>`;
-            }
+<input id="fuel-liters" type="number" placeholder="Litros" class="w-full bg-[#1E2128] p-2 rounded mb-2">
+<input id="fuel-value" type="number" placeholder="Valor" class="w-full bg-[#1E2128] p-2 rounded mb-2">
 
-            if (t === 'financas') {
-                const filteredTxs = d.transacoes.filter(tx => tx.data?.startsWith(window.appState.globalMonth));
-                const rec = filteredTxs.filter(tx => tx.tipo === 'Receita').reduce((a, b) => a + b.valor, 0);
-                const des = filteredTxs.filter(tx => tx.tipo === 'Despesa').reduce((a, b) => a + b.valor, 0);
-                return `
-                    <div class="flex justify-between items-center mb-10">
-                        <h1 class="text-4xl font-bold text-white uppercase italic">Finanças</h1>
-                        <button onclick="window.openTransactionModal()" class="bg-blue-600 text-white px-6 py-3 rounded-2xl font-bold uppercase text-[10px] shadow-xl active:scale-95 transition-all">Novo Lançamento</button>
-                    </div>
+<button onclick="addFuel()" class="bg-orange-600 px-3 py-2 rounded">Registrar</button>
 
-                    ${monthSelector}
+<h2 class="font-bold mt-6">Histórico</h2>
+<div id="vehicle-list"></div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-                        <div class="glass p-8 border-blue-500/20"><p class="text-[10px] font-bold text-blue-500 uppercase mb-4">Saldo Mensal</p><h2 class="text-3xl font-bold text-white italic">${vis ? 'R$ ' + (rec-des).toLocaleString('pt-BR', {minimumFractionDigits: 2}) : 'R$ ••••••'}</h2></div>
-                        <div class="glass p-8 border-emerald-500/10"><p class="text-[10px] font-bold text-emerald-500 uppercase mb-4">Receitas</p><h2 class="text-3xl font-bold text-white italic">${vis ? 'R$ ' + rec.toLocaleString('pt-BR', {minimumFractionDigits: 2}) : 'R$ •••'}</h2></div>
-                        <div class="glass p-8 border-red-500/10"><p class="text-[10px] font-bold text-red-500 uppercase mb-4">Despesas</p><h2 class="text-3xl font-bold text-white italic">${vis ? 'R$ ' + des.toLocaleString('pt-BR', {minimumFractionDigits: 2}) : 'R$ •••'}</h2></div>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 h-[350px]">
-                        <div class="glass p-8 flex flex-col"><p class="text-[10px] font-bold text-slate-600 uppercase mb-6 italic leading-none text-center tracking-widest">Fluxo Anual</p><div class="flex-1 min-h-0"><canvas id="financeChart"></canvas></div></div>
-                        <div class="glass p-8 flex flex-col"><p class="text-[10px] font-bold text-slate-600 uppercase mb-6 italic leading-none text-center tracking-widest">Despesas por Categoria</p><div class="flex-1 min-h-0 relative"><canvas id="categoryChart"></canvas></div></div>
-                    </div>`;
-            }
+</div>
 
-            if (t === 'extrato') {
-                const txs = d.transacoes
-                    .filter(tx => tx.data?.startsWith(window.appState.globalMonth))
-                    .sort((a,b) => new Date(b.data) - new Date(a.data));
-                return `
-                    <div class="flex justify-between items-center mb-10">
-                        <h1 class="text-4xl font-bold text-white uppercase italic">Extrato</h1>
-                        <button onclick="window.openTab('financas')" class="text-[10px] font-bold text-slate-500 uppercase">Resumo</button>
-                    </div>
+<!-- =======================================================
+AJUSTES
+======================================================= -->
+<div id="page-ajustes" class="page hidden p-6 space-y-4">
 
-                    ${monthSelector}
+<h2 class="font-bold">Perfil</h2>
 
-                    <div class="space-y-3 mb-24">
-                        ${txs.length ? txs.map(tx => `
-                            <div class="glass p-6 flex justify-between items-center border-l-4 ${tx.tipo==='Receita'?'border-emerald-500':'border-red-500'}">
-                                <div>
-                                    <p class="text-xs font-bold text-white uppercase flex items-center gap-2">
-                                        ${tx.desc}
-                                        ${tx.fixa ? '<span class="text-[8px] bg-white/10 px-1.5 py-0.5 rounded text-slate-400">FIXA</span>' : ''}
-                                    </p>
-                                    <p class="text-[8px] font-bold text-slate-600 uppercase mt-1 italic">${tx.cat} • ${tx.data.split('-').reverse().join('/')} • <span class="${tx.status === 'Planejada' ? 'text-amber-500' : 'text-blue-500'}">${tx.status}</span></p>
-                                </div>
-                                <span class="text-sm font-bold ${tx.tipo==='Receita'?'text-emerald-400':'text-red-400'} italic">${vis ? 'R$ ' + tx.valor.toLocaleString('pt-BR', {minimumFractionDigits: 2}) : 'R$ •••'}</span>
-                            </div>
-                        `).join('') : '<p class="text-center text-slate-600 uppercase text-[10px] py-12 italic">Nenhuma transação neste período</p>'}
-                    </div>`;
-            }
+<input id="set-name" placeholder="Nome" class="w-full bg-[#1E2128] p-2 rounded mb-2">
+<input id="set-weight" type="number" placeholder="Peso (kg)" class="w-full bg-[#1E2128] p-2 rounded mb-2">
+<input id="set-age" type="number" placeholder="Idade" class="w-full bg-[#1E2128] p-2 rounded mb-2">
 
-            if (t === 'veiculo') {
-                const v = d.veiculo, kmRodados = v.km_atual - v.km_inicial;
-                return `
-                    ${sectionHeader('Veículo', `${v.montadora} ${v.modelo}`)}
-                    <div class="glass p-10 border-orange-500/20">
-                        <div class="flex justify-between items-center mb-12">
-                            <div><h2 class="text-3xl font-bold text-white italic uppercase">${v.modelo}</h2><p class="text-[9px] font-bold text-slate-500 uppercase mt-2">Personal Trip Log</p></div>
-                            <div class="p-6 bg-orange-500/10 rounded-3xl"><i data-lucide="${v.tipo==='Carro'?'car':'bike'}" class="text-orange-500 w-8 h-8"></i></div>
-                        </div>
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-8 mb-10">
-                            <div><p class="text-[10px] font-bold text-slate-600 uppercase mb-2">KM Atual</p><h3 class="text-3xl font-bold text-white italic">${v.km_atual.toLocaleString()}</h3></div>
-                            <div><p class="text-[10px] font-bold text-slate-600 uppercase mb-2">Consumo</p><h3 class="text-3xl font-bold text-indigo-400 italic">${v.consumo} KM/L</h3></div>
-                            <div><p class="text-[10px] font-bold text-slate-600 uppercase mb-2">Óleo a cada</p><h3 class="text-3xl font-bold text-sky-400 italic">${v.oleo_intervalo} KM</h3></div>
-                            <div><p class="text-[10px] font-bold text-slate-600 uppercase mb-2">No Ciclo</p><h3 class="text-3xl font-bold ${kmRodados >= v.oleo_intervalo ? 'text-red-500' : 'text-emerald-400'} italic">${kmRodados} KM</h3></div>
-                        </div>
-                        <button onclick="window.updateKM()" class="w-full border border-white/10 py-5 rounded-2xl font-bold uppercase text-[10px] tracking-widest text-slate-400 active:scale-95 transition-all">Sincronizar KM Painel</button>
-                    </div>`;
-            }
+<button onclick="saveProfile()" class="bg-blue-600 px-3 py-2 rounded">Salvar</button>
 
-            if (t === 'ajustes') {
-                return `
-                    <h1 class="text-4xl font-bold text-white uppercase italic mb-10">Ajustes</h1>
-                    <div class="space-y-6 pb-24">
-                        <div class="glass p-8 border-blue-500/10">
-                            <h3 class="text-[10px] font-bold text-blue-500 uppercase mb-6 tracking-widest italic leading-none">Perfil & Biometria</h3>
-                            <div class="grid grid-cols-2 gap-6">
-                                <div><label class="text-[8px] font-bold text-slate-700 uppercase mb-1 block">Peso (KG)</label><input type="number" value="${d.perfil.peso}" onchange="window.saveAdj('perfil', 'peso', this.value)" class="pulse-input w-full"></div>
-                                <div><label class="text-[8px] font-bold text-slate-700 uppercase mb-1 block">Idade</label><input type="number" value="${d.perfil.idade}" onchange="window.saveAdj('perfil', 'idade', this.value)" class="pulse-input w-full"></div>
-                            </div>
-                        </div>
-                        <button onclick="window.logout()" class="w-full bg-red-600/10 text-red-500 py-5 rounded-3xl font-bold uppercase text-[10px] border border-red-500/20 active:scale-95 transition-all">Sair</button>
-                    </div>`;
-            }
-            return '';
-        }
+<h2 class="font-bold mt-6">Plano</h2>
+<button onclick="upgradePlan()" class="bg-purple-600 px-3 py-2 rounded">Virar Premium</button>
 
-        const render = () => {
-            const root = document.getElementById('app-root');
-            if (!auth.currentUser && !window.appState.isDemo) return;
-            const path = window.appState.currentTab, sOpen = window.appState.sidebarOpen, d = window.appState.data;
-            const vIcon = d.veiculo.tipo === 'Carro' ? 'car' : 'bike';
+</div>
 
-            const side = `
-                <aside class="sidebar-transition hidden md:flex flex-col bg-slate-900 border-r border-white/5 fixed h-full z-50 ${sOpen ? 'w-64 p-8' : 'w-20 p-6 items-center'}">
-                    <div class="flex items-center gap-4 mb-12">
-                        <div class="bg-blue-500 w-8 h-8 rounded-lg flex items-center justify-center shrink-0"><span class="text-white font-bold italic">P</span></div>
-                        ${sOpen ? '<h1 class="text-xl font-bold text-blue-500 italic uppercase nav-label">Pulse</h1>' : ''}
-                    </div>
-                    <nav class="space-y-4 flex-1 w-full">
-                        ${[
-                            {id: 'dashboard', icon: 'layout-dashboard', label: 'Home'},
-                            {id: 'saude', icon: 'activity', label: 'Saúde'},
-                            {id: 'veiculo', icon: vIcon, label: 'Veículo'},
-                            {id: 'financas', icon: 'wallet', label: 'Finanças'}
-                        ].map(i => `<button onclick="window.openTab('${i.id}')" class="w-full flex items-center ${sOpen ? 'gap-4 p-4' : 'justify-center p-3'} rounded-2xl transition-all ${path===i.id?'bg-blue-500/10 text-blue-500':'text-slate-500 hover:text-white'}"><i data-lucide="${i.icon}" class="w-5 h-5 shrink-0"></i>${sOpen ? `<span class="text-[10px] font-bold uppercase tracking-widest nav-label">${i.label}</span>` : ''}</button>`).join('')}
-                    </nav>
-                    <div class="mt-auto w-full">
-                        <button onclick="window.openTab('ajustes')" class="w-full flex items-center ${sOpen ? 'gap-4 p-4' : 'justify-center p-3'} rounded-2xl text-slate-700 hover:text-white transition-all ${path==='ajustes' ? 'text-white' : ''}">
-                            <i data-lucide="settings" class="w-5 h-5 shrink-0"></i>
-                            ${sOpen ? `<span class="text-[10px] font-bold uppercase tracking-widest nav-label">Definições</span>` : ''}
-                        </button>
-                    </div>
-                </aside>`;
+<!-- =======================================================
+MENU
+======================================================= -->
+<nav class="fixed bottom-0 w-full max-w-md bg-[#1E2128] flex justify-around p-4">
 
-            root.innerHTML = `<div class="flex min-h-screen relative">${side}<main class="main-transition flex-1 ${sOpen ? 'md:ml-64' : 'md:ml-20'} p-6 md:p-12 lg:p-16 max-w-6xl mx-auto min-w-0"><div class="hidden md:block absolute top-10 left-[-40px] ${sOpen ? 'ml-64' : 'ml-20'} main-transition z-[60]"><button onclick="window.toggleSidebar()" class="bg-slate-900 border border-white/10 p-2 rounded-full text-slate-500 hover:text-white shadow-xl"><i data-lucide="${sOpen ? 'chevron-left' : 'chevron-right'}" class="w-4 h-4"></i></button></div>${renderTabContent()}</main></div>`;
-            lucide.createIcons();
-            if (path === 'financas' || path === 'extrato') window.initFinanceCharts();
-        };
+<button onclick="navigate('home')">Home</button>
+<button onclick="navigate('saude')">Saúde</button>
+<button onclick="navigate('financas')">Finanças</button>
+<button onclick="navigate('veiculo')">Veículo</button>
+<button onclick="navigate('ajustes')">Ajustes</button>
 
-        initAuth();
-        onAuthStateChanged(auth, (u) => {
-            if (u) {
-                onSnapshot(doc(db, 'artifacts', appId, 'users', u.uid, 'state', 'current'), (s) => {
-                    if (s.exists()) { window.appState.data = { ...DEFAULT_DATA, ...s.data() }; render(); }
-                    else { pushState(); render(); }
-                    fetchNPS();
-                });
-            } else { render(); }
-        });
-        window.addEventListener('resize', render);
-        render();
-    </script>
+</nav>
+
+</div>
+
+<!-- =======================================================
+JAVASCRIPT COMPLETO
+======================================================= -->
+<script>
+
+/* =======================================================
+1️⃣ ESTADO GLOBAL
+======================================================= */
+
+let appState = {
+profile: { name:"Usuário", weight:80, age:30, plan:"free" },
+health: { waterGoal:0, waterConsumed:0, caffeineGoal:0, caffeineConsumed:0, cupHome:250, cupOffice:473 },
+finances: { transactions:[] },
+vehicle: { records:[] },
+purposes: []
+};
+
+/* =======================================================
+2️⃣ PERSISTÊNCIA
+======================================================= */
+
+function saveState(){
+localStorage.setItem("appState", JSON.stringify(appState));
+}
+
+function loadState(){
+let data = localStorage.getItem("appState");
+if(data){ appState = JSON.parse(data); }
+}
+
+loadState();
+
+/* =======================================================
+3️⃣ UTILITÁRIOS
+======================================================= */
+
+function generateId(){
+return Date.now() + Math.random();
+}
+
+function formatCurrency(v){
+return v.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+}
+
+/* =======================================================
+4️⃣ SAÚDE
+======================================================= */
+
+function calculateWaterGoal(){
+let base = appState.profile.weight * 35;
+if(appState.profile.age>55) base*=1.1;
+if(appState.profile.age<18) base*=1.05;
+appState.health.waterGoal = Math.round(base);
+}
+
+function calculateCaffeineGoal(){
+appState.health.caffeineGoal = appState.profile.weight * 3;
+}
+
+function drinkWater(type){
+let amount = type==="home" ? appState.health.cupHome : appState.health.cupOffice;
+appState.health.waterConsumed += amount;
+saveState();
+renderHealth();
+}
+
+function drinkCoffee(mg){
+appState.health.caffeineConsumed += mg;
+saveState();
+renderHealth();
+}
+
+function renderHealth(){
+document.getElementById("water-progress").innerText =
+`${appState.health.waterConsumed}ml / ${appState.health.waterGoal}ml`;
+
+document.getElementById("caffeine-progress").innerText =
+`${appState.health.caffeineConsumed}mg / ${appState.health.caffeineGoal}mg`;
+}
+
+/* =======================================================
+5️⃣ PROPÓSITO
+======================================================= */
+
+function createPurpose(){
+if(appState.profile.plan==="free" && appState.purposes.length>=1){
+alert("Plano Free permite 1 propósito.");
+return;
+}
+
+let name = document.getElementById("purpose-name").value;
+let days = parseInt(document.getElementById("purpose-days").value);
+
+appState.purposes.push({
+id:generateId(),
+name,
+days,
+start:new Date().toISOString()
+});
+
+saveState();
+renderPurposes();
+}
+
+function renderPurposes(){
+let div=document.getElementById("purpose-list");
+div.innerHTML="";
+appState.purposes.forEach(p=>{
+let start=new Date(p.start);
+let diff=Math.floor((new Date()-start)/(1000*60*60*24));
+div.innerHTML+=`<p>${p.name}: Dia ${diff} de ${p.days}</p>`;
+});
+}
+
+/* =======================================================
+6️⃣ FINANÇAS
+======================================================= */
+
+function addTransaction(){
+
+let value=parseFloat(document.getElementById("fin-value").value);
+let type=document.getElementById("fin-type").value;
+let fixed=document.getElementById("fin-fixed").checked;
+
+let base={
+id:generateId(),
+value,
+type,
+date:new Date().toISOString()
+};
+
+if(fixed){
+for(let i=0;i<12;i++){
+let d=new Date();
+d.setMonth(d.getMonth()+i);
+appState.finances.transactions.push({...base,id:generateId(),date:d.toISOString()});
+}
+}else{
+appState.finances.transactions.push(base);
+}
+
+saveState();
+renderFinances();
+renderHome();
+}
+
+function renderFinances(){
+let div=document.getElementById("finance-list");
+div.innerHTML="";
+appState.finances.transactions.forEach(t=>{
+div.innerHTML+=`<p>${t.type==="income"?"+":"-"} ${formatCurrency(t.value)}</p>`;
+});
+}
+
+function calculateBalance(){
+let total=0;
+appState.finances.transactions.forEach(t=>{
+if(t.type==="income") total+=t.value;
+else total-=t.value;
+});
+return total;
+}
+
+/* =======================================================
+7️⃣ VEÍCULO
+======================================================= */
+
+function addFuel(){
+let liters=parseFloat(document.getElementById("fuel-liters").value);
+let value=parseFloat(document.getElementById("fuel-value").value);
+
+appState.vehicle.records.push({liters,value,date:new Date().toISOString()});
+
+appState.finances.transactions.push({
+id:generateId(),
+value,
+type:"expense",
+date:new Date().toISOString()
+});
+
+saveState();
+renderVehicle();
+renderFinances();
+renderHome();
+}
+
+function renderVehicle(){
+let div=document.getElementById("vehicle-list");
+div.innerHTML="";
+appState.vehicle.records.forEach(r=>{
+div.innerHTML+=`<p>${r.liters}L - ${formatCurrency(r.value)}</p>`;
+});
+}
+
+/* =======================================================
+8️⃣ ASSINATURA
+======================================================= */
+
+function upgradePlan(){
+appState.profile.plan="premium";
+saveState();
+renderPlan();
+}
+
+function renderPlan(){
+document.getElementById("plan-badge").innerText =
+appState.profile.plan==="premium"?"Premium":"Free";
+}
+
+/* =======================================================
+9️⃣ HOME
+======================================================= */
+
+function renderHome(){
+document.getElementById("home-balance").innerText =
+formatCurrency(calculateBalance());
+
+document.getElementById("home-water").innerText =
+`${appState.health.waterConsumed}/${appState.health.waterGoal} ml`;
+
+document.getElementById("home-caffeine").innerText =
+`${appState.health.caffeineConsumed}/${appState.health.caffeineGoal} mg`;
+
+if(appState.purposes.length>0){
+let p=appState.purposes[0];
+let start=new Date(p.start);
+let diff=Math.floor((new Date()-start)/(1000*60*60*24));
+document.getElementById("home-purpose").innerText=
+`${p.name}: Dia ${diff} de ${p.days}`;
+}else{
+document.getElementById("home-purpose").innerText="Nenhum";
+}
+}
+
+/* =======================================================
+🔟 NAVEGAÇÃO
+======================================================= */
+
+function navigate(page){
+document.querySelectorAll(".page").forEach(p=>p.classList.add("hidden"));
+document.getElementById("page-"+page).classList.remove("hidden");
+document.getElementById("header-title").innerText=page.charAt(0).toUpperCase()+page.slice(1);
+}
+
+/* =======================================================
+INICIALIZAÇÃO
+======================================================= */
+
+calculateWaterGoal();
+calculateCaffeineGoal();
+renderHealth();
+renderPurposes();
+renderFinances();
+renderVehicle();
+renderPlan();
+renderHome();
+
+</script>
+
 </body>
 </html>
