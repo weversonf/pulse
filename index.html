@@ -1,673 +1,231 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SaaS Dashboard Pessoal</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <style>
-        :root {
-            --bg-main: #121418;
-            --bg-card: #1E2128;
-            --accent-blue: #38bdf8;
-            --text-muted: #8c92a0;
-        }
-        body {
-            background-color: #000;
-            font-family: 'Inter', sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
-        .app-container {
-            background-color: var(--bg-main);
-            box-shadow: 0 0 40px rgba(0,0,0,0.5);
-        }
-        .card {
-            background-color: var(--bg-card);
-        }
-        ::-webkit-scrollbar {
-            display: none;
-        }
-        .fade-in {
-            animation: fadeIn 0.3s ease-in-out;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(5px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .pb-safe {
-            padding-bottom: env(safe-area-inset-bottom, 20px);
-        }
-    </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Pulse v01</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+
+<style>
+body{
+    background:#0f172a;
+    color:white;
+    font-family:Inter, sans-serif;
+    height:100vh;
+    display:flex;
+    flex-direction:column;
+}
+
+.page{
+    display:none;
+    flex:1;
+    overflow:auto;
+    padding:20px;
+}
+
+.page.active{
+    display:block;
+}
+
+.card{
+    background:#121418;
+}
+
+.progress-bar{
+    height:8px;
+    border-radius:6px;
+    background:#1e293b;
+    overflow:hidden;
+}
+
+.progress-fill{
+    height:100%;
+    width:0%;
+    background:#38bdf8;
+    transition:width .4s ease;
+}
+</style>
 </head>
-<body class="flex justify-center h-screen w-full overflow-hidden text-white">
+<body class="relative">
 
-    <div class="app-container w-full max-w-md h-full relative flex flex-col">
-        
-        <!-- Header Fixo -->
-        <header class="px-6 pt-10 pb-4 flex justify-between items-center shrink-0">
-            <div>
-                <h1 id="header-title" class="text-2xl font-bold tracking-tight transition-all">Visão Geral</h1>
-                <p class="text-sm text-gray-400 mt-1">Fortaleza, CE</p>
-            </div>
-            <div class="flex items-center space-x-3">
-                <button class="relative w-10 h-10 flex items-center justify-center rounded-full bg-[#1E2128] border border-gray-700 cursor-pointer hover:bg-gray-800 transition-colors shrink-0">
-                    <i data-lucide="bell" class="w-5 h-5 text-gray-300"></i>
-                    <span class="absolute top-[8px] right-[8px] w-2.5 h-2.5 bg-red-500 border-2 border-[#1E2128] rounded-full"></span>
-                </button>
-                <!-- Avatar do Perfil / Configurações -->
-                <button onclick="navigate('perfil-ajustes')" class="relative w-10 h-10 rounded-full border border-gray-600 overflow-hidden cursor-pointer hover:opacity-80 transition-opacity shrink-0">
-                    <img src="https://ui-avatars.com/api/?name=Usuario&background=38bdf8&color=fff" alt="Perfil" class="w-full h-full object-cover">
-                </button>
-            </div>
-        </header>
+<!-- ============================= -->
+<!-- HEADER -->
+<!-- ============================= -->
+<header class="p-4 text-center text-lg font-semibold border-b border-gray-800">
+    <span id="page-title">Visão Geral</span>
+</header>
 
-        <!-- Main Content Area -->
-        <main class="flex-1 overflow-y-auto px-6 pb-28 pt-2">
-            
-            <!-- PÁGINA 1: HOME -->
-            <div id="page-home" class="page-content block space-y-5 fade-in">
-                
-                <div class="card rounded-3xl p-6 shadow-sm">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-10 h-10 rounded-full bg-[#38bdf8]/10 flex items-center justify-center text-[#38bdf8]">
-                                <i data-lucide="wallet" class="w-5 h-5"></i>
-                            </div>
-                            <h2 class="text-gray-400 font-medium">Saldo Atual</h2>
-                        </div>
-                        <i data-lucide="chevron-right" class="w-5 h-5 text-gray-500"></i>
-                    </div>
-                    <div class="flex items-end space-x-2">
-                        <span class="text-3xl font-bold sensitive-value" data-value="R$ 4.250,00">R$ 4.250,00</span>
-                    </div>
-                </div>
+<!-- ============================= -->
+<!-- HOME -->
+<!-- ============================= -->
+<div id="page-home" class="page active">
+    <h2 class="text-xl mb-4 font-bold">Dashboard</h2>
+    <p>Resumo geral do sistema.</p>
+</div>
 
-                <div class="card rounded-3xl p-6 shadow-sm">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-10 h-10 rounded-full bg-orange-500/10 flex items-center justify-center text-orange-500">
-                                <i data-lucide="settings-2" class="w-5 h-5"></i>
-                            </div>
-                            <h2 class="text-gray-400 font-medium">Fazer 250 (2023)</h2>
-                        </div>
-                        <i data-lucide="chevron-right" class="w-5 h-5 text-gray-500"></i>
-                    </div>
-                    <div class="mb-2 flex justify-between items-end">
-                        <span class="text-2xl font-bold">1.200 km</span>
-                        <span class="text-sm text-gray-400">para troca</span>
-                    </div>
-                    <div class="w-full bg-gray-700 rounded-full h-2 mt-3">
-                        <div class="bg-orange-500 h-2 rounded-full" style="width: 70%"></div>
-                    </div>
-                    <p class="text-xs text-gray-500 mt-2">Média: 29 km/l. Pronta para viagem.</p>
-                </div>
+<!-- ============================= -->
+<!-- SAÚDE -->
+<!-- ============================= -->
+<div id="page-saude" class="page">
+    <h2 class="text-xl mb-6 font-bold">Saúde</h2>
 
-                <div class="card rounded-3xl p-6 shadow-sm">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500">
-                                <i data-lucide="droplet" class="w-5 h-5"></i>
-                            </div>
-                            <h2 class="text-gray-400 font-medium">Hidratação Hoje</h2>
-                        </div>
-                        <button class="text-[#38bdf8] text-sm font-medium px-2 py-1 bg-[#38bdf8]/10 rounded-lg hover:bg-[#38bdf8]/20 transition-colors">+ 473ml</button>
-                    </div>
-                    <div class="mb-2 flex items-end space-x-2">
-                        <span class="text-2xl font-bold">1.419 ml</span>
-                        <span class="text-sm text-gray-400 pb-1">/ 3.500 ml</span>
-                    </div>
-                    <div class="w-full bg-gray-700 rounded-full h-2 mt-3">
-                        <div class="bg-blue-500 h-2 rounded-full" style="width: 40%"></div>
-                    </div>
-                    <p class="text-xs text-gray-500 mt-2">3 copos no escritório concluídos.</p>
-                </div>
-            </div>
-
-            <!-- PÁGINA 2: SAÚDE -->
-            <div id="page-saude" class="page-content hidden space-y-5 fade-in">
-                
-                <!-- Progresso Circular -->
-                <div class="card rounded-3xl p-6 shadow-sm flex flex-col items-center justify-center relative overflow-hidden">
-                    <div class="absolute inset-0 bg-blue-500/5 z-0"></div>
-                    <div class="relative z-10 w-32 h-32 rounded-full border-8 border-gray-700 flex flex-col items-center justify-center mb-4">
-                        <span class="text-3xl font-bold text-white">40%</span>
-                    </div>
-                    <h3 class="text-lg font-semibold z-10">Meta: 3.5 Litros</h3>
-                    <p class="text-gray-400 text-sm z-10 mt-1">Faltam 3 copos (escritório) e 1 em casa.</p>
-                </div>
-
-                <!-- Ações Rápidas -->
-                <div class="grid grid-cols-2 gap-4">
-                    <button class="card rounded-2xl p-4 flex items-center space-x-3 hover:bg-gray-800 transition-colors border border-gray-800">
-                        <div class="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500 shrink-0">
-                            <i data-lucide="coffee" class="w-5 h-5"></i>
-                        </div>
-                        <div class="text-left">
-                            <span class="block text-sm font-medium">Escritório</span>
-                            <span class="block text-xs text-gray-500">+ 473 ml</span>
-                        </div>
-                    </button>
-                    <button class="card rounded-2xl p-4 flex items-center space-x-3 hover:bg-gray-800 transition-colors border border-gray-800">
-                        <div class="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500 shrink-0">
-                            <i data-lucide="glass-water" class="w-5 h-5"></i>
-                        </div>
-                        <div class="text-left">
-                            <span class="block text-sm font-medium">Casa</span>
-                            <span class="block text-xs text-gray-500">+ 250 ml</span>
-                        </div>
-                    </button>
-                </div>
-
-                <!-- Histórico de Hoje -->
-                <div class="card rounded-3xl p-6 shadow-sm">
-                    <h2 class="text-gray-400 font-medium mb-4">Registros de Hoje</h2>
-                    <div class="space-y-4">
-                        <div class="flex justify-between items-center border-b border-gray-800 pb-3">
-                            <div class="flex items-center space-x-3">
-                                <i data-lucide="check-circle-2" class="w-5 h-5 text-blue-500"></i>
-                                <span class="text-sm">Copo Escritório</span>
-                            </div>
-                            <div class="text-right">
-                                <span class="block text-sm font-medium text-white">473 ml</span>
-                                <span class="block text-xs text-gray-500">14:30</span>
-                            </div>
-                        </div>
-                        <div class="flex justify-between items-center border-b border-gray-800 pb-3">
-                            <div class="flex items-center space-x-3">
-                                <i data-lucide="check-circle-2" class="w-5 h-5 text-blue-500"></i>
-                                <span class="text-sm">Copo Escritório</span>
-                            </div>
-                            <div class="text-right">
-                                <span class="block text-sm font-medium text-white">473 ml</span>
-                                <span class="block text-xs text-gray-500">10:15</span>
-                            </div>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <div class="flex items-center space-x-3">
-                                <i data-lucide="check-circle-2" class="w-5 h-5 text-blue-500"></i>
-                                <span class="text-sm">Copo Casa (Acordar)</span>
-                            </div>
-                            <div class="text-right">
-                                <span class="block text-sm font-medium text-white">473 ml</span>
-                                <span class="block text-xs text-gray-500">07:00</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- PÁGINA 3: FINANÇAS -->
-            <div id="page-financas" class="page-content hidden space-y-5 fade-in">
-                
-                <!-- Resumo -->
-                <div class="card rounded-3xl p-6 shadow-sm relative overflow-hidden">
-                    <div class="absolute right-0 top-0 w-32 h-32 bg-green-500/10 rounded-bl-full z-0"></div>
-                    
-                    <!-- Ícone do Olho -->
-                    <div class="absolute top-4 right-4 z-20 cursor-pointer p-1" onclick="toggleVisibility()">
-                        <div id="icon-eye">
-                            <i data-lucide="eye" class="w-5 h-5 text-gray-400 hover:text-white transition-colors"></i>
-                        </div>
-                        <div id="icon-eye-off" class="hidden">
-                            <i data-lucide="eye-off" class="w-5 h-5 text-gray-400 hover:text-white transition-colors"></i>
-                        </div>
-                    </div>
-
-                    <div class="relative z-10">
-                        <span class="text-gray-400 text-sm">Disponível</span>
-                        <h2 class="text-4xl font-bold mt-1 mb-4 sensitive-value" data-value="R$ 4.250,00">R$ 4.250,00</h2>
-                        
-                        <div class="flex justify-between items-center mt-6">
-                            <div>
-                                <span class="text-xs text-gray-500 block mb-1">Gasto no mês</span>
-                                <span class="text-sm font-semibold text-red-400 sensitive-value" data-value="R$ 1.150,00">R$ 1.150,00</span>
-                            </div>
-                            <div class="w-px h-8 bg-gray-700"></div>
-                            <div class="text-right">
-                                <span class="text-xs text-gray-500 block mb-1">Receita</span>
-                                <span class="text-sm font-semibold text-green-400 sensitive-value" data-value="R$ 5.400,00">R$ 5.400,00</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Botões de Ação -->
-                <div class="grid grid-cols-3 gap-3">
-                    <button class="card rounded-2xl py-4 flex flex-col items-center justify-center hover:bg-gray-800 transition-colors">
-                        <i data-lucide="arrow-up-right" class="w-6 h-6 text-red-400 mb-2"></i>
-                        <span class="text-xs font-medium">Despesa</span>
-                    </button>
-                    <button class="card rounded-2xl py-4 flex flex-col items-center justify-center hover:bg-gray-800 transition-colors">
-                        <i data-lucide="arrow-down-left" class="w-6 h-6 text-green-400 mb-2"></i>
-                        <span class="text-xs font-medium">Receita</span>
-                    </button>
-                    <button class="card rounded-2xl py-4 flex flex-col items-center justify-center hover:bg-gray-800 transition-colors">
-                        <i data-lucide="bar-chart-2" class="w-6 h-6 text-[#38bdf8] mb-2"></i>
-                        <span class="text-xs font-medium">Relatório</span>
-                    </button>
-                </div>
-
-                <!-- Módulo de Cartões (Carrossel Horizontal) -->
-                <div class="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-2 -mx-6 px-6 relative">
-                    <!-- Cartão 1: Principal -->
-                    <div class="snap-center shrink-0 w-[85%] card rounded-3xl p-6 shadow-sm relative overflow-hidden bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700">
-                        <div class="flex justify-between items-center mb-6">
-                            <div class="flex items-center space-x-2">
-                                <i data-lucide="credit-card" class="w-5 h-5 text-gray-400"></i>
-                                <span class="text-sm font-medium text-gray-300">Cartão Principal</span>
-                            </div>
-                            <span class="text-sm font-bold italic text-gray-400">MASTERCARD</span>
-                        </div>
-                        <div class="mb-4">
-                            <span class="text-xs text-gray-400 block mb-1">Fatura Atual</span>
-                            <span class="text-2xl font-bold sensitive-value text-white" data-value="R$ 840,00">R$ 840,00</span>
-                        </div>
-                        <div class="flex justify-between items-end">
-                            <div>
-                                <span class="text-xs text-gray-500 block mb-1">Limite Disponível</span>
-                                <span class="text-sm font-medium text-green-400 sensitive-value" data-value="R$ 2.160,00">R$ 2.160,00</span>
-                            </div>
-                            <span class="text-sm tracking-widest text-gray-400">•••• 4321</span>
-                        </div>
-                    </div>
-
-                    <!-- Cartão 2: Secundário -->
-                    <div class="snap-center shrink-0 w-[85%] card rounded-3xl p-6 shadow-sm relative overflow-hidden bg-gradient-to-br from-purple-900 to-gray-900 border border-purple-800/50">
-                        <div class="flex justify-between items-center mb-6">
-                            <div class="flex items-center space-x-2">
-                                <i data-lucide="credit-card" class="w-5 h-5 text-purple-300"></i>
-                                <span class="text-sm font-medium text-purple-100">Cartão Secundário</span>
-                            </div>
-                            <span class="text-sm font-bold italic text-purple-300">VISA</span>
-                        </div>
-                        <div class="mb-4">
-                            <span class="text-xs text-purple-300/70 block mb-1">Fatura Atual</span>
-                            <span class="text-2xl font-bold sensitive-value text-white" data-value="R$ 150,00">R$ 150,00</span>
-                        </div>
-                        <div class="flex justify-between items-end">
-                            <div>
-                                <span class="text-xs text-purple-300/70 block mb-1">Limite Disponível</span>
-                                <span class="text-sm font-medium text-green-400 sensitive-value" data-value="R$ 4.850,00">R$ 4.850,00</span>
-                            </div>
-                            <span class="text-sm tracking-widest text-purple-300">•••• 9876</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Transações Recentes -->
-                <div class="card rounded-3xl p-6 shadow-sm">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-gray-400 font-medium">Transações Recentes</h2>
-                        <span class="text-xs text-[#38bdf8] cursor-pointer hover:underline">Ver tudo</span>
-                    </div>
-                    
-                    <div class="space-y-4">
-                        <div class="flex justify-between items-center">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-10 h-10 rounded-full bg-orange-500/10 flex items-center justify-center text-orange-500">
-                                    <i data-lucide="fuel" class="w-5 h-5"></i>
-                                </div>
-                                <div>
-                                    <span class="block text-sm font-medium">Posto Ipiranga</span>
-                                    <span class="block text-xs text-gray-500">Gasolina Fazer 250</span>
-                                </div>
-                            </div>
-                            <span class="text-sm font-semibold text-red-400">- R$ 55,00</span>
-                        </div>
-
-                        <div class="flex justify-between items-center">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-10 h-10 rounded-full bg-purple-500/10 flex items-center justify-center text-purple-500">
-                                    <i data-lucide="shopping-bag" class="w-5 h-5"></i>
-                                </div>
-                                <div>
-                                    <span class="block text-sm font-medium">Supermercado</span>
-                                    <span class="block text-xs text-gray-500">Compras da semana</span>
-                                </div>
-                            </div>
-                            <span class="text-sm font-semibold text-red-400">- R$ 240,00</span>
-                        </div>
-
-                        <div class="flex justify-between items-center">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center text-green-500">
-                                    <i data-lucide="briefcase" class="w-5 h-5"></i>
-                                </div>
-                                <div>
-                                    <span class="block text-sm font-medium">Makro Engenharia</span>
-                                    <span class="block text-xs text-gray-500">Salário mensal</span>
-                                </div>
-                            </div>
-                            <span class="text-sm font-semibold text-green-400 sensitive-value" data-value="+ R$ 5.400,00">+ R$ 5.400,00</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- PÁGINA 4: VEÍCULO -->
-            <div id="page-veiculo" class="page-content hidden space-y-5 fade-in">
-                
-                <!-- Resumo do Veículo -->
-                <div class="card rounded-3xl p-6 shadow-sm relative overflow-hidden bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700">
-                    <div class="absolute right-0 top-0 w-32 h-32 bg-orange-500/10 rounded-bl-full z-0"></div>
-                    <div class="relative z-10">
-                        <div class="flex justify-between items-center mb-6">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-12 h-12 rounded-full bg-orange-500/20 flex items-center justify-center text-orange-500 border border-orange-500/30">
-                                    <i data-lucide="bike" class="w-6 h-6"></i>
-                                </div>
-                                <div>
-                                    <h2 class="text-white font-bold text-xl">Yamaha Fazer 250</h2>
-                                    <span class="text-xs text-gray-400">2023 • Fortaleza, CE</span>
-                                </div>
-                            </div>
-                            <span class="bg-gray-800 px-3 py-1 rounded-full text-[10px] font-medium text-green-400 border border-green-500/30">Ativa</span>
-                        </div>
-                        
-                        <div class="grid grid-cols-2 gap-4">
-                            <div class="bg-black/30 p-3 rounded-2xl border border-gray-700/50">
-                                <span class="text-[10px] text-gray-400 uppercase tracking-wider block mb-1">Odômetro Total</span>
-                                <div class="flex items-center space-x-2">
-                                    <i data-lucide="gauge" class="w-4 h-4 text-gray-500"></i>
-                                    <span class="text-lg font-bold">15.200 <span class="text-xs text-gray-500 font-normal">km</span></span>
-                                </div>
-                            </div>
-                            <div class="bg-black/30 p-3 rounded-2xl border border-gray-700/50">
-                                <span class="text-[10px] text-gray-400 uppercase tracking-wider block mb-1">Média Geral</span>
-                                <div class="flex items-center space-x-2">
-                                    <i data-lucide="bar-chart-3" class="w-4 h-4 text-orange-500"></i>
-                                    <span class="text-lg font-bold text-orange-400">29.0 <span class="text-xs text-gray-500 font-normal">km/l</span></span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Botões de Ação -->
-                <div class="grid grid-cols-4 gap-3">
-                    <button class="card rounded-2xl py-3 flex flex-col items-center justify-center hover:bg-gray-800 transition-colors border border-gray-800">
-                        <i data-lucide="fuel" class="w-5 h-5 text-orange-500 mb-2"></i>
-                        <span class="text-[10px] font-medium">Abastecer</span>
-                    </button>
-                    <button class="card rounded-2xl py-3 flex flex-col items-center justify-center hover:bg-gray-800 transition-colors border border-gray-800">
-                        <i data-lucide="wrench" class="w-5 h-5 text-blue-400 mb-2"></i>
-                        <span class="text-[10px] font-medium">Serviço</span>
-                    </button>
-                    <button class="card rounded-2xl py-3 flex flex-col items-center justify-center hover:bg-gray-800 transition-colors border border-gray-800">
-                        <i data-lucide="receipt" class="w-5 h-5 text-red-400 mb-2"></i>
-                        <span class="text-[10px] font-medium">Despesa</span>
-                    </button>
-                    <button class="card rounded-2xl py-3 flex flex-col items-center justify-center hover:bg-gray-800 transition-colors border border-gray-800">
-                        <i data-lucide="map" class="w-5 h-5 text-green-400 mb-2"></i>
-                        <span class="text-[10px] font-medium">Viagem</span>
-                    </button>
-                </div>
-
-                <!-- Lembretes / Próximas Manutenções -->
-                <div class="card rounded-3xl p-6 shadow-sm border border-gray-800">
-                    <div class="flex justify-between items-center mb-5">
-                        <h2 class="text-gray-400 font-medium flex items-center gap-2">
-                            <i data-lucide="bell" class="w-4 h-4"></i> Lembretes
-                        </h2>
-                        <span class="text-xs text-[#38bdf8] cursor-pointer hover:underline">Novo</span>
-                    </div>
-                    
-                    <div class="space-y-5">
-                        <div>
-                            <div class="flex justify-between items-end mb-2">
-                                <span class="text-sm font-medium">Troca de Óleo (Yamalube)</span>
-                                <span class="text-xs font-bold text-orange-500">Faltam 1.200 km</span>
-                            </div>
-                            <div class="w-full bg-gray-700 rounded-full h-2">
-                                <div class="bg-orange-500 h-2 rounded-full" style="width: 70%"></div>
-                            </div>
-                            <span class="text-[10px] text-gray-500 mt-2 block">Última troca: 11.400 km | Próxima: 16.400 km</span>
-                        </div>
-
-                        <div>
-                            <div class="flex justify-between items-end mb-2">
-                                <span class="text-sm font-medium">Lubrificar Corrente</span>
-                                <span class="text-xs font-bold text-green-400">Em dia</span>
-                            </div>
-                            <div class="w-full bg-gray-700 rounded-full h-2">
-                                <div class="bg-green-500 h-2 rounded-full" style="width: 25%"></div>
-                            </div>
-                            <span class="text-[10px] text-gray-500 mt-2 block">Recomendado a cada 500 km rodados.</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Histórico Recente -->
-                <div class="card rounded-3xl p-6 shadow-sm border border-gray-800">
-                    <div class="flex justify-between items-center mb-5">
-                        <h2 class="text-gray-400 font-medium">Linha do Tempo</h2>
-                        <span class="text-xs text-[#38bdf8] cursor-pointer hover:underline">Ver tudo</span>
-                    </div>
-                    
-                    <div class="space-y-4 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-gray-700 before:to-transparent">
-                        
-                        <div class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
-                            <div class="flex items-center justify-center w-10 h-10 rounded-full border-4 border-[#1E2128] bg-orange-500 text-white shrink-0 z-10">
-                                <i data-lucide="fuel" class="w-4 h-4"></i>
-                            </div>
-                            <div class="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-2xl border border-gray-800 bg-[#121418] ml-4">
-                                <div class="flex justify-between mb-1">
-                                    <span class="font-bold text-sm text-white">Abastecimento</span>
-                                    <span class="text-xs font-medium text-orange-400">28.8 km/l</span>
-                                </div>
-                                <span class="block text-xs text-gray-400 mb-2">Posto Ipiranga • 14.980 km</span>
-                                <span class="font-bold text-sm">R$ 55,00 <span class="font-normal text-xs text-gray-500"> (9,3L)</span></span>
-                            </div>
-                        </div>
-
-                        <div class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
-                            <div class="flex items-center justify-center w-10 h-10 rounded-full border-4 border-[#1E2128] bg-blue-500 text-white shrink-0 z-10">
-                                <i data-lucide="wrench" class="w-4 h-4"></i>
-                            </div>
-                            <div class="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-2xl border border-gray-800 bg-[#121418] ml-4">
-                                <div class="flex justify-between mb-1">
-                                    <span class="font-bold text-sm text-white">Serviço</span>
-                                    <span class="text-[10px] text-gray-500">10 Fev</span>
-                                </div>
-                                <span class="block text-xs text-gray-400 mb-2">Limpeza e lubrificação de corrente</span>
-                                <span class="font-bold text-sm text-green-400">Em casa</span>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-
-            </div>
-
-            <!-- PÁGINA 5: PERFIL E AJUSTES -->
-            <div id="page-perfil-ajustes" class="page-content hidden space-y-5 fade-in">
-                
-                <!-- Identificação do Usuário -->
-                <div class="flex items-center space-x-4 mb-2">
-                    <img src="https://ui-avatars.com/api/?name=Usuario&background=38bdf8&color=fff&size=128" alt="Perfil" class="w-16 h-16 rounded-full border-2 border-gray-700">
-                    <div>
-                        <h2 class="text-xl font-bold">João Silva</h2>
-                        <p class="text-sm text-[#38bdf8] font-medium">Plano Premium</p>
-                    </div>
-                </div>
-
-                <!-- Grupo: Conta e Dados -->
-                <div class="card rounded-3xl p-2 shadow-sm border border-gray-800/50">
-                    <div class="px-4 pt-3 pb-1">
-                        <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Conta</span>
-                    </div>
-                    <button class="w-full flex items-center justify-between p-4 hover:bg-gray-800 rounded-2xl transition">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500">
-                                <i data-lucide="user" class="w-4 h-4"></i>
-                            </div>
-                            <span class="text-sm font-medium">Meus Dados</span>
-                        </div>
-                        <i data-lucide="chevron-right" class="text-gray-600 w-5 h-5"></i>
-                    </button>
-                    <button class="w-full flex items-center justify-between p-4 hover:bg-gray-800 rounded-2xl transition">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-8 h-8 rounded-full bg-purple-500/10 flex items-center justify-center text-purple-500">
-                                <i data-lucide="credit-card" class="w-4 h-4"></i>
-                            </div>
-                            <span class="text-sm font-medium">Assinatura e Faturamento</span>
-                        </div>
-                        <i data-lucide="chevron-right" class="text-gray-600 w-5 h-5"></i>
-                    </button>
-                </div>
-
-                <!-- Grupo: Preferências do App -->
-                <div class="card rounded-3xl p-2 shadow-sm border border-gray-800/50">
-                    <div class="px-4 pt-3 pb-1">
-                        <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Preferências</span>
-                    </div>
-                    <button class="w-full flex items-center justify-between p-4 hover:bg-gray-800 rounded-2xl transition">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-8 h-8 rounded-full bg-orange-500/10 flex items-center justify-center text-orange-500">
-                                <i data-lucide="bike" class="w-4 h-4"></i>
-                            </div>
-                            <div class="text-left">
-                                <span class="block text-sm font-medium">Veículo Padrão</span>
-                                <span class="block text-xs text-gray-500">Yamaha Fazer 250</span>
-                            </div>
-                        </div>
-                        <i data-lucide="chevron-right" class="text-gray-600 w-5 h-5"></i>
-                    </button>
-                    <button class="w-full flex items-center justify-between p-4 hover:bg-gray-800 rounded-2xl transition">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-8 h-8 rounded-full bg-blue-400/10 flex items-center justify-center text-blue-400">
-                                <i data-lucide="droplet" class="w-4 h-4"></i>
-                            </div>
-                            <div class="text-left">
-                                <span class="block text-sm font-medium">Meta de Hidratação</span>
-                                <span class="block text-xs text-gray-500">3.5L / Dia (Copos de 473ml)</span>
-                            </div>
-                        </div>
-                        <i data-lucide="chevron-right" class="text-gray-600 w-5 h-5"></i>
-                    </button>
-                    <button class="w-full flex items-center justify-between p-4 hover:bg-gray-800 rounded-2xl transition">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-8 h-8 rounded-full bg-gray-500/10 flex items-center justify-center text-gray-400">
-                                <i data-lucide="bell" class="w-4 h-4"></i>
-                            </div>
-                            <span class="text-sm font-medium">Notificações</span>
-                        </div>
-                        <i data-lucide="chevron-right" class="text-gray-600 w-5 h-5"></i>
-                    </button>
-                </div>
-
-                <!-- Grupo: Segurança e Suporte -->
-                <div class="card rounded-3xl p-2 shadow-sm border border-gray-800/50">
-                    <button class="w-full flex items-center justify-between p-4 hover:bg-gray-800 rounded-2xl transition">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-8 h-8 rounded-full bg-green-500/10 flex items-center justify-center text-green-500">
-                                <i data-lucide="shield" class="w-4 h-4"></i>
-                            </div>
-                            <span class="text-sm font-medium">Segurança e Privacidade</span>
-                        </div>
-                        <i data-lucide="chevron-right" class="text-gray-600 w-5 h-5"></i>
-                    </button>
-                    <button class="w-full flex items-center justify-between p-4 hover:bg-gray-800 rounded-2xl transition">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-8 h-8 rounded-full bg-yellow-500/10 flex items-center justify-center text-yellow-500">
-                                <i data-lucide="help-circle" class="w-4 h-4"></i>
-                            </div>
-                            <span class="text-sm font-medium">Ajuda e Suporte</span>
-                        </div>
-                        <i data-lucide="chevron-right" class="text-gray-600 w-5 h-5"></i>
-                    </button>
-                </div>
-
-                <!-- Botão de Sair -->
-                <button class="w-full card rounded-3xl p-4 flex items-center justify-center space-x-2 text-red-500 font-medium hover:bg-red-500/10 transition border border-red-500/20">
-                    <i data-lucide="log-out" class="w-5 h-5"></i>
-                    <span>Sair da Conta</span>
-                </button>
-                
-                <p class="text-center text-[10px] text-gray-600 mt-4 pb-4">SaaS App v1.0.4 • Fortaleza, CE</p>
-            </div>
-
-        </main>
-
-        <!-- Barra de Navegação Inferior -->
-        <nav class="absolute bottom-0 w-full card border-t border-gray-800 px-6 pt-4 pb-safe flex justify-between items-center z-50">
-            <button onclick="navigate('home')" class="nav-btn flex flex-col items-center space-y-1 w-16 text-[#38bdf8]" data-target="home">
-                <i data-lucide="layout-grid" class="w-6 h-6"></i>
-                <span class="text-[10px] font-medium">Início</span>
-            </button>
-            <button onclick="navigate('saude')" class="nav-btn flex flex-col items-center space-y-1 w-16 text-gray-500 hover:text-gray-300 transition-colors" data-target="saude">
-                <i data-lucide="activity" class="w-6 h-6"></i>
-                <span class="text-[10px] font-medium">Saúde</span>
-            </button>
-            <button onclick="navigate('financas')" class="nav-btn flex flex-col items-center space-y-1 w-16 text-gray-500 hover:text-gray-300 transition-colors" data-target="financas">
-                <i data-lucide="pie-chart" class="w-6 h-6"></i>
-                <span class="text-[10px] font-medium">Finanças</span>
-            </button>
-            <button onclick="navigate('veiculo')" class="nav-btn flex flex-col items-center space-y-1 w-16 text-gray-500 hover:text-gray-300 transition-colors" data-target="veiculo">
-                <i data-lucide="bike" class="w-6 h-6"></i>
-                <span class="text-[10px] font-medium">Veículo</span>
-            </button>
-        </nav>
-
+    <div class="mb-6">
+        <p class="mb-2">Água (Meta 2000ml)</p>
+        <div class="progress-bar">
+            <div id="agua-bar" class="progress-fill"></div>
+        </div>
+        <button onclick="addAgua()" class="mt-3 bg-blue-500 px-4 py-2 rounded">+ 250ml</button>
     </div>
 
-    <script>
-        // Inicializa os ícones do Lucide
-        lucide.createIcons();
+    <div>
+        <p class="mb-2">Cafeína (Limite 400mg)</p>
+        <div class="progress-bar">
+            <div id="cafeina-bar" class="progress-fill"></div>
+        </div>
+        <button onclick="addCafeina()" class="mt-3 bg-purple-500 px-4 py-2 rounded">+ 50mg</button>
+    </div>
+</div>
 
-        // Variável de controle para os valores sensíveis (olho)
-        let isVisible = true;
+<!-- ============================= -->
+<!-- FINANÇAS -->
+<!-- ============================= -->
+<div id="page-financas" class="page">
+    <h2 class="text-xl mb-4 font-bold">Finanças</h2>
+    <p id="saldo" class="text-2xl font-semibold mb-6">R$ 0,00</p>
 
-        // Função para alternar abas
-        function navigate(pageId) {
-            // Oculta todas as páginas
-            document.querySelectorAll('.page-content').forEach(page => {
-                page.classList.add('hidden');
-            });
-            
-            // Remove cor ativa de todos os botões do menu inferior
-            document.querySelectorAll('.nav-btn').forEach(btn => {
-                btn.classList.remove('text-[#38bdf8]');
-                btn.classList.add('text-gray-500');
-            });
+    <div id="transacoes"></div>
+</div>
 
-            // Exibe a página selecionada
-            document.getElementById(`page-${pageId}`).classList.remove('hidden');
-            
-            // Se for uma página do menu inferior, adiciona cor ativa no botão correspondente
-            const activeBtn = document.querySelector(`.nav-btn[data-target="${pageId}"]`);
-            if(activeBtn) {
-                activeBtn.classList.remove('text-gray-500');
-                activeBtn.classList.add('text-[#38bdf8]');
-            }
+<!-- ============================= -->
+<!-- MENU RODAPÉ (NOVO) -->
+<!-- ============================= -->
 
-            // Atualiza o título do header de forma dinâmica
-            const headerTitle = document.getElementById('header-title');
-            if (pageId === 'home') headerTitle.innerText = 'Visão Geral';
-            if (pageId === 'saude') headerTitle.innerText = 'Saúde e Rotina';
-            if (pageId === 'financas') headerTitle.innerText = 'Finanças';
-            if (pageId === 'veiculo') headerTitle.innerText = 'Minha Moto';
-            if (pageId === 'perfil-ajustes') headerTitle.innerText = 'Ajustes e Perfil';
-        }
+<nav class="absolute bottom-0 w-full h-20 card rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.3)] flex justify-around items-center px-2 z-50 shrink-0">
 
-        // Função para esconder/exibir valores sensíveis
-        function toggleVisibility() {
-            isVisible = !isVisible;
-            
-            // Alterna os ícones do olho
-            document.getElementById('icon-eye').classList.toggle('hidden');
-            document.getElementById('icon-eye-off').classList.toggle('hidden');
+<button class="nav-btn flex flex-col items-center justify-center w-16 h-full relative text-[#38bdf8]"
+onclick="navigate(this,'page-home','Visão Geral')">
+<div class="absolute top-0 w-6 h-0.5 bg-[#38bdf8] rounded-b-md transition-all"></div>
+<i data-lucide="home" class="w-6 h-6 mb-1"></i>
+<span class="text-[10px] font-medium">Home</span>
+</button>
 
-            // Alterna o texto de todos os elementos com a classe .sensitive-value
-            document.querySelectorAll('.sensitive-value').forEach(el => {
-                if (isVisible) {
-                    el.innerText = el.getAttribute('data-value');
-                } else {
-                    el.innerText = 'R$ ••••••';
-                }
-            });
-        }
-    </script>
+<button class="nav-btn flex flex-col items-center justify-center w-16 h-full relative text-[#8c92a0]"
+onclick="navigate(this,'page-saude','Saúde e Bem-estar')">
+<div class="absolute top-0 w-0 h-0.5 bg-[#38bdf8] rounded-b-md transition-all"></div>
+<i data-lucide="heart-pulse" class="w-6 h-6 mb-1"></i>
+<span class="text-[10px] font-medium">Saúde</span>
+</button>
+
+<div class="relative w-16 h-full flex justify-center">
+<button class="absolute -top-6 w-14 h-14 bg-[#38bdf8] rounded-full flex items-center justify-center text-white border-[6px] border-[#121418] shadow-lg hover:scale-105 transition-transform z-10"
+onclick="fabAction()">
+<i data-lucide="plus" id="fab-icon" class="w-7 h-7"></i>
+</button>
+</div>
+
+<button class="nav-btn flex flex-col items-center justify-center w-16 h-full relative text-[#8c92a0]"
+onclick="navigate(this,'page-financas','Finanças Pessoais')">
+<div class="absolute top-0 w-0 h-0.5 bg-[#38bdf8] rounded-b-md transition-all"></div>
+<i data-lucide="circle-dollar-sign" class="w-6 h-6 mb-1"></i>
+<span class="text-[10px] font-medium">Finanças</span>
+</button>
+
+<button class="nav-btn flex flex-col items-center justify-center w-16 h-full relative text-[#8c92a0]"
+onclick="alert('Menu futuro')">
+<div class="absolute top-0 w-0 h-0.5 bg-[#38bdf8] rounded-b-md transition-all"></div>
+<i data-lucide="menu" class="w-6 h-6 mb-1"></i>
+<span class="text-[10px] font-medium">Menu</span>
+</button>
+
+</nav>
+
+<!-- ============================= -->
+<!-- JS - NAVEGAÇÃO -->
+<!-- ============================= -->
+<script>
+function navigate(button, pageId, title){
+
+document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+document.getElementById(pageId).classList.add('active');
+
+document.getElementById('page-title').innerText = title;
+
+document.querySelectorAll('.nav-btn').forEach(btn=>{
+btn.classList.remove('text-[#38bdf8]');
+btn.classList.add('text-[#8c92a0]');
+btn.querySelector('div').style.width="0px";
+});
+
+button.classList.remove('text-[#8c92a0]');
+button.classList.add('text-[#38bdf8]');
+button.querySelector('div').style.width="24px";
+}
+</script>
+
+<!-- ============================= -->
+<!-- JS - FINANÇAS -->
+<!-- ============================= -->
+<script>
+let transacoes = JSON.parse(localStorage.getItem("transacoes")) || [];
+
+function atualizarFinancas(){
+let saldo = 0;
+let container = document.getElementById("transacoes");
+container.innerHTML="";
+
+transacoes.forEach(t=>{
+saldo += t.tipo==="receita" ? t.valor : -t.valor;
+container.innerHTML += `<p>${t.tipo==="receita"?"+":"-"} R$ ${t.valor.toFixed(2)}</p>`;
+});
+
+document.getElementById("saldo").innerText="R$ "+saldo.toFixed(2);
+localStorage.setItem("transacoes",JSON.stringify(transacoes));
+}
+
+function fabAction(){
+let valor = parseFloat(prompt("Valor:"));
+if(!valor) return;
+let tipo = confirm("OK = Receita | Cancelar = Despesa") ? "receita":"despesa";
+
+transacoes.push({tipo,valor});
+atualizarFinancas();
+}
+
+atualizarFinancas();
+</script>
+
+<!-- ============================= -->
+<!-- JS - SAÚDE -->
+<!-- ============================= -->
+<script>
+let agua = parseInt(localStorage.getItem("agua")) || 0;
+let cafeina = parseInt(localStorage.getItem("cafeina")) || 0;
+
+function atualizarSaude(){
+document.getElementById("agua-bar").style.width = (agua/2000*100)+"%";
+document.getElementById("cafeina-bar").style.width = (cafeina/400*100)+"%";
+localStorage.setItem("agua",agua);
+localStorage.setItem("cafeina",cafeina);
+}
+
+function addAgua(){
+agua += 250;
+atualizarSaude();
+}
+
+function addCafeina(){
+cafeina += 50;
+atualizarSaude();
+}
+
+atualizarSaude();
+</script>
+
+<script>
+lucide.createIcons();
+</script>
+
 </body>
 </html>
