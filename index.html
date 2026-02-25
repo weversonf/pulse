@@ -3,68 +3,1469 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pulse v01.19</title>
+    <title>Pulse v01.16</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root { --bg-main: #121418; --bg-card: #1E2128; --accent-blue: #38bdf8; --text-muted: #8c92a0; }
-        body { background-color: #000; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
-        .app-container { background-color: var(--bg-main ); box-shadow: 0 0 40px rgba(0,0,0,0.5); }
-        .card { background-color: var(--bg-card); }
-        ::-webkit-scrollbar { display: none; }
-        .fade-in { animation: fadeIn 0.3s ease-in-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-        #user-search-results, #notifications-list { max-height: 200px; }
-        #user-search-results button:hover, .notification-item:hover { background-color: #38bdf81a; }
+        :root {
+            --bg-main: #121418;
+            --bg-card: #1E2128;
+            --accent-blue: #38bdf8;
+            --text-muted: #8c92a0;
+        }
+        body {
+            background-color: #000;
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .app-container {
+            background-color: var(--bg-main);
+            box-shadow: 0 0 40px rgba(0,0,0,0.5);
+        }
+        .card {
+            background-color: var(--bg-card);
+        }
+        ::-webkit-scrollbar {
+            display: none;
+        }
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
-<body class="flex justify-center h-screen w-full text-white">
+<body class="flex justify-center h-screen w-full overflow-hidden text-white">
 
-    <!-- Overlay de Login -->
-    <div id="login-overlay" class="absolute inset-0 bg-black/80 z-[100] flex-col items-center justify-center text-center p-8 backdrop-blur-sm hidden">
-        <h1 class="text-3xl font-bold text-white mb-2">Bem-vindo ao Pulse</h1>
-        <p class="text-gray-400 mb-8">Faça login para continuar e gerenciar sua vida.</p>
-        <button id="btn-login-google" class="bg-white text-gray-800 font-semibold py-3 px-6 rounded-xl flex items-center justify-center space-x-3 hover:bg-gray-200 transition-colors">
-            <svg class="w-6 h-6" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.42-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path><path fill="none" d="M0 0h48v48H0z"></path></svg>
-            <span>Entrar com Google</span>
-        </button>
-    </div>
-
-    <div class="app-container w-full max-w-md h-full relative flex flex-col overflow-hidden">
+    <div class="app-container w-full max-w-md h-full relative flex flex-col">
         
+        <!-- Header Fixo -->
         <header class="px-6 pt-10 pb-4 flex justify-between items-center shrink-0">
             <div>
                 <h1 id="header-title" class="text-2xl font-bold tracking-tight transition-all">Visão Geral</h1>
                 <p class="text-sm text-gray-400 mt-1">Fortaleza, CE</p>
             </div>
-            <button id="btn-notificacoes" class="relative w-10 h-10 flex items-center justify-center rounded-full bg-[#1E2128] border border-gray-700 cursor-pointer hover:bg-gray-800 transition-colors shrink-0">
+            <button class="relative w-10 h-10 flex items-center justify-center rounded-full bg-[#1E2128] border border-gray-700 cursor-pointer hover:bg-gray-800 transition-colors shrink-0">
                 <i data-lucide="bell" class="w-5 h-5 text-gray-300"></i>
-                <span id="notificacao-ping" class="absolute top-[8px] right-[8px] w-2.5 h-2.5 bg-red-500 border-2 border-[#1E2128] rounded-full hidden"></span>
+                <span class="absolute top-[8px] right-[8px] w-2.5 h-2.5 bg-red-500 border-2 border-[#1E2128] rounded-full"></span>
             </button>
         </header>
 
+        <!-- Main Content Area -->
         <main class="flex-1 overflow-y-auto px-6 pb-28">
+            
             <!-- PÁGINA 1: HOME -->
             <div id="page-home" class="page-content block space-y-5 fade-in">
-                <div class="card rounded-3xl p-6 shadow-sm"><div class="flex items-center justify-between mb-4"><div class="flex items-center space-x-3"><div class="w-10 h-10 rounded-full bg-[#38bdf8]/10 flex items-center justify-center text-[#38bdf8]"><i data-lucide="wallet" class="w-5 h-5"></i></div><h2 class="text-gray-400 font-medium">Saldo Atual</h2></div><i data-lucide="chevron-right" class="w-5 h-5 text-gray-500"></i></div><div class="flex items-end space-x-2"><span class="text-3xl font-bold sensitive-value" id="home-saldo" data-value="R$ 4.250,00">R$ 4.250,00</span></div></div>
-                <div class="card rounded-3xl p-6 shadow-sm cursor-pointer hover:bg-gray-800 transition-colors border border-transparent hover:border-orange-500/30" onclick="navigate(null, 'page-veiculo', 'Seu Veículo')"><div class="flex items-center justify-between mb-4"><div class="flex items-center space-x-3"><div class="w-10 h-10 rounded-full bg-orange-500/10 flex items-center justify-center text-orange-500"><i data-lucide="bike" id="home-veiculo-icon" class="w-5 h-5"></i></div><h2 id="home-veiculo-nome" class="text-gray-400 font-medium">Fazer 250</h2></div><i data-lucide="chevron-right" class="w-5 h-5 text-gray-500"></i></div><div class="mb-2 flex justify-between items-end"><span class="text-2xl font-bold">1.200 km</span><span class="text-sm text-gray-400">para revisão</span></div><div class="w-full bg-gray-700 rounded-full h-2 mt-3"><div class="bg-orange-500 h-2 rounded-full" style="width: 70%"></div></div><p class="text-xs text-gray-500 mt-2">Média: <span id="home-veiculo-kml">29</span> km/l. Pronto para viagem.</p></div>
-                <div class="card rounded-3xl p-6 shadow-sm cursor-pointer hover:bg-gray-800 transition-colors border border-transparent hover:border-blue-500/30" onclick="navigate(document.getElementById('nav-saude'), 'page-saude', 'Saúde e Bem-estar')"><div class="flex items-center justify-between mb-4"><div class="flex items-center space-x-3"><div class="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500"><i data-lucide="droplet" class="w-5 h-5"></i></div><h2 class="text-gray-400 font-medium">Hidratação Hoje</h2></div><button class="text-[#38bdf8] text-sm font-medium px-2 py-1 bg-[#38bdf8]/10 rounded-lg hover:bg-[#38bdf8]/20 transition-colors" onclick="event.stopPropagation();">+ 473ml</button></div><div class="mb-2 flex items-end space-x-2"><span class="text-2xl font-bold">1.419 ml</span><span class="text-sm text-gray-400 pb-1">/ 3.500 ml</span></div><div class="w-full bg-gray-700 rounded-full h-2 mt-3"><div class="bg-blue-500 h-2 rounded-full" style="width: 40%"></div></div><p class="text-xs text-gray-500 mt-2">3 copos no escritório concluídos.</p></div>
+                
+                <div class="card rounded-3xl p-6 shadow-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-full bg-[#38bdf8]/10 flex items-center justify-center text-[#38bdf8]">
+                                <i data-lucide="wallet" class="w-5 h-5"></i>
+                            </div>
+                            <h2 class="text-gray-400 font-medium">Saldo Atual</h2>
+                        </div>
+                        <i data-lucide="chevron-right" class="w-5 h-5 text-gray-500"></i>
+                    </div>
+                    <div class="flex items-end space-x-2">
+                        <span class="text-3xl font-bold sensitive-value" id="home-saldo" data-value="R$ 4.250,00">R$ 4.250,00</span>
+                    </div>
+                </div>
+
+                <!-- Card da Moto/Carro -->
+                <div class="card rounded-3xl p-6 shadow-sm cursor-pointer hover:bg-gray-800 transition-colors border border-transparent hover:border-orange-500/30" onclick="navigate(null, 'page-veiculo', 'Seu Veículo')">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-full bg-orange-500/10 flex items-center justify-center text-orange-500">
+                                <i data-lucide="bike" id="home-veiculo-icon" class="w-5 h-5"></i>
+                            </div>
+                            <h2 id="home-veiculo-nome" class="text-gray-400 font-medium">Fazer 250</h2>
+                        </div>
+                        <i data-lucide="chevron-right" class="w-5 h-5 text-gray-500"></i>
+                    </div>
+                    <div class="mb-2 flex justify-between items-end">
+                        <span class="text-2xl font-bold">1.200 km</span>
+                        <span class="text-sm text-gray-400">para revisão</span>
+                    </div>
+                    <div class="w-full bg-gray-700 rounded-full h-2 mt-3">
+                        <div class="bg-orange-500 h-2 rounded-full" style="width: 70%"></div>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-2">Média: <span id="home-veiculo-kml">29</span> km/l. Pronto para viagem.</p>
+                </div>
+
+                <div class="card rounded-3xl p-6 shadow-sm cursor-pointer hover:bg-gray-800 transition-colors border border-transparent hover:border-blue-500/30" onclick="navigate(document.getElementById('nav-saude'), 'page-saude', 'Saúde e Bem-estar')">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500">
+                                <i data-lucide="droplet" class="w-5 h-5"></i>
+                            </div>
+                            <h2 class="text-gray-400 font-medium">Hidratação Hoje</h2>
+                        </div>
+                        <button class="text-[#38bdf8] text-sm font-medium px-2 py-1 bg-[#38bdf8]/10 rounded-lg hover:bg-[#38bdf8]/20 transition-colors" onclick="event.stopPropagation();">+ 473ml</button>
+                    </div>
+                    <div class="mb-2 flex items-end space-x-2">
+                        <span class="text-2xl font-bold">1.419 ml</span>
+                        <span class="text-sm text-gray-400 pb-1">/ 3.500 ml</span>
+                    </div>
+                    <div class="w-full bg-gray-700 rounded-full h-2 mt-3">
+                        <div class="bg-blue-500 h-2 rounded-full" style="width: 40%"></div>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-2">3 copos no escritório concluídos.</p>
+                </div>
             </div>
+
             <!-- PÁGINA 2: SAÚDE -->
             <div id="page-saude" class="page-content hidden space-y-5 fade-in">
-                <div class="flex justify-between items-center mb-2 px-1"><h2 class="text-lg font-bold text-gray-200">Visão de Hoje</h2><button class="flex items-center space-x-2 text-[#38bdf8] bg-[#38bdf8]/10 px-3 py-1.5 rounded-xl hover:bg-[#38bdf8]/20 transition-colors" onclick="abrirAjustesSaude()"><i data-lucide="settings" class="w-4 h-4"></i><span class="text-xs font-bold">Ajustes</span></button></div>
-                <div class="grid grid-cols-2 gap-4"><div class="card rounded-3xl p-5 shadow-sm flex flex-col items-center justify-center relative overflow-hidden"><div class="absolute inset-0 bg-blue-500/5 z-0"></div><div class="relative z-10 w-24 h-24 rounded-full border-[6px] border-gray-700 flex flex-col items-center justify-center mb-3"><span class="text-xl font-bold text-white">40%</span></div><h3 class="text-sm font-bold z-10 text-blue-400">3.5 L / Dia</h3><p class="text-gray-400 text-[10px] z-10 text-center mt-1 leading-tight">Faltam 3 no escritório, 1 em casa.</p></div><div class="card rounded-3xl p-5 shadow-sm flex flex-col items-center justify-center relative overflow-hidden"><div class="absolute inset-0 bg-yellow-500/5 z-0"></div><div class="relative z-10 w-24 h-24 rounded-full border-[6px] border-yellow-500 border-l-gray-700 flex flex-col items-center justify-center mb-3"><span class="text-xl font-bold text-white">150<span class="text-xs text-gray-400">mg</span></span></div><h3 class="text-sm font-bold z-10 text-yellow-500">Máx: 400mg</h3><p class="text-gray-400 text-[10px] z-10 text-center mt-1 leading-tight">Dentro do limite diário seguro.</p></div></div>
-                <div><h2 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3 px-1">Lançamento Rápido</h2><div class="grid grid-cols-2 gap-3"><button class="card rounded-2xl p-4 flex items-center space-x-3 hover:bg-gray-800 transition-colors border border-gray-800"><div class="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500 shrink-0"><i data-lucide="droplet" class="w-5 h-5"></i></div><div class="text-left"><span class="block text-sm font-medium">Escritório</span><span class="block text-xs text-blue-400">+ 473 ml</span></div></button><button class="card rounded-2xl p-4 flex items-center space-x-3 hover:bg-gray-800 transition-colors border border-gray-800"><div class="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500 shrink-0"><i data-lucide="glass-water" class="w-5 h-5"></i></div><div class="text-left"><span class="block text-sm font-medium">Casa</span><span class="block text-xs text-blue-400">+ 250 ml</span></div></button><button class="card rounded-2xl p-4 flex items-center space-x-3 hover:bg-gray-800 transition-colors border border-gray-800"><div class="w-10 h-10 rounded-full bg-orange-500/10 flex items-center justify-center text-orange-500 shrink-0"><i data-lucide="coffee" class="w-5 h-5"></i></div><div class="text-left"><span class="block text-sm font-medium">Café</span><span class="block text-xs text-orange-400">+ 80 mg</span></div></button><button class="card rounded-2xl p-4 flex items-center space-x-3 hover:bg-gray-800 transition-colors border border-gray-800"><div class="w-10 h-10 rounded-full bg-yellow-500/10 flex items-center justify-center text-yellow-500 shrink-0"><i data-lucide="zap" class="w-5 h-5"></i></div><div class="text-left"><span class="block text-sm font-medium">Energético</span><span class="block text-xs text-yellow-500">+ 150 mg</span></div></button></div></div>
-                <div class="card rounded-3xl p-6 shadow-sm"><div class="flex justify-between items-center mb-4"><h2 class="text-gray-400 font-medium flex items-center space-x-2"><i data-lucide="calendar-days" class="w-4 h-4"></i><span>Relatório Mensal</span></h2><div class="flex items-center space-x-2"><button class="p-1 hover:bg-gray-700 rounded-full transition-colors text-gray-500 hover:text-white"><i data-lucide="chevron-left" class="w-4 h-4"></i></button><span class="text-xs text-[#38bdf8] font-bold w-14 text-center">Fev 2026</span><button class="p-1 hover:bg-gray-700 rounded-full transition-colors text-gray-500 hover:text-white"><i data-lucide="chevron-right" class="w-4 h-4"></i></button></div></div><div class="flex space-x-4 mb-4 text-[10px] text-gray-400"><div class="flex items-center space-x-1"><div class="w-3 h-3 rounded-full border border-blue-500"></div><span>Meta Água</span></div><div class="flex items-center space-x-1"><div class="w-2 h-2 rounded-full bg-yellow-500"></div><span>Cafeína Consumida</span></div></div><div class="grid grid-cols-7 gap-y-3 gap-x-1 text-center"><div class="text-[10px] text-gray-500 font-bold">D</div><div class="text-[10px] text-gray-500 font-bold">S</div><div class="text-[10px] text-gray-500 font-bold">T</div><div class="text-[10px] text-gray-500 font-bold">Q</div><div class="text-[10px] text-gray-500 font-bold">Q</div><div class="text-[10px] text-gray-500 font-bold">S</div><div class="text-[10px] text-gray-500 font-bold">S</div><div class="flex justify-center"><div class="w-8 h-8 rounded-full border border-blue-500 flex items-center justify-center text-xs relative cursor-pointer hover:bg-blue-500/20 transition-colors" onclick="alert('Detalhes 15 Fev')">15</div></div><div class="flex justify-center"><div class="w-8 h-8 rounded-full border border-blue-500 flex items-center justify-center text-xs relative cursor-pointer hover:bg-blue-500/20 transition-colors" onclick="alert('Detalhes 16 Fev')">16<span class="absolute bottom-0 right-0 w-2 h-2 bg-yellow-500 rounded-full border border-[#1E2128]"></span></div></div><div class="flex justify-center"><div class="w-8 h-8 rounded-full border border-gray-700 flex items-center justify-center text-xs relative text-gray-400 cursor-pointer hover:bg-gray-800 transition-colors" onclick="alert('Detalhes 17 Fev')">17<span class="absolute bottom-0 right-0 w-2 h-2 bg-yellow-500 rounded-full border border-[#1E2128]"></span></div></div><div class="flex justify-center"><div class="w-8 h-8 rounded-full border border-blue-500 flex items-center justify-center text-xs relative cursor-pointer hover:bg-blue-500/20 transition-colors" onclick="alert('Detalhes 18 Fev')">18</div></div><div class="flex justify-center"><div class="w-8 h-8 rounded-full border border-blue-500 flex items-center justify-center text-xs relative cursor-pointer hover:bg-blue-500/20 transition-colors" onclick="alert('Detalhes 19 Fev')">19<span class="absolute bottom-0 right-0 w-2 h-2 bg-yellow-500 rounded-full border border-[#1E2128]"></span></div></div><div class="flex justify-center"><div class="w-8 h-8 rounded-full bg-[#38bdf8] text-[#121418] font-bold flex items-center justify-center text-xs relative shadow-[0_0_10px_rgba(56,189,248,0.4)] cursor-pointer" onclick="alert('Detalhes Hoje')">20<span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-yellow-400 rounded-full border-2 border-[#38bdf8]"></span></div></div><div class="flex justify-center"><div class="w-8 h-8 rounded-full flex items-center justify-center text-xs text-gray-600">21</div></div></div></div>
+                <div class="flex justify-between items-center mb-2 px-1">
+                    <h2 class="text-lg font-bold text-gray-200">Visão de Hoje</h2>
+                    <button class="flex items-center space-x-2 text-[#38bdf8] bg-[#38bdf8]/10 px-3 py-1.5 rounded-xl hover:bg-[#38bdf8]/20 transition-colors" onclick="abrirAjustesSaude()">
+                        <i data-lucide="settings" class="w-4 h-4"></i>
+                        <span class="text-xs font-bold">Ajustes</span>
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="card rounded-3xl p-5 shadow-sm flex flex-col items-center justify-center relative overflow-hidden">
+                        <div class="absolute inset-0 bg-blue-500/5 z-0"></div>
+                        <div class="relative z-10 w-24 h-24 rounded-full border-[6px] border-gray-700 flex flex-col items-center justify-center mb-3">
+                            <span class="text-xl font-bold text-white">40%</span>
+                        </div>
+                        <h3 class="text-sm font-bold z-10 text-blue-400">3.5 L / Dia</h3>
+                        <p class="text-gray-400 text-[10px] z-10 text-center mt-1 leading-tight">Faltam 3 no escritório, 1 em casa.</p>
+                    </div>
+
+                    <div class="card rounded-3xl p-5 shadow-sm flex flex-col items-center justify-center relative overflow-hidden">
+                        <div class="absolute inset-0 bg-yellow-500/5 z-0"></div>
+                        <div class="relative z-10 w-24 h-24 rounded-full border-[6px] border-yellow-500 border-l-gray-700 flex flex-col items-center justify-center mb-3">
+                            <span class="text-xl font-bold text-white">150<span class="text-xs text-gray-400">mg</span></span>
+                        </div>
+                        <h3 class="text-sm font-bold z-10 text-yellow-500">Máx: 400mg</h3>
+                        <p class="text-gray-400 text-[10px] z-10 text-center mt-1 leading-tight">Dentro do limite diário seguro.</p>
+                    </div>
+                </div>
+
+                <div>
+                    <h2 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3 px-1">Lançamento Rápido</h2>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button class="card rounded-2xl p-4 flex items-center space-x-3 hover:bg-gray-800 transition-colors border border-gray-800">
+                            <div class="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500 shrink-0"><i data-lucide="droplet" class="w-5 h-5"></i></div>
+                            <div class="text-left"><span class="block text-sm font-medium">Escritório</span><span class="block text-xs text-blue-400">+ 473 ml</span></div>
+                        </button>
+                        <button class="card rounded-2xl p-4 flex items-center space-x-3 hover:bg-gray-800 transition-colors border border-gray-800">
+                            <div class="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500 shrink-0"><i data-lucide="glass-water" class="w-5 h-5"></i></div>
+                            <div class="text-left"><span class="block text-sm font-medium">Casa</span><span class="block text-xs text-blue-400">+ 250 ml</span></div>
+                        </button>
+                        <button class="card rounded-2xl p-4 flex items-center space-x-3 hover:bg-gray-800 transition-colors border border-gray-800">
+                            <div class="w-10 h-10 rounded-full bg-orange-500/10 flex items-center justify-center text-orange-500 shrink-0"><i data-lucide="coffee" class="w-5 h-5"></i></div>
+                            <div class="text-left"><span class="block text-sm font-medium">Café</span><span class="block text-xs text-orange-400">+ 80 mg</span></div>
+                        </button>
+                        <button class="card rounded-2xl p-4 flex items-center space-x-3 hover:bg-gray-800 transition-colors border border-gray-800">
+                            <div class="w-10 h-10 rounded-full bg-yellow-500/10 flex items-center justify-center text-yellow-500 shrink-0"><i data-lucide="zap" class="w-5 h-5"></i></div>
+                            <div class="text-left"><span class="block text-sm font-medium">Energético</span><span class="block text-xs text-yellow-500">+ 150 mg</span></div>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="card rounded-3xl p-6 shadow-sm">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-gray-400 font-medium flex items-center space-x-2"><i data-lucide="calendar-days" class="w-4 h-4"></i><span>Relatório Mensal</span></h2>
+                        <div class="flex items-center space-x-2">
+                            <button class="p-1 hover:bg-gray-700 rounded-full transition-colors text-gray-500 hover:text-white"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
+                            <span class="text-xs text-[#38bdf8] font-bold w-14 text-center">Fev 2026</span>
+                            <button class="p-1 hover:bg-gray-700 rounded-full transition-colors text-gray-500 hover:text-white"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+                        </div>
+                    </div>
+                    <div class="flex space-x-4 mb-4 text-[10px] text-gray-400">
+                        <div class="flex items-center space-x-1"><div class="w-3 h-3 rounded-full border border-blue-500"></div><span>Meta Água</span></div>
+                        <div class="flex items-center space-x-1"><div class="w-2 h-2 rounded-full bg-yellow-500"></div><span>Cafeína Consumida</span></div>
+                    </div>
+                    <div class="grid grid-cols-7 gap-y-3 gap-x-1 text-center">
+                        <div class="text-[10px] text-gray-500 font-bold">D</div><div class="text-[10px] text-gray-500 font-bold">S</div><div class="text-[10px] text-gray-500 font-bold">T</div><div class="text-[10px] text-gray-500 font-bold">Q</div><div class="text-[10px] text-gray-500 font-bold">Q</div><div class="text-[10px] text-gray-500 font-bold">S</div><div class="text-[10px] text-gray-500 font-bold">S</div>
+                        <div class="flex justify-center"><div class="w-8 h-8 rounded-full border border-blue-500 flex items-center justify-center text-xs relative cursor-pointer hover:bg-blue-500/20 transition-colors" onclick="alert('Detalhes 15 Fev')">15</div></div>
+                        <div class="flex justify-center"><div class="w-8 h-8 rounded-full border border-blue-500 flex items-center justify-center text-xs relative cursor-pointer hover:bg-blue-500/20 transition-colors" onclick="alert('Detalhes 16 Fev')">16<span class="absolute bottom-0 right-0 w-2 h-2 bg-yellow-500 rounded-full border border-[#1E2128]"></span></div></div>
+                        <div class="flex justify-center"><div class="w-8 h-8 rounded-full border border-gray-700 flex items-center justify-center text-xs relative text-gray-400 cursor-pointer hover:bg-gray-800 transition-colors" onclick="alert('Detalhes 17 Fev')">17<span class="absolute bottom-0 right-0 w-2 h-2 bg-yellow-500 rounded-full border border-[#1E2128]"></span></div></div>
+                        <div class="flex justify-center"><div class="w-8 h-8 rounded-full border border-blue-500 flex items-center justify-center text-xs relative cursor-pointer hover:bg-blue-500/20 transition-colors" onclick="alert('Detalhes 18 Fev')">18</div></div>
+                        <div class="flex justify-center"><div class="w-8 h-8 rounded-full border border-blue-500 flex items-center justify-center text-xs relative cursor-pointer hover:bg-blue-500/20 transition-colors" onclick="alert('Detalhes 19 Fev')">19<span class="absolute bottom-0 right-0 w-2 h-2 bg-yellow-500 rounded-full border border-[#1E2128]"></span></div></div>
+                        <div class="flex justify-center"><div class="w-8 h-8 rounded-full bg-[#38bdf8] text-[#121418] font-bold flex items-center justify-center text-xs relative shadow-[0_0_10px_rgba(56,189,248,0.4)] cursor-pointer" onclick="alert('Detalhes Hoje')">20<span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-yellow-400 rounded-full border-2 border-[#38bdf8]"></span></div></div>
+                        <div class="flex justify-center"><div class="w-8 h-8 rounded-full flex items-center justify-center text-xs text-gray-600">21</div></div>
+                    </div>
+                </div>
             </div>
+
             <!-- PÁGINA 3: FINANÇAS -->
             <div id="page-financas" class="page-content hidden space-y-5 fade-in">
-                <div class="card rounded-3xl p-6 shadow-sm relative overflow-hidden"><div class="absolute right-0 top-0 w-32 h-32 bg-green-500/10 rounded-bl-full z-0"></div><div class="absolute top-4 right-4 z-20 cursor-pointer p-1" onclick="toggleVisibility()"><div id="icon-eye"><i data-lucide="eye" class="w-5 h-5 text-gray-400 hover:text-white transition-colors"></i></div><div id="icon-eye-off" class="hidden"><i data-lucide="eye-off" class="w-5 h-5 text-gray-400 hover:text-white transition-colors"></i></div></div><div class="relative z-10"><span class="text-gray-400 text-sm">Disponível</span><h2 id="resumo-disponivel" class="text-4xl font-bold mt-1 mb-4 sensitive-value" data-value="R$ 4.250,00">R$ 4.250,00</h2><div class="flex justify-between items-center mt-6"><div><span class="text-xs text-gray-500 block mb-1">Gasto (Efetivado)</span><span id="resumo-gasto" class="text-sm font-semibold text-red-400 sensitive-value" data-value="R$ 1.150,00">R$ 1.150,00</span></div><div class="w-px h-8 bg-gray-700"></div><div class="text-right"><span class="text-xs text-gray-500 block mb-1">Receita (Efetivada)</span><span id="resumo-receita" class="text-sm font-semibold text-green-400 sensitive-value" data-value="R$ 5.400,00">R$ 5.400,00</span></div></div></div></div>
-                <div class="grid grid-cols-3 gap-3"><button class="card rounded-2xl py-4 flex flex-col items-center justify-center hover:bg-gray-800 transition-colors" onclick="abrirTransacaoFinancas('despesa')"><i data-lucide="arrow-up-right" class="w-6 h-6 text-red-400 mb-2"></i><span class="text-xs font-medium">Despesa</span></button><button class="card rounded-2xl py-4 flex flex-col items-center justify-center hover:bg-gray-800 transition-colors" onclick="abrirTransacaoFinancas('receita')"><i data-lucide="arrow-down-left" class="w-6 h-6 text-green-400 mb-2"></i><span class="text-xs font-medium">Receita</span></button><button class="card rounded-2xl py-4 flex flex-col items-center justify-center hover:bg-gray-800 transition-colors" onclick="abrirRelatorioFinancas()"><i data-lucide="bar-chart-2" class="w-6 h-6 text-[#38bdf8] mb-2"></i><span class="text-xs font-medium">Relatório</span></button></div>
-                <div class="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-2 -mx-6 px-6 relative mt-6"><div class="snap-center shrink-0 w-[85%] card rounded-3xl p-6 shadow-sm relative overflow-hidden bg-gradient-to-br from-[#1E2128] to-[#121418] border border-gray-700"><div class="flex justify-between items-center mb-6"><div class="flex items-center space-x-2"><i data-lucide="credit-card" class="w-5 h-5 text-gray-400"></i><span class="text-sm font-medium text-gray-300">Cartão Principal</span></div><span class="text-sm font-bold italic text-gray-400">MASTERCARD</span></div><div class="mb-4"><span class="text-xs text-gray-400 block mb-1">Fatura Atual</span><span class="text-3xl font-bold sensitive-value text-white" data-value="R$ 840,00">R$ 840,00</span></div><div class="flex justify-between items-end mt-6"><div><span class="text-xs text-gray-500 block mb-1">Limite Disponível</span><span class="text-sm font-semibold text-green-400 sensitive-value" data-value="R$ 2.160,00">R$ 2.160,00</span></div><span class="text-xs text-gray-500 font-mono tracking-widest">•••• 4321</span></div></div><div class="snap-center shrink-0 w-[85%] card rounded-3xl p-6 shadow-sm relative overflow-hidden bg-gradient-to-br from-purple-900/40 to-[#121418] border border-purple-500/30"><div class="flex justify-between items-center mb-6"><div class="flex items-center space-x-2"><i data-lucide="credit-card" class="w-5 h-5 text-purple-400"></i><span class="text-sm font-medium text-purple-300">Nubank</span></div><span class="text-sm font-bold italic text-purple-400/50">MASTERCARD</span></div><div class="mb-4"><span class="text-xs text-purple-300/70 block mb-1">Fatura Atual</span><span class="text-3xl font-bold sensitive-value text-white" data-value="R$ 150,00">R$ 150,00</span></div><div class="flex justify-between items-end mt-6"><div><span class="text-xs text-purple-300/70 block mb-1">Limite Disponível</span><span class="text-sm font-semibold text-green-400 sensitive-value" data-value="R$ 4.850,00">R$ 4.850,00</span></div><span class="text-xs text-gray-500 font-mono tracking-widest">•••• 1928</span></div></div><div class="snap-center shrink-0 w-[30%] card rounded-3xl p-6 shadow-sm flex flex-col items-center justify-center border border-dashed border-gray-700 cursor-pointer hover:bg-gray-800 transition-colors" onclick="abrirGerenciar()"><div class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 mb-2"><i data-lucide="plus" class="w-5 h-5"></i></div></div></div>
-                <div class="card rounded-3xl p-6 shadow-sm mt-6"><div class="flex justify-between items-center mb-4"><h2 class="text-gray-400 font-medium">Transações Recentes</h2><span class="text-xs text-[#38bdf8] font-bold cursor-pointer hover:underline" onclick="abrirExtrato()">Ver tudo</span></div><div id="lista-transacoes-financas" class="space-y-4"><div class="flex justify-between items-center group"><div class="flex items-center space-x-3 overflow-hidden"><div class="w-10 h-10 rounded-full bg-purple-500/10 flex items-center justify-center text-purple-500 shrink-0"><i data-lucide="shopping-bag" class="w-5 h-5"></i></div><div class="truncate"><span class="block text-sm font-medium truncate">Supermercado</span><span class="block text-[10px] text-gray-500 uppercase tracking-wider truncate">Compras da semana <span class="text-blue-500 font-bold">• Efetivada</span></span></div></div><div class="flex flex-col items-end shrink-0 ml-2"><span class="text-sm font-semibold text-red-400">- R$ 240,00</span><div class="flex space-x-3 mt-1.5 opacity-80"><button class="text-gray-500 hover:text-white transition-colors" onclick="alert('Editar Transação')"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button><button class="text-gray-500 hover:text-red-400 transition-colors" onclick="this.closest('.flex.justify-between').remove();"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button></div></div></div><div class="flex justify-between items-center group"><div class="flex items-center space-x-3 overflow-hidden"><div class="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center text-green-500 shrink-0"><i data-lucide="briefcase" class="w-5 h-5"></i></div><div class="truncate"><span class="block text-sm font-medium truncate">Makro Engenharia</span><span class="block text-[10px] text-gray-500 uppercase tracking-wider truncate">Salário <span class="text-blue-500 font-bold">• Efetivada</span></span></div></div><div class="flex flex-col items-end shrink-0 ml-2"><span class="text-sm font-semibold text-green-400">+ R$ 5.400,00</span><div class="flex space-x-3 mt-1.5 opacity-80"><button class="text-gray-500 hover:text-white transition-colors" onclick="alert('Editar Transação')"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button><button class="text-gray-500 hover:text-red-400 transition-colors" onclick="this.closest('.flex.justify-between').remove();"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button></div></div></div></div></div>
+                <!-- Resumo -->
+                <div class="card rounded-3xl p-6 shadow-sm relative overflow-hidden">
+                    <div class="absolute right-0 top-0 w-32 h-32 bg-green-500/10 rounded-bl-full z-0"></div>
+                    <div class="absolute top-4 right-4 z-20 cursor-pointer p-1" onclick="toggleVisibility()">
+                        <div id="icon-eye"><i data-lucide="eye" class="w-5 h-5 text-gray-400 hover:text-white transition-colors"></i></div>
+                        <div id="icon-eye-off" class="hidden"><i data-lucide="eye-off" class="w-5 h-5 text-gray-400 hover:text-white transition-colors"></i></div>
+                    </div>
+                    <div class="relative z-10">
+                        <span class="text-gray-400 text-sm">Disponível</span>
+                        <h2 id="resumo-disponivel" class="text-4xl font-bold mt-1 mb-4 sensitive-value" data-value="R$ 4.250,00">R$ 4.250,00</h2>
+                        <div class="flex justify-between items-center mt-6">
+                            <div><span class="text-xs text-gray-500 block mb-1">Gasto (Efetivado)</span><span id="resumo-gasto" class="text-sm font-semibold text-red-400 sensitive-value" data-value="R$ 1.150,00">R$ 1.150,00</span></div>
+                            <div class="w-px h-8 bg-gray-700"></div>
+                            <div class="text-right"><span class="text-xs text-gray-500 block mb-1">Receita (Efetivada)</span><span id="resumo-receita" class="text-sm font-semibold text-green-400 sensitive-value" data-value="R$ 5.400,00">R$ 5.400,00</span></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-3 gap-3">
+                    <button class="card rounded-2xl py-4 flex flex-col items-center justify-center hover:bg-gray-800 transition-colors" onclick="abrirTransacaoFinancas('despesa')"><i data-lucide="arrow-up-right" class="w-6 h-6 text-red-400 mb-2"></i><span class="text-xs font-medium">Despesa</span></button>
+                    <button class="card rounded-2xl py-4 flex flex-col items-center justify-center hover:bg-gray-800 transition-colors" onclick="abrirTransacaoFinancas('receita')"><i data-lucide="arrow-down-left" class="w-6 h-6 text-green-400 mb-2"></i><span class="text-xs font-medium">Receita</span></button>
+                    <button class="card rounded-2xl py-4 flex flex-col items-center justify-center hover:bg-gray-800 transition-colors" onclick="abrirRelatorioFinancas()"><i data-lucide="bar-chart-2" class="w-6 h-6 text-[#38bdf8] mb-2"></i><span class="text-xs font-medium">Relatório</span></button>
+                </div>
+                
+                <!-- Carrossel de Cartões de Crédito -->
+                <div class="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-2 -mx-6 px-6 relative mt-6">
+                    <!-- Cartão 1 -->
+                    <div class="snap-center shrink-0 w-[85%] card rounded-3xl p-6 shadow-sm relative overflow-hidden bg-gradient-to-br from-[#1E2128] to-[#121418] border border-gray-700">
+                        <div class="flex justify-between items-center mb-6">
+                            <div class="flex items-center space-x-2"><i data-lucide="credit-card" class="w-5 h-5 text-gray-400"></i><span class="text-sm font-medium text-gray-300">Cartão Principal</span></div>
+                            <span class="text-sm font-bold italic text-gray-400">MASTERCARD</span>
+                        </div>
+                        <div class="mb-4">
+                            <span class="text-xs text-gray-400 block mb-1">Fatura Atual</span>
+                            <span class="text-3xl font-bold sensitive-value text-white" data-value="R$ 840,00">R$ 840,00</span>
+                        </div>
+                        <div class="flex justify-between items-end mt-6">
+                            <div>
+                                <span class="text-xs text-gray-500 block mb-1">Limite Disponível</span>
+                                <span class="text-sm font-semibold text-green-400 sensitive-value" data-value="R$ 2.160,00">R$ 2.160,00</span>
+                            </div>
+                            <span class="text-xs text-gray-500 font-mono tracking-widest">•••• 4321</span>
+                        </div>
+                    </div>
+
+                    <!-- Cartão 2 -->
+                    <div class="snap-center shrink-0 w-[85%] card rounded-3xl p-6 shadow-sm relative overflow-hidden bg-gradient-to-br from-purple-900/40 to-[#121418] border border-purple-500/30">
+                        <div class="flex justify-between items-center mb-6">
+                            <div class="flex items-center space-x-2"><i data-lucide="credit-card" class="w-5 h-5 text-purple-400"></i><span class="text-sm font-medium text-purple-300">Nubank</span></div>
+                            <span class="text-sm font-bold italic text-purple-400/50">MASTERCARD</span>
+                        </div>
+                        <div class="mb-4">
+                            <span class="text-xs text-purple-300/70 block mb-1">Fatura Atual</span>
+                            <span class="text-3xl font-bold sensitive-value text-white" data-value="R$ 150,00">R$ 150,00</span>
+                        </div>
+                        <div class="flex justify-between items-end mt-6">
+                            <div>
+                                <span class="text-xs text-purple-300/70 block mb-1">Limite Disponível</span>
+                                <span class="text-sm font-semibold text-green-400 sensitive-value" data-value="R$ 4.850,00">R$ 4.850,00</span>
+                            </div>
+                            <span class="text-xs text-gray-500 font-mono tracking-widest">•••• 1928</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Adicionar Cartão -->
+                    <div class="snap-center shrink-0 w-[30%] card rounded-3xl p-6 shadow-sm flex flex-col items-center justify-center border border-dashed border-gray-700 cursor-pointer hover:bg-gray-800 transition-colors" onclick="abrirGerenciar()">
+                        <div class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 mb-2">
+                            <i data-lucide="plus" class="w-5 h-5"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card rounded-3xl p-6 shadow-sm mt-6">
+                    <div class="flex justify-between items-center mb-4"><h2 class="text-gray-400 font-medium">Transações Recentes</h2><span class="text-xs text-[#38bdf8] font-bold cursor-pointer hover:underline" onclick="abrirExtrato()">Ver tudo</span></div>
+                    
+                    <div id="lista-transacoes-financas" class="space-y-4">
+                        <div class="flex justify-between items-center group">
+                            <div class="flex items-center space-x-3 overflow-hidden">
+                                <div class="w-10 h-10 rounded-full bg-purple-500/10 flex items-center justify-center text-purple-500 shrink-0">
+                                    <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+                                </div>
+                                <div class="truncate">
+                                    <span class="block text-sm font-medium truncate">Supermercado</span>
+                                    <span class="block text-[10px] text-gray-500 uppercase tracking-wider truncate">Compras da semana <span class="text-blue-500 font-bold">• Efetivada</span></span>
+                                </div>
+                            </div>
+                            <div class="flex flex-col items-end shrink-0 ml-2">
+                                <span class="text-sm font-semibold text-red-400">- R$ 240,00</span>
+                                <div class="flex space-x-3 mt-1.5 opacity-80">
+                                    <button class="text-gray-500 hover:text-white transition-colors" onclick="alert('Editar Transação')"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button>
+                                    <button class="text-gray-500 hover:text-red-400 transition-colors" onclick="this.closest('.flex.justify-between').remove();"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center group">
+                            <div class="flex items-center space-x-3 overflow-hidden">
+                                <div class="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center text-green-500 shrink-0">
+                                    <i data-lucide="briefcase" class="w-5 h-5"></i>
+                                </div>
+                                <div class="truncate">
+                                    <span class="block text-sm font-medium truncate">Makro Engenharia</span>
+                                    <span class="block text-[10px] text-gray-500 uppercase tracking-wider truncate">Salário <span class="text-blue-500 font-bold">• Efetivada</span></span>
+                                </div>
+                            </div>
+                            <div class="flex flex-col items-end shrink-0 ml-2">
+                                <span class="text-sm font-semibold text-green-400">+ R$ 5.400,00</span>
+                                <div class="flex space-x-3 mt-1.5 opacity-80">
+                                    <button class="text-gray-500 hover:text-white transition-colors" onclick="alert('Editar Transação')"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button>
+                                    <button class="text-gray-500 hover:text-red-400 transition-colors" onclick="this.closest('.flex.justify-between').remove();"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
+
             <!-- PÁGINA 4: VEÍCULO -->
             <div id="page-veiculo" class="page-content hidden space-y-5 fade-in">
-                <div class="flex justify-between items-center mb-2 px-1"><h2 class="text-lg font-bold text-gray-200">Painel de Controle</h2><button class="flex items-center space-x-2 text
+                
+                <div class="flex justify-between items-center mb-2 px-1">
+                    <h2 class="text-lg font-bold text-gray-200">Painel de Controle</h2>
+                    <button class="flex items-center space-x-2 text-orange-500 bg-orange-500/10 px-3 py-1.5 rounded-xl hover:bg-orange-500/20 transition-colors" onclick="abrirAjustesVeiculo()">
+                        <i data-lucide="settings" class="w-4 h-4"></i>
+                        <span class="text-xs font-bold">Ajustes</span>
+                    </button>
+                </div>
+
+                <!-- Hero: Resumo do Veículo -->
+                <div class="card rounded-3xl p-6 shadow-sm relative overflow-hidden bg-gradient-to-br from-[#1E2128] to-[#121418] border border-orange-500/20">
+                    <div class="absolute -right-6 -top-6 w-32 h-32 bg-orange-500/10 rounded-full blur-2xl z-0"></div>
+                    
+                    <div class="flex justify-between items-start mb-4 relative z-10">
+                        <div>
+                            <h2 id="veiculo-hero-nome" class="text-2xl font-bold text-white mb-1">Fazer 250</h2>
+                            <span id="veiculo-hero-montadora" class="text-xs font-medium bg-gray-800 text-gray-300 px-2 py-1 rounded-lg border border-gray-700">Yamaha</span>
+                        </div>
+                        <div class="w-12 h-12 rounded-full bg-orange-500/20 flex items-center justify-center text-orange-500 border border-orange-500/30">
+                            <!-- Ícones pré-renderizados para toggle rápido -->
+                            <i data-lucide="bike" id="icon-veiculo-moto" class="w-6 h-6 block"></i>
+                            <i data-lucide="car" id="icon-veiculo-carro" class="w-6 h-6 hidden"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-end justify-between mt-8 relative z-10">
+                        <div>
+                            <span class="text-xs text-gray-500 block mb-1">Odômetro Atual</span>
+                            <span class="text-2xl font-bold text-white"><span id="veiculo-hero-odometro">18.450</span> <span class="text-sm text-gray-400 font-normal">km</span></span>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-xs text-gray-500 block mb-1">Média Constante</span>
+                            <span class="text-xl font-bold text-green-400"><span id="veiculo-hero-kml">29.0</span> <span class="text-sm text-gray-400 font-normal">km/l</span></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botões de Ação Rápida -->
+                <div class="grid grid-cols-2 gap-3">
+                    <button class="card rounded-2xl py-4 px-4 flex items-center justify-center space-x-3 hover:bg-gray-800 transition-colors border border-transparent hover:border-orange-500/30" onclick="abrirModalAbastecimento()">
+                        <div class="w-10 h-10 rounded-full bg-orange-500/10 flex items-center justify-center text-orange-500 shrink-0">
+                            <i data-lucide="fuel" class="w-5 h-5"></i>
+                        </div>
+                        <span class="text-sm font-bold">Abastecer</span>
+                    </button>
+                    <button class="card rounded-2xl py-4 px-4 flex items-center justify-center space-x-3 hover:bg-gray-800 transition-colors border border-transparent hover:border-gray-500/30" onclick="abrirModalServico()">
+                        <div class="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center text-gray-300 shrink-0">
+                            <i data-lucide="wrench" class="w-5 h-5"></i>
+                        </div>
+                        <span class="text-sm font-bold">Serviço</span>
+                    </button>
+                </div>
+
+                <div class="card rounded-3xl p-6 shadow-sm">
+                    <div class="flex justify-between items-center mb-5">
+                        <h3 class="text-sm font-bold text-gray-300 flex items-center space-x-2">
+                            <i data-lucide="activity" class="w-4 h-4 text-[#38bdf8]"></i>
+                            <span>Status</span>
+                        </h3>
+                    </div>
+                    <div class="space-y-6">
+                        <div>
+                            <div class="flex justify-between items-end mb-2">
+                                <span class="text-sm font-medium">Óleo do Motor</span>
+                                <span class="text-xs text-orange-400 font-bold">Trocar em 1.200 km</span>
+                            </div>
+                            <div class="w-full bg-gray-700 rounded-full h-2">
+                                <div class="bg-orange-500 h-2 rounded-full" style="width: 70%"></div>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center pt-2">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center text-gray-400"><i data-lucide="circle-dashed" class="w-4 h-4"></i></div>
+                                <span class="text-sm font-medium text-gray-400">Pneus (Calibragem)</span>
+                            </div>
+                            <span class="text-xs font-bold text-green-400">Verificado há 3 dias</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <h2 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3 px-1 mt-2">Últimos Lançamentos</h2>
+                    <div class="space-y-3" id="lista-transacoes-veiculo">
+                        <div class="card p-4 rounded-2xl flex justify-between items-center border border-gray-800">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-400">
+                                    <span class="text-xs font-bold">18 Fev</span>
+                                </div>
+                                <div>
+                                    <span class="block text-sm font-bold">Posto Ipiranga</span>
+                                    <span class="block text-xs text-gray-500">9,31 L • Carteira</span>
+                                </div>
+                            </div>
+                            <span class="text-sm font-bold text-white">R$ 55,00</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Menu Fixo Inferior -->
+        <nav class="absolute bottom-0 w-full h-20 card rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.3)] flex justify-around items-center px-2 z-50 shrink-0">
+            <button id="nav-home" class="nav-btn flex flex-col items-center justify-center w-16 h-full relative text-[#38bdf8]" onclick="navigate(this, 'page-home', 'Visão Geral')">
+                <div class="absolute top-0 w-6 h-0.5 bg-[#38bdf8] rounded-b-md transition-all"></div>
+                <i data-lucide="home" class="w-6 h-6 mb-1"></i>
+                <span class="text-[10px] font-medium">Home</span>
+            </button>
+
+            <button id="nav-saude" class="nav-btn flex flex-col items-center justify-center w-16 h-full relative text-[#8c92a0] hover:text-gray-300 transition-colors" onclick="navigate(this, 'page-saude', 'Saúde e Bem-estar')">
+                <div class="absolute top-0 w-0 h-0.5 bg-[#38bdf8] rounded-b-md transition-all"></div>
+                <i data-lucide="heart-pulse" class="w-6 h-6 mb-1"></i>
+                <span class="text-[10px] font-medium">Saúde</span>
+            </button>
+
+            <!-- Botão Central + (FAB Menu) -->
+            <div class="relative w-16 h-full flex justify-center z-50">
+                <div id="fab-overlay" class="fixed inset-0 bg-black/40 z-[-1] hidden opacity-0 transition-opacity duration-300" onclick="toggleFab()"></div>
+
+                <!-- Sub-botão: Finanças -->
+                <button id="fab-financas" class="absolute -top-6 w-12 h-12 bg-[#1E2128] rounded-full flex items-center justify-center text-green-400 border border-gray-700 shadow-lg transition-all duration-300 opacity-0 scale-50 z-0 pointer-events-none" style="transform: translate(0, 0);" onclick="abrirTransacaoFinancas('despesa')">
+                    <i data-lucide="dollar-sign" class="w-5 h-5"></i>
+                </button>
+
+                <!-- Sub-botão: Veículo -->
+                <button id="fab-veiculo" class="absolute -top-6 w-12 h-12 bg-[#1E2128] rounded-full flex items-center justify-center text-orange-400 border border-gray-700 shadow-lg transition-all duration-300 opacity-0 scale-50 z-0 pointer-events-none" style="transform: translate(0, 0);" onclick="abrirModalAbastecimento()">
+                    <i data-lucide="bike" id="fab-veiculo-icon" class="w-5 h-5"></i>
+                </button>
+
+                <!-- Botão Principal -->
+                <button class="absolute -top-6 w-14 h-14 bg-[#38bdf8] rounded-full flex items-center justify-center text-white border-[6px] border-[#121418] shadow-lg hover:scale-105 transition-transform z-10" onclick="toggleFab()">
+                    <i data-lucide="plus" id="fab-icon" class="w-7 h-7 transition-transform duration-300"></i>
+                </button>
+            </div>
+
+            <button id="nav-financas" class="nav-btn flex flex-col items-center justify-center w-16 h-full relative text-[#8c92a0] hover:text-gray-300 transition-colors" onclick="navigate(this, 'page-financas', 'Finanças Pessoais')">
+                <div class="absolute top-0 w-0 h-0.5 bg-[#38bdf8] rounded-b-md transition-all"></div>
+                <i data-lucide="circle-dollar-sign" class="w-6 h-6 mb-1"></i>
+                <span class="text-[10px] font-medium">Finanças</span>
+            </button>
+
+            <button id="nav-menu" class="nav-btn flex flex-col items-center justify-center w-16 h-full relative text-[#8c92a0] hover:text-gray-300 transition-colors" onclick="toggleBottomSheet()">
+                <div class="absolute top-0 w-0 h-0.5 bg-[#38bdf8] rounded-b-md transition-all"></div>
+                <i data-lucide="menu" class="w-6 h-6 mb-1"></i>
+                <span class="text-[10px] font-medium">Menu</span>
+            </button>
+        </nav>
+
+        <!-- Menu Hambúrguer (Bottom Sheet) -->
+        <div id="menu-overlay" class="absolute inset-0 bg-black/60 z-[60] hidden opacity-0 transition-opacity duration-300" onclick="closeAllBottomSheets()"></div>
+        <div id="bottom-sheet" class="absolute bottom-0 w-full bg-[#1E2128] rounded-t-3xl z-[70] transform translate-y-full transition-transform duration-300 shadow-[0_-15px_40px_rgba(0,0,0,0.7)] flex flex-col">
+            <div class="w-full flex justify-center pt-4 pb-2" onclick="closeAllBottomSheets()">
+                <div class="w-12 h-1.5 bg-gray-600 rounded-full cursor-pointer"></div>
+            </div>
+            <div class="px-6 pb-10 pt-4 space-y-3">
+                <button class="w-full flex items-center space-x-4 p-4 rounded-2xl bg-[#121418]/50 hover:bg-gray-800 transition-colors border border-transparent hover:border-orange-500/30" onclick="navigate(null, 'page-veiculo', 'Seu Veículo'); closeAllBottomSheets();">
+                    <div class="w-12 h-12 rounded-full bg-orange-500/10 flex items-center justify-center text-orange-500">
+                        <i data-lucide="bike" id="menu-veiculo-icon" class="w-6 h-6"></i>
+                    </div>
+                    <div class="flex flex-col items-start">
+                        <span class="text-white font-medium text-lg">Veículo</span>
+                        <span class="text-xs text-gray-500" id="menu-veiculo-nome">Sua Fazer 250</span>
+                    </div>
+                </button>
+                <button class="w-full flex items-center space-x-4 p-4 rounded-2xl bg-[#121418]/50 hover:bg-gray-800 transition-colors border border-transparent hover:border-[#38bdf8]/30" onclick="abrirGerenciar()">
+                    <div class="w-12 h-12 rounded-full bg-[#38bdf8]/10 flex items-center justify-center text-[#38bdf8]">
+                        <i data-lucide="layers" class="w-6 h-6"></i>
+                    </div>
+                    <div class="flex flex-col items-start">
+                        <span class="text-white font-medium text-lg">Contas e Categorias</span>
+                        <span class="text-xs text-gray-500">Gerir bancos e classificações</span>
+                    </div>
+                </button>
+            </div>
+        </div>
+
+        <!-- ================= MODAIS COMPLEMENTARES ================= -->
+        
+        <!-- Modal: Ajustes do Veículo -->
+        <div id="modal-ajustes-veiculo" class="absolute inset-0 bg-[#121418] z-[90] transform translate-y-full transition-transform duration-300 flex flex-col">
+            <header class="px-6 pt-10 pb-4 flex justify-between items-center shrink-0 border-b border-gray-800 bg-[#1E2128]">
+                <button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-700 transition-colors" onclick="fecharAjustesVeiculo()"><i data-lucide="arrow-left" class="w-5 h-5 text-gray-300"></i></button>
+                <h1 class="text-lg font-bold text-orange-500">Ajustes do Veículo</h1><div class="w-10 h-10"></div>
+            </header>
+            <main class="flex-1 overflow-y-auto p-6 space-y-6">
+                <div class="bg-gray-800 p-1 rounded-xl flex items-center w-full">
+                    <button id="btn-tipo-moto" class="flex-1 py-2 text-sm font-bold rounded-lg bg-orange-500 text-[#121418] shadow-sm transition-all" onclick="selecionarTipoVeiculo('moto')">Moto</button>
+                    <button id="btn-tipo-carro" class="flex-1 py-2 text-sm font-bold rounded-lg text-gray-400 hover:text-white transition-all" onclick="selecionarTipoVeiculo('carro')">Carro</button>
+                </div>
+                <div class="flex flex-col">
+                    <label class="text-sm text-gray-400 mb-1">Montadora</label>
+                    <div class="relative">
+                        <select id="select-montadora" class="card p-4 rounded-2xl w-full outline-none text-white focus:ring-2 focus:ring-orange-500 border border-gray-700 transition-all appearance-none cursor-pointer" onchange="atualizarModelos()"></select>
+                        <i data-lucide="chevron-down" class="w-5 h-5 text-gray-500 absolute right-4 top-4 pointer-events-none"></i>
+                    </div>
+                </div>
+                <div class="flex flex-col">
+                    <label class="text-sm text-gray-400 mb-1">Modelo do Veículo</label>
+                    <div class="relative">
+                        <select id="select-modelo" class="card p-4 rounded-2xl w-full outline-none text-white focus:ring-2 focus:ring-orange-500 border border-gray-700 transition-all appearance-none cursor-pointer" onchange="atualizarConsumo()"></select>
+                        <i data-lucide="chevron-down" class="w-5 h-5 text-gray-500 absolute right-4 top-4 pointer-events-none"></i>
+                    </div>
+                </div>
+                <div class="flex flex-col">
+                    <label class="text-sm text-gray-400 mb-1">Odômetro Atual (km)</label>
+                    <input type="number" id="input-odometro" value="18450" class="card p-4 rounded-2xl w-full outline-none text-white focus:ring-2 focus:ring-orange-500 border border-gray-700 transition-all font-bold text-xl">
+                </div>
+                <div class="flex flex-col">
+                    <label class="text-sm text-gray-400 mb-1">Média de Consumo (pode ser editado)</label>
+                    <div class="flex items-center card p-4 rounded-2xl border border-gray-700 focus-within:border-orange-500 focus-within:ring-2 focus-within:ring-orange-500 transition-all">
+                        <input type="number" id="input-kml" step="0.1" value="29.0" class="bg-transparent w-full outline-none text-white font-bold text-xl">
+                        <span class="text-gray-500 ml-2 font-bold">km/l</span>
+                    </div>
+                    <p class="text-[10px] text-gray-500 mt-2">Valor base da internet para este modelo. Ajuste conforme sua realidade.</p>
+                </div>
+                <button class="w-full bg-orange-500 text-[#121418] font-bold text-lg py-4 rounded-2xl hover:bg-orange-400 transition-colors shadow-[0_0_20px_rgba(249,115,22,0.3)] mt-8" onclick="salvarAjustesVeiculo()">
+                    Salvar Veículo
+                </button>
+            </main>
+        </div>
+
+        <!-- Modal: Abastecimento (Veículo) -->
+        <div id="modal-abastecimento" class="absolute inset-0 bg-[#121418] z-[90] transform translate-y-full transition-transform duration-300 flex flex-col">
+            <header class="px-6 pt-10 pb-4 flex justify-between items-center shrink-0 border-b border-gray-800 bg-[#1E2128]">
+                <button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-700 transition-colors" onclick="fecharModalAbastecimento()"><i data-lucide="arrow-left" class="w-5 h-5 text-gray-300"></i></button>
+                <h1 class="text-lg font-bold text-orange-500">Abastecimento</h1><div class="w-10 h-10"></div>
+            </header>
+            <main class="flex-1 overflow-y-auto p-6 space-y-6">
+                <p class="text-xs text-gray-400 text-center">Digite dois valores para o sistema calcular o terceiro automaticamente.</p>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="flex flex-col col-span-2">
+                        <label class="text-sm text-gray-400 mb-1">Preço do Litro (R$)</label>
+                        <input type="number" id="abs-preco" placeholder="Ex: 5,50" step="0.01" class="card p-4 rounded-2xl w-full outline-none text-white focus:ring-2 focus:ring-orange-500 border border-transparent transition-all font-bold text-lg text-center" oninput="calcularAbastecimento('preco')">
+                    </div>
+                    <div class="flex flex-col">
+                        <label class="text-sm text-gray-400 mb-1">Total Pago (R$)</label>
+                        <input type="number" id="abs-total" placeholder="Ex: 50,00" step="0.01" class="card p-4 rounded-2xl w-full outline-none text-white focus:ring-2 focus:ring-orange-500 border border-transparent transition-all font-bold text-lg text-center" oninput="calcularAbastecimento('total')">
+                    </div>
+                    <div class="flex flex-col">
+                        <label class="text-sm text-gray-400 mb-1">Litros (L)</label>
+                        <input type="number" id="abs-litros" placeholder="Ex: 10" step="0.01" class="card p-4 rounded-2xl w-full outline-none text-white focus:ring-2 focus:ring-orange-500 border border-transparent transition-all font-bold text-lg text-center" oninput="calcularAbastecimento('litros')">
+                    </div>
+                </div>
+                <div class="flex flex-col">
+                    <label class="text-sm text-gray-400 mb-1">Odômetro Atualizado (km)</label>
+                    <input type="number" id="abs-odometro" class="card p-4 rounded-2xl w-full outline-none text-white focus:ring-2 focus:ring-orange-500 border border-transparent transition-all font-bold text-lg tracking-wider text-center">
+                </div>
+                <div class="flex flex-col">
+                    <label class="text-sm text-gray-400 mb-1">Descrição do Local</label>
+                    <input type="text" id="abs-desc" placeholder="Ex: Posto Ipiranga" class="card p-4 rounded-2xl w-full outline-none text-white focus:ring-2 focus:ring-orange-500 border border-transparent transition-all">
+                </div>
+                <div class="flex flex-col">
+                    <label class="text-sm text-gray-400 mb-1">Conta de Pagamento</label>
+                    <div class="relative">
+                        <!-- Preenchido dinamicamente via JS (Contas e Categorias) -->
+                        <select id="abs-conta" class="card p-4 rounded-2xl w-full outline-none text-white focus:ring-2 focus:ring-orange-500 border border-gray-700 transition-all appearance-none cursor-pointer"></select>
+                        <i data-lucide="chevron-down" class="w-5 h-5 text-gray-500 absolute right-4 top-4 pointer-events-none"></i>
+                    </div>
+                </div>
+                <button class="w-full bg-orange-500 text-[#121418] font-bold text-lg py-4 rounded-2xl hover:bg-orange-400 transition-colors shadow-[0_0_20px_rgba(249,115,22,0.3)] mt-6" onclick="registrarAbastecimento()">
+                    Salvar e Lançar Despesa
+                </button>
+            </main>
+        </div>
+
+        <!-- Modal: Serviço (Veículo) -->
+        <div id="modal-servico-veiculo" class="absolute inset-0 bg-[#121418] z-[90] transform translate-y-full transition-transform duration-300 flex flex-col">
+            <header class="px-6 pt-10 pb-4 flex justify-between items-center shrink-0 border-b border-gray-800 bg-[#1E2128]">
+                <button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-700 transition-colors" onclick="fecharModalServico()"><i data-lucide="arrow-left" class="w-5 h-5 text-gray-300"></i></button>
+                <h1 class="text-lg font-bold text-gray-300">Novo Serviço</h1><div class="w-10 h-10"></div>
+            </header>
+            <main class="flex-1 overflow-y-auto p-6 space-y-6">
+                <div class="flex flex-col">
+                    <label class="text-sm text-gray-400 mb-1">Tipo de Serviço</label>
+                    <div class="relative">
+                        <select id="srv-tipo" class="card p-4 rounded-2xl w-full outline-none text-white focus:ring-2 focus:ring-gray-500 border border-gray-700 transition-all appearance-none cursor-pointer">
+                            <option>Troca de Óleo</option><option>Lubrificação (Corrente)</option><option>Manutenção Pneus</option><option>Lavagem</option><option>Outros</option>
+                        </select>
+                        <i data-lucide="chevron-down" class="w-5 h-5 text-gray-500 absolute right-4 top-4 pointer-events-none"></i>
+                    </div>
+                </div>
+                <div class="flex flex-col">
+                    <label class="text-sm text-gray-400 mb-1">Odômetro Atualizado (km)</label>
+                    <input type="number" id="srv-odometro" class="card p-4 rounded-2xl w-full outline-none text-white focus:ring-2 focus:ring-gray-500 border border-transparent transition-all font-bold text-lg">
+                </div>
+                <div class="flex flex-col">
+                    <label class="text-sm text-gray-400 mb-1">Valor Total (R$)</label>
+                    <input type="number" id="srv-total" placeholder="0,00" class="card p-4 rounded-2xl w-full outline-none text-white focus:ring-2 focus:ring-gray-500 border border-transparent transition-all font-bold text-lg">
+                </div>
+                <div class="flex flex-col">
+                    <label class="text-sm text-gray-400 mb-1">Conta de Pagamento</label>
+                    <div class="relative">
+                        <!-- Preenchido dinamicamente via JS -->
+                        <select id="srv-conta" class="card p-4 rounded-2xl w-full outline-none text-white focus:ring-2 focus:ring-gray-500 border border-gray-700 transition-all appearance-none cursor-pointer"></select>
+                        <i data-lucide="chevron-down" class="w-5 h-5 text-gray-500 absolute right-4 top-4 pointer-events-none"></i>
+                    </div>
+                </div>
+                <button class="w-full bg-gray-600 text-white font-bold text-lg py-4 rounded-2xl hover:bg-gray-500 transition-colors mt-6" onclick="registrarServico()">
+                    Salvar Serviço
+                </button>
+            </main>
+        </div>
+
+        <!-- Modal: Relatórios Finanças -->
+        <div id="modal-relatorio-financas" class="absolute inset-0 bg-[#121418] z-[90] transform translate-y-full transition-transform duration-300 flex flex-col">
+            <header class="px-6 pt-10 pb-4 flex justify-between items-center shrink-0 border-b border-gray-800 bg-[#1E2128]">
+                <button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-700 transition-colors" onclick="fecharRelatorioFinancas()"><i data-lucide="arrow-left" class="w-5 h-5 text-gray-300"></i></button>
+                <h1 class="text-lg font-bold">Relatórios</h1><div class="w-10 h-10"></div>
+            </header>
+            <main class="flex-1 overflow-y-auto flex flex-col pb-10">
+                <p class="text-[10px] text-gray-400 text-center pt-6 px-6 mb-2">O gráfico de saldo projetado inclui <span class="text-blue-400 font-bold">Efetivadas</span> e <span class="text-yellow-500 font-bold">Previsíveis</span>.</p>
+                <div class="px-6 flex flex-col">
+                    <div class="flex justify-between items-center bg-gray-800 p-1 rounded-xl mb-4 shrink-0 overflow-x-auto snap-x">
+                        <button id="btn-chart--12" class="chart-time-btn snap-center shrink-0 text-xs py-1.5 px-3 rounded-lg text-gray-400 hover:text-white transition-all" onclick="updateBarChart('-12')">-12m</button>
+                        <button id="btn-chart--6" class="chart-time-btn snap-center shrink-0 text-xs py-1.5 px-3 rounded-lg text-gray-400 hover:text-white transition-all" onclick="updateBarChart('-6')">-6m</button>
+                        <button id="btn-chart-atual" class="chart-time-btn snap-center shrink-0 text-xs py-1.5 px-3 rounded-lg bg-[#38bdf8] text-[#121418] font-bold transition-all" onclick="updateBarChart('atual')">Atual</button>
+                        <button id="btn-chart-6" class="chart-time-btn snap-center shrink-0 text-xs py-1.5 px-3 rounded-lg text-gray-400 hover:text-white transition-all" onclick="updateBarChart('6')">+6m</button>
+                        <button id="btn-chart-12" class="chart-time-btn snap-center shrink-0 text-xs py-1.5 px-3 rounded-lg text-gray-400 hover:text-white transition-all" onclick="updateBarChart('12')">+12m</button>
+                    </div>
+                    <div class="card p-4 rounded-3xl border border-gray-800 mb-6 shrink-0 shadow-sm">
+                        <h3 class="text-sm font-bold text-gray-300 mb-4 flex items-center space-x-2"><i data-lucide="line-chart" class="w-4 h-4 text-[#38bdf8]"></i><span>Previsibilidade e Saldo</span></h3>
+                        <div class="relative h-64 w-full"><canvas id="mixedChart"></canvas></div>
+                    </div>
+                    <div class="w-full h-px bg-gray-800 mb-6 shrink-0"></div>
+                    <div class="flex justify-between items-center mb-4 shrink-0">
+                        <div>
+                            <h3 class="text-sm font-bold text-gray-300 flex items-center space-x-2"><i data-lucide="pie-chart" class="w-4 h-4 text-purple-400"></i><span>Por Categoria</span></h3>
+                            <span class="text-[10px] text-gray-500 block mt-0.5 font-medium">Apenas Efetivadas</span>
+                        </div>
+                        <div class="bg-gray-800 p-1 rounded-xl flex">
+                            <button id="btn-donut-despesa" class="text-xs py-1 px-3 rounded-lg bg-red-400 text-[#121418] font-bold transition-all" onclick="updateDonutChart('despesa')">Despesa</button>
+                            <button id="btn-donut-receita" class="text-xs py-1 px-3 rounded-lg text-gray-400 hover:text-white transition-all" onclick="updateDonutChart('receita')">Receita</button>
+                        </div>
+                    </div>
+                    <div class="card p-4 rounded-3xl border border-gray-800 pb-8 shrink-0 shadow-sm">
+                        <div class="relative h-60 w-full flex justify-center"><canvas id="donutChart"></canvas></div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- Modal: Extrato Mensal -->
+        <div id="modal-extrato" class="absolute inset-0 bg-[#121418] z-[90] transform translate-y-full transition-transform duration-300 flex flex-col">
+            <header class="px-6 pt-10 pb-4 flex justify-between items-center shrink-0 border-b border-gray-800 bg-[#1E2128]">
+                <button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-700 transition-colors" onclick="fecharExtrato()"><i data-lucide="arrow-left" class="w-5 h-5 text-gray-300"></i></button>
+                <h1 class="text-lg font-bold">Extrato</h1><div class="w-10 h-10"></div>
+            </header>
+            <main class="flex-1 overflow-y-auto flex flex-col">
+                <div class="bg-[#1E2128] px-6 pb-4 rounded-b-3xl shadow-md z-10 sticky top-0">
+                    <div class="flex items-center justify-between py-4">
+                        <button class="p-2 hover:bg-gray-700 rounded-full transition-colors text-gray-400 hover:text-white"><i data-lucide="chevron-left" class="w-5 h-5"></i></button>
+                        <span class="text-sm font-bold w-32 text-center text-white uppercase tracking-wider">Fevereiro 2026</span>
+                        <button class="p-2 hover:bg-gray-700 rounded-full transition-colors text-gray-400 hover:text-white"><i data-lucide="chevron-right" class="w-5 h-5"></i></button>
+                    </div>
+                    <div class="flex space-x-2 overflow-x-auto pb-2 -mx-2 px-2 snap-x">
+                        <button class="snap-center shrink-0 px-4 py-1.5 rounded-full text-xs font-bold bg-[#38bdf8] text-[#121418]">Todas</button>
+                        <button class="snap-center shrink-0 px-4 py-1.5 rounded-full text-xs font-bold bg-gray-800 text-gray-400 border border-gray-700 hover:text-white transition-colors">Receitas</button>
+                        <button class="snap-center shrink-0 px-4 py-1.5 rounded-full text-xs font-bold bg-gray-800 text-gray-400 border border-gray-700 hover:text-white transition-colors">Despesas</button>
+                    </div>
+                </div>
+                <div class="p-6 space-y-6">
+                    <div>
+                        <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Hoje, 20 Fev</h3>
+                        <div class="space-y-4 bg-[#1E2128] p-4 rounded-3xl border border-gray-800">
+                            <div class="flex justify-between items-center group">
+                                <div class="flex items-center space-x-3 overflow-hidden">
+                                    <div class="w-10 h-10 rounded-full bg-orange-500/10 flex items-center justify-center text-orange-500 shrink-0"><i data-lucide="fuel" class="w-5 h-5"></i></div>
+                                    <div class="truncate">
+                                        <span class="block text-sm font-medium truncate">Posto Ipiranga</span>
+                                        <span class="block text-[10px] text-gray-500 uppercase tracking-wider truncate">Gasolina • Carteira <span class="text-blue-500 font-bold">• Efetivada</span></span>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col items-end shrink-0 ml-2">
+                                    <span class="text-sm font-bold text-red-400">- R$ 55,00</span>
+                                    <div class="flex space-x-3 mt-1.5 opacity-80">
+                                        <button class="text-gray-500 hover:text-white transition-colors" title="Editar" onclick="alert('Editar Transação')"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button>
+                                        <button class="text-gray-500 hover:text-red-400 transition-colors" title="Excluir" onclick="this.closest('.flex.justify-between').remove();"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Ontem, 19 Fev</h3>
+                        <div class="space-y-4 bg-[#1E2128] p-4 rounded-3xl border border-gray-800">
+                            <div class="flex justify-between items-center group">
+                                <div class="flex items-center space-x-3 overflow-hidden">
+                                    <div class="w-10 h-10 rounded-full bg-purple-500/10 flex items-center justify-center text-purple-500 shrink-0"><i data-lucide="shopping-bag" class="w-5 h-5"></i></div>
+                                    <div class="truncate">
+                                        <span class="block text-sm font-medium truncate">Supermercado</span>
+                                        <span class="block text-[10px] text-gray-500 uppercase tracking-wider truncate">Compras da semana • Carteira <span class="text-blue-500 font-bold">• Efetivada</span></span>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col items-end shrink-0 ml-2">
+                                    <span class="text-sm font-bold text-red-400">- R$ 240,00</span>
+                                    <div class="flex space-x-3 mt-1.5 opacity-80">
+                                        <button class="text-gray-500 hover:text-white transition-colors" title="Editar" onclick="alert('Editar Transação')"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button>
+                                        <button class="text-gray-500 hover:text-red-400 transition-colors" title="Excluir" onclick="this.closest('.flex.justify-between').remove();"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="w-full h-px bg-gray-800"></div>
+                            <div class="flex justify-between items-center group">
+                                <div class="flex items-center space-x-3 overflow-hidden">
+                                    <div class="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500 shrink-0"><i data-lucide="utensils" class="w-5 h-5"></i></div>
+                                    <div class="truncate">
+                                        <span class="block text-sm font-medium truncate">Restaurante</span>
+                                        <span class="block text-[10px] text-gray-500 uppercase tracking-wider truncate">Almoço • Nubank <span class="text-blue-500 font-bold">• Efetivada</span></span>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col items-end shrink-0 ml-2">
+                                    <span class="text-sm font-bold text-red-400">- R$ 35,00</span>
+                                    <div class="flex space-x-3 mt-1.5 opacity-80">
+                                        <button class="text-gray-500 hover:text-white transition-colors" title="Editar" onclick="alert('Editar Transação')"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button>
+                                        <button class="text-gray-500 hover:text-red-400 transition-colors" title="Excluir" onclick="this.closest('.flex.justify-between').remove();"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">05 Fev</h3>
+                        <div class="space-y-4 bg-[#1E2128] p-4 rounded-3xl border border-gray-800">
+                            <div class="flex justify-between items-center group">
+                                <div class="flex items-center space-x-3 overflow-hidden">
+                                    <div class="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center text-green-500 shrink-0 relative"><i data-lucide="briefcase" class="w-5 h-5"></i></div>
+                                    <div class="truncate">
+                                        <span class="block text-sm font-medium truncate">Makro Engenharia</span>
+                                        <span class="block text-[10px] text-gray-500 uppercase tracking-wider truncate">Salário Mensal • Nubank <span class="text-blue-500 font-bold">• Efetivada</span></span>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col items-end shrink-0 ml-2">
+                                    <span class="text-sm font-bold text-green-400">+ R$ 5.400,00</span>
+                                    <div class="flex space-x-3 mt-1.5 opacity-80">
+                                        <button class="text-gray-500 hover:text-white transition-colors" title="Editar" onclick="alert('Editar Transação')"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button>
+                                        <button class="text-gray-500 hover:text-red-400 transition-colors" title="Excluir" onclick="this.closest('.flex.justify-between').remove();"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- Modal: Nova Transação Finanças -->
+        <div id="modal-transacao-financas" class="absolute inset-0 bg-[#121418] z-[90] transform translate-y-full transition-transform duration-300 flex flex-col">
+            <header class="px-6 pt-10 pb-4 flex justify-between items-center shrink-0 border-b border-gray-800 bg-[#1E2128]">
+                <button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-700 transition-colors" onclick="fecharTransacaoFinancas()"><i data-lucide="arrow-left" class="w-5 h-5 text-gray-300"></i></button>
+                <h1 class="text-lg font-bold">Nova Transação</h1><div class="w-10 h-10"></div>
+            </header>
+            <main class="flex-1 overflow-y-auto p-6 space-y-6">
+                <div class="bg-gray-800 p-1 rounded-xl flex items-center w-full">
+                    <button id="btn-tipo-despesa" class="flex-1 py-2 text-sm font-bold rounded-lg bg-red-400 text-[#121418] shadow-sm transition-all" onclick="setTipoTransacao('despesa')">Despesa</button>
+                    <button id="btn-tipo-receita" class="flex-1 py-2 text-sm font-bold rounded-lg text-gray-400 hover:text-white transition-all" onclick="setTipoTransacao('receita')">Receita</button>
+                </div>
+                <div class="flex flex-col items-center justify-center py-4">
+                    <span class="text-sm text-gray-400 mb-2">Valor da Transação</span>
+                    <div class="flex items-center text-4xl font-bold">
+                        <span id="transacao-moeda" class="text-gray-500 mr-2">R$</span>
+                        <input type="number" placeholder="0,00" class="bg-transparent w-full text-center outline-none text-white placeholder-gray-600 w-48" id="input-valor-transacao">
+                    </div>
+                </div>
+                <div class="flex flex-col">
+                    <label class="text-sm text-gray-400 mb-1">Descrição</label>
+                    <input type="text" id="transacao-desc" placeholder="Ex: Supermercado, Salário..." class="card p-4 rounded-2xl w-full outline-none text-white focus:ring-2 focus:ring-[#38bdf8] border border-transparent transition-all">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="flex flex-col">
+                        <label class="text-sm text-gray-400 mb-1">Categoria</label>
+                        <div class="relative">
+                            <select id="transacao-categoria" class="card p-4 rounded-2xl w-full outline-none text-white focus:ring-2 focus:ring-[#38bdf8] border border-gray-700 transition-all appearance-none cursor-pointer"></select>
+                            <i data-lucide="chevron-down" class="w-5 h-5 text-gray-500 absolute right-4 top-4 pointer-events-none"></i>
+                        </div>
+                    </div>
+                    <div class="flex flex-col">
+                        <label class="text-sm text-gray-400 mb-1">Conta</label>
+                        <div class="relative">
+                            <select id="transacao-conta" class="card p-4 rounded-2xl w-full outline-none text-white focus:ring-2 focus:ring-[#38bdf8] border border-gray-700 transition-all appearance-none cursor-pointer"></select>
+                            <i data-lucide="chevron-down" class="w-5 h-5 text-gray-500 absolute right-4 top-4 pointer-events-none"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex items-center justify-between card p-4 rounded-2xl border border-gray-700">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-400">
+                            <i data-lucide="repeat" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <span class="block text-sm font-bold text-white">Transação Fixa</span>
+                            <span class="block text-xs text-gray-500">Repetir por 12 meses</span>
+                        </div>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" value="" class="sr-only peer" id="toggle-fixa">
+                        <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#38bdf8]"></div>
+                    </label>
+                </div>
+
+                <div class="flex items-center justify-between card p-4 rounded-2xl border border-gray-700">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500">
+                            <i data-lucide="check-circle" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <span class="block text-sm font-bold text-white">Status da Transação</span>
+                            <span class="block text-xs text-gray-500" id="status-label">Efetivada (Paga/Recebida)</span>
+                        </div>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" value="" class="sr-only peer" id="toggle-efetivada" checked onchange="toggleStatusTransacao(this)">
+                        <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
+                    </label>
+                </div>
+
+                <div class="flex flex-col">
+                    <label class="text-sm text-gray-400 mb-1">Data</label>
+                    <input type="date" value="2026-02-25" class="card p-4 rounded-2xl w-full outline-none text-white focus:ring-2 focus:ring-[#38bdf8] border border-transparent transition-all appearance-none" style="color-scheme: dark;">
+                </div>
+                <button id="btn-salvar-transacao" class="w-full bg-red-400 text-[#121418] font-bold text-lg py-4 rounded-2xl hover:brightness-110 transition-colors shadow-lg mt-6" onclick="salvarTransacaoFinancas()">
+                    Lançar Despesa
+                </button>
+            </main>
+        </div>
+
+        <!-- Modal: Gerenciar Contas e Categorias -->
+        <div id="modal-gerenciar" class="absolute inset-0 bg-[#121418] z-[80] transform translate-y-full transition-transform duration-300 flex flex-col">
+            <header class="px-6 pt-10 pb-4 flex justify-between items-center shrink-0 border-b border-gray-800 bg-[#1E2128]">
+                <button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-700 transition-colors" onclick="closeGerenciar()"><i data-lucide="arrow-left" class="w-5 h-5 text-gray-300"></i></button>
+                <h1 class="text-lg font-bold">Gerenciar</h1><div class="w-10 h-10"></div>
+            </header>
+            <main class="flex-1 overflow-y-auto p-6 flex flex-col">
+                <div class="bg-gray-800 p-1 rounded-xl flex items-center w-full mb-6">
+                    <button id="tab-contas" class="flex-1 py-2 text-sm font-bold rounded-lg bg-[#38bdf8] text-[#121418] shadow-sm transition-all" onclick="switchGerenciarTab('contas')">Contas</button>
+                    <button id="tab-categorias" class="flex-1 py-2 text-sm font-bold rounded-lg text-gray-400 hover:text-white transition-all" onclick="switchGerenciarTab('categorias')">Categorias</button>
+                </div>
+                
+                <!-- Lista de Contas (Dinâmica) -->
+                <div id="content-contas" class="block space-y-4">
+                    <div id="list-contas" class="space-y-3"></div>
+                    <button onclick="adicionarConta()" class="w-full mt-4 py-3 border border-dashed border-gray-600 rounded-xl text-gray-400 hover:text-white hover:border-gray-400 transition-colors flex items-center justify-center space-x-2">
+                        <i data-lucide="plus" class="w-4 h-4"></i><span>Adicionar Conta</span>
+                    </button>
+                </div>
+
+                <!-- Lista de Categorias (Dinâmica) -->
+                <div id="content-categorias" class="hidden space-y-4">
+                    <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider">Despesas</h3>
+                    <div id="list-cat-despesas" class="space-y-3"></div>
+                    
+                    <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mt-6">Receitas</h3>
+                    <div id="list-cat-receitas" class="space-y-3"></div>
+                    
+                    <button onclick="adicionarCategoria()" class="w-full mt-4 py-3 border border-dashed border-gray-600 rounded-xl text-gray-400 hover:text-white hover:border-gray-400 transition-colors flex items-center justify-center space-x-2">
+                        <i data-lucide="plus" class="w-4 h-4"></i><span>Nova Categoria</span>
+                    </button>
+                </div>
+            </main>
+        </div>
+
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        // ================= ESTADO GLOBAL =================
+        let odometroAtual = 18450;
+        let tipoVeiculoAtual = 'moto';
+        let kmlAtualVeiculo = 29.0;
+        
+        // Estado Financeiro Global
+        let transacaoTipoAtual = 'despesa'; 
+        let totalDisponivel = 4250.00;
+        let totalGasto = 1150.00;
+        let totalReceita = 5400.00;
+
+        // Estruturas Dinâmicas (Contas e Categorias)
+        let contas = [
+            { id: 1, nome: "Carteira", isDefault: true, color: "bg-gray-700", icon: "wallet", desc: "Conta Padrão" },
+            { id: 2, nome: "Nubank", isDefault: false, color: "bg-purple-900 text-purple-300", icon: "landmark", desc: "Banco Digital" },
+            { id: 3, nome: "Cartão Principal", isDefault: false, color: "bg-blue-900 text-blue-300", icon: "credit-card", desc: "Cartão de Crédito" }
+        ];
+
+        let categorias = {
+            despesas: [
+                { id: 1, nome: "Transporte/Veículo", isDefault: true },
+                { id: 2, nome: "Alimentação", isDefault: false },
+                { id: 3, nome: "Moradia", isDefault: false },
+                { id: 4, nome: "Supermercado", isDefault: false }
+            ],
+            receitas: [
+                { id: 5, nome: "Salário / Makro", isDefault: true },
+                { id: 6, nome: "Rendimentos", isDefault: false }
+            ]
+        };
+
+        const dadosVeiculos = {
+            moto: {
+                "Yamaha": [{nome: "Fazer 250", kml: 29.0}, {nome: "Crosser 150", kml: 35.0}, {nome: "MT-03", kml: 20.0}],
+                "Honda": [{nome: "CG 160 Titan", kml: 40.0}, {nome: "CB 500F", kml: 25.0}, {nome: "XRE 300", kml: 22.0}],
+                "BMW": [{nome: "G 310 R", kml: 26.0}, {nome: "F 850 GS", kml: 19.0}]
+            },
+            carro: {
+                "Fiat": [{nome: "Argo 1.0", kml: 14.5}, {nome: "Mobi", kml: 15.0}, {nome: "Toro Diesel", kml: 11.0}],
+                "Chevrolet": [{nome: "Onix 1.0", kml: 16.0}, {nome: "Tracker", kml: 12.0}],
+                "Volkswagen": [{nome: "Polo TSI", kml: 14.0}, {nome: "Nivus", kml: 13.0}],
+                "Toyota": [{nome: "Corolla Hybrid", kml: 20.0}, {nome: "Hilux Diesel", kml: 10.0}]
+            }
+        };
+
+        // ================= INICIALIZAÇÃO =================
+        function initApp() {
+            renderGerenciarContas();
+            renderGerenciarCategorias();
+            atualizarSelectsDinamicos();
+            atualizarResumoFinancas(); // Atualiza a DOM com os valores globais iniciais
+        }
+
+        // ================= NAVEGAÇÃO E MENUS =================
+        function navigate(clickedElement, pageId, pageTitle) {
+            closeFab();
+            const allBtns = document.querySelectorAll('.nav-btn');
+            allBtns.forEach(btn => {
+                btn.classList.remove('text-[#38bdf8]'); btn.classList.add('text-[#8c92a0]');
+                const bar = btn.querySelector('div'); if(bar) { bar.classList.remove('w-6'); bar.classList.add('w-0'); }
+            });
+            if (clickedElement && clickedElement.classList.contains('nav-btn')) {
+                clickedElement.classList.remove('text-[#8c92a0]'); clickedElement.classList.add('text-[#38bdf8]');
+                const bar = clickedElement.querySelector('div'); if(bar) { bar.classList.remove('w-0'); bar.classList.add('w-6'); }
+            }
+            document.querySelectorAll('.page-content').forEach(page => { page.classList.remove('block'); page.classList.add('hidden'); });
+            const targetPage = document.getElementById(pageId);
+            if (targetPage) { targetPage.classList.remove('hidden'); targetPage.classList.add('block'); }
+            document.getElementById('header-title').innerText = pageTitle;
+        }
+
+        let isFabOpen = false;
+        function toggleFab() {
+            isFabOpen = !isFabOpen;
+            const icon = document.getElementById('fab-icon');
+            const btnFinancas = document.getElementById('fab-financas');
+            const btnVeiculo = document.getElementById('fab-veiculo');
+            const overlay = document.getElementById('fab-overlay');
+
+            if (isFabOpen) {
+                icon.style.transform = 'rotate(45deg)';
+                overlay.classList.remove('hidden'); setTimeout(() => overlay.classList.remove('opacity-0'), 10);
+                btnFinancas.classList.remove('opacity-0', 'scale-50', 'pointer-events-none'); btnFinancas.style.transform = 'translate(-45px, -50px)';
+                btnVeiculo.classList.remove('opacity-0', 'scale-50', 'pointer-events-none'); btnVeiculo.style.transform = 'translate(45px, -50px)';
+            } else {
+                icon.style.transform = 'rotate(0deg)';
+                overlay.classList.add('opacity-0'); setTimeout(() => overlay.classList.add('hidden'), 300);
+                btnFinancas.classList.add('opacity-0', 'scale-50', 'pointer-events-none'); btnFinancas.style.transform = 'translate(0px, 0px)';
+                btnVeiculo.classList.add('opacity-0', 'scale-50', 'pointer-events-none'); btnVeiculo.style.transform = 'translate(0px, 0px)';
+            }
+        }
+        function closeFab() { if (isFabOpen) toggleFab(); }
+        function toggleBottomSheet() {
+            closeFab();
+            document.getElementById('bottom-sheet').classList.remove('translate-y-full');
+            document.getElementById('menu-overlay').classList.remove('hidden');
+            setTimeout(() => { document.getElementById('menu-overlay').classList.remove('opacity-0'); document.getElementById('menu-overlay').classList.add('opacity-100'); }, 10);
+        }
+        function closeAllBottomSheets() {
+            document.getElementById('bottom-sheet').classList.add('translate-y-full');
+            document.getElementById('menu-overlay').classList.remove('opacity-100');
+            document.getElementById('menu-overlay').classList.add('opacity-0');
+            setTimeout(() => { document.getElementById('menu-overlay').classList.add('hidden'); }, 300);
+        }
+
+
+        // ================= GERENCIAR CONTAS E CATEGORIAS =================
+        function abrirGerenciar() { closeAllBottomSheets(); document.getElementById('modal-gerenciar').classList.remove('translate-y-full'); }
+        function closeGerenciar() { document.getElementById('modal-gerenciar').classList.add('translate-y-full'); }
+        function switchGerenciarTab(tab) {
+            const btnContas = document.getElementById('tab-contas'); const btnCat = document.getElementById('tab-categorias');
+            const contentContas = document.getElementById('content-contas'); const contentCat = document.getElementById('content-categorias');
+            if (tab === 'contas') {
+                btnContas.className = "flex-1 py-2 text-sm font-bold rounded-lg bg-[#38bdf8] text-[#121418] shadow-sm transition-all";
+                btnCat.className = "flex-1 py-2 text-sm font-bold rounded-lg text-gray-400 hover:text-white transition-all";
+                contentContas.classList.remove('hidden'); contentCat.classList.add('hidden');
+            } else {
+                btnCat.className = "flex-1 py-2 text-sm font-bold rounded-lg bg-[#38bdf8] text-[#121418] shadow-sm transition-all";
+                btnContas.className = "flex-1 py-2 text-sm font-bold rounded-lg text-gray-400 hover:text-white transition-all";
+                contentCat.classList.remove('hidden'); contentContas.classList.add('hidden');
+            }
+        }
+
+        function renderGerenciarContas() {
+            const list = document.getElementById('list-contas');
+            list.innerHTML = contas.map(c => `
+                <div class="card p-4 rounded-2xl flex justify-between items-center border border-gray-700">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-full ${c.color} flex items-center justify-center"><i data-lucide="${c.icon}" class="w-5 h-5"></i></div>
+                        <div><span class="block text-sm font-bold">${c.nome}</span><span class="block text-xs text-gray-500">${c.desc}</span></div>
+                    </div>
+                    <div class="flex space-x-2 items-center">
+                        <button onclick="editarConta(${c.id})" class="p-2 text-gray-400 hover:text-white transition-colors"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
+                        ${c.isDefault ? `<div class="p-2 text-gray-600" title="Conta Padrão"><i data-lucide="lock" class="w-4 h-4"></i></div>` : `<button onclick="excluirConta(${c.id})" class="p-2 text-red-400 hover:text-red-300 transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button>`}
+                    </div>
+                </div>
+            `).join('');
+            lucide.createIcons();
+            atualizarSelectsDinamicos();
+        }
+
+        function renderGerenciarCategorias() {
+            const renderItem = (c, tipo) => `
+                <div class="card p-3 rounded-2xl flex justify-between items-center border border-gray-800">
+                    <span class="text-sm font-medium pl-2">${c.nome}</span>
+                    <div class="flex space-x-1 items-center pr-1">
+                        <button onclick="editarCategoria(${c.id}, '${tipo}')" class="p-2 text-gray-400 hover:text-white transition-colors"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button>
+                        ${c.isDefault ? `<div class="p-2 text-gray-600"><i data-lucide="lock" class="w-3.5 h-3.5"></i></div>` : `<button onclick="excluirCategoria(${c.id}, '${tipo}')" class="p-2 text-red-400 hover:text-red-300 transition-colors"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>`}
+                    </div>
+                </div>
+            `;
+            document.getElementById('list-cat-despesas').innerHTML = categorias.despesas.map(c => renderItem(c, 'despesas')).join('');
+            document.getElementById('list-cat-receitas').innerHTML = categorias.receitas.map(c => renderItem(c, 'receitas')).join('');
+            lucide.createIcons();
+            atualizarSelectsDinamicos();
+        }
+
+        function atualizarSelectsDinamicos() {
+            const optionsContas = contas.map(c => `<option value="${c.nome}">${c.nome}</option>`).join('');
+            document.getElementById('abs-conta').innerHTML = optionsContas;
+            document.getElementById('srv-conta').innerHTML = optionsContas;
+            document.getElementById('transacao-conta').innerHTML = optionsContas;
+            
+            const cats = transacaoTipoAtual === 'despesa' ? categorias.despesas : categorias.receitas;
+            document.getElementById('transacao-categoria').innerHTML = cats.map(c => `<option value="${c.nome}">${c.nome}</option>`).join('');
+        }
+
+        function adicionarConta() {
+            let nome = prompt("Nome da nova conta ou cartão (ex: Nubank, Cartão Visa):");
+            if(nome) { 
+                let isCard = nome.toLowerCase().includes('cartão') || nome.toLowerCase().includes('cartao');
+                let icon = isCard ? "credit-card" : "landmark";
+                let desc = isCard ? "Cartão de Crédito" : "Conta Adicional";
+                contas.push({ id: Date.now(), nome: nome, isDefault: false, color: "bg-gray-800", icon: icon, desc: desc }); 
+                renderGerenciarContas(); 
+            }
+        }
+        function editarConta(id) {
+            let conta = contas.find(c => c.id === id);
+            let novoNome = prompt("Editar nome da conta:", conta.nome);
+            if(novoNome) { conta.nome = novoNome; renderGerenciarContas(); }
+        }
+        function excluirConta(id) {
+            let conta = contas.find(c => c.id === id);
+            if(conta.isDefault) { alert("Esta conta é padrão e não pode ser excluída."); return; }
+            if(confirm(`Tem certeza que deseja excluir a conta '${conta.nome}'?`)) { contas = contas.filter(c => c.id !== id); renderGerenciarContas(); }
+        }
+        function adicionarCategoria() {
+            let tipo = prompt("Digite 'D' para Despesa ou 'R' para Receita:");
+            if(tipo !== 'D' && tipo !== 'd' && tipo !== 'R' && tipo !== 'r') return;
+            let nome = prompt("Nome da nova categoria:");
+            if(nome) { 
+                let arr = (tipo.toUpperCase() === 'D') ? categorias.despesas : categorias.receitas;
+                arr.push({ id: Date.now(), nome: nome, isDefault: false }); 
+                renderGerenciarCategorias(); 
+            }
+        }
+        function editarCategoria(id, tipo) {
+            let cat = categorias[tipo].find(c => c.id === id);
+            let novoNome = prompt("Editar nome da categoria:", cat.nome);
+            if(novoNome) { cat.nome = novoNome; renderGerenciarCategorias(); }
+        }
+        function excluirCategoria(id, tipo) {
+            let cat = categorias[tipo].find(c => c.id === id);
+            if(cat.isDefault) { alert("Esta categoria é padrão e não pode ser excluída."); return; }
+            if(confirm(`Tem certeza que deseja excluir a categoria '${cat.nome}'?`)) { categorias[tipo] = categorias[tipo].filter(c => c.id !== id); renderGerenciarCategorias(); }
+        }
+
+
+        // ================= VEÍCULO: AJUSTES E DINÂMICA =================
+        function abrirAjustesVeiculo() {
+            document.getElementById('modal-ajustes-veiculo').classList.remove('translate-y-full');
+            document.getElementById('input-odometro').value = odometroAtual;
+            selecionarTipoVeiculo(tipoVeiculoAtual);
+        }
+        function fecharAjustesVeiculo() { document.getElementById('modal-ajustes-veiculo').classList.add('translate-y-full'); }
+
+        function selecionarTipoVeiculo(tipo) {
+            tipoVeiculoAtual = tipo;
+            const btnMoto = document.getElementById('btn-tipo-moto'); const btnCarro = document.getElementById('btn-tipo-carro');
+            const selectMontadora = document.getElementById('select-montadora');
+            if(tipo === 'moto') {
+                btnMoto.className = "flex-1 py-2 text-sm font-bold rounded-lg bg-orange-500 text-[#121418] shadow-sm transition-all";
+                btnCarro.className = "flex-1 py-2 text-sm font-bold rounded-lg text-gray-400 hover:text-white transition-all";
+            } else {
+                btnCarro.className = "flex-1 py-2 text-sm font-bold rounded-lg bg-orange-500 text-[#121418] shadow-sm transition-all";
+                btnMoto.className = "flex-1 py-2 text-sm font-bold rounded-lg text-gray-400 hover:text-white transition-all";
+            }
+            selectMontadora.innerHTML = '';
+            for(let montadora in dadosVeiculos[tipo]) { let opt = document.createElement('option'); opt.value = montadora; opt.text = montadora; selectMontadora.appendChild(opt); }
+            atualizarModelos();
+        }
+
+        function atualizarModelos() {
+            const montadora = document.getElementById('select-montadora').value; const selectModelo = document.getElementById('select-modelo');
+            selectModelo.innerHTML = '';
+            dadosVeiculos[tipoVeiculoAtual][montadora].forEach(mod => { let opt = document.createElement('option'); opt.value = mod.nome; opt.text = mod.nome; opt.dataset.kml = mod.kml; selectModelo.appendChild(opt); });
+            atualizarConsumo();
+        }
+        function atualizarConsumo() {
+            const selectModelo = document.getElementById('select-modelo');
+            const kmlInfo = selectModelo.options[selectModelo.selectedIndex].dataset.kml;
+            document.getElementById('input-kml').value = parseFloat(kmlInfo).toFixed(1);
+        }
+
+        function salvarAjustesVeiculo() {
+            const montadora = document.getElementById('select-montadora').value;
+            const modelo = document.getElementById('select-modelo').value;
+            kmlAtualVeiculo = parseFloat(document.getElementById('input-kml').value);
+            odometroAtual = parseInt(document.getElementById('input-odometro').value) || odometroAtual;
+
+            document.getElementById('veiculo-hero-nome').innerText = modelo;
+            document.getElementById('veiculo-hero-montadora').innerText = montadora;
+            document.getElementById('veiculo-hero-kml').innerText = kmlAtualVeiculo.toFixed(1);
+            document.getElementById('veiculo-hero-odometro').innerText = odometroAtual.toLocaleString('pt-BR');
+            document.getElementById('home-veiculo-nome').innerText = modelo;
+            document.getElementById('home-veiculo-kml').innerText = kmlAtualVeiculo.toFixed(1);
+            document.getElementById('menu-veiculo-nome').innerText = `Seu ${modelo}`;
+
+            const isMoto = tipoVeiculoAtual === 'moto';
+            const novoIcone = isMoto ? 'bike' : 'car';
+            
+            document.getElementById('icon-veiculo-moto').classList.toggle('hidden', !isMoto);
+            document.getElementById('icon-veiculo-moto').classList.toggle('block', isMoto);
+            document.getElementById('icon-veiculo-carro').classList.toggle('hidden', isMoto);
+            document.getElementById('icon-veiculo-carro').classList.toggle('block', !isMoto);
+            
+            document.getElementById('menu-veiculo-icon').setAttribute('data-lucide', novoIcone);
+            document.getElementById('home-veiculo-icon').setAttribute('data-lucide', novoIcone);
+            document.getElementById('fab-veiculo-icon').setAttribute('data-lucide', novoIcone);
+            lucide.createIcons();
+
+            fecharAjustesVeiculo();
+        }
+
+        // ================= VEÍCULO: ABASTECIMENTO E SERVIÇO =================
+        function abrirModalAbastecimento() {
+            closeFab();
+            document.getElementById('abs-preco').value = ''; document.getElementById('abs-total').value = ''; document.getElementById('abs-litros').value = ''; document.getElementById('abs-desc').value = '';
+            document.getElementById('abs-odometro').value = odometroAtual;
+            document.getElementById('modal-abastecimento').classList.remove('translate-y-full');
+        }
+        function fecharModalAbastecimento() { document.getElementById('modal-abastecimento').classList.add('translate-y-full'); }
+
+        function calcularAbastecimento(campoAlterado) {
+            const precoInp = document.getElementById('abs-preco'); const totalInp = document.getElementById('abs-total'); const litrosInp = document.getElementById('abs-litros');
+            let p = parseFloat(precoInp.value); let t = parseFloat(totalInp.value); let l = parseFloat(litrosInp.value);
+            if (campoAlterado === 'preco' || campoAlterado === 'total') { if (p > 0 && t > 0) { litrosInp.value = (t / p).toFixed(2); } } 
+            else if (campoAlterado === 'litros') { if (p > 0 && l > 0) { totalInp.value = (p * l).toFixed(2); } }
+        }
+
+        function registrarAbastecimento() {
+            const valorInput = document.getElementById('abs-total').value || 0;
+            const totalFloat = parseFloat(valorInput);
+            const totalMoeda = totalFloat.toFixed(2).replace('.', ',');
+            
+            const litros = document.getElementById('abs-litros').value || '0';
+            const desc = document.getElementById('abs-desc').value;
+            const conta = document.getElementById('abs-conta').value;
+            const novoOdo = parseInt(document.getElementById('abs-odometro').value);
+
+            if (totalFloat <= 0 || desc === "") { alert("Preencha o valor e a descrição!"); return; }
+
+            // Atualiza Odômetro
+            if(novoOdo > odometroAtual) {
+                odometroAtual = novoOdo;
+                document.getElementById('veiculo-hero-odometro').innerText = odometroAtual.toLocaleString('pt-BR');
+            }
+
+            // Sempre Efetivada em Veículo
+            totalGasto += totalFloat;
+            totalDisponivel -= totalFloat;
+            atualizarResumoFinancas();
+
+            const htmlVeiculo = `
+                <div class="card p-4 rounded-2xl flex justify-between items-center border border-gray-800">
+                    <div class="flex items-center space-x-3"><div class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-400"><span class="text-[10px] font-bold text-center leading-tight tracking-tighter">AGORA</span></div><div><span class="block text-sm font-bold">${desc}</span><span class="block text-xs text-gray-500">${litros} L • ${conta}</span></div></div>
+                    <span class="text-sm font-bold text-white">R$ ${totalMoeda}</span>
+                </div>`;
+            document.getElementById('lista-transacoes-veiculo').insertAdjacentHTML('afterbegin', htmlVeiculo);
+
+            const htmlFinancas = `
+                <div class="flex justify-between items-center group bg-gray-800/50 p-3 rounded-xl border border-gray-800 animate-[fadeIn_0.5s_ease-out]">
+                    <div class="flex items-center space-x-3 overflow-hidden">
+                        <div class="w-10 h-10 rounded-full bg-orange-500/10 flex items-center justify-center text-orange-500 shrink-0">
+                            <i data-lucide="fuel" class="w-5 h-5"></i>
+                        </div>
+                        <div class="truncate">
+                            <span class="block text-sm font-medium truncate">${desc}</span>
+                            <span class="block text-[10px] text-gray-500 uppercase tracking-wider truncate">Veículo • ${conta} <span class="text-blue-500 font-bold">• Efetivada</span></span>
+                        </div>
+                    </div>
+                    <div class="flex flex-col items-end shrink-0 ml-2">
+                        <span class="text-sm font-semibold text-red-400">- R$ ${totalMoeda}</span>
+                        <div class="flex space-x-3 mt-1.5 opacity-80">
+                            <button class="text-gray-500 hover:text-white transition-colors" title="Editar" onclick="alert('Editar Transação')"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button>
+                            <button class="text-gray-500 hover:text-red-400 transition-colors" title="Excluir" onclick="this.closest('.flex.justify-between').remove();"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                        </div>
+                    </div>
+                </div>`;
+            document.getElementById('lista-transacoes-financas').insertAdjacentHTML('afterbegin', htmlFinancas);
+            lucide.createIcons(); fecharModalAbastecimento();
+        }
+
+        function abrirModalServico() {
+            closeFab();
+            document.getElementById('srv-total').value = '';
+            document.getElementById('srv-odometro').value = odometroAtual;
+            document.getElementById('modal-servico-veiculo').classList.remove('translate-y-full');
+        }
+        function fecharModalServico() { document.getElementById('modal-servico-veiculo').classList.add('translate-y-full'); }
+
+        function registrarServico() {
+            const tipo = document.getElementById('srv-tipo').value;
+            const valorInput = document.getElementById('srv-total').value || 0;
+            const totalFloat = parseFloat(valorInput);
+            const totalMoeda = totalFloat.toFixed(2).replace('.', ',');
+            
+            const conta = document.getElementById('srv-conta').value;
+            const novoOdo = parseInt(document.getElementById('srv-odometro').value);
+
+            if (totalFloat <= 0) { alert("Insira o valor do serviço!"); return; }
+
+            // Atualiza Odômetro
+            if(novoOdo > odometroAtual) {
+                odometroAtual = novoOdo;
+                document.getElementById('veiculo-hero-odometro').innerText = odometroAtual.toLocaleString('pt-BR');
+            }
+
+            // Sempre Efetivada em Veículo
+            totalGasto += totalFloat;
+            totalDisponivel -= totalFloat;
+            atualizarResumoFinancas();
+
+            const htmlVeiculo = `
+                <div class="card p-4 rounded-2xl flex justify-between items-center border border-gray-800">
+                    <div class="flex items-center space-x-3"><div class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-400"><span class="text-[10px] font-bold text-center leading-tight tracking-tighter">AGORA</span></div><div><span class="block text-sm font-bold">${tipo}</span><span class="block text-xs text-gray-500">Serviço • ${conta}</span></div></div>
+                    <span class="text-sm font-bold text-white">R$ ${totalMoeda}</span>
+                </div>`;
+            document.getElementById('lista-transacoes-veiculo').insertAdjacentHTML('afterbegin', htmlVeiculo);
+
+            const htmlFinancas = `
+                <div class="flex justify-between items-center group bg-gray-800/50 p-3 rounded-xl border border-gray-800 animate-[fadeIn_0.5s_ease-out]">
+                    <div class="flex items-center space-x-3 overflow-hidden">
+                        <div class="w-10 h-10 rounded-full bg-gray-500/10 flex items-center justify-center text-gray-400 shrink-0">
+                            <i data-lucide="wrench" class="w-5 h-5"></i>
+                        </div>
+                        <div class="truncate">
+                            <span class="block text-sm font-medium truncate">${tipo}</span>
+                            <span class="block text-[10px] text-gray-500 uppercase tracking-wider truncate">Manutenção • ${conta} <span class="text-blue-500 font-bold">• Efetivada</span></span>
+                        </div>
+                    </div>
+                    <div class="flex flex-col items-end shrink-0 ml-2">
+                        <span class="text-sm font-semibold text-red-400">- R$ ${totalMoeda}</span>
+                        <div class="flex space-x-3 mt-1.5 opacity-80">
+                            <button class="text-gray-500 hover:text-white transition-colors" title="Editar" onclick="alert('Editar Transação')"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button>
+                            <button class="text-gray-500 hover:text-red-400 transition-colors" title="Excluir" onclick="this.closest('.flex.justify-between').remove();"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                        </div>
+                    </div>
+                </div>`;
+            document.getElementById('lista-transacoes-financas').insertAdjacentHTML('afterbegin', htmlFinancas);
+            lucide.createIcons(); fecharModalServico();
+        }
+
+
+        // ================= FINANÇAS E RELATÓRIOS =================
+        let valuesVisible = true;
+        function toggleVisibility(keepState = false) {
+            if (!keepState) valuesVisible = !valuesVisible;
+            const eye = document.getElementById('icon-eye'); const eyeOff = document.getElementById('icon-eye-off');
+            if(eye && eyeOff) { eye.classList.toggle('hidden', !valuesVisible); eyeOff.classList.toggle('hidden', valuesVisible); }
+            document.querySelectorAll('.sensitive-value').forEach(el => { el.innerText = valuesVisible ? el.getAttribute('data-value') : 'R$ •••••'; });
+        }
+
+        function atualizarResumoFinancas() {
+            const formatMoeda = (val) => val.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            
+            const elDisp = document.getElementById('resumo-disponivel');
+            const elDispHome = document.getElementById('home-saldo');
+            const elGasto = document.getElementById('resumo-gasto');
+            const elRec = document.getElementById('resumo-receita');
+            
+            // Set data values for eye-toggle functionality
+            elDisp.setAttribute('data-value', `R$ ${formatMoeda(totalDisponivel)}`);
+            elDispHome.setAttribute('data-value', `R$ ${formatMoeda(totalDisponivel)}`);
+            elGasto.setAttribute('data-value', `R$ ${formatMoeda(totalGasto)}`);
+            elRec.setAttribute('data-value', `R$ ${formatMoeda(totalReceita)}`);
+            
+            if(valuesVisible) {
+                elDisp.innerText = `R$ ${formatMoeda(totalDisponivel)}`;
+                elDispHome.innerText = `R$ ${formatMoeda(totalDisponivel)}`;
+                elGasto.innerText = `R$ ${formatMoeda(totalGasto)}`;
+                elRec.innerText = `R$ ${formatMoeda(totalReceita)}`;
+            }
+        }
+
+        function abrirTransacaoFinancas(tipo) { 
+            closeFab(); 
+            setTipoTransacao(tipo);
+            document.getElementById('modal-transacao-financas').classList.remove('translate-y-full'); 
+        }
+        function fecharTransacaoFinancas() { document.getElementById('modal-transacao-financas').classList.add('translate-y-full'); }
+        
+        function salvarTransacaoFinancas() {
+            const valInput = document.getElementById('input-valor-transacao').value;
+            if(!valInput) { alert('Insira um valor!'); return; }
+            
+            const total = parseFloat(valInput);
+            const desc = document.getElementById('transacao-desc').value || 'Nova Transação';
+            const cat = document.getElementById('transacao-categoria').value;
+            const conta = document.getElementById('transacao-conta').value;
+            const isEfetivada = document.getElementById('toggle-efetivada').checked;
+            
+            const valorFormatado = total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            const prefix = transacaoTipoAtual === 'despesa' ? '-' : '+';
+            const colorClass = transacaoTipoAtual === 'despesa' ? 'text-red-400' : 'text-green-400';
+            
+            // Lógica Efetivada vs Previsível
+            if (isEfetivada) {
+                if (transacaoTipoAtual === 'despesa') {
+                    totalGasto += total;
+                    totalDisponivel -= total;
+                } else {
+                    totalReceita += total;
+                    totalDisponivel += total;
+                }
+                atualizarResumoFinancas();
+            }
+            
+            const statusHtml = isEfetivada ? '<span class="text-blue-500 font-bold">• Efetivada</span>' : '<span class="text-yellow-500 font-bold">• Previsível</span>';
+            const opacityClass = isEfetivada ? '' : 'opacity-60 border-dashed';
+            const iconName = transacaoTipoAtual === 'despesa' ? 'arrow-up-right' : 'arrow-down-left';
+
+            const htmlFinancas = `
+                <div class="flex justify-between items-center group bg-[#1E2128] p-3 rounded-xl border border-gray-800 animate-[fadeIn_0.5s_ease-out] ${opacityClass}">
+                    <div class="flex items-center space-x-3 overflow-hidden">
+                        <div class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 shrink-0">
+                            <i data-lucide="${iconName}" class="w-5 h-5"></i>
+                        </div>
+                        <div class="truncate">
+                            <span class="block text-sm font-medium truncate">${desc}</span>
+                            <span class="block text-[10px] text-gray-500 uppercase tracking-wider truncate">${cat} • ${conta} ${statusHtml}</span>
+                        </div>
+                    </div>
+                    <div class="flex flex-col items-end shrink-0 ml-2">
+                        <span class="text-sm font-semibold ${colorClass}">${prefix} R$ ${valorFormatado}</span>
+                        <div class="flex space-x-3 mt-1.5 opacity-80">
+                            <button class="text-gray-500 hover:text-white transition-colors" title="Editar" onclick="alert('Editar Transação')"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button>
+                            <button class="text-gray-500 hover:text-red-400 transition-colors" title="Excluir" onclick="this.closest('.flex.justify-between').remove();"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                        </div>
+                    </div>
+                </div>`;
+            
+            document.getElementById('lista-transacoes-financas').insertAdjacentHTML('afterbegin', htmlFinancas);
+            lucide.createIcons();
+            
+            // Limpa o form
+            document.getElementById('input-valor-transacao').value = '';
+            document.getElementById('transacao-desc').value = '';
+            
+            fecharTransacaoFinancas();
+        }
+
+        function toggleStatusTransacao(checkbox) {
+            const label = document.getElementById('status-label');
+            const bgToggle = checkbox.nextElementSibling;
+            if(checkbox.checked) {
+                label.innerText = "Efetivada (Paga/Recebida)";
+                bgToggle.classList.replace('peer-checked:bg-yellow-500', 'peer-checked:bg-blue-500');
+            } else {
+                label.innerText = "Previsível (Agendada)";
+                bgToggle.classList.replace('peer-checked:bg-blue-500', 'peer-checked:bg-yellow-500');
+            }
+        }
+
+        function setTipoTransacao(tipo) {
+            transacaoTipoAtual = tipo;
+            const btnDespesa = document.getElementById('btn-tipo-despesa'); const btnReceita = document.getElementById('btn-tipo-receita');
+            if(tipo === 'despesa') {
+                btnDespesa.className = "flex-1 py-2 text-sm font-bold rounded-lg bg-red-400 text-[#121418] shadow-sm transition-all";
+                btnReceita.className = "flex-1 py-2 text-sm font-bold rounded-lg text-gray-400 hover:text-white transition-all";
+                document.getElementById('btn-salvar-transacao').className = "w-full bg-red-400 text-[#121418] font-bold text-lg py-4 rounded-2xl hover:brightness-110 transition-colors shadow-lg mt-6";
+                document.getElementById('btn-salvar-transacao').innerText = "Lançar Despesa";
+            } else {
+                btnReceita.className = "flex-1 py-2 text-sm font-bold rounded-lg bg-green-400 text-[#121418] shadow-sm transition-all";
+                btnDespesa.className = "flex-1 py-2 text-sm font-bold rounded-lg text-gray-400 hover:text-white transition-all";
+                document.getElementById('btn-salvar-transacao').className = "w-full bg-green-400 text-[#121418] font-bold text-lg py-4 rounded-2xl hover:brightness-110 transition-colors shadow-lg mt-6";
+                document.getElementById('btn-salvar-transacao').innerText = "Lançar Receita";
+            }
+            atualizarSelectsDinamicos();
+        }
+
+        function abrirExtrato() { document.getElementById('modal-extrato').classList.remove('translate-y-full'); }
+        function fecharExtrato() { document.getElementById('modal-extrato').classList.add('translate-y-full'); }
+
+        // Gráficos mantidos do v01.11
+        let mixedChartInstance = null; let donutChartInstance = null;
+        function initCharts() {
+            if (!mixedChartInstance) {
+                const ctxMixed = document.getElementById('mixedChart').getContext('2d');
+                mixedChartInstance = new Chart(ctxMixed, { type: 'bar', data: { labels: ['Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul'], datasets: [ { type: 'line', label: 'Saldo Projetado', data: [4250, 4800, 5100, 4900, 5500, 6000], borderColor: '#38bdf8', backgroundColor: '#38bdf8', borderWidth: 2, tension: 0.3, fill: false, pointBackgroundColor: '#121418', pointBorderColor: '#38bdf8', pointBorderWidth: 2 }, { type: 'bar', label: 'Receitas', data: [5400, 5400, 5400, 5400, 5400, 5400], backgroundColor: 'rgba(74, 222, 128, 0.8)', borderRadius: 4 }, { type: 'bar', label: 'Despesas', data: [1150, 3800, 3500, 4000, 3200, 3000], backgroundColor: 'rgba(248, 113, 113, 0.8)', borderRadius: 4 } ] }, options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, scales: { x: { grid: { display: false }, ticks: { color: '#8c92a0', font: { size: 10 } } }, y: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#8c92a0', font: { size: 10 } }, border: { display: false } } }, plugins: { legend: { position: 'bottom', labels: { color: '#e5e7eb', boxWidth: 10, usePointStyle: true, padding: 15, font: {size: 10} } }, tooltip: { backgroundColor: 'rgba(30, 33, 40, 0.9)', titleColor: '#fff', bodyColor: '#8c92a0', borderColor: '#374151', borderWidth: 1 } } } });
+            }
+            if (!donutChartInstance) {
+                const ctxDonut = document.getElementById('donutChart').getContext('2d');
+                donutChartInstance = new Chart(ctxDonut, { type: 'doughnut', data: { labels: ['Moto/Fazer 250', 'Supermercado', 'Moradia', 'Lazer'], datasets: [{ data: [150, 400, 1200, 250], backgroundColor: ['#f97316', '#3b82f6', '#8b5cf6', '#eab308'], borderWidth: 2, borderColor: '#1e2128' }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'right', labels: { color: '#e5e7eb', boxWidth: 10, usePointStyle: true, font: {size: 11} } }, tooltip: { backgroundColor: 'rgba(30, 33, 40, 0.9)' } } } });
+            }
+        }
+        function updateBarChart(timeframe) {
+            document.querySelectorAll('.chart-time-btn').forEach(btn => { btn.classList.remove('bg-[#38bdf8]', 'text-[#121418]', 'font-bold'); btn.classList.add('text-gray-400'); });
+            const activeBtn = document.getElementById('btn-chart-' + timeframe);
+            if(activeBtn) { activeBtn.classList.remove('text-gray-400'); activeBtn.classList.add('bg-[#38bdf8]', 'text-[#121418]', 'font-bold'); }
+            
+            if (mixedChartInstance) {
+                // Simulação de alteração de dados no gráfico de barras
+                const base = timeframe === 'atual' ? 1 : (timeframe.includes('-') ? 0.8 : 1.2);
+                mixedChartInstance.data.datasets[0].data = [4250, 4800, 5100, 4900, 5500, 6000].map(v => v * base);
+                mixedChartInstance.data.datasets[1].data = [5400, 5400, 5400, 5400, 5400, 5400].map(v => v * base);
+                mixedChartInstance.data.datasets[2].data = [1150, 3800, 3500, 4000, 3200, 3000].map(v => v * base);
+                mixedChartInstance.update();
+            }
+        }
+        function updateDonutChart(tipo) {
+            const btnDespesa = document.getElementById('btn-donut-despesa'); const btnReceita = document.getElementById('btn-donut-receita');
+            if(tipo === 'despesa') {
+                btnDespesa.className = "text-xs py-1 px-3 rounded-lg bg-red-400 text-[#121418] font-bold transition-all"; btnReceita.className = "text-xs py-1 px-3 rounded-lg text-gray-400 hover:text-white transition-all";
+                if (donutChartInstance) {
+                    donutChartInstance.data.labels = ['Moto/Fazer 250', 'Supermercado', 'Moradia', 'Lazer'];
+                    donutChartInstance.data.datasets[0].data = [150, 400, 1200, 250];
+                    donutChartInstance.data.datasets[0].backgroundColor = ['#f97316', '#3b82f6', '#8b5cf6', '#eab308'];
+                    donutChartInstance.update();
+                }
+            } else {
+                btnReceita.className = "text-xs py-1 px-3 rounded-lg bg-green-400 text-[#121418] font-bold transition-all"; btnDespesa.className = "text-xs py-1 px-3 rounded-lg text-gray-400 hover:text-white transition-all";
+                if (donutChartInstance) {
+                    donutChartInstance.data.labels = ['Salário / Makro', 'Rendimentos', 'Outros'];
+                    donutChartInstance.data.datasets[0].data = [5400, 450, 150];
+                    donutChartInstance.data.datasets[0].backgroundColor = ['#4ade80', '#38bdf8', '#a855f7'];
+                    donutChartInstance.update();
+                }
+            }
+        }
+        function abrirRelatorioFinancas() { closeFab(); document.getElementById('modal-relatorio-financas').classList.remove('translate-y-full'); setTimeout(initCharts, 300); }
+        function fecharRelatorioFinancas() { document.getElementById('modal-relatorio-financas').classList.add('translate-y-full'); }
+
+        // Inicializa ao carregar a página
+        window.onload = initApp;
+    </script>
+</body>
+</html>
