@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pulse v01.16</title>
+    <title>Pulse v01.17</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -71,7 +71,7 @@
                         <i data-lucide="chevron-right" class="w-5 h-5 text-gray-500"></i>
                     </div>
                     <div class="flex items-end space-x-2">
-                        <span class="text-3xl font-bold sensitive-value" id="home-saldo" data-value="R$ 4.250,00">R$ 4.250,00</span>
+                        <span class="text-3xl font-bold sensitive-value" id="home-saldo" data-value="0">R$ 0</span>
                     </div>
                 </div>
 
@@ -1467,5 +1467,31 @@
         // Inicializa ao carregar a página
         window.onload = initApp;
     </script>
+	
+<!-- 🔥 Firebase -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+  const firebaseConfig = {
+	  apiKey: "AIzaSyCZbIVkAcv6UITkC8RHWV1JlK1ZDnLyR1I",
+	  authDomain: "mucuripe-finance.firebaseapp.com",
+	  projectId: "mucuripe-finance",
+	  storageBucket: "mucuripe-finance.firebasestorage.app",
+	  messagingSenderId: "524788134673",
+	  appId: "1:524788134673:web:6d82be6c4a8a625b3092b0"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const auth = getAuth(app);
+
+  window.db = db;
+  window.auth = auth;
+
+  console.log("Firebase conectado 🚀");
+</script>
+	
 </body>
 </html>
