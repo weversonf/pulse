@@ -45,8 +45,8 @@
         <!-- Header Fixo -->
         <header class="px-6 pt-10 pb-4 flex justify-between items-center shrink-0">
             <div>
-                <h1 id="header-title" class="text-2xl font-bold tracking-tight transition-all">Visão Geral</h1>
-                <p class="text-sm text-gray-400 mt-1">Fortaleza, CE</p>
+                <h1 id="header-title" class="text-2xl font-bold tracking-tight transition-all">	Visão Geral</h1>
+                <p id="local" class="text-sm text-gray-400 mt-1">Carregando localização...</p>
             </div>
             <button class="relative w-10 h-10 flex items-center justify-center rounded-full bg-[#1E2128] border border-gray-700 cursor-pointer hover:bg-gray-800 transition-colors shrink-0">
                 <i data-lucide="bell" class="w-5 h-5 text-gray-300"></i>
@@ -1479,18 +1479,18 @@
 	
 <script type="module">
   // 1. Importações com URLs LIMPAS (sem colchetes ou parênteses)
-  import { initializeApp } from "[https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js](https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js)";
-  import { getFirestore, collection, getDocs, deleteDoc, doc, addDoc, serverTimestamp } from "[https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js](https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js)";
-  import { getAuth, signInAnonymously, onAuthStateChanged } from "[https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js](https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js)";
+	import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+	import { getFirestore, collection, addDoc, onSnapshot, serverTimestamp, query, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+	import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 
   // 2. Configuração do Projeto
   const firebaseConfig = {
-    apiKey: "AIzaSyCZbIVkAcv6UITkC8RHWV1JlK1ZDnLyR1I",
-    authDomain: "mucuripe-finance.firebaseapp.com",
-    projectId: "mucuripe-finance",
-    storageBucket: "mucuripe-finance.firebasestorage.app",
-    messagingSenderId: "524788134673",
-    appId: "1:524788134673:web:6d82be6c4a8a625b3092b0"
+	apiKey: "AIzaSyCWlVvnA29CnKco7mBG6LvpzDtcYmr28cY",
+	authDomain: "projetomu-d5722.firebaseapp.com",
+	projectId: "projetomu-d5722",
+	storageBucket: "projetomu-d5722.firebasestorage.app",
+	messagingSenderId: "94478862714",
+	appId: "1:94478862714:web:578561a199f685f9e5eec3"
   };
 
   // 3. Inicialização
@@ -1591,6 +1591,38 @@
     });
   }
 </script>
+
+<!-- Script de Inserir o nome da cidade -->
+<script>
+  function atualizarLocalizacao() {
+    if (!navigator.geolocation) {
+      document.getElementById("local").innerText = "Localização não suportada";
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+      const lat = pos.coords.latitude;
+      const lon = pos.coords.longitude;
+
+      // API gratuita do OpenStreetMap
+      const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`;
+
+      const response = await fetch(url);
+      const data = await response.json();
+
+      const cidade = data.address.city || data.address.town || data.address.village;
+      const estado = data.address.state;
+
+      document.getElementById("local").innerText = `${cidade}, ${estado}`;
+    },
+    () => {
+      document.getElementById("local").innerText = "Permita o acesso à localização";
+    });
+  }
+
+  atualizarLocalizacao();
+</script>
+
 	
 </body>
 </html>
