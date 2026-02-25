@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pulse v01.19</title>
+    <title>Pulse v01.20</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -1478,12 +1478,12 @@
 
 	
 <script type="module">
-  // 1. Importações (adicionámos funções de login)
+  // 1. Importações com URLs LIMPAS (sem colchetes ou parênteses)
   import { initializeApp } from "[https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js](https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js)";
-  import { getFirestore, collection, getDocs, deleteDoc, doc } from "[https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js](https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js)";
+  import { getFirestore, collection, getDocs, deleteDoc, doc, addDoc, serverTimestamp } from "[https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js](https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js)";
   import { getAuth, signInAnonymously, onAuthStateChanged } from "[https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js](https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js)";
 
-  // 2. Configuração (igual à anterior)
+  // 2. Configuração do Projeto
   const firebaseConfig = {
     apiKey: "AIzaSyCZbIVkAcv6UITkC8RHWV1JlK1ZDnLyR1I",
     authDomain: "mucuripe-finance.firebaseapp.com",
@@ -1497,61 +1497,96 @@
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
   const auth = getAuth(app);
+  const appId = 'mucuripe-finance';
 
-  // Tornamos global para os outros scripts do site
+  // Tornar db e auth acessíveis globalmente
   window.db = db;
   window.auth = auth;
 
-  // --- NOVIDADE: Login Automático ---
-  signInAnonymously(auth)
-    .then(() => {
-      console.log("Login anónimo realizado com sucesso! 🔑");
-    })
-    .catch((error) => {
-      console.error("Erro ao autenticar:", error);
-    });
-
-  // Monitoriza quando o utilizador entra ou sai
+  // 4. Login Automático
   onAuthStateChanged(auth, (user) => {
     if (user) {
-      console.log("ID do utilizador ativo:", user.uid);
+      console.log("✅ Firebase conectado! UID:", user.uid);
     } else {
-      console.log("Utilizador deslogado.");
+      signInAnonymously(auth).catch(err => console.error("❌ Erro Auth:", err));
     }
   });
 
-  // --- Lógica do Botão Zerar Tudo (Ajustada) ---
+  // 5. FUNÇÃO DO MENU (Correção do erro de classList)
+  window.toggleBottomSheet = function() {
+    const sheet = document.getElementById('bottom-sheet');
+    const overlay = document.getElementById('menu-overlay');
+    
+    if (sheet && overlay) {
+      sheet.classList.toggle('translate-y-full');
+      overlay.classList.toggle('hidden');
+      setTimeout(() => {
+        overlay.classList.toggle('opacity-0');
+        overlay.classList.toggle('opacity-100');
+      }, 10);
+    } else {
+      console.error("❌ Erro: IDs 'bottom-sheet' ou 'menu-overlay' não encontrados no HTML.");
+    }
+  };
+
+  // 6. FUNÇÃO PARA FECHAR TUDO
+  window.closeAllBottomSheets = function() {
+    const sheet = document.getElementById('bottom-sheet');
+    const overlay = document.getElementById('menu-overlay');
+    if (sheet) sheet.classList.add('translate-y-full');
+    if (overlay) {
+      overlay.classList.add('opacity-0');
+      overlay.classList.remove('opacity-100');
+      setTimeout(() => overlay.classList.add('hidden'), 300);
+    }
+  };
+
+  // 7. PONTE PARA GUARDAR DADOS
+  window.db_salvarTransacao = async (dados) => {
+    const user = auth.currentUser;
+    if (!user) return console.warn("Aguardando autenticação...");
+
+    try {
+      const ref = collection(db, 'artifacts', appId, 'users', user.uid, 'transacoes');
+      await addDoc(ref, {
+        ...dados,
+        createdAt: serverTimestamp()
+      });
+      console.log("💰 Salvo no Firebase!");
+    } catch (e) {
+      console.error("❌ Erro ao salvar:", e);
+    }
+  };
+
+  // 8. LÓGICA DO BOTÃO ZERAR
   const btnZerar = document.getElementById("btn-zerar");
   if (btnZerar) {
     btnZerar.addEventListener("click", async () => {
       const user = auth.currentUser;
-      if (!user) {
-        alert("O sistema ainda está a carregar a sua sessão. Tente novamente em 2 segundos.");
-        return;
-      }
+      if (!user) return alert("Sistema ainda carregando...");
 
-      const confirmar = confirm("Deseja apagar todas as transações do banco de dados?");
-      if (!confirmar) return;
+      if (!confirm("Isso apagará todas as transações salvas. Confirma?")) return;
 
       try {
+        btnZerar.innerText = "Limpando...";
         btnZerar.disabled = true;
-        btnZerar.innerText = "A apagar...";
 
-        // Caminho correto das suas transações no Firebase
-        const transacoesRef = collection(db, "users", user.uid, "transacoes");
-        const snapshot = await getDocs(transacoesRef);
+        const ref = collection(db, 'artifacts', appId, 'users', user.uid, 'transacoes');
+        const snap = await getDocs(ref);
         
-        const promessas = snapshot.docs.map(d => deleteDoc(doc(db, "users", user.uid, "transacoes", d.id)));
+        const promessas = snap.docs.map(d => 
+          deleteDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'transacoes', d.id))
+        );
+        
         await Promise.all(promessas);
-
-        alert("Base de dados limpa! ✅");
+        alert("Dados removidos com sucesso! ✅");
         location.reload();
       } catch (err) {
         console.error(err);
-        alert("Erro ao zerar dados.");
+        alert("Erro ao limpar dados.");
       } finally {
-        btnZerar.disabled = false;
         btnZerar.innerText = "Zerar Tudo";
+        btnZerar.disabled = false;
       }
     });
   }
