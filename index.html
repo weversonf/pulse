@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pulse v01.17</title>
+    <title>Pulse v01.18</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -71,7 +71,7 @@
                         <i data-lucide="chevron-right" class="w-5 h-5 text-gray-500"></i>
                     </div>
                     <div class="flex items-end space-x-2">
-                        <span class="text-3xl font-bold sensitive-value" id="home-saldo" data-value="0">R$ 0</span>
+                        <span class="text-3xl font-bold sensitive-value" id="home-saldo" data-value="0">R$ 0,00</span>
                     </div>
                 </div>
 
@@ -231,12 +231,12 @@
                         </div>
                         <div class="mb-4">
                             <span class="text-xs text-gray-400 block mb-1">Fatura Atual</span>
-                            <span class="text-3xl font-bold sensitive-value text-white" data-value="R$ 840,00">R$ 840,00</span>
+                            <span class="text-3xl font-bold sensitive-value text-white" data-value="0">R$ 0,00</span>
                         </div>
                         <div class="flex justify-between items-end mt-6">
                             <div>
                                 <span class="text-xs text-gray-500 block mb-1">Limite Disponível</span>
-                                <span class="text-sm font-semibold text-green-400 sensitive-value" data-value="R$ 2.160,00">R$ 2.160,00</span>
+                                <span class="text-sm font-semibold text-green-400 sensitive-value" data-value="0">R$ 0,00</span>
                             </div>
                             <span class="text-xs text-gray-500 font-mono tracking-widest">•••• 4321</span>
                         </div>
@@ -250,12 +250,12 @@
                         </div>
                         <div class="mb-4">
                             <span class="text-xs text-purple-300/70 block mb-1">Fatura Atual</span>
-                            <span class="text-3xl font-bold sensitive-value text-white" data-value="R$ 150,00">R$ 150,00</span>
+                            <span class="text-3xl font-bold sensitive-value text-white" data-value="0">R$ 0,00</span>
                         </div>
                         <div class="flex justify-between items-end mt-6">
                             <div>
                                 <span class="text-xs text-purple-300/70 block mb-1">Limite Disponível</span>
-                                <span class="text-sm font-semibold text-green-400 sensitive-value" data-value="R$ 4.850,00">R$ 4.850,00</span>
+                                <span class="text-sm font-semibold text-green-400 sensitive-value" data-value="0">R$ 0,00</span>
                             </div>
                             <span class="text-xs text-gray-500 font-mono tracking-widest">•••• 1928</span>
                         </div>
@@ -416,7 +416,7 @@
         </main>
 
         <!-- Menu Fixo Inferior -->
-        <nav class="absolute bottom-0 w-full h-20 card rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.3)] flex justify-around items-center px-2 z-50 shrink-0">
+		<nav class="fixed bottom-0 left-0 w-full h-20 card rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.3)] flex justify-around items-center px-2 z-50">
             <button id="nav-home" class="nav-btn flex flex-col items-center justify-center w-16 h-full relative text-[#38bdf8]" onclick="navigate(this, 'page-home', 'Visão Geral')">
                 <div class="absolute top-0 w-6 h-0.5 bg-[#38bdf8] rounded-b-md transition-all"></div>
                 <i data-lucide="home" class="w-6 h-6 mb-1"></i>
@@ -484,6 +484,10 @@
                     </div>
                     <div class="flex flex-col items-start">
                         <span class="text-white font-medium text-lg">Contas e Categorias</span>
+						<button id="btn-zerar"
+        class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl mt-4 w-full">
+    Zerar Tudo
+</button>
                         <span class="text-xs text-gray-500">Gerir bancos e classificações</span>
                     </div>
                 </button>
@@ -1467,6 +1471,56 @@
         // Inicializa ao carregar a página
         window.onload = initApp;
     </script>
+
+	
+<!-- Limpar Tudo -->
+<script type="module">
+import { 
+  collection, 
+  getDocs, 
+  deleteDoc, 
+  doc 
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const btnZerar = document.getElementById("btn-zerar");
+
+btnZerar.addEventListener("click", async () => {
+
+  const confirmar = confirm("Tem certeza que deseja apagar TODAS as transações?");
+
+  if (!confirmar) return;
+
+  const user = auth.currentUser;
+
+  if (!user) {
+    alert("Usuário não autenticado.");
+    return;
+  }
+
+  try {
+
+    const transacoesRef = collection(db, "users", user.uid, "transacoes");
+    const snapshot = await getDocs(transacoesRef);
+
+    const promises = [];
+
+    snapshot.forEach((docSnap) => {
+      const docRef = doc(db, "users", user.uid, "transacoes", docSnap.id);
+      promises.push(deleteDoc(docRef));
+    });
+
+    await Promise.all(promises);
+
+    alert("Dados zerados com sucesso ✅");
+
+  } catch (error) {
+    console.error(error);
+    alert("Erro ao zerar dados.");
+  }
+
+});	
+</script>
+	
 	
 <!-- 🔥 Firebase -->
 <script type="module">
