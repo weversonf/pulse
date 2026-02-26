@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mu Finance v26022026_v01</title>
+    <title>Mu Finance v01.28</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -17,9 +17,11 @@
             --success: #34d399;
             --accent-orange: #f97316;
         }
-        body { background-color: #000; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; color: white; margin: 0; display: flex; justify-content: center; height: 100vh; overflow: hidden; }
+        /* Ajuste do height: 100dvh para correção dinâmica no mobile */
+        body { background-color: #000; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; color: white; margin: 0; display: flex; justify-content: center; height: 100vh; height: 100dvh; overflow: hidden; }
         .app-container { background-color: var(--bg-main); width: 100%; max-width: 450px; height: 100%; position: relative; display: flex; flex-direction: column; box-shadow: 0 0 50px rgba(0,0,0,0.8); }
-        main { flex: 1; overflow-y: auto; padding-bottom: 120px; scroll-behavior: smooth; }
+        /* Adicionada margem de segurança no scroll */
+        main { flex: 1; overflow-y: auto; padding-bottom: calc(120px + env(safe-area-inset-bottom)); scroll-behavior: smooth; }
         .card { background-color: var(--bg-card); border: 1px solid rgba(255,255,255,0.05); }
         ::-webkit-scrollbar { display: none; }
         .fade-in { animation: fadeIn 0.3s ease-in-out; }
@@ -37,7 +39,8 @@
         .day-circle.water-tracked { border-color: var(--accent-blue); color: var(--accent-blue); background: rgba(56, 189, 248, 0.05); }
         .day-circle.goal-met { background-color: var(--accent-blue); border-color: var(--accent-blue); color: #000; box-shadow: 0 0 15px rgba(56, 189, 248, 0.3); }
         
-        nav { position: absolute; bottom: 0; width: 100%; background-color: rgba(30, 33, 40, 0.98); backdrop-filter: blur(15px); border-top: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-around; padding: 12px 0 24px 0; z-index: 50; }
+        /* Ajuste do padding inferior para respeitar a safe area de iPhones e gestos nativos */
+        nav { position: absolute; bottom: 0; width: 100%; background-color: rgba(30, 33, 40, 0.98); backdrop-filter: blur(15px); border-top: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-around; padding: 12px 0 calc(24px + env(safe-area-inset-bottom)) 0; z-index: 50; }
         .nav-btn { display: flex; flex-direction: column; align-items: center; color: #4b5563; border: none; background: none; cursor: pointer; flex: 1; transition: all 0.2s; }
         .nav-btn.active { color: var(--accent-blue); }
         .nav-btn span { font-size: 10px; font-weight: 700; margin-top: 4px; }
@@ -528,6 +531,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCWlVvnA29CnKco7mBG6LvpzDtcYmr28cY",
@@ -540,26 +544,24 @@
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
+        const db = getFirestore(app);
 
-        // Expondo para o escopo global (para os botões HTML acessarem)
+        // Expondo para o escopo global do navegador
         window.firebaseAuth = auth;
+        window.firebaseDb = db;
         window.signInWithEmailAndPassword = signInWithEmailAndPassword;
         window.signOut = signOut;
-
-        onAuthStateChanged(auth, (user) => {
-            const loginScreen = document.getElementById('login-screen');
-            if (user) {
-                loginScreen.classList.add('hidden');
-            } else {
-                loginScreen.classList.remove('hidden');
-            }
-        });
+        window.onAuthStateChanged = onAuthStateChanged;
+        window.firebaseDoc = doc;
+        window.firebaseSetDoc = setDoc;
+        window.firebaseGetDoc = getDoc;
     </script>
 
     <script>
         let barChartInstance = null, catChartInstance = null, chartsInitialized = false;
         let state = {
             isLoggedIn: false,
+            userId: null,
             viewDate: new Date(), extratoDate: new Date(), blurred: false, editingId: null, editingVehId: null,
             usuario: { 
                 firstName: "Murilo", lastName: "Finance", username: "mufinance", birthDate: "1996-02-26", peso: 100, idade: 30,
@@ -570,12 +572,7 @@
             saude: { aguaMeta: 3500, cafeinaMeta: 400, historico: {} },
             financas: { 
                 cartoes: [{id:1, nome:'Nubank', cor:'#8b5cf6', limite:5400}], 
-                transacoes: [
-                    // Dados mockados realistas para os gráficos funcionarem
-                    { id: 1, data: new Date().toISOString().split('T')[0], valor: 5400, tipo: 'receita', status: 'efetivada', cat: 'Salário', conta: 'Inter' },
-                    { id: 2, data: new Date().toISOString().split('T')[0], valor: 1200, tipo: 'despesa', status: 'efetivada', cat: 'Moradia', conta: 'Inter' },
-                    { id: 3, data: new Date().toISOString().split('T')[0], valor: 450, tipo: 'despesa', status: 'efetivada', cat: 'Alimentação', conta: 'Carteira' }
-                ], 
+                transacoes: [], 
                 temp: {type:'despesa', status:'previsivel', fixa:false} 
             },
             veiculo: { tipo: 'moto', nome: 'Fazer 250', hodometro: 12450, mediaGeral: 29.0, oleoIntervalo: 3000, oleoUltimaTrocaKM: 11000, historico: [] },
@@ -616,7 +613,69 @@
 
         function closeAllOverlays() { document.querySelectorAll('.overlay').forEach(o => o.classList.remove('active')); document.getElementById('backdrop').classList.remove('active'); state.editingId = null; state.editingVehId = null; refreshIcons(); }
 
+        // --- INTEGRAÇÃO COM BANCO DE DADOS FIREBASE ---
+        async function loadDataFromCloud() {
+            if(!state.userId || !window.firebaseDb) return;
+            const appId = typeof __app_id !== 'undefined' ? __app_id : 'mu-finance';
+            const docRef = window.firebaseDoc(window.firebaseDb, 'artifacts', appId, 'users', state.userId, 'data', 'user_state');
+            
+            try {
+                const docSnap = await window.firebaseGetDoc(docRef);
+                if (docSnap.exists()) {
+                    const cloudData = docSnap.data();
+                    state.usuario = cloudData.usuario || state.usuario;
+                    state.saude = cloudData.saude || state.saude;
+                    state.financas = cloudData.financas || state.financas;
+                    state.veiculo = cloudData.veiculo || state.veiculo;
+                    state.notificacoes = cloudData.notificacoes || state.notificacoes;
+                }
+            } catch (error) {
+                console.error("Erro ao puxar dados do banco:", error);
+            }
+        }
+
+        async function saveDataToCloud() {
+            if(!state.userId || !window.firebaseDb) return;
+            const appId = typeof __app_id !== 'undefined' ? __app_id : 'mu-finance';
+            const docRef = window.firebaseDoc(window.firebaseDb, 'artifacts', appId, 'users', state.userId, 'data', 'user_state');
+            
+            try {
+                await window.firebaseSetDoc(docRef, {
+                    usuario: state.usuario,
+                    saude: state.saude,
+                    financas: state.financas,
+                    veiculo: state.veiculo,
+                    notificacoes: state.notificacoes
+                });
+            } catch (error) {
+                console.error("Erro ao salvar dados no banco:", error);
+            }
+        }
+
         // --- AUTENTICAÇÃO ---
+        const initializeAuthListener = () => {
+            if (window.onAuthStateChanged) {
+                window.onAuthStateChanged(window.firebaseAuth, async (user) => {
+                    const loginScreen = document.getElementById('login-screen');
+                    if (user) {
+                        state.isLoggedIn = true;
+                        state.userId = user.uid;
+                        loginScreen.classList.add('hidden');
+                        
+                        document.querySelectorAll('.fin-total-saldo').forEach(el => el.innerText = "Carregando...");
+                        await loadDataFromCloud();
+                        updateUI();
+                    } else {
+                        state.isLoggedIn = false;
+                        state.userId = null;
+                        loginScreen.classList.remove('hidden');
+                    }
+                });
+            } else {
+                setTimeout(initializeAuthListener, 50);
+            }
+        };
+
         window.handleLogin = async () => {
             const email = document.getElementById('login-email').value.trim();
             const password = document.getElementById('login-pwd').value;
@@ -631,7 +690,7 @@
                 errorEl.innerText = "Verificando...";
                 await window.signInWithEmailAndPassword(window.firebaseAuth, email, password);
                 errorEl.innerText = "";
-                document.getElementById('login-pwd').value = ''; // Limpa a senha
+                document.getElementById('login-pwd').value = ''; 
             } catch (error) {
                 errorEl.innerText = "Credenciais inválidas. Tente novamente.";
                 console.error("Erro no login:", error);
@@ -680,7 +739,10 @@
             if(!v || !d) return;
             if(state.editingId) { const idx = state.financas.transacoes.findIndex(x => x.id === state.editingId); state.financas.transacoes[idx] = {...state.financas.transacoes[idx], valor:v, data:d, cat:c, conta:a, status:state.financas.temp.status}; }
             else { state.financas.transacoes.push({ id:Date.now(), data:d, valor:v, tipo:state.financas.temp.type, status:state.financas.temp.status, cat:c, conta:a }); }
-            closeAllOverlays(); updateUI();
+            
+            saveDataToCloud();
+            closeAllOverlays(); 
+            updateUI();
         }
 
         function setTransState(p, v) { 
@@ -695,7 +757,10 @@
             const n = document.getElementById('card-name-input').value, l = parseFloat(document.getElementById('card-limit-input').value); 
             if(!n || !l) return; 
             state.financas.cartoes.push({id:Date.now(), nome:n, cor:'#1e293b', limite:l}); 
-            closeAllOverlays(); updateUI(); 
+            
+            saveDataToCloud();
+            closeAllOverlays(); 
+            updateUI(); 
         }
 
         // --- VEÍCULO ---
@@ -728,7 +793,10 @@
             if(state.editingVehId) { const idx = state.veiculo.historico.findIndex(x => x.id === newId); state.veiculo.historico[idx] = item; }
             else { state.veiculo.historico.unshift(item); state.financas.transacoes.push({ id: Date.now()+1, refId: newId, data: item.data, valor: t, tipo: 'despesa', status: 'efetivada', cat: 'Combustível', conta: 'Carteira' }); }
             state.veiculo.hodometro = Math.max(state.veiculo.hodometro, km);
-            closeAllOverlays(); updateUI();
+            
+            saveDataToCloud();
+            closeAllOverlays(); 
+            updateUI();
         }
 
         function saveService() {
@@ -740,11 +808,23 @@
             else { state.veiculo.historico.unshift(item); state.financas.transacoes.push({ id: Date.now()+1, refId: newId, data: item.data, valor: v, tipo: 'despesa', status: 'efetivada', cat: 'Manutenção', conta: 'Carteira' }); }
             if(o) state.veiculo.oleoUltimaTrocaKM = k;
             state.veiculo.hodometro = Math.max(state.veiculo.hodometro, k);
-            closeAllOverlays(); updateUI();
+            
+            saveDataToCloud();
+            closeAllOverlays(); 
+            updateUI();
         }
 
-        function deleteTransaction(id) { state.financas.transacoes = state.financas.transacoes.filter(x => x.id !== id); updateUI(); }
-        function deleteVehActivity(id) { state.veiculo.historico = state.veiculo.historico.filter(x => x.id !== id); state.financas.transacoes = state.financas.transacoes.filter(x => x.refId !== id); updateUI(); }
+        function deleteTransaction(id) { 
+            state.financas.transacoes = state.financas.transacoes.filter(x => x.id !== id); 
+            saveDataToCloud();
+            updateUI(); 
+        }
+        function deleteVehActivity(id) { 
+            state.veiculo.historico = state.veiculo.historico.filter(x => x.id !== id); 
+            state.financas.transacoes = state.financas.transacoes.filter(x => x.refId !== id); 
+            saveDataToCloud();
+            updateUI(); 
+        }
 
         // --- SAÚDE ---
         function registrarSaude(t) { 
@@ -754,6 +834,8 @@
             else if(t==='casa') state.saude.historico[h].agua+=350;
             else if(t==='cafe') state.saude.historico[h].cafe+=80; 
             else if(t==='energetico') state.saude.historico[h].cafe+=150;
+            
+            saveDataToCloud();
             updateUI(); 
         }
 
@@ -841,12 +923,17 @@
             state.saude.cafeinaMeta = parseFloat(document.getElementById('prof-caf-goal').value) || 400;
             
             document.getElementById('header-initials').innerText = (state.usuario.firstName[0] + (state.usuario.lastName ? state.usuario.lastName[0] : "")).toUpperCase();
-            closeAllOverlays(); updateUI();
+            
+            saveDataToCloud();
+            closeAllOverlays(); 
+            updateUI();
         }
 
         function saveVehSettings() { 
             state.veiculo.nome = document.getElementById('input-veh-name').value; 
             state.veiculo.oleoIntervalo = parseInt(document.getElementById('input-veh-oil-interval').value); 
+            
+            saveDataToCloud();
             closeAllOverlays(); 
             updateUI(); 
         }
@@ -1186,7 +1273,7 @@
             if(!state.isLoggedIn) {
                 document.getElementById('login-screen').classList.remove('hidden');
             }
-            updateUI(); 
+            initializeAuthListener();
         };
     </script>
 </body>
