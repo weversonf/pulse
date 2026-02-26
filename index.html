@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mu Finance v01.28</title>
+    <title>Mu Finance v01.29</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -17,11 +17,10 @@
             --success: #34d399;
             --accent-orange: #f97316;
         }
-        /* Ajuste do height: 100dvh para correção dinâmica no mobile */
+        
         body { background-color: #000; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; color: white; margin: 0; display: flex; justify-content: center; height: 100vh; height: 100dvh; overflow: hidden; }
         .app-container { background-color: var(--bg-main); width: 100%; max-width: 450px; height: 100%; position: relative; display: flex; flex-direction: column; box-shadow: 0 0 50px rgba(0,0,0,0.8); }
-        /* Adicionada margem de segurança no scroll */
-        main { flex: 1; overflow-y: auto; padding-bottom: calc(120px + env(safe-area-inset-bottom)); scroll-behavior: smooth; }
+        main { flex: 1; overflow-y: auto; padding-bottom: calc(130px + env(safe-area-inset-bottom)); scroll-behavior: smooth; }
         .card { background-color: var(--bg-card); border: 1px solid rgba(255,255,255,0.05); }
         ::-webkit-scrollbar { display: none; }
         .fade-in { animation: fadeIn 0.3s ease-in-out; }
@@ -39,11 +38,51 @@
         .day-circle.water-tracked { border-color: var(--accent-blue); color: var(--accent-blue); background: rgba(56, 189, 248, 0.05); }
         .day-circle.goal-met { background-color: var(--accent-blue); border-color: var(--accent-blue); color: #000; box-shadow: 0 0 15px rgba(56, 189, 248, 0.3); }
         
-        /* Ajuste do padding inferior para respeitar a safe area de iPhones e gestos nativos */
-        nav { position: absolute; bottom: 0; width: 100%; background-color: rgba(30, 33, 40, 0.98); backdrop-filter: blur(15px); border-top: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-around; padding: 12px 0 calc(24px + env(safe-area-inset-bottom)) 0; z-index: 50; }
-        .nav-btn { display: flex; flex-direction: column; align-items: center; color: #4b5563; border: none; background: none; cursor: pointer; flex: 1; transition: all 0.2s; }
+        /* NOVO DESIGN DO MENU (NAV) */
+        nav { 
+            position: absolute; bottom: 0; width: 100%; 
+            background-color: #16181D; /* Cor dark premium alinhada à imagem */
+            border-top-left-radius: 32px; border-top-right-radius: 32px;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 5px 15px calc(15px + env(safe-area-inset-bottom)) 15px; 
+            z-index: 80; 
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.6);
+        }
+        .nav-btn { 
+            position: relative; display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+            color: #6b7280; border: none; background: none; cursor: pointer; flex: 1; 
+            transition: all 0.2s; padding-top: 15px; height: 100%;
+        }
         .nav-btn.active { color: var(--accent-blue); }
-        .nav-btn span { font-size: 10px; font-weight: 700; margin-top: 4px; }
+        .nav-btn span { font-size: 10px; font-weight: 600; margin-top: 4px; }
+        
+        .active-indicator {
+            position: absolute; top: 0; width: 22px; height: 3px;
+            background-color: var(--accent-blue); border-radius: 4px;
+            opacity: 0; transform: scaleX(0); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .nav-btn.active .active-indicator { opacity: 1; transform: scaleX(1); }
+        
+        /* FAB Styles (Floating Action Button Central) */
+        .fab-wrapper { position: relative; display: flex; justify-content: center; width: 70px; margin-top: -35px; }
+        .fab-container { position: relative; }
+        .main-fab {
+            background-color: var(--accent-blue); color: #000; width: 56px; height: 56px; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 5px 20px rgba(56,189,248,0.4); z-index: 85;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer;
+            border: none; outline: none;
+        }
+        .fab-container.active .main-fab { transform: rotate(45deg); }
+        
+        .sub-fab {
+            position: absolute; top: 4px; left: 4px; width: 48px; height: 48px;
+            background-color: #1E2128; border-radius: 50%; display: flex; justify-content: center; align-items: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); opacity: 0; scale: 0; z-index: 84; cursor: pointer;
+            border: 1px solid rgba(255,255,255,0.05); outline: none;
+        }
+        .fab-container.active .sub-fab-left { transform: translate(-65px, -65px); opacity: 1; scale: 1; box-shadow: 0 10px 25px rgba(0,0,0,0.8); }
+        .fab-container.active .sub-fab-right { transform: translate(65px, -65px); opacity: 1; scale: 1; box-shadow: 0 10px 25px rgba(0,0,0,0.8); }
 
         input, select { color-scheme: dark; }
     </style>
@@ -83,7 +122,7 @@
                     <span id="notif-badge" class="hidden absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full border border-[#1E2128]"></span>
                 </button>
                 <button onclick="toggleOverlay('perfil')" class="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 p-[2px] active:scale-90 transition-transform">
-                    <div class="w-full h-full rounded-full bg-[#1E2128] flex items-center justify-center text-[10px] font-bold" id="header-initials">MU</div>
+                    <div class="w-full h-full rounded-full bg-[#1E2128] flex items-center justify-center text-[10px] font-bold overflow-hidden" id="header-initials">MU</div>
                 </button>
             </div>
         </header>
@@ -239,11 +278,40 @@
 
         </main>
 
+        <!-- NOVO MENU BOTTOM NAV BAR -->
         <nav>
-            <button onclick="navigate('nav-home', 'page-home', 'Visão Geral')" id="nav-home" class="nav-btn active"><i data-lucide="home" class="w-6 h-6"></i><span>Home</span></button>
-            <button onclick="navigate('nav-saude', 'page-saude', 'Saúde')" id="nav-saude" class="nav-btn"><i data-lucide="activity" class="w-6 h-6"></i><span>Saúde</span></button>
-            <button onclick="navigate('nav-financas', 'page-financas', 'Finanças')" id="nav-financas" class="nav-btn"><i data-lucide="dollar-sign" class="w-6 h-6"></i><span>Finanças</span></button>
-            <button onclick="navigate('nav-veiculo', 'page-veiculo', 'Veículo')" id="nav-veiculo" class="nav-btn"><i data-lucide="bike" class="w-6 h-6"></i><span>Veículo</span></button>
+            <button onclick="navigate('nav-home', 'page-home', 'Visão Geral')" id="nav-home" class="nav-btn active">
+                <div class="active-indicator"></div>
+                <i data-lucide="home" class="w-6 h-6"></i><span>Home</span>
+            </button>
+            <button onclick="navigate('nav-saude', 'page-saude', 'Saúde')" id="nav-saude" class="nav-btn">
+                <div class="active-indicator"></div>
+                <i data-lucide="activity" class="w-6 h-6"></i><span>Saúde</span>
+            </button>
+
+            <!-- FAB CONTAINER CENTRAL -->
+            <div class="fab-wrapper">
+                <div class="fab-container" id="fab-container">
+                    <button onclick="quickAction('fin')" class="sub-fab sub-fab-left text-green-400">
+                        <i data-lucide="dollar-sign" class="w-5 h-5"></i>
+                    </button>
+                    <button onclick="quickAction('veh')" class="sub-fab sub-fab-right text-orange-400">
+                        <i data-lucide="bike" class="w-5 h-5"></i>
+                    </button>
+                    <button onclick="toggleFab(event)" class="main-fab">
+                        <i data-lucide="plus" class="w-8 h-8"></i>
+                    </button>
+                </div>
+            </div>
+
+            <button onclick="navigate('nav-financas', 'page-financas', 'Finanças')" id="nav-financas" class="nav-btn">
+                <div class="active-indicator"></div>
+                <i data-lucide="dollar-sign" class="w-6 h-6"></i><span>Finanças</span>
+            </button>
+            <button onclick="navigate('nav-veiculo', 'page-veiculo', 'Veículo')" id="nav-veiculo" class="nav-btn">
+                <div class="active-indicator"></div>
+                <i data-lucide="bike" class="w-6 h-6"></i><span>Veículo</span>
+            </button>
         </nav>
 
         <div id="backdrop" class="backdrop" onclick="closeAllOverlays()"></div>
@@ -385,6 +453,21 @@
                 <button onclick="closeAllOverlays()"><i data-lucide="x" class="w-6 h-6 text-gray-500"></i></button>
             </div>
             <div class="overlay-content space-y-8">
+                
+                <div class="flex flex-col items-center mb-2">
+                    <div class="relative mb-4">
+                        <div id="prof-avatar-preview" class="w-20 h-20 rounded-full bg-[#1E2128] border-2 border-white/10 flex items-center justify-center text-xl font-bold overflow-hidden shadow-xl">
+                        </div>
+                        <button onclick="document.getElementById('avatar-upload').click()" class="absolute bottom-0 right-0 w-8 h-8 bg-[#38bdf8] rounded-full flex items-center justify-center border-2 border-[#1E2128] active:scale-90 transition-transform">
+                            <i data-lucide="camera" class="w-4 h-4 text-black"></i>
+                        </button>
+                        <input type="file" id="avatar-upload" class="hidden" accept="image/*" onchange="handleAvatarUpload(event)">
+                    </div>
+                    <p class="text-[9px] text-gray-500 font-bold uppercase tracking-widest mb-3">Ou escolha um avatar</p>
+                    <div id="preset-avatars-grid" class="flex justify-center gap-3 flex-wrap px-2">
+                    </div>
+                </div>
+
                 <section class="space-y-4">
                     <label class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Identidade</label>
                     <div class="grid grid-cols-2 gap-4">
@@ -419,7 +502,7 @@
                         </div>
                     </div>
                 </section>
-                <button onclick="saveProfile()" class="w-full py-5 rounded-3xl bg-blue-500 text-black font-bold uppercase tracking-widest">Salvar</button>
+                <button onclick="saveProfile()" class="w-full py-5 rounded-3xl bg-blue-500 text-black font-bold uppercase tracking-widest mt-2">Salvar Alterações</button>
                 <button onclick="handleLogout()" class="w-full py-4 mt-3 rounded-3xl bg-red-500/10 text-red-500 font-bold uppercase tracking-widest border border-red-500/20 active:bg-red-500/20 transition-all">Sair da Conta</button>
             </div>
         </div>
@@ -468,7 +551,7 @@
             <div id="notif-list" class="overlay-content space-y-3"></div>
         </div>
 
-        <!-- MODAL DE RELATÓRIOS (ATUALIZADO) -->
+        <!-- MODAL DE RELATÓRIOS -->
         <div id="overlay-relatorios-fin" class="overlay">
             <div class="w-12 h-1 bg-gray-800 rounded-full mx-auto mt-4 mb-4 shrink-0"></div>
             <div class="px-6 flex justify-between items-center mb-6">
@@ -559,12 +642,26 @@
 
     <script>
         let barChartInstance = null, catChartInstance = null, chartsInitialized = false;
+        let tempAvatar = null;
+        
+        // 8 Avatares Personagens em Vetor
+        const avatarPresets = [
+            'https://api.dicebear.com/7.x/fun-emoji/svg?seed=Felix&backgroundColor=38bdf8',
+            'https://api.dicebear.com/7.x/fun-emoji/svg?seed=Aneka&backgroundColor=fb7185',
+            'https://api.dicebear.com/7.x/fun-emoji/svg?seed=Leo&backgroundColor=f97316',
+            'https://api.dicebear.com/7.x/fun-emoji/svg?seed=Zoey&backgroundColor=34d399',
+            'https://api.dicebear.com/7.x/fun-emoji/svg?seed=Max&backgroundColor=a855f7',
+            'https://api.dicebear.com/7.x/fun-emoji/svg?seed=Mia&backgroundColor=eab308',
+            'https://api.dicebear.com/7.x/fun-emoji/svg?seed=Sam&backgroundColor=6366f1',
+            'https://api.dicebear.com/7.x/fun-emoji/svg?seed=Jude&backgroundColor=475569'
+        ];
+
         let state = {
             isLoggedIn: false,
             userId: null,
             viewDate: new Date(), extratoDate: new Date(), blurred: false, editingId: null, editingVehId: null,
             usuario: { 
-                firstName: "Murilo", lastName: "Finance", username: "mufinance", birthDate: "1996-02-26", peso: 100, idade: 30,
+                firstName: "Murilo", lastName: "Finance", username: "mufinance", birthDate: "1996-02-26", peso: 100, idade: 30, avatarUrl: null,
                 contas: [{id: 'wallet', nome: 'Carteira', protected: true}, {id: 2, nome: 'Inter', protected: false}],
                 categorias_despesa: [{nome: 'Alimentação', protected: true}, {nome: 'Combustível', protected: true}, {nome: 'Manutenção', protected: true}, {nome: 'Moradia', protected: true}, {nome: 'Lazer', protected: false}],
                 categorias_receita: [{nome: 'Salário', protected: true}, {nome: 'Freelance', protected: false}]
@@ -580,6 +677,31 @@
         };
 
         function refreshIcons() { lucide.createIcons(); }
+
+        // --- CONTROLE DO NOVO MENU FAB ---
+        function toggleFab(e) {
+            if(e) e.stopPropagation();
+            document.getElementById('fab-container').classList.toggle('active');
+        }
+
+        function quickAction(type) {
+            toggleFab();
+            if (type === 'fin') {
+                openTransactionModal('despesa');
+            } else if (type === 'veh') {
+                openVehModal('abastecer');
+            }
+        }
+
+        // Fecha o FAB se clicar fora dele
+        document.addEventListener('click', function(e) {
+            const fab = document.getElementById('fab-container');
+            if (fab && fab.classList.contains('active')) {
+                if (!fab.contains(e.target)) {
+                    fab.classList.remove('active');
+                }
+            }
+        });
 
         function navigate(navId, pageId, title) {
             document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
@@ -611,7 +733,17 @@
             refreshIcons();
         }
 
-        function closeAllOverlays() { document.querySelectorAll('.overlay').forEach(o => o.classList.remove('active')); document.getElementById('backdrop').classList.remove('active'); state.editingId = null; state.editingVehId = null; refreshIcons(); }
+        function closeAllOverlays() { 
+            document.querySelectorAll('.overlay').forEach(o => o.classList.remove('active')); 
+            document.getElementById('backdrop').classList.remove('active'); 
+            state.editingId = null; 
+            state.editingVehId = null; 
+            
+            const fab = document.getElementById('fab-container');
+            if(fab) fab.classList.remove('active');
+
+            refreshIcons(); 
+        }
 
         // --- INTEGRAÇÃO COM BANCO DE DADOS FIREBASE ---
         async function loadDataFromCloud() {
@@ -875,8 +1007,11 @@
             toggleOverlay('saude-dia');
         }
 
-        // --- PERFIL ---
+        // --- AVATAR & PERFIL ---
         function renderProfileForm() {
+            tempAvatar = state.usuario.avatarUrl || null;
+            updateAvatarPreviewUI();
+            
             document.getElementById('prof-first-name').value = state.usuario.firstName;
             document.getElementById('prof-last-name').value = state.usuario.lastName;
             document.getElementById('prof-username').value = state.usuario.username;
@@ -885,6 +1020,59 @@
             document.getElementById('prof-water-goal').value = state.saude.aguaMeta;
             document.getElementById('prof-caf-goal').value = state.saude.cafeinaMeta;
             refreshIcons();
+        }
+
+        function updateAvatarPreviewUI() {
+            const preview = document.getElementById('prof-avatar-preview');
+            const grid = document.getElementById('preset-avatars-grid');
+            
+            if (tempAvatar) {
+                preview.innerHTML = `<img src="${tempAvatar}" class="w-full h-full object-cover">`;
+            } else {
+                const initials = (state.usuario.firstName[0] + (state.usuario.lastName ? state.usuario.lastName[0] : "")).toUpperCase();
+                preview.innerHTML = `<span class="text-white">${initials}</span>`;
+            }
+
+            grid.innerHTML = avatarPresets.map(url => 
+                `<img src="${url}" class="w-10 h-10 rounded-full cursor-pointer bg-white/5 border-2 ${tempAvatar === url ? 'border-blue-500' : 'border-transparent'} hover:border-blue-500/50 transition-all" onclick="selectPresetAvatar('${url}')">`
+            ).join('');
+        }
+
+        function selectPresetAvatar(url) {
+            tempAvatar = url;
+            updateAvatarPreviewUI();
+        }
+
+        function handleAvatarUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const MAX_SIZE = 150; // Comprime para um avatar de tamanho seguro para o banco
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height) { if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; } } 
+                    else { if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; } }
+
+                    canvas.width = width; canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    
+                    // Fundo escuro para imagens com transparência
+                    ctx.fillStyle = '#1E2128'; 
+                    ctx.fillRect(0, 0, width, height);
+                    ctx.drawImage(img, 0, 0, width, height);
+                    
+                    tempAvatar = canvas.toDataURL('image/jpeg', 0.8);
+                    updateAvatarPreviewUI();
+                }
+                img.src = e.target.result;
+            }
+            reader.readAsDataURL(file);
         }
 
         function autoCalcGoals() {
@@ -913,6 +1101,7 @@
             state.usuario.username = document.getElementById('prof-username').value;
             state.usuario.birthDate = document.getElementById('prof-birth-date').value;
             state.usuario.peso = parseFloat(document.getElementById('prof-weight').value) || 0;
+            state.usuario.avatarUrl = tempAvatar;
             
             const birth = new Date(state.usuario.birthDate); const today = new Date();
             let age = today.getFullYear() - birth.getFullYear();
@@ -921,8 +1110,6 @@
             
             state.saude.aguaMeta = parseFloat(document.getElementById('prof-water-goal').value) || (state.usuario.peso * 35);
             state.saude.cafeinaMeta = parseFloat(document.getElementById('prof-caf-goal').value) || 400;
-            
-            document.getElementById('header-initials').innerText = (state.usuario.firstName[0] + (state.usuario.lastName ? state.usuario.lastName[0] : "")).toUpperCase();
             
             saveDataToCloud();
             closeAllOverlays(); 
@@ -946,6 +1133,14 @@
 
         // --- UI MASTER ---
         function updateUI() {
+            // Atualiza o Avatar ou Iniciais no cabeçalho
+            const headerBtn = document.getElementById('header-initials');
+            if (state.usuario.avatarUrl) {
+                headerBtn.innerHTML = `<img src="${state.usuario.avatarUrl}" class="w-full h-full object-cover">`;
+            } else {
+                headerBtn.innerHTML = (state.usuario.firstName[0] + (state.usuario.lastName ? state.usuario.lastName[0] : "")).toUpperCase();
+            }
+
             const hoje = new Date().toISOString().split('T')[0], s = state.saude.historico[hoje] || {agua:0, cafe:0};
             const aP = (s.agua / state.saude.aguaMeta) * 100;
             const rA = document.getElementById('ring-agua-path'); if(rA) rA.style.strokeDashoffset = 301.6 - (Math.min(aP, 100)/100 * 301.6);
