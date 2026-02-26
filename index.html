@@ -11,7 +11,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#121418">
     
-    <title>Mu Finance v02.01</title>
+    <title>Mu Finance v02.02</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -26,40 +26,16 @@
             --accent-orange: #f97316;
         }
         
-        body { 
-            background-color: #000; 
-            font-family: 'Inter', sans-serif; 
-            -webkit-tap-highlight-color: transparent; 
-            color: white; 
-            margin: 0; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center;
-            height: 100vh; 
-            height: 100dvh; 
-            overflow: hidden; 
-        }
-
-        /* Container Responsivo */
+        body { background-color: #000; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; color: white; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; height: 100dvh; overflow: hidden; }
+        
         .app-container { 
-            background-color: var(--bg-main); 
-            width: 100%; 
-            max-width: 450px; /* Mobile Default */
-            height: 100%; 
-            position: relative; 
-            display: flex; 
-            flex-direction: column; 
-            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+            background-color: var(--bg-main); width: 100%; max-width: 450px; height: 100%; 
+            position: relative; display: flex; flex-direction: column; box-shadow: 0 0 50px rgba(0,0,0,0.8);
             transition: max-width 0.3s ease;
         }
 
         @media (min-width: 768px) {
-            .app-container { 
-                max-width: 900px; 
-                height: 95vh; 
-                border-radius: 32px; 
-                border: 1px solid rgba(255,255,255,0.05);
-            }
+            .app-container { max-width: 900px; height: 95vh; border-radius: 32px; border: 1px solid rgba(255,255,255,0.05); }
         }
 
         @media (min-width: 1280px) {
@@ -73,7 +49,6 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .sensitive-value.blurred { filter: blur(15px); }
         
-        /* Overlays / Modais */
         .overlay { 
             position: absolute; bottom: -100%; left: 0; width: 100%; height: 92%; 
             background-color: var(--bg-card); border-top-left-radius: 32px; border-top-right-radius: 32px; 
@@ -83,15 +58,8 @@
         }
         .overlay.active { bottom: 0; }
 
-        /* Ajuste de Modais para Desktop */
         @media (min-width: 768px) {
-            .overlay {
-                width: 500px;
-                left: 50%;
-                transform: translateX(-50%);
-                height: 85%;
-            }
-            .overlay.active { bottom: 0; }
+            .overlay { width: 500px; left: 50%; transform: translateX(-50%); height: 85%; }
         }
 
         .overlay-content { flex: 1; overflow-y: auto; padding: 0 24px 40px 24px; }
@@ -103,20 +71,14 @@
         .day-circle.water-tracked { border-color: var(--accent-blue); color: var(--accent-blue); background: rgba(56, 189, 248, 0.05); }
         .day-circle.goal-met { background-color: var(--accent-blue); border-color: var(--accent-blue); color: #000; box-shadow: 0 0 15px rgba(56, 189, 248, 0.3); }
         
-        /* NAV BAR */
         nav { 
             position: absolute; bottom: 0; width: 100%; 
-            background-color: #16181D; 
-            border-top-left-radius: 32px; border-top-right-radius: 32px;
+            background-color: #16181D; border-top-left-radius: 32px; border-top-right-radius: 32px;
             display: flex; justify-content: space-between; align-items: center;
             padding: 5px 15px calc(15px + env(safe-area-inset-bottom)) 15px; 
-            z-index: 80; 
-            box-shadow: 0 -10px 40px rgba(0,0,0,0.6);
+            z-index: 80; box-shadow: 0 -10px 40px rgba(0,0,0,0.6);
         }
-
-        @media (min-width: 768px) {
-            nav { border-bottom-left-radius: 32px; border-bottom-right-radius: 32px; }
-        }
+        @media (min-width: 768px) { nav { border-bottom-left-radius: 32px; border-bottom-right-radius: 32px; } }
 
         .nav-btn { 
             position: relative; display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
@@ -125,50 +87,26 @@
         }
         .nav-btn.active { color: var(--accent-blue); }
         .nav-btn span { font-size: 10px; font-weight: 600; margin-top: 4px; }
-        
-        .active-indicator {
-            position: absolute; top: 0; width: 22px; height: 3px;
-            background-color: var(--accent-blue); border-radius: 4px;
-            opacity: 0; transform: scaleX(0); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
+        .active-indicator { position: absolute; top: 0; width: 22px; height: 3px; background-color: var(--accent-blue); border-radius: 4px; opacity: 0; transform: scaleX(0); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         .nav-btn.active .active-indicator { opacity: 1; transform: scaleX(1); }
         
-        /* FAB Styles */
         .fab-wrapper { position: relative; display: flex; justify-content: center; width: 70px; margin-top: -35px; }
-        .fab-container { position: relative; }
-        .main-fab {
-            background-color: var(--accent-blue); color: #000; width: 56px; height: 56px; border-radius: 50%;
-            display: flex; justify-content: center; align-items: center;
-            box-shadow: 0 5px 20px rgba(56,189,248,0.4); z-index: 85;
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer;
-            border: none; outline: none;
-        }
+        .main-fab { background-color: var(--accent-blue); color: #000; width: 56px; height: 56px; border-radius: 50%; display: flex; justify-content: center; align-items: center; box-shadow: 0 5px 20px rgba(56,189,248,0.4); z-index: 85; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; border: none; outline: none; }
         .fab-container.active .main-fab { transform: rotate(45deg); }
-        
-        .sub-fab {
-            position: absolute; top: 4px; left: 4px; width: 48px; height: 48px;
-            background-color: #1E2128; border-radius: 50%; display: flex; justify-content: center; align-items: center;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); opacity: 0; scale: 0; z-index: 84; cursor: pointer;
-            border: 1px solid rgba(255,255,255,0.05); outline: none;
-        }
+        .sub-fab { position: absolute; top: 4px; left: 4px; width: 48px; height: 48px; background-color: #1E2128; border-radius: 50%; display: flex; justify-content: center; align-items: center; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); opacity: 0; scale: 0; z-index: 84; cursor: pointer; border: 1px solid rgba(255,255,255,0.05); outline: none; }
         .fab-container.active .sub-fab-left { transform: translate(-65px, -65px); opacity: 1; scale: 1; box-shadow: 0 10px 25px rgba(0,0,0,0.8); }
         .fab-container.active .sub-fab-right { transform: translate(65px, -65px); opacity: 1; scale: 1; box-shadow: 0 10px 25px rgba(0,0,0,0.8); }
 
-        input, select { color-scheme: dark; }
-
-        /* Utilitários de Grid Responsivo */
         .page-grid { display: grid; grid-template-columns: 1fr; gap: 1.25rem; }
-        @media (min-width: 768px) {
-            .page-grid-2 { grid-template-columns: repeat(2, 1fr); }
-            .page-grid-3 { grid-template-columns: repeat(3, 1fr); }
-        }
+        @media (min-width: 768px) { .page-grid-2 { grid-template-columns: repeat(2, 1fr); } }
+        input, select { color-scheme: dark; }
     </style>
 </head>
 <body>
 
     <div class="app-container">
         
-        <!-- TELA DE LOGIN -->
+        <!-- LOGIN -->
         <div id="login-screen" class="absolute inset-0 bg-[#121418] z-[999] flex flex-col justify-center px-8 transition-opacity duration-300 border-radius-inherit">
             <div class="text-center mb-10">
                 <h1 class="text-4xl font-bold tracking-tight mb-2">Mu Finance</h1>
@@ -206,7 +144,7 @@
 
         <main id="main-scroll" class="px-6">
             
-            <!-- PÁGINA HOME -->
+            <!-- HOME -->
             <div id="page-home" class="page-content fade-in">
                 <div class="page-grid page-grid-2">
                     <div class="card rounded-3xl p-6 shadow-lg border border-white/5 h-full flex flex-col justify-center">
@@ -217,19 +155,14 @@
                             <div class="text-red-400">Saídas: <span class="fin-despesa-mes sensitive-value">R$ 0,00</span></div>
                         </div>
                     </div>
-
                     <div class="space-y-4">
                         <div onclick="navigate('nav-veiculo', 'page-veiculo', 'Veículo')" class="card rounded-3xl p-5 flex items-center justify-between cursor-pointer active:scale-[0.98] transition-all">
                             <div class="flex items-center space-x-4">
                                 <div id="home-veh-icon" class="w-12 h-12 rounded-2xl bg-orange-500/10 flex items-center justify-center text-orange-500"><i data-lucide="bike"></i></div>
-                                <div>
-                                    <h3 class="font-bold veh-name-text">Fazer 250</h3>
-                                    <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest"><span id="home-veh-media">29</span> km/l • <span id="home-veh-km">0</span> km</p>
-                                </div>
+                                <div><h3 class="font-bold veh-name-text">Fazer 250</h3><p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest"><span id="home-veh-media">29</span> km/l • <span id="home-veh-km">0</span> km</p></div>
                             </div>
                             <i data-lucide="chevron-right" class="w-5 h-5 text-gray-700"></i>
                         </div>
-
                         <div onclick="navigate('nav-saude', 'page-saude', 'Saúde')" class="card rounded-3xl p-5 cursor-pointer active:scale-[0.98] transition-all">
                             <div class="flex justify-between items-center mb-4">
                                 <h3 class="font-bold flex items-center space-x-2"><i data-lucide="droplet" class="w-4 h-4 text-blue-500"></i><span>Hidratação</span></h3>
@@ -241,555 +174,252 @@
                 </div>
             </div>
 
-            <!-- PÁGINA SAÚDE -->
+            <!-- SAÚDE -->
             <div id="page-saude" class="page-content hidden fade-in">
-                <div class="page-grid page-grid-2 lg:page-grid-3">
-                    <!-- NOVO CARD: PROPÓSITO -->
+                <div class="page-grid page-grid-2">
                     <div class="card rounded-3xl p-5 relative">
                         <div class="flex justify-between items-start mb-2">
-                            <div>
-                                <span class="text-[9px] text-gray-500 font-bold uppercase tracking-widest block mb-1">Propósito</span>
-                                <h3 class="text-lg font-bold" id="prop-title">Configure um desafio</h3>
-                            </div>
-                            <button onclick="toggleOverlay('proposito-config')" class="p-1"><i data-lucide="settings" class="w-4 h-4 text-gray-500 hover:text-white transition-colors"></i></button>
+                            <div><span class="text-[9px] text-gray-500 font-bold uppercase tracking-widest block mb-1">Propósito</span><h3 class="text-lg font-bold" id="prop-title">Desafio</h3></div>
+                            <button onclick="toggleOverlay('proposito-config')"><i data-lucide="settings" class="w-4 h-4 text-gray-500"></i></button>
                         </div>
-                        <div class="w-full bg-gray-800 h-2.5 rounded-full overflow-hidden mt-4">
-                            <div id="prop-bar" class="bg-[#34d399] h-full transition-all duration-1000" style="width: 0%"></div>
-                        </div>
-                        <div class="flex justify-between mt-2 text-[9px] font-bold text-gray-500 uppercase tracking-widest">
-                            <span id="prop-days-passed">0 dias</span>
-                            <span id="prop-days-total">0 dias</span>
-                        </div>
+                        <div class="w-full bg-gray-800 h-2.5 rounded-full overflow-hidden mt-4"><div id="prop-bar" class="bg-[#34d399] h-full transition-all duration-1000"></div></div>
+                        <div class="flex justify-between mt-2 text-[9px] font-bold text-gray-500 uppercase tracking-widest"><span id="prop-days-passed">0 dias</span><span id="prop-days-total">30 dias</span></div>
                     </div>
-
                     <div class="grid grid-cols-2 gap-4">
                         <div class="card rounded-3xl p-5 flex flex-col items-center justify-center text-center">
-                            <div class="relative w-28 h-28 flex items-center justify-center mb-2">
-                                <svg class="w-full h-full"><circle class="text-gray-800" stroke-width="6" stroke="currentColor" fill="transparent" r="48" cx="56" cy="56"/><circle id="ring-agua-path" class="text-blue-500 progress-ring__circle" stroke-width="6" stroke-dasharray="301.6" stroke-dashoffset="301.6" stroke-linecap="round" stroke="currentColor" fill="transparent" r="48" cx="56" cy="56"/></svg>
-                                <div class="absolute inset-0 flex flex-col items-center justify-center"><span class="text-xl font-black" id="saude-agua-perc">0%</span><span class="text-[8px] text-gray-500 font-bold uppercase tracking-widest">Diário</span></div>
+                            <div class="relative w-24 h-24 mb-2">
+                                <svg class="w-full h-full"><circle class="text-gray-800" stroke-width="5" stroke="currentColor" fill="transparent" r="44" cx="48" cy="48"/><circle id="ring-agua-path" class="text-blue-500 progress-ring__circle" stroke-width="5" stroke-dasharray="276" stroke-dashoffset="276" stroke-linecap="round" stroke="currentColor" fill="transparent" r="44" cx="48" cy="48"/></svg>
+                                <div class="absolute inset-0 flex flex-col items-center justify-center"><span class="text-lg font-black" id="saude-agua-perc">0%</span></div>
                             </div>
                             <p class="text-[9px] font-bold text-blue-400 uppercase tracking-widest">Meta: <span class="val-agua-meta-litros">3.5</span>L</p>
                         </div>
                         <div class="card rounded-3xl p-5 flex flex-col items-center justify-center text-center">
-                            <div class="relative w-28 h-28 flex items-center justify-center mb-2">
-                                <svg class="w-full h-full"><circle class="text-gray-800" stroke-width="6" stroke="currentColor" fill="transparent" r="48" cx="56" cy="56"/><circle id="ring-cafeina-path" class="text-yellow-500 progress-ring__circle" stroke-width="6" stroke-dasharray="301.6" stroke-dashoffset="301.6" stroke-linecap="round" stroke="currentColor" fill="transparent" r="48" cx="56" cy="56"/></svg>
-                                <div class="absolute inset-0 flex flex-col items-center justify-center"><span class="text-xl font-black" id="saude-cafe-valor">0</span><small class="text-[8px] text-gray-500 ml-0.5 uppercase font-bold">mg</small></div>
+                            <div class="relative w-24 h-24 mb-2">
+                                <svg class="w-full h-full"><circle class="text-gray-800" stroke-width="5" stroke="currentColor" fill="transparent" r="44" cx="48" cy="48"/><circle id="ring-cafeina-path" class="text-yellow-500 progress-ring__circle" stroke-width="5" stroke-dasharray="276" stroke-dashoffset="276" stroke-linecap="round" stroke="currentColor" fill="transparent" r="44" cx="48" cy="48"/></svg>
+                                <div class="absolute inset-0 flex flex-col items-center justify-center"><span class="text-lg font-black" id="saude-cafe-valor">0</span><small class="text-[8px] text-gray-500 uppercase font-bold">mg</small></div>
                             </div>
-                            <p class="text-[9px] font-bold text-yellow-500 uppercase tracking-widest">Limite: <span class="val-cafeina-meta-text">400</span>mg</p>
+                            <p class="text-[9px] font-bold text-yellow-500 uppercase tracking-widest">Max: <span class="val-cafeina-meta-text">400</span>mg</p>
                         </div>
                     </div>
-
-                    <div class="card rounded-3xl p-5 lg:col-span-1">
-                        <div class="flex justify-between items-center mb-6"><h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Calendário de Metas</h3><div class="flex items-center space-x-3"><button onclick="changeMonth(-1)"><i data-lucide="chevron-left" class="w-4 h-4"></i></button><span id="calendar-month-year" class="text-[10px] font-bold w-24 text-center uppercase tracking-tighter">Fev 2026</span><button onclick="changeMonth(1)"><i data-lucide="chevron-right" class="w-4 h-4"></i></button></div></div>
-                        <div id="calendar-grid" class="grid grid-cols-7 gap-y-3 gap-x-2 text-center text-[9px] font-bold text-gray-600 mb-2"><div>DOM</div><div>SEG</div><div>TER</div><div>QUA</div><div>QUI</div><div>SEX</div><div>SAB</div></div>
+                    <div class="card rounded-3xl p-5">
+                        <div class="flex justify-between items-center mb-6"><h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Calendário</h3><div class="flex items-center space-x-3"><button onclick="changeMonth(-1)"><i data-lucide="chevron-left" class="w-4 h-4"></i></button><span id="calendar-month-year" class="text-[10px] font-bold w-24 text-center uppercase tracking-tighter">FEV 2026</span><button onclick="changeMonth(1)"><i data-lucide="chevron-right" class="w-4 h-4"></i></button></div></div>
+                        <div id="calendar-grid" class="grid grid-cols-7 gap-2 text-center text-[9px] font-bold text-gray-600"></div>
                     </div>
-
-                    <div class="grid grid-cols-2 gap-3 lg:col-span-2">
-                        <button onclick="registrarSaude('escritorio')" class="card p-4 rounded-2xl flex items-center space-x-3 active:scale-95 transition-all"><i data-lucide="building" class="w-5 h-5 text-blue-500"></i><div class="text-left"><span class="block text-xs font-bold">Escritório</span><span class="block text-[10px] text-blue-400">+473ml</span></div></button>
-                        <button onclick="registrarSaude('casa')" class="card p-4 rounded-2xl flex items-center space-x-3 active:scale-95 transition-all"><i data-lucide="home" class="w-5 h-5 text-blue-300"></i><div class="text-left"><span class="block text-xs font-bold">Em Casa</span><span class="block text-[10px] text-blue-300">+350ml</span></div></button>
-                        <button onclick="registrarSaude('cafe')" class="card p-4 rounded-2xl flex items-center space-x-3 active:scale-95 transition-all"><i data-lucide="coffee" class="w-5 h-5 text-orange-400"></i><div class="text-left"><span class="block text-xs font-bold">Café</span><span class="block text-[10px] text-orange-400">+80mg</span></div></button>
-                        <button onclick="registrarSaude('energetico')" class="card p-4 rounded-2xl flex items-center space-x-3 active:scale-95 transition-all"><i data-lucide="zap" class="w-5 h-5 text-yellow-400"></i><div class="text-left"><span class="block text-xs font-bold">Energético</span><span class="block text-[10px] text-yellow-400">+150mg</span></div></button>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button onclick="registrarSaude('escritorio')" class="card p-4 rounded-2xl flex items-center space-x-3"><i data-lucide="building" class="w-5 h-5 text-blue-500"></i><div class="text-left text-xs font-bold">Escritório</div></button>
+                        <button onclick="registrarSaude('casa')" class="card p-4 rounded-2xl flex items-center space-x-3"><i data-lucide="home" class="w-5 h-5 text-blue-300"></i><div class="text-left text-xs font-bold">Casa</div></button>
+                        <button onclick="registrarSaude('cafe')" class="card p-4 rounded-2xl flex items-center space-x-3"><i data-lucide="coffee" class="w-5 h-5 text-orange-400"></i><div class="text-left text-xs font-bold">Café</div></button>
+                        <button onclick="registrarSaude('energetico')" class="card p-4 rounded-2xl flex items-center space-x-3"><i data-lucide="zap" class="w-5 h-5 text-yellow-400"></i><div class="text-left text-xs font-bold">Energético</div></button>
                     </div>
                 </div>
             </div>
 
-            <!-- PÁGINA FINANÇAS -->
+            <!-- FINANÇAS -->
             <div id="page-financas" class="page-content hidden fade-in">
                 <div class="page-grid page-grid-2">
                     <div class="space-y-6">
-                        <!-- Resumo -->
                         <div class="card rounded-3xl p-6 shadow-sm relative overflow-hidden">
-                            <div class="absolute right-0 top-0 w-32 h-32 bg-green-500/10 rounded-bl-full z-0"></div>
-                            <div class="absolute top-4 right-4 z-20 cursor-pointer p-1" onclick="toggleVisibility()">
-                                <div id="icon-eye"><i data-lucide="eye" class="w-5 h-5 text-gray-400 hover:text-white transition-colors"></i></div>
-                                <div id="icon-eye-off" class="hidden"><i data-lucide="eye-off" class="w-5 h-5 text-gray-400 hover:text-white transition-colors"></i></div>
-                            </div>
-                            <div class="relative z-10">
-                                <span class="text-gray-400 text-sm">Disponível</span>
-                                <h2 class="text-4xl font-bold mt-1 mb-4 sensitive-value fin-total-saldo" data-value="0">R$ 0,00</h2>
-                                <div class="flex justify-between items-center mt-6">
-                                    <div><span class="text-xs text-gray-500 block mb-1">Gasto (Efetivado)</span><span class="text-sm font-semibold text-red-400 sensitive-value fin-despesa-mes" data-value="0">R$ 0,00</span></div>
-                                    <div class="w-px h-8 bg-gray-700"></div>
-                                    <div class="text-right"><span class="text-xs text-gray-500 block mb-1">Receita (Efetivada)</span><span class="text-sm font-semibold text-green-400 sensitive-value fin-receita-mes" data-value="0">R$ 0,00</span></div>
-                                </div>
-                            </div>
+                            <div class="absolute right-0 top-0 w-32 h-32 bg-green-500/10 rounded-bl-full"></div>
+                            <div class="absolute top-4 right-4 cursor-pointer p-1" onclick="toggleVisibility()"><i data-lucide="eye" id="icon-eye" class="w-5 h-5 text-gray-400"></i><i data-lucide="eye-off" id="icon-eye-off" class="w-5 h-5 text-gray-400 hidden"></i></div>
+                            <div class="relative z-10"><span class="text-gray-400 text-sm">Disponível</span><h2 class="text-4xl font-bold mt-1 sensitive-value fin-total-saldo">R$ 0,00</h2><div class="flex justify-between items-center mt-6"><div><span class="text-xs text-gray-500 block">Gasto</span><span class="text-sm font-semibold text-red-400 sensitive-value fin-despesa-mes">R$ 0,00</span></div><div class="w-px h-8 bg-gray-700"></div><div class="text-right"><span class="text-xs text-gray-500 block">Receita</span><span class="text-sm font-semibold text-green-400 sensitive-value fin-receita-mes">R$ 0,00</span></div></div></div>
                         </div>
-                        
-                        <!-- GRID DE 3 BOTÕES -->
                         <div class="grid grid-cols-3 gap-3">
-                            <button class="card rounded-2xl py-4 flex flex-col items-center justify-center hover:bg-gray-800 transition-colors border border-white/5" onclick="openTransactionModal('despesa')"><i data-lucide="arrow-up-right" class="w-6 h-6 text-red-400 mb-2"></i><span class="text-[10px] font-bold uppercase">Despesa</span></button>
-                            <button class="card rounded-2xl py-4 flex flex-col items-center justify-center hover:bg-gray-800 transition-colors border border-white/5" onclick="openTransactionModal('receita')"><i data-lucide="arrow-down-left" class="w-6 h-6 text-green-400 mb-2"></i><span class="text-[10px] font-bold uppercase">Receita</span></button>
-                            <button class="card rounded-2xl py-4 flex flex-col items-center justify-center hover:bg-gray-800 transition-colors border border-white/5" onclick="toggleOverlay('relatorios-fin')"><i data-lucide="pie-chart" class="w-6 h-6 text-[#38bdf8] mb-2"></i><span class="text-[10px] font-bold uppercase">Relatório</span></button>
+                            <button class="card rounded-2xl py-4 flex flex-col items-center border border-white/5" onclick="openTransactionModal('despesa')"><i data-lucide="arrow-up-right" class="w-6 h-6 text-red-400 mb-2"></i><span class="text-[10px] font-bold uppercase">Despesa</span></button>
+                            <button class="card rounded-2xl py-4 flex flex-col items-center border border-white/5" onclick="openTransactionModal('receita')"><i data-lucide="arrow-down-left" class="w-6 h-6 text-green-400 mb-2"></i><span class="text-[10px] font-bold uppercase">Receita</span></button>
+                            <button class="card rounded-2xl py-4 flex flex-col items-center border border-white/5" onclick="toggleOverlay('relatorios-fin')"><i data-lucide="pie-chart" class="w-6 h-6 text-[#38bdf8] mb-2"></i><span class="text-[10px] font-bold uppercase">Relatório</span></button>
                         </div>
                     </div>
-
                     <div class="space-y-6">
-                        <!-- Carrossel de Cartões de Crédito -->
-                        <div class="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-2 hide-scroll relative" id="card-carousel">
-                            <!-- Gerado pelo JS -->
-                        </div>
-
-                        <div class="card rounded-3xl p-6 shadow-sm">
-                            <div class="flex justify-between items-center mb-4"><h2 class="text-gray-400 font-medium text-sm">Transações Recentes</h2><span class="text-xs text-[#38bdf8] font-bold cursor-pointer hover:underline" onclick="navigate('nav-financas', 'page-extrato', 'Extrato')">Ver tudo</span></div>
-                            <div id="recent-trans-list" class="space-y-4"></div>
-                        </div>
+                        <div class="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-2 hide-scroll" id="card-carousel"></div>
+                        <div class="card rounded-3xl p-6"><div class="flex justify-between items-center mb-4"><h2 class="text-gray-400 font-medium text-sm">Recentes</h2><span class="text-xs text-blue-400 font-bold cursor-pointer" onclick="navigate('nav-financas', 'page-extrato', 'Extrato')">Ver tudo</span></div><div id="recent-trans-list" class="space-y-4"></div></div>
                     </div>
                 </div>
             </div>
 
-            <!-- PÁGINA EXTRATO -->
+            <!-- EXTRATO -->
             <div id="page-extrato" class="page-content hidden fade-in">
                 <div class="flex items-center justify-between mb-6">
                     <button onclick="navigate('nav-financas', 'page-financas', 'Finanças')" class="w-9 h-9 bg-white/5 rounded-full flex items-center justify-center"><i data-lucide="chevron-left" class="w-5 h-5"></i></button>
-                    <div class="flex items-center space-x-2 bg-white/5 rounded-xl px-2 py-1">
-                        <button onclick="changeExtratoMonth(-1)"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
-                        <span id="extrato-month-label" class="text-[10px] font-bold min-w-[70px] text-center uppercase">Fevereiro</span>
-                        <button onclick="changeExtratoMonth(1)"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
-                    </div>
+                    <div class="flex items-center space-x-2 bg-white/5 rounded-xl px-2 py-1"><button onclick="changeExtratoMonth(-1)"><i data-lucide="chevron-left" class="w-4 h-4"></i></button><span id="extrato-month-label" class="text-[10px] font-bold min-w-[70px] text-center uppercase">FEVEREIRO</span><button onclick="changeExtratoMonth(1)"><i data-lucide="chevron-right" class="w-4 h-4"></i></button></div>
                 </div>
                 <div id="extrato-month-content" class="page-grid page-grid-2 pb-10"></div>
             </div>
 
-            <!-- PÁGINA VEÍCULO -->
+            <!-- VEÍCULO -->
             <div id="page-veiculo" class="page-content hidden fade-in">
                 <div class="page-grid page-grid-2">
                     <div class="card rounded-3xl p-6 relative h-full flex flex-col justify-center">
-                        <div class="flex justify-between items-start mb-6">
-                            <div>
-                                <h2 class="text-2xl font-bold veh-name-text">Fazer 250</h2>
-                                <p class="text-[10px] text-gray-500 uppercase font-bold tracking-widest mt-1">Total: <span id="veh-km-total">0</span> km</p>
-                            </div>
-                            <button onclick="toggleOverlay('veh-config')" class="w-9 h-9 bg-white/5 rounded-full flex items-center justify-center active:bg-white/10"><i data-lucide="settings" class="w-4 h-4 text-gray-400"></i></button>
-                        </div>
+                        <div class="flex justify-between items-start mb-6"><div><h2 class="text-2xl font-bold veh-name-text">Fazer 250</h2><p class="text-[10px] text-gray-500 uppercase font-bold mt-1">Total: <span id="veh-km-total">0</span> km</p></div><button onclick="toggleOverlay('veh-config')" class="w-9 h-9 bg-white/5 rounded-full flex items-center justify-center"><i data-lucide="settings" class="w-4 h-4 text-gray-400"></i></button></div>
                         <div class="grid grid-cols-2 gap-4">
-                            <div class="bg-black/30 p-4 rounded-2xl border border-white/5"><span class="text-[9px] text-gray-500 font-bold uppercase block mb-1">Média km/L</span><span class="text-lg font-bold text-orange-400" id="veh-media-geral">29.0</span></div>
-                            <div class="bg-black/30 p-4 rounded-2xl border border-white/5"><span class="text-[9px] text-gray-500 font-bold uppercase block mb-1">Próx. Manutenção</span><span class="text-lg font-bold text-blue-400" id="veh-oleo-km">0</span></div>
+                            <div class="bg-black/30 p-4 rounded-2xl border border-white/5"><span class="text-[9px] text-gray-500 uppercase block mb-1">Média</span><span class="text-lg font-bold text-orange-400" id="veh-media-geral">29.0</span></div>
+                            <div class="bg-black/30 p-4 rounded-2xl border border-white/5"><span class="text-[9px] text-gray-500 uppercase block mb-1">Manutenção</span><span class="text-lg font-bold text-blue-400" id="veh-oleo-km">0</span></div>
                         </div>
-                        <div class="mt-6 space-y-1.5">
-                            <div class="flex justify-between text-[8px] font-bold uppercase text-gray-500"><span>Saúde do Óleo</span><span id="veh-oleo-perc">0%</span></div>
-                            <div class="w-full bg-white/5 h-1.5 rounded-full overflow-hidden"><div id="veh-oleo-bar" class="h-full bg-blue-500 transition-all duration-700" style="width: 0%"></div></div>
-                        </div>
+                        <div class="mt-6 space-y-1.5"><div class="flex justify-between text-[8px] font-bold uppercase text-gray-500"><span>Saúde do Óleo</span><span id="veh-oleo-perc">0%</span></div><div class="w-full bg-white/5 h-1.5 rounded-full overflow-hidden"><div id="veh-oleo-bar" class="h-full bg-blue-500 transition-all" style="width: 0%"></div></div></div>
                     </div>
-
                     <div class="space-y-4">
-                        <div class="grid grid-cols-2 gap-3">
-                            <button onclick="openVehModal('abastecer')" class="card py-5 rounded-2xl flex flex-col items-center border border-white/5 active:bg-orange-500/10 transition-colors"><i data-lucide="fuel" class="w-6 h-6 text-orange-500 mb-2"></i><span class="text-[10px] font-bold uppercase">Abastecer</span></button>
-                            <button onclick="openVehModal('servico')" class="card py-5 rounded-2xl flex flex-col items-center border border-white/5 active:bg-blue-500/10 transition-colors"><i data-lucide="wrench" class="w-6 h-6 text-blue-500 mb-2"></i><span class="text-[10px] font-bold uppercase">Manutenção</span></button>
-                        </div>
-                        <div class="space-y-4">
-                            <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest px-1">Histórico</h3>
-                            <div id="veh-timeline" class="space-y-3 pb-10"></div>
-                        </div>
+                        <div class="grid grid-cols-2 gap-3"><button onclick="openVehModal('abastecer')" class="card py-5 rounded-2xl flex flex-col items-center border border-white/5 active:bg-orange-500/10"><i data-lucide="fuel" class="w-6 h-6 text-orange-500 mb-2"></i><span class="text-[10px] font-bold uppercase">Abastecer</span></button><button onclick="openVehModal('servico')" class="card py-5 rounded-2xl flex flex-col items-center border border-white/5 active:bg-blue-500/10"><i data-lucide="wrench" class="w-6 h-6 text-blue-500 mb-2"></i><span class="text-[10px] font-bold uppercase">Serviço</span></button></div>
+                        <div id="veh-timeline" class="space-y-3 pb-10"></div>
                     </div>
                 </div>
             </div>
 
         </main>
 
-        <!-- MENU BOTTOM NAV BAR -->
         <nav>
-            <button onclick="navigate('nav-home', 'page-home', 'Visão Geral')" id="nav-home" class="nav-btn active">
-                <div class="active-indicator"></div>
-                <i data-lucide="home" class="w-6 h-6"></i><span>Home</span>
-            </button>
-            <button onclick="navigate('nav-saude', 'page-saude', 'Saúde')" id="nav-saude" class="nav-btn">
-                <div class="active-indicator"></div>
-                <i data-lucide="activity" class="w-6 h-6"></i><span>Saúde</span>
-            </button>
-
-            <!-- FAB CONTAINER CENTRAL -->
-            <div class="fab-wrapper">
-                <div class="fab-container" id="fab-container">
-                    <button onclick="quickAction('fin')" class="sub-fab sub-fab-left text-green-400">
-                        <i data-lucide="dollar-sign" class="w-5 h-5"></i>
-                    </button>
-                    <button onclick="quickAction('veh')" class="sub-fab sub-fab-right text-orange-400">
-                        <i data-lucide="bike" class="w-5 h-5"></i>
-                    </button>
-                    <button onclick="toggleFab(event)" class="main-fab">
-                        <i data-lucide="plus" class="w-8 h-8"></i>
-                    </button>
-                </div>
-            </div>
-
-            <button onclick="navigate('nav-financas', 'page-financas', 'Finanças')" id="nav-financas" class="nav-btn">
-                <div class="active-indicator"></div>
-                <i data-lucide="dollar-sign" class="w-6 h-6"></i><span>Finanças</span>
-            </button>
-            <button onclick="navigate('nav-veiculo', 'page-veiculo', 'Veículo')" id="nav-veiculo" class="nav-btn">
-                <div class="active-indicator"></div>
-                <i data-lucide="bike" class="w-6 h-6"></i><span>Veículo</span>
-            </button>
+            <button onclick="navigate('nav-home', 'page-home', 'Visão Geral')" id="nav-home" class="nav-btn active"><div class="active-indicator"></div><i data-lucide="home" class="w-6 h-6"></i><span>Home</span></button>
+            <button onclick="navigate('nav-saude', 'page-saude', 'Saúde')" id="nav-saude" class="nav-btn"><div class="active-indicator"></div><i data-lucide="activity" class="w-6 h-6"></i><span>Saúde</span></button>
+            <div class="fab-wrapper"><div class="fab-container" id="fab-container"><button onclick="quickAction('fin')" class="sub-fab sub-fab-left text-green-400"><i data-lucide="dollar-sign" class="w-5 h-5"></i></button><button onclick="quickAction('veh')" class="sub-fab sub-fab-right text-orange-400"><i data-lucide="bike" class="w-5 h-5"></i></button><button onclick="toggleFab(event)" class="main-fab"><i data-lucide="plus" class="w-8 h-8"></i></button></div></div>
+            <button onclick="navigate('nav-financas', 'page-financas', 'Finanças')" id="nav-financas" class="nav-btn"><div class="active-indicator"></div><i data-lucide="dollar-sign" class="w-6 h-6"></i><span>Finanças</span></button>
+            <button onclick="navigate('nav-veiculo', 'page-veiculo', 'Veículo')" id="nav-veiculo" class="nav-btn"><div class="active-indicator"></div><i data-lucide="bike" class="w-6 h-6"></i><span>Veículo</span></button>
         </nav>
 
         <div id="backdrop" class="backdrop" onclick="closeAllOverlays()"></div>
 
-        <!-- MODAIS (SÃO IGUAIS AOS ANTERIORES) -->
-        <!-- ... [Modais omitidos para poupar espaço no código, mantidos os IDs padrão] ... -->
-        
-        <!-- Re-incluindo os modais essenciais que foram modificados recentemente -->
+        <!-- MODAIS RESTAURADOS -->
         <div id="overlay-proposito-config" class="overlay">
             <div class="w-12 h-1 bg-gray-800 rounded-full mx-auto mt-4 mb-4 shrink-0"></div>
-            <div class="px-6 flex justify-between items-center mb-6">
-                <h2 class="text-xl font-bold">Desafio / Propósito</h2>
-                <button onclick="closeAllOverlays()"><i data-lucide="x" class="w-6 h-6 text-gray-500"></i></button>
-            </div>
+            <div class="px-6 flex justify-between items-center mb-6"><h2 class="text-xl font-bold">Configurar Desafio</h2><button onclick="closeAllOverlays()"><i data-lucide="x" class="w-6 h-6 text-gray-500"></i></button></div>
             <div class="overlay-content space-y-4">
-                <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
-                    <label class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Nome do Desafio</label>
-                    <input type="text" id="input-prop-name" placeholder="Ex: 30 dias sem Álcool" class="bg-transparent font-bold w-full outline-none">
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
-                        <label class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Data de Início</label>
-                        <input type="date" id="input-prop-date" class="bg-transparent font-bold w-full outline-none text-xs">
-                    </div>
-                    <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
-                        <label class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Duração (Dias)</label>
-                        <input type="number" id="input-prop-days" placeholder="Ex: 30" class="bg-transparent font-bold w-full outline-none">
-                    </div>
-                </div>
-                <button onclick="saveProposito()" class="w-full py-5 rounded-3xl bg-green-500 text-black font-bold uppercase mt-4">Salvar Progresso</button>
-                <div id="prop-giveup-container" class="hidden">
-                    <button onclick="desistirProposito()" class="w-full py-4 mt-2 rounded-3xl bg-red-500/10 text-red-500 font-bold uppercase text-[11px] border border-red-500/20 active:bg-red-500/20 transition-all">Desistir / Reiniciar Propósito</button>
-                </div>
+                <div class="bg-black/20 p-4 rounded-2xl border border-white/5"><label class="text-[9px] uppercase font-bold text-gray-500">Nome</label><input type="text" id="input-prop-name" class="bg-transparent font-bold w-full outline-none"></div>
+                <div class="grid grid-cols-2 gap-4"><div class="bg-black/20 p-4 rounded-2xl border border-white/5"><label class="text-[9px] uppercase font-bold text-gray-500">Início</label><input type="date" id="input-prop-date" class="bg-transparent font-bold w-full outline-none"></div><div class="bg-black/20 p-4 rounded-2xl border border-white/5"><label class="text-[9px] uppercase font-bold text-gray-500">Dias</label><input type="number" id="input-prop-days" class="bg-transparent font-bold w-full outline-none"></div></div>
+                <button onclick="saveProposito()" class="w-full py-5 rounded-3xl bg-green-500 text-black font-bold uppercase">Salvar</button>
+                <div id="prop-giveup-container" class="hidden"><button onclick="desistirProposito()" class="w-full py-4 bg-red-500/10 text-red-500 rounded-3xl font-bold uppercase mt-2">Desistir</button></div>
             </div>
         </div>
 
-        <!-- MODAL PADRÃO: LANÇAR FINANCEIRO -->
         <div id="overlay-transaction" class="overlay">
             <div class="w-12 h-1 bg-gray-800 rounded-full mx-auto mt-4 mb-4 shrink-0"></div>
-            <div class="px-6 flex justify-between items-center mb-6">
-                <h2 class="text-xl font-bold" id="trans-title">Nova Despesa</h2>
-                <button onclick="closeAllOverlays()"><i data-lucide="x" class="w-6 h-6 text-gray-500"></i></button>
-            </div>
-            <div class="overlay-content space-y-5">
-                <div class="flex bg-black/30 rounded-xl p-1 mb-2">
-                    <button onclick="setTransType('despesa')" id="btn-tt-despesa" class="flex-1 py-2 text-[10px] font-bold rounded-lg transition-all">Despesa</button>
-                    <button onclick="setTransType('receita')" id="btn-tt-receita" class="flex-1 py-2 text-[10px] font-bold rounded-lg transition-all">Receita</button>
-                </div>
-                <div class="bg-black/30 p-8 rounded-3xl border border-white/5 text-center">
-                    <span class="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Valor</span>
-                    <div class="text-4xl font-bold mt-2 flex justify-center items-center">
-                        <span class="text-gray-600 mr-2 text-2xl">R$</span>
-                        <input type="number" id="trans-val-input" class="bg-transparent outline-none w-48 text-center" placeholder="0.00" step="0.01">
-                    </div>
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
-                        <label class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Data</label>
-                        <input type="date" id="trans-date-input" class="bg-transparent font-bold w-full outline-none text-xs">
-                    </div>
-                    <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
-                        <label class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Conta / Cartão</label>
-                        <select id="trans-acc-select" class="bg-transparent font-bold w-full outline-none text-xs"></select>
-                    </div>
-                </div>
-                <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
-                    <label class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Categoria</label>
-                    <select id="trans-cat-select" class="bg-transparent font-bold w-full outline-none text-xs"></select>
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="space-y-1">
-                        <label class="text-[9px] text-gray-500 font-bold ml-2 uppercase">Status</label>
-                        <div class="flex bg-black/30 rounded-xl p-1">
-                            <button onclick="setTransState('status','previsivel')" id="btn-st-prev" class="flex-1 py-2 text-[9px] font-bold rounded-lg transition-all">Previsível</button>
-                            <button onclick="setTransState('status','efetivada')" id="btn-st-efet" class="flex-1 py-2 text-[9px] font-bold rounded-lg transition-all">Efetivada</button>
-                        </div>
-                    </div>
-                    <div class="space-y-1">
-                        <label class="text-[9px] text-gray-500 font-bold ml-2 uppercase">Tipo</label>
-                        <div class="flex bg-black/30 rounded-xl p-1">
-                            <button onclick="setTransState('fixa',false)" id="btn-fx-no" class="flex-1 py-2 text-[9px] font-bold rounded-lg transition-all">Única</button>
-                            <button onclick="setTransState('fixa',true)" id="btn-fx-yes" class="flex-1 py-2 text-[9px] font-bold rounded-lg transition-all">Fixa</button>
-                        </div>
-                    </div>
-                </div>
-                <button onclick="saveTransaction()" class="w-full py-5 rounded-3xl bg-blue-500 text-black font-bold text-lg mt-4 uppercase">Salvar</button>
+            <div class="px-6 flex justify-between items-center mb-6"><h2 class="text-xl font-bold" id="trans-title">Transação</h2><button onclick="closeAllOverlays()"><i data-lucide="x" class="w-6 h-6 text-gray-500"></i></button></div>
+            <div class="overlay-content space-y-4">
+                <div class="flex bg-black/30 rounded-xl p-1"><button onclick="setTransType('despesa')" id="btn-tt-despesa" class="flex-1 py-2 text-[10px] font-bold rounded-lg">Despesa</button><button onclick="setTransType('receita')" id="btn-tt-receita" class="flex-1 py-2 text-[10px] font-bold rounded-lg">Receita</button></div>
+                <div class="bg-black/30 p-6 rounded-3xl text-center"><span class="text-[10px] text-gray-500 font-bold uppercase">Valor</span><div class="text-4xl font-bold mt-2 flex justify-center items-center"><span class="text-gray-600 mr-2 text-2xl">R$</span><input type="number" id="trans-val-input" class="bg-transparent outline-none w-32 text-center" placeholder="0.00" step="0.01"></div></div>
+                <div class="grid grid-cols-2 gap-4"><div class="bg-black/20 p-4 rounded-2xl border border-white/5"><label class="text-[9px] font-bold text-gray-500 uppercase">Data</label><input type="date" id="trans-date-input" class="bg-transparent font-bold w-full outline-none"></div><div class="bg-black/20 p-4 rounded-2xl border border-white/5"><label class="text-[9px] font-bold text-gray-500 uppercase">Conta</label><select id="trans-acc-select" class="bg-transparent font-bold w-full outline-none"></select></div></div>
+                <div class="bg-black/20 p-4 rounded-2xl border border-white/5"><label class="text-[9px] font-bold text-gray-500 uppercase">Categoria</label><select id="trans-cat-select" class="bg-transparent font-bold w-full outline-none"></select></div>
+                <div class="flex bg-black/30 rounded-xl p-1"><button onclick="setTransState('status','previsivel')" id="btn-st-prev" class="flex-1 py-2 text-[9px] font-bold rounded-lg">Previsível</button><button onclick="setTransState('status','efetivada')" id="btn-st-efet" class="flex-1 py-2 text-[9px] font-bold rounded-lg">Efetivada</button></div>
+                <button onclick="saveTransaction()" class="w-full py-5 rounded-3xl bg-blue-500 text-black font-bold uppercase mt-4">Salvar</button>
             </div>
         </div>
 
         <div id="overlay-new-card" class="overlay">
             <div class="w-12 h-1 bg-gray-800 rounded-full mx-auto mt-4 mb-4 shrink-0"></div>
-            <div class="px-6 flex justify-between items-center mb-6">
-                <h2 class="text-xl font-bold">Novo Cartão</h2>
-                <button onclick="closeAllOverlays()"><i data-lucide="x" class="w-6 h-6 text-gray-500"></i></button>
-            </div>
+            <div class="px-6 flex justify-between items-center mb-6"><h2 class="text-xl font-bold">Novo Cartão</h2><button onclick="closeAllOverlays()"><i data-lucide="x" class="w-6 h-6 text-gray-500"></i></button></div>
             <div class="overlay-content space-y-4">
-                <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
-                    <label class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Nome do Cartão (Ex: Nubank)</label>
-                    <input type="text" id="card-name-input" placeholder="Digite o nome..." class="bg-transparent font-bold w-full outline-none">
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
-                        <label class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Bandeira</label>
-                        <select id="card-brand-input" class="bg-transparent font-bold w-full outline-none text-xs">
-                            <option value="MASTERCARD">Mastercard</option>
-                            <option value="VISA">Visa</option>
-                            <option value="ELO">Elo</option>
-                            <option value="AMEX">Amex</option>
-                        </select>
-                    </div>
-                    <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
-                        <label class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Cor</label>
-                        <input type="color" id="card-color-input" value="#8b5cf6" class="bg-transparent w-full h-6 cursor-pointer outline-none border-none rounded">
-                    </div>
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
-                        <label class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Limite (R$)</label>
-                        <input type="number" id="card-limit-input" placeholder="0.00" class="bg-transparent font-bold w-full outline-none">
-                    </div>
-                    <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
-                        <label class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Dia Vencimento</label>
-                        <input type="number" id="card-due-input" min="1" max="31" placeholder="Ex: 10" class="bg-transparent font-bold w-full outline-none">
-                    </div>
-                </div>
-                <button onclick="saveNewCard()" class="w-full py-5 rounded-3xl bg-blue-500 text-black font-bold uppercase mt-4">Salvar Cartão</button>
+                <div class="bg-black/20 p-4 rounded-2xl border border-white/5"><label class="text-[9px] font-bold text-gray-500 uppercase">Nome</label><input type="text" id="card-name-input" class="bg-transparent font-bold w-full outline-none"></div>
+                <div class="grid grid-cols-2 gap-4"><div class="bg-black/20 p-4 rounded-2xl border border-white/5"><label class="text-[9px] font-bold text-gray-500 uppercase">Bandeira</label><select id="card-brand-input" class="bg-transparent font-bold w-full outline-none"><option value="MASTERCARD">Mastercard</option><option value="VISA">Visa</option></select></div><div class="bg-black/20 p-4 rounded-2xl border border-white/5"><label class="text-[9px] font-bold text-gray-500 uppercase">Cor</label><input type="color" id="card-color-input" class="bg-transparent w-full h-6 rounded"></div></div>
+                <div class="grid grid-cols-2 gap-4"><div class="bg-black/20 p-4 rounded-2xl border border-white/5"><label class="text-[9px] font-bold text-gray-500 uppercase">Limite</label><input type="number" id="card-limit-input" class="bg-transparent font-bold w-full outline-none"></div><div class="bg-black/20 p-4 rounded-2xl border border-white/5"><label class="text-[9px] font-bold text-gray-500 uppercase">Dia Vencimento</label><input type="number" id="card-due-input" class="bg-transparent font-bold w-full outline-none"></div></div>
+                <button onclick="saveNewCard()" class="w-full py-5 rounded-3xl bg-blue-500 text-black font-bold uppercase mt-4">Salvar</button>
             </div>
         </div>
 
         <div id="overlay-card-details" class="overlay">
             <div class="w-12 h-1 bg-gray-800 rounded-full mx-auto mt-4 mb-4 shrink-0"></div>
-            <div class="px-6 flex justify-between items-center mb-6">
-                <h2 class="text-xl font-bold" id="card-detail-title">Cartão</h2>
-                <button onclick="closeAllOverlays()"><i data-lucide="x" class="w-6 h-6 text-gray-500"></i></button>
-            </div>
-            <div class="overlay-content space-y-6">
-                <div class="card rounded-3xl p-6 shadow-sm relative overflow-hidden bg-gradient-to-br from-[#1E2128] to-[#121418] border border-gray-700" id="card-detail-summary"></div>
-                <div>
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Transações da Fatura</h3>
-                        <button onclick="openTransactionModal('despesa')" class="text-[9px] font-bold text-blue-400 uppercase tracking-widest bg-blue-500/10 px-3 py-1.5 rounded-lg active:scale-95 transition-transform">Lançar Compra</button>
-                    </div>
-                    <div id="card-detail-transactions" class="space-y-3 pb-10"></div>
-                </div>
-            </div>
+            <div class="px-6 flex justify-between items-center mb-6"><h2 class="text-xl font-bold" id="card-detail-title">Cartão</h2><button onclick="closeAllOverlays()"><i data-lucide="x" class="w-6 h-6 text-gray-500"></i></button></div>
+            <div class="overlay-content space-y-6"><div id="card-detail-summary" class="card rounded-3xl p-6 shadow-sm bg-gradient-to-br from-[#1E2128] to-[#121418] border border-gray-700"></div><div class="space-y-3" id="card-detail-transactions"></div></div>
         </div>
 
-        <!-- REINCLUINDO OS DEMAIS MODAIS PARA FUNCIONALIDADE TOTAL -->
-        <div id="overlay-veh-abastecer" class="overlay">
+        <div id="overlay-saude-dia" class="overlay">
             <div class="w-12 h-1 bg-gray-800 rounded-full mx-auto mt-4 mb-4 shrink-0"></div>
-            <div class="px-6 flex justify-between items-center mb-6"><h2 class="text-xl font-bold" id="veh-fuel-title">Abastecer</h2><button onclick="closeAllOverlays()"><i data-lucide="x" class="w-6 h-6 text-gray-500"></i></button></div>
-            <div class="overlay-content space-y-4">
-                <div class="grid grid-cols-2 gap-4"><div class="bg-black/20 p-4 rounded-2xl border border-white/5"><label class="text-[10px] text-gray-500 uppercase font-bold block mb-1">Preço/L (R$)</label><input type="number" id="input-fuel-price" oninput="calcFuel('price')" class="bg-transparent font-bold w-full outline-none text-orange-400" placeholder="0.00" step="0.01"></div><div class="bg-black/20 p-4 rounded-2xl border border-white/5"><label class="text-[10px] text-gray-500 uppercase font-bold block mb-1">Litros</label><input type="number" id="input-fuel-liters" oninput="calcFuel('liters')" class="bg-transparent font-bold w-full outline-none" placeholder="0.00" step="0.01"></div></div>
-                <div class="bg-black/30 p-6 rounded-2xl border border-white/5 text-center"><label class="text-[10px] text-gray-500 uppercase font-bold block mb-1">Total Pago (R$)</label><input type="number" id="input-fuel-total" oninput="calcFuel('total')" class="bg-transparent font-black text-3xl w-full outline-none text-center" placeholder="0.00"></div>
-                <div class="bg-black/20 p-4 rounded-2xl border border-white/5"><label class="text-[10px] text-gray-500 uppercase font-bold block mb-1">Hodômetro Atual (km)</label><input type="number" id="input-fuel-km" class="bg-transparent font-bold w-full outline-none"></div>
-                <button onclick="saveRefueling()" class="w-full py-5 rounded-3xl bg-orange-500 text-black font-bold text-lg mt-4 uppercase">Salvar</button>
-            </div>
+            <div class="px-6 flex justify-between items-center mb-6"><h2 class="text-xl font-bold" id="modal-saude-date">--</h2><button onclick="closeAllOverlays()"><i data-lucide="x" class="w-6 h-6 text-gray-500"></i></button></div>
+            <div class="overlay-content space-y-4"><div class="bg-black/20 p-5 rounded-3xl border border-white/5"><span class="text-[10px] text-gray-500 uppercase font-bold">Água</span><h4 class="text-2xl font-black text-white" id="modal-saude-agua">0 ml</h4></div><div class="bg-black/20 p-5 rounded-3xl border border-white/5"><span class="text-[10px] text-gray-500 uppercase font-bold">Cafeína</span><h4 class="text-2xl font-black text-white" id="modal-saude-cafe">0 mg</h4></div></div>
         </div>
 
-        <div id="overlay-veh-servico" class="overlay">
+        <div id="overlay-notificacoes" class="overlay">
             <div class="w-12 h-1 bg-gray-800 rounded-full mx-auto mt-4 mb-4 shrink-0"></div>
-            <div class="px-6 flex justify-between items-center mb-6"><h2 class="text-xl font-bold" id="veh-svc-title">Manutenção</h2><button onclick="closeAllOverlays()"><i data-lucide="x" class="w-6 h-6 text-gray-500"></i></button></div>
-            <div class="overlay-content space-y-4">
-                <div class="bg-black/20 p-4 rounded-2xl border border-white/5"><label class="text-[10px] text-gray-500 uppercase font-bold block mb-1">Descrição</label><input type="text" id="input-svc-name" class="bg-transparent font-bold w-full outline-none" placeholder="Troca de Pneus"></div>
-                <div class="grid grid-cols-2 gap-4"><div class="bg-black/20 p-4 rounded-2xl border border-white/5"><label class="text-[10px] text-gray-500 uppercase font-bold block mb-1">Valor (R$)</label><input type="number" id="input-svc-val" class="bg-transparent font-bold w-full outline-none" placeholder="0.00"></div><div class="bg-black/20 p-4 rounded-2xl border border-white/5"><label class="text-[10px] text-gray-500 uppercase font-bold block mb-1">km Atual</label><input type="number" id="input-svc-km" class="bg-transparent font-bold w-full outline-none"></div></div>
-                <div class="flex items-center justify-between p-5 bg-blue-500/5 rounded-2xl border border-blue-500/20"><div><span class="text-xs font-bold block">Troca de Óleo?</span><span class="text-[9px] text-gray-500 font-bold uppercase">Reinicia aviso</span></div><input type="checkbox" id="input-svc-isoil" class="w-6 h-6 accent-blue-500 rounded cursor-pointer"></div>
-                <button onclick="saveService()" class="w-full py-5 rounded-3xl bg-blue-500 text-black font-bold text-lg mt-4 uppercase">Salvar</button>
-            </div>
+            <div class="px-6 flex justify-between items-center mb-6"><h2 class="text-xl font-bold">Avisos</h2><button onclick="closeAllOverlays()"><i data-lucide="x" class="w-6 h-6 text-gray-500"></i></button></div>
+            <div id="notif-list" class="overlay-content space-y-3"></div>
         </div>
 
         <div id="overlay-perfil" class="overlay">
             <div class="w-12 h-1 bg-gray-800 rounded-full mx-auto mt-4 mb-4 shrink-0"></div>
-            <div class="px-6 flex justify-between items-center mb-6"><h2 class="text-xl font-bold">Ajustes de Perfil</h2><button onclick="closeAllOverlays()"><i data-lucide="x" class="w-6 h-6 text-gray-500"></i></button></div>
+            <div class="px-6 flex justify-between items-center mb-6"><h2 class="text-xl font-bold">Ajustes</h2><button onclick="closeAllOverlays()"><i data-lucide="x" class="w-6 h-6 text-gray-500"></i></button></div>
             <div class="overlay-content space-y-8">
-                <div class="flex flex-col items-center mb-2">
-                    <div class="relative mb-4">
-                        <div id="prof-avatar-preview" class="w-20 h-20 rounded-full bg-[#1E2128] border-2 border-white/10 flex items-center justify-center text-xl font-bold overflow-hidden shadow-xl"></div>
-                        <button onclick="document.getElementById('avatar-upload').click()" class="absolute bottom-0 right-0 w-8 h-8 bg-[#38bdf8] rounded-full flex items-center justify-center border-2 border-[#1E2128] active:scale-90 transition-transform"><i data-lucide="camera" class="w-4 h-4 text-black"></i></button>
-                        <input type="file" id="avatar-upload" class="hidden" accept="image/*" onchange="handleAvatarUpload(event)">
-                    </div>
-                    <div id="preset-avatars-grid" class="flex justify-center gap-3 flex-wrap px-2"></div>
-                </div>
+                <div class="flex flex-col items-center mb-2"><div id="prof-avatar-preview" class="w-20 h-20 rounded-full bg-[#1E2128] border-2 border-white/10 overflow-hidden flex items-center justify-center font-bold text-xl mb-4"></div><div id="preset-avatars-grid" class="flex gap-2 flex-wrap justify-center px-4"></div></div>
                 <section class="space-y-4">
-                    <label class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Identidade</label>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="bg-black/20 p-4 rounded-2xl border border-white/5"><label class="text-[9px] text-gray-500 uppercase block mb-1">Nome</label><input type="text" id="prof-first-name" class="bg-transparent font-bold w-full outline-none"></div>
-                        <div class="bg-black/20 p-4 rounded-2xl border border-white/5"><label class="text-[9px] text-gray-500 uppercase block mb-1">Sobrenome</label><input type="text" id="prof-last-name" class="bg-transparent font-bold w-full outline-none"></div>
-                    </div>
+                    <div class="grid grid-cols-2 gap-4"><div class="bg-black/20 p-4 rounded-2xl border border-white/5"><label class="text-[9px] text-gray-500 uppercase block">Nome</label><input type="text" id="prof-first-name" class="bg-transparent font-bold w-full outline-none"></div><div class="bg-black/20 p-4 rounded-2xl border border-white/5"><label class="text-[9px] text-gray-500 uppercase block">Sobrenome</label><input type="text" id="prof-last-name" class="bg-transparent font-bold w-full outline-none"></div></div>
+                    <div class="bg-black/20 p-4 rounded-2xl border border-white/5"><label class="text-[9px] text-gray-500 uppercase block">Peso (kg)</label><input type="number" id="prof-weight" class="bg-transparent font-bold w-full outline-none"></div>
                 </section>
-                <!-- DIVISÓRIA FINANCEIRO -->
                 <div class="w-full h-px bg-white/10 my-10 relative"><span class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-[#1E2128] px-4 text-[10px] text-gray-500 font-bold uppercase tracking-widest">Financeiro</span></div>
-                <section><h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3">Suas Contas</h3><div id="list-contas" class="space-y-2 mb-3"></div></section>
-                <section><h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3">Cartões de Crédito</h3><div id="list-cartoes" class="space-y-2 mb-3"></div></section>
-                <button onclick="handleLogout()" class="w-full py-4 mt-3 rounded-3xl bg-red-500/10 text-red-500 font-bold uppercase tracking-widest border border-red-500/20 active:bg-red-500/20 transition-all">Sair da Conta</button>
+                <section><h3 class="text-[10px] font-bold text-gray-500 uppercase mb-3">Contas</h3><div id="list-contas" class="space-y-2 mb-3"></div><div class="flex space-x-2"><input type="text" id="input-new-conta" class="flex-1 bg-black/20 p-3 rounded-xl border border-white/5 outline-none text-xs" placeholder="Nova conta..."><button onclick="addFinItem('conta')" class="bg-blue-500 px-4 rounded-xl font-bold">+</button></div></section>
+                <section><h3 class="text-[10px] font-bold text-gray-500 uppercase mb-3">Categorias</h3><div id="list-cat-despesa" class="flex flex-wrap gap-2 mb-3"></div><div class="flex space-x-2"><input type="text" id="input-new-cat-despesa" class="flex-1 bg-black/20 p-3 rounded-xl border border-white/5 outline-none text-xs" placeholder="Nova despesa..."><button onclick="addFinItem('cat-despesa')" class="bg-red-400 px-4 rounded-xl font-bold">+</button></div></section>
+                <button onclick="saveProfile()" class="w-full py-5 rounded-3xl bg-blue-500 text-black font-bold uppercase mt-4">Salvar Perfil</button>
+                <button onclick="handleLogout()" class="w-full py-4 mt-3 rounded-3xl bg-red-500/10 text-red-500 font-bold uppercase border border-red-500/20">Sair</button>
             </div>
         </div>
 
     </div>
 
-    <!-- FIREBASE SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyCWlVvnA29CnKco7mBG6LvpzDtcYmr28cY",
-            authDomain: "projetomu-d5722.firebaseapp.com",
-            projectId: "projetomu-d5722",
-            storageBucket: "projetomu-d5722.firebasestorage.app",
-            messagingSenderId: "94478862714",
-            appId: "1:94478862714:web:578561a199f685f9e5eec3"
-        };
+        const firebaseConfig = { apiKey: "AIzaSyCWlVvnA29CnKco7mBG6LvpzDtcYmr28cY", authDomain: "projetomu-d5722.firebaseapp.com", projectId: "projetomu-d5722", storageBucket: "projetomu-d5722.firebasestorage.app", messagingSenderId: "94478862714", appId: "1:94478862714:web:578561a199f685f9e5eec3" };
+        const app = initializeApp(firebaseConfig); const auth = getAuth(app); const db = getFirestore(app);
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
-        window.firebaseAuth = auth;
-        window.firebaseDb = db;
-        window.signInWithEmailAndPassword = signInWithEmailAndPassword;
-        window.signOut = signOut;
-        window.onAuthStateChanged = onAuthStateChanged;
-        window.firebaseDoc = doc;
-        window.firebaseSetDoc = setDoc;
-        window.firebaseGetDoc = getDoc;
+        window.firebaseAuth = auth; window.firebaseDb = db; window.signInWithEmailAndPassword = signInWithEmailAndPassword;
+        window.signOut = signOut; window.onAuthStateChanged = onAuthStateChanged;
+        window.firebaseDoc = doc; window.firebaseSetDoc = setDoc; window.firebaseGetDoc = getDoc;
     </script>
 
     <script>
         let barChartInstance = null, catChartInstance = null, chartsInitialized = false;
-        let tempAvatar = null;
-        let currentViewCardId = null;
-        
-        const avatarPresets = [
-            'https://api.dicebear.com/7.x/fun-emoji/svg?seed=Felix&backgroundColor=38bdf8',
-            'https://api.dicebear.com/7.x/fun-emoji/svg?seed=Aneka&backgroundColor=fb7185',
-            'https://api.dicebear.com/7.x/fun-emoji/svg?seed=Leo&backgroundColor=f97316',
-            'https://api.dicebear.com/7.x/fun-emoji/svg?seed=Zoey&backgroundColor=34d399',
-            'https://api.dicebear.com/7.x/fun-emoji/svg?seed=Max&backgroundColor=a855f7',
-            'https://api.dicebear.com/7.x/fun-emoji/svg?seed=Mia&backgroundColor=eab308',
-            'https://api.dicebear.com/7.x/fun-emoji/svg?seed=Sam&backgroundColor=6366f1',
-            'https://api.dicebear.com/7.x/fun-emoji/svg?seed=Jude&backgroundColor=475569'
-        ];
+        let tempAvatar = null; let currentViewCardId = null;
+        const avatarPresets = ['https://api.dicebear.com/7.x/fun-emoji/svg?seed=Felix&backgroundColor=38bdf8', 'https://api.dicebear.com/7.x/fun-emoji/svg?seed=Aneka&backgroundColor=fb7185', 'https://api.dicebear.com/7.x/fun-emoji/svg?seed=Leo&backgroundColor=f97316', 'https://api.dicebear.com/7.x/fun-emoji/svg?seed=Zoey&backgroundColor=34d399'];
 
         let state = {
-            isLoggedIn: false,
-            userId: null,
-            viewDate: new Date(), extratoDate: new Date(), blurred: false, editingId: null, editingVehId: null,
-            usuario: { 
-                firstName: "Murilo", lastName: "Finance", username: "mufinance", birthDate: "1996-02-26", peso: 100, idade: 30, avatarUrl: null,
-                contas: [{id: 'wallet', nome: 'Carteira', protected: true}, {id: 2, nome: 'Inter', protected: false}],
-                categorias_despesa: [{nome: 'Alimentação', protected: true}, {nome: 'Combustível', protected: true}, {nome: 'Manutenção', protected: true}, {nome: 'Moradia', protected: true}, {nome: 'Lazer', protected: false}],
-                categorias_receita: [{nome: 'Salário', protected: true}, {nome: 'Freelance', protected: false}]
-            },
-            saude: { aguaMeta: 3500, cafeinaMeta: 400, historico: {} },
-            financas: { 
-                cartoes: [{id:1, nome:'Nubank', cor:'#8b5cf6', limite:5400}], 
-                transacoes: [], 
-                temp: {type:'despesa', status:'previsivel', fixa:false} 
-            },
+            isLoggedIn: false, userId: null, viewDate: new Date(), extratoDate: new Date(), blurred: false, editingId: null,
+            usuario: { firstName: "Murilo", lastName: "Finance", username: "mufinance", birthDate: "1996-02-26", peso: 100, avatarUrl: null, contas: [{id: 'wallet', nome: 'Carteira', protected: true}], categorias_despesa: [{nome: 'Alimentação', protected: true}, {nome: 'Combustível', protected: true}], categorias_receita: [{nome: 'Salário', protected: true}] },
+            saude: { aguaMeta: 3500, cafeinaMeta: 400, historico: {}, proposito: { ativo: false, nome: '', inicio: '', dias: 30 } },
+            financas: { cartoes: [{id:1, nome:'Nubank', cor:'#8b5cf6', limite:5400, bandeira:'MASTERCARD', vencimento:10}], transacoes: [], temp: {type:'despesa', status:'previsivel'} },
             veiculo: { tipo: 'moto', nome: 'Fazer 250', hodometro: 12450, mediaGeral: 29.0, oleoIntervalo: 3000, oleoUltimaTrocaKM: 11000, historico: [] },
             notificacoes: []
         };
 
         function refreshIcons() { lucide.createIcons(); }
-
         function toggleFab(e) { if(e) e.stopPropagation(); document.getElementById('fab-container').classList.toggle('active'); }
+        function quickAction(type) { toggleFab(); if (type === 'fin') openTransactionModal('despesa'); else if (type === 'veh') openVehModal('abastecer'); }
+        function navigate(navId, pageId, title) { document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden')); document.getElementById(pageId).classList.remove('hidden'); document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active')); document.getElementById(navId)?.classList.add('active'); document.getElementById('header-title').innerText = title; closeAllOverlays(); updateUI(); }
+        function toggleOverlay(id) { const el = document.getElementById('overlay-' + id); if(!el) return; if(el.classList.contains('active')) closeAllOverlays(); else { closeAllOverlays(); el.classList.add('active'); document.getElementById('backdrop').classList.add('active'); if(id === 'perfil') renderProfileForm(); if(id === 'relatorios-fin') setTimeout(initCharts, 200); } refreshIcons(); }
+        function closeAllOverlays() { document.querySelectorAll('.overlay').forEach(o => o.classList.remove('active')); document.getElementById('backdrop').classList.remove('active'); refreshIcons(); }
 
-        function quickAction(type) {
-            toggleFab();
-            if (type === 'fin') openTransactionModal('despesa');
-            else if (type === 'veh') openVehModal('abastecer');
-        }
-
-        document.addEventListener('click', function(e) {
-            const fab = document.getElementById('fab-container');
-            if (fab && fab.classList.contains('active')) {
-                if (!fab.contains(e.target)) fab.classList.remove('active');
-            }
-        });
-
-        function navigate(navId, pageId, title) {
-            document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
-            document.getElementById(pageId).classList.remove('hidden');
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(navId)?.classList.add('active');
-            document.getElementById('header-title').innerText = title;
-            document.getElementById('header-subtitle').innerText = title === 'Visão Geral' ? 'Dashboard Geral' : 'Controle de ' + title;
-            closeAllOverlays(); updateUI();
-        }
-
-        function toggleOverlay(id) {
-            const el = document.getElementById('overlay-' + id);
-            if(!el) return;
-            if(el.classList.contains('active')) { closeAllOverlays(); }
-            else { 
-                closeAllOverlays(); 
-                el.classList.add('active'); 
-                document.getElementById('backdrop').classList.add('active'); 
-                if(id === 'relatorios-fin') setTimeout(initCharts, 200); 
-                if(id === 'perfil') renderProfileForm(); 
-            }
-            refreshIcons();
-        }
-
-        function closeAllOverlays() { 
-            document.querySelectorAll('.overlay').forEach(o => o.classList.remove('active')); 
-            document.getElementById('backdrop').classList.remove('active'); 
-            const fab = document.getElementById('fab-container');
-            if(fab) fab.classList.remove('active');
-            refreshIcons(); 
-        }
-
-        // --- FIREBASE LOGIC (INTEGRAL) ---
         async function loadDataFromCloud() {
             if(!state.userId || !window.firebaseDb) return;
-            const appId = typeof __app_id !== 'undefined' ? __app_id : 'mu-finance';
-            const docRef = window.firebaseDoc(window.firebaseDb, 'artifacts', appId, 'users', state.userId, 'data', 'user_state');
-            try {
-                const docSnap = await window.firebaseGetDoc(docRef);
-                if (docSnap.exists()) {
-                    const cd = docSnap.data();
-                    state.usuario = cd.usuario || state.usuario; 
-                    state.saude = cd.saude || state.saude;
-                    state.financas = cd.financas || state.financas; 
-                    state.veiculo = cd.veiculo || state.veiculo; 
-                    state.notificacoes = cd.notificacoes || state.notificacoes;
-                }
-            } catch (e) { console.error("Erro no load:", e); }
+            const docRef = window.firebaseDoc(window.firebaseDb, 'artifacts', 'mu-finance', 'users', state.userId, 'data', 'user_state');
+            try { const docSnap = await window.firebaseGetDoc(docRef); if (docSnap.exists()) { const cd = docSnap.data(); state.usuario = cd.usuario || state.usuario; state.saude = cd.saude || state.saude; state.financas = cd.financas || state.financas; state.veiculo = cd.veiculo || state.veiculo; state.notificacoes = cd.notificacoes || state.notificacoes; } } catch (e) { console.error(e); }
         }
 
         async function saveDataToCloud() {
             if(!state.userId || !window.firebaseDb) return;
-            const appId = typeof __app_id !== 'undefined' ? __app_id : 'mu-finance';
-            const docRef = window.firebaseDoc(window.firebaseDb, 'artifacts', appId, 'users', state.userId, 'data', 'user_state');
-            try { await window.firebaseSetDoc(docRef, { usuario: state.usuario, saude: state.saude, financas: state.financas, veiculo: state.veiculo, notificacoes: state.notificacoes }); } 
-            catch (error) { console.error("Erro ao salvar:", error); }
+            const docRef = window.firebaseDoc(window.firebaseDb, 'artifacts', 'mu-finance', 'users', state.userId, 'data', 'user_state');
+            try { await window.firebaseSetDoc(docRef, { usuario: state.usuario, saude: state.saude, financas: state.financas, veiculo: state.veiculo, notificacoes: state.notificacoes }); } catch (error) { console.error(error); }
         }
 
-        const initializeAuthListener = () => {
-            if (window.onAuthStateChanged) {
-                window.onAuthStateChanged(window.firebaseAuth, async (user) => {
-                    const ls = document.getElementById('login-screen');
-                    if (user) {
-                        state.isLoggedIn = true; state.userId = user.uid; ls.classList.add('hidden');
-                        await loadDataFromCloud(); updateUI();
-                    } else { state.isLoggedIn = false; state.userId = null; ls.classList.remove('hidden'); }
-                });
-            } else setTimeout(initializeAuthListener, 50);
-        };
+        function initializeAuthListener() {
+            window.onAuthStateChanged(window.firebaseAuth, async (user) => {
+                const ls = document.getElementById('login-screen');
+                if (user) { state.isLoggedIn = true; state.userId = user.uid; ls.classList.add('hidden'); await loadDataFromCloud(); updateUI(); } 
+                else { state.isLoggedIn = false; ls.classList.remove('hidden'); }
+            });
+        }
 
         window.handleLogin = async () => {
-            const email = document.getElementById('login-email').value;
-            const pwd = document.getElementById('login-pwd').value;
+            const email = document.getElementById('login-email').value, pwd = document.getElementById('login-pwd').value;
             try { await window.signInWithEmailAndPassword(window.firebaseAuth, email, pwd); } catch (e) { document.getElementById('login-error').innerText = "Erro ao entrar."; }
         };
 
         window.handleLogout = async () => { await window.signOut(window.firebaseAuth); closeAllOverlays(); };
 
-        // --- FINANCEIRO LOGIC ---
         function setTransType(t) {
             state.financas.temp.type = t;
             document.getElementById('btn-tt-despesa').className = t === 'despesa' ? 'flex-1 py-2 text-[10px] font-bold rounded-lg bg-red-500/20 text-red-400' : 'flex-1 py-2 text-[10px] font-bold rounded-lg text-gray-500';
             document.getElementById('btn-tt-receita').className = t === 'receita' ? 'flex-1 py-2 text-[10px] font-bold rounded-lg bg-green-500/20 text-green-400' : 'flex-1 py-2 text-[10px] font-bold rounded-lg text-gray-500';
             const cats = t === 'receita' ? state.usuario.categorias_receita : state.usuario.categorias_despesa;
             document.getElementById('trans-cat-select').innerHTML = cats.map(c => `<option value="${c.nome}">${c.nome}</option>`).join('');
-            let accs = state.usuario.contas.map(a => `<option value="${a.nome}">${a.nome}</option>`).join('');
-            if (t === 'despesa') accs += state.financas.cartoes.map(c => `<option value="${c.nome}">${c.nome}</option>`).join('');
+            let accs = state.usuario.contas.map(a => `<option value="${a.nome}">${a.nome}</option>`).join('') + (t === 'despesa' ? state.financas.cartoes.map(c => `<option value="${c.nome}">${c.nome}</option>`).join('') : '');
             document.getElementById('trans-acc-select').innerHTML = accs;
         }
+
+        function openTransactionModal(t) { setTransType(t); document.getElementById('trans-val-input').value = ''; document.getElementById('trans-date-input').value = new Date().toISOString().split('T')[0]; setTransState('status', 'previsivel'); toggleOverlay('transaction'); }
 
         function saveTransaction() {
             const v = parseFloat(document.getElementById('trans-val-input').value), d = document.getElementById('trans-date-input').value, c = document.getElementById('trans-cat-select').value, a = document.getElementById('trans-acc-select').value;
@@ -806,74 +436,117 @@
             }
         }
 
-        function openCardDetails(id) { currentViewCardId = id; renderCardDetails(); toggleOverlay('card-details'); }
-
         function renderCardDetails() {
             const card = state.financas.cartoes.find(c => c.id === currentViewCardId); if(!card) return;
             document.getElementById('card-detail-title').innerText = card.nome;
             let fatura = 0; const trans = state.financas.transacoes.filter(t => t.conta === card.nome).sort((a,b) => new Date(b.data) - new Date(a.data));
             trans.forEach(t => { if(t.status === 'efetivada') fatura += t.valor; });
-            document.getElementById('card-detail-summary').innerHTML = `<div class="mb-4"><span class="text-xs text-gray-400 block mb-1">Total da Fatura</span><span class="text-3xl font-bold text-white">R$ ${fatura.toLocaleString('pt-BR')}</span></div>`;
+            document.getElementById('card-detail-summary').innerHTML = `<div class="mb-4"><span class="text-xs text-gray-400 block">Fatura Atual</span><span class="text-3xl font-bold">R$ ${fatura.toLocaleString('pt-BR')}</span></div><div class="flex justify-between"><span class="text-xs text-gray-500">Limite: R$ ${card.limite.toLocaleString()}</span><span class="text-xs text-gray-500">Vencimento: ${card.vencimento}</span></div>`;
             document.getElementById('card-detail-transactions').innerHTML = trans.map(t => `<div class="card p-4 rounded-2xl flex justify-between"><span>${t.cat}</span><span class="font-bold text-red-400">- R$ ${t.valor}</span></div>`).join('');
             refreshIcons();
         }
 
-        // --- SAÚDE LOGIC ---
-        function registrarSaude(t) { 
-            const h = new Date().toISOString().split('T')[0]; 
-            if(!state.saude.historico[h]) state.saude.historico[h]={agua:0, cafe:0}; 
-            if(t==='escritorio') state.saude.historico[h].agua+=473; 
-            else if(t==='casa') state.saude.historico[h].agua+=350;
-            else if(t==='cafe') state.saude.historico[h].cafe+=80; 
-            else if(t==='energetico') state.saude.historico[h].cafe+=150;
-            saveDataToCloud(); updateUI(); 
+        function openCardDetails(id) { currentViewCardId = id; renderCardDetails(); toggleOverlay('card-details'); }
+
+        function renderProfileForm() {
+            tempAvatar = state.usuario.avatarUrl; updateAvatarPreviewUI();
+            document.getElementById('prof-first-name').value = state.usuario.firstName;
+            document.getElementById('prof-last-name').value = state.usuario.lastName;
+            document.getElementById('prof-weight').value = state.usuario.peso;
+            renderFinSettings();
         }
 
-        // --- UI MASTER ---
+        function renderFinSettings() {
+            document.getElementById('list-contas').innerHTML = state.usuario.contas.map(c => `<div class="flex justify-between p-3 bg-black/20 rounded-xl"><span>${c.nome}</span>${c.protected ? '<i data-lucide="lock" class="w-4 h-4 text-gray-600"></i>' : `<button onclick="deleteFinItem('conta','${c.id}')">×</button>`}</div>`).join('');
+            document.getElementById('list-cat-despesa').innerHTML = state.usuario.categorias_despesa.map(c => `<div class="bg-red-500/10 text-red-400 px-3 py-1 rounded-lg text-xs font-bold uppercase">${c.nome}</div>`).join('');
+            refreshIcons();
+        }
+
+        function addFinItem(t) {
+            if(t === 'conta') { const n = document.getElementById('input-new-conta').value; if(n) state.usuario.contas.push({id:Date.now(), nome:n, protected:false}); document.getElementById('input-new-conta').value = ''; }
+            if(t === 'cat-despesa') { const n = document.getElementById('input-new-cat-despesa').value; if(n) state.usuario.categorias_despesa.push({id:Date.now(), nome:n, protected:false}); document.getElementById('input-new-cat-despesa').value = ''; }
+            saveDataToCloud(); renderFinSettings();
+        }
+
+        function saveProfile() {
+            state.usuario.firstName = document.getElementById('prof-first-name').value;
+            state.usuario.lastName = document.getElementById('prof-last-name').value;
+            state.usuario.peso = parseFloat(document.getElementById('prof-weight').value);
+            state.usuario.avatarUrl = tempAvatar;
+            state.saude.aguaMeta = state.usuario.peso * 35;
+            saveDataToCloud(); closeAllOverlays(); updateUI();
+        }
+
+        function updateAvatarPreviewUI() {
+            const preview = document.getElementById('prof-avatar-preview');
+            preview.innerHTML = tempAvatar ? `<img src="${tempAvatar}" class="w-full h-full object-cover">` : state.usuario.firstName[0];
+            document.getElementById('preset-avatars-grid').innerHTML = avatarPresets.map(url => `<img src="${url}" class="w-10 h-10 rounded-full cursor-pointer border-2 ${tempAvatar === url ? 'border-blue-500' : 'border-transparent'}" onclick="selectPresetAvatar('${url}')">`).join('');
+        }
+        function selectPresetAvatar(url) { tempAvatar = url; updateAvatarPreviewUI(); }
+
         function updateUI() {
-            const headerBtn = document.getElementById('header-initials');
-            headerBtn.innerHTML = state.usuario.avatarUrl ? `<img src="${state.usuario.avatarUrl}" class="w-full h-full object-cover">` : (state.usuario.firstName[0] + (state.usuario.lastName ? state.usuario.lastName[0] : "")).toUpperCase();
+            const hInit = document.getElementById('header-initials');
+            hInit.innerHTML = state.usuario.avatarUrl ? `<img src="${state.usuario.avatarUrl}" class="w-full h-full object-cover">` : state.usuario.firstName[0];
             
             const hoje = new Date().toISOString().split('T')[0], s = state.saude.historico[hoje] || {agua:0, cafe:0};
-            const aP = (s.agua / state.saude.aguaMeta) * 100;
-            document.getElementById('home-agua-valor').innerText = s.agua; document.getElementById('home-agua-bar').style.width = Math.min(aP, 100) + '%';
-            document.getElementById('saude-agua-perc').innerText = Math.round(aP) + '%'; document.getElementById('saude-cafe-valor').innerText = s.cafe;
-            
-            let saldo = 0; state.financas.transacoes.forEach(t => { if(t.status === 'efetivada') saldo += (t.tipo === 'receita' ? t.valor : -t.valor); });
+            document.getElementById('home-agua-valor').innerText = s.agua; document.getElementById('home-agua-bar').style.width = Math.min((s.agua/state.saude.aguaMeta)*100, 100) + '%';
+            document.getElementById('saude-agua-perc').innerText = Math.round((s.agua/state.saude.aguaMeta)*100) + '%';
+            document.getElementById('saude-cafe-valor').innerText = s.cafe;
+            document.getElementById('ring-agua-path').style.strokeDashoffset = 276 - (Math.min(s.agua/state.saude.aguaMeta, 1) * 276);
+            document.getElementById('ring-cafeina-path').style.strokeDashoffset = 276 - (Math.min(s.cafe/state.saude.cafeinaMeta, 1) * 276);
+
+            let saldo = 0, rM = 0, dM = 0;
+            state.financas.transacoes.forEach(t => { if(t.status === 'efetivada') { const val = (t.tipo==='receita'?t.valor:-t.valor); saldo += val; } });
             document.querySelectorAll('.fin-total-saldo').forEach(el => el.innerText = 'R$ ' + saldo.toLocaleString('pt-BR', {minimumFractionDigits:2}));
             
+            // PROPÓSITO
+            const p = state.saude.proposito;
+            if(p && p.ativo) {
+                const diff = Math.ceil(Math.abs(new Date() - new Date(p.inicio)) / (1000 * 60 * 60 * 24));
+                document.getElementById('prop-days-passed').innerText = `${diff} dias passados`;
+                document.getElementById('prop-bar').style.width = Math.min((diff/p.dias)*100, 100) + '%';
+            }
+
             renderCards(); renderRecentTrans(); renderExtrato(); renderCalendar(); refreshIcons();
+        }
+
+        function saveProposito() {
+            state.saude.proposito = { ativo: true, nome: document.getElementById('input-prop-name').value, inicio: document.getElementById('input-prop-date').value, dias: parseInt(document.getElementById('input-prop-days').value) };
+            saveDataToCloud(); closeAllOverlays(); updateUI();
         }
 
         function renderCards() {
             const c = document.getElementById('card-carousel'); if(!c) return;
-            c.innerHTML = state.financas.cartoes.map(x => `
-                <div class="snap-center shrink-0 w-[280px] md:w-[320px] card rounded-3xl p-6 relative overflow-hidden bg-gradient-to-br from-[#1E2128] to-[#121418] border border-gray-700 cursor-pointer" onclick="openCardDetails(${x.id})">
-                    <div class="flex justify-between items-center mb-6"><span class="text-sm font-medium text-gray-300">${x.nome}</span><i data-lucide="credit-card" class="w-5 h-5" style="color:${x.cor}"></i></div>
-                    <div class="mb-4"><span class="text-xs text-gray-400 block mb-1">Fatura Atual</span><span class="text-2xl font-bold text-white">R$ 0,00</span></div>
-                </div>`).join('');
+            c.innerHTML = state.financas.cartoes.map(x => {
+                let f = 0; state.financas.transacoes.forEach(t => { if(t.conta === x.nome && t.status === 'efetivada') f += t.valor; });
+                return `<div class="snap-center shrink-0 w-[280px] card rounded-3xl p-6 relative bg-gradient-to-br from-[#1E2128] to-[#121418] border border-gray-700 cursor-pointer" onclick="openCardDetails(${x.id})"><div class="flex justify-between mb-4"><span class="text-sm text-gray-300 font-bold">${x.nome}</span><i data-lucide="credit-card" class="w-5 h-5" style="color:${x.cor}"></i></div><div><span class="text-xs text-gray-500">Fatura</span><h4 class="text-2xl font-bold">R$ ${f.toLocaleString('pt-BR')}</h4></div></div>`;
+            }).join('') + `<div class="snap-center shrink-0 w-[100px] card rounded-3xl flex items-center justify-center cursor-pointer" onclick="toggleOverlay('new-card')">+</div>`;
         }
 
         function renderRecentTrans() {
             const sorted = [...state.financas.transacoes].sort((a,b) => new Date(b.data) - new Date(a.data)).slice(0, 3);
-            document.getElementById('recent-trans-list').innerHTML = sorted.map(t => `<div class="flex justify-between"><span>${t.cat}</span><span class="${t.tipo==='receita'?'text-green-400':'text-red-400'}">R$ ${t.valor}</span></div>`).join('');
+            document.getElementById('recent-trans-list').innerHTML = sorted.map(t => `<div class="flex justify-between items-center text-sm"><div><span class="font-bold">${t.cat}</span><p class="text-[10px] text-gray-500">${t.conta}</p></div><span class="${t.tipo==='receita'?'text-green-400':'text-red-400'}">R$ ${t.valor}</span></div>`).join('');
         }
 
         function renderExtrato() {
             const fil = state.financas.transacoes.sort((a,b) => new Date(b.data) - new Date(a.data));
-            document.getElementById('extrato-month-content').innerHTML = fil.map(t => `<div class="card p-4 rounded-2xl flex justify-between"><span>${t.cat}</span><span class="font-bold">R$ ${t.valor}</span></div>`).join('');
+            document.getElementById('extrato-month-content').innerHTML = fil.map(t => `<div class="card p-4 rounded-2xl flex justify-between"><div><span class="font-bold block">${t.cat}</span><span class="text-[10px] text-gray-500 uppercase">${t.data}</span></div><span class="font-bold">R$ ${t.valor}</span></div>`).join('');
         }
 
         function renderCalendar() {
-            const grid = document.getElementById('calendar-grid'); const headers = Array.from(grid.children).slice(0, 7); grid.innerHTML = ''; headers.forEach(h => grid.appendChild(h));
+            const grid = document.getElementById('calendar-grid'); grid.innerHTML = '';
             const m = state.viewDate.getMonth(), y = state.viewDate.getFullYear(), days = new Date(y, m+1, 0).getDate();
             for(let d=1; d<=days; d++) {
                 const k = `${y}-${(m+1).toString().padStart(2,'0')}-${d.toString().padStart(2,'0')}`, v = state.saude.historico[k] || {agua:0};
                 const dayDiv = document.createElement('div'); dayDiv.className = 'flex justify-center';
                 let cls = 'day-circle'; if(v.agua >= state.saude.aguaMeta) cls += ' goal-met'; else if(v.agua > 0) cls += ' water-tracked';
-                dayDiv.innerHTML = `<div class="${cls}">${d}</div>`; grid.appendChild(dayDiv);
+                dayDiv.innerHTML = `<div class="${cls}" onclick="openSaudeDiaModal('${k}')">${d}</div>`; grid.appendChild(dayDiv);
             }
         }
+
+        function changeMonth(s) { state.viewDate.setMonth(state.viewDate.getMonth()+s); renderCalendar(); }
+        function openSaudeDiaModal(d) { const r = state.saude.historico[d] || {agua:0, cafe:0}; document.getElementById('modal-saude-date').innerText = d; document.getElementById('modal-saude-agua').innerText = r.agua + ' ml'; document.getElementById('modal-saude-cafe').innerText = r.cafe + ' mg'; toggleOverlay('saude-dia'); }
+        function toggleVisibility() { state.blurred = !state.blurred; document.getElementById('icon-eye').classList.toggle('hidden', state.blurred); document.getElementById('icon-eye-off').classList.toggle('hidden', !state.blurred); document.querySelectorAll('.sensitive-value').forEach(el => el.classList.toggle('blurred', state.blurred)); }
 
         window.onload = () => initializeAuthListener();
     </script>
