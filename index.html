@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mu Finance v02.01</title>
+    <title>Mu Finance v02.02</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -175,19 +175,19 @@
                     </div>
                 </div>
                 
-                <!-- GRÁFICOS: ÁGUA E CAFEÍNA (MOVIDOS PARA HOME) -->
+                <!-- GRÁFICOS: ÁGUA E CAFEÍNA (HOME) -->
                 <div class="grid grid-cols-2 gap-4">
                     <div class="card rounded-3xl p-5 flex flex-col items-center justify-center text-center cursor-pointer active:scale-95 transition-all" onclick="navigate('nav-saude', 'page-saude', 'Saúde')">
                         <div class="relative w-28 h-28 flex items-center justify-center mb-2">
-                            <svg class="w-full h-full"><circle class="text-gray-800" stroke-width="6" stroke="currentColor" fill="transparent" r="48" cx="56" cy="56"/><circle id="ring-agua-path" class="text-blue-500 progress-ring__circle" stroke-width="6" stroke-dasharray="301.6" stroke-dashoffset="301.6" stroke-linecap="round" stroke="currentColor" fill="transparent" r="48" cx="56" cy="56"/></svg>
-                            <div class="absolute inset-0 flex flex-col items-center justify-center"><span class="text-xl font-black" id="saude-agua-perc">0%</span><span class="text-[8px] text-gray-500 font-bold uppercase tracking-widest">Água</span></div>
+                            <svg class="w-full h-full"><circle class="text-gray-800" stroke-width="6" stroke="currentColor" fill="transparent" r="48" cx="56" cy="56"/><circle class="text-blue-500 progress-ring__circle ring-agua-path" stroke-width="6" stroke-dasharray="301.6" stroke-dashoffset="301.6" stroke-linecap="round" stroke="currentColor" fill="transparent" r="48" cx="56" cy="56"/></svg>
+                            <div class="absolute inset-0 flex flex-col items-center justify-center"><span class="text-xl font-black saude-agua-perc">0%</span><span class="text-[8px] text-gray-500 font-bold uppercase tracking-widest">Água</span></div>
                         </div>
                         <p class="text-[9px] font-bold text-blue-400 uppercase tracking-widest">Meta: <span class="val-agua-meta-litros">3.5</span>L</p>
                     </div>
                     <div class="card rounded-3xl p-5 flex flex-col items-center justify-center text-center cursor-pointer active:scale-95 transition-all" onclick="navigate('nav-saude', 'page-saude', 'Saúde')">
                         <div class="relative w-28 h-28 flex items-center justify-center mb-2">
-                            <svg class="w-full h-full"><circle class="text-gray-800" stroke-width="6" stroke="currentColor" fill="transparent" r="48" cx="56" cy="56"/><circle id="ring-cafeina-path" class="text-yellow-500 progress-ring__circle" stroke-width="6" stroke-dasharray="301.6" stroke-dashoffset="301.6" stroke-linecap="round" stroke="currentColor" fill="transparent" r="48" cx="56" cy="56"/></svg>
-                            <div class="absolute inset-0 flex flex-col items-center justify-center"><span class="text-xl font-black" id="saude-cafe-valor">0</span><small class="text-[8px] text-gray-500 ml-0.5 uppercase font-bold">mg</small></div>
+                            <svg class="w-full h-full"><circle class="text-gray-800" stroke-width="6" stroke="currentColor" fill="transparent" r="48" cx="56" cy="56"/><circle class="text-yellow-500 progress-ring__circle ring-cafeina-path" stroke-width="6" stroke-dasharray="301.6" stroke-dashoffset="301.6" stroke-linecap="round" stroke="currentColor" fill="transparent" r="48" cx="56" cy="56"/></svg>
+                            <div class="absolute inset-0 flex flex-col items-center justify-center"><span class="text-xl font-black saude-cafe-valor">0</span><small class="text-[8px] text-gray-500 ml-0.5 uppercase font-bold">mg</small></div>
                         </div>
                         <p class="text-[9px] font-bold text-yellow-500 uppercase tracking-widest">Limite Cafeína</p>
                     </div>
@@ -218,6 +218,24 @@
                     <button onclick="registrarSaude('casa')" class="card p-4 rounded-2xl flex items-center space-x-3 active:scale-95 transition-all"><i data-lucide="home" class="w-5 h-5 text-blue-300"></i><div class="text-left"><span class="block text-xs font-bold">Em Casa</span><span class="block text-[10px] text-blue-300">+350ml</span></div></button>
                     <button onclick="registrarSaude('cafe')" class="card p-4 rounded-2xl flex items-center space-x-3 active:scale-95 transition-all"><i data-lucide="coffee" class="w-5 h-5 text-orange-400"></i><div class="text-left"><span class="block text-xs font-bold">Café</span><span class="block text-[10px] text-orange-400">+80mg</span></div></button>
                     <button onclick="registrarSaude('energetico')" class="card p-4 rounded-2xl flex items-center space-x-3 active:scale-95 transition-all"><i data-lucide="zap" class="w-5 h-5 text-yellow-400"></i><div class="text-left"><span class="block text-xs font-bold">Energético</span><span class="block text-[10px] text-yellow-400">+150mg</span></div></button>
+                </div>
+
+                <!-- GRÁFICOS: ÁGUA E CAFEÍNA (SAÚDE) -->
+                <div class="grid grid-cols-2 gap-4 mt-6">
+                    <div class="card rounded-3xl p-5 flex flex-col items-center justify-center text-center">
+                        <div class="relative w-28 h-28 flex items-center justify-center mb-2">
+                            <svg class="w-full h-full"><circle class="text-gray-800" stroke-width="6" stroke="currentColor" fill="transparent" r="48" cx="56" cy="56"/><circle class="text-blue-500 progress-ring__circle ring-agua-path" stroke-width="6" stroke-dasharray="301.6" stroke-dashoffset="301.6" stroke-linecap="round" stroke="currentColor" fill="transparent" r="48" cx="56" cy="56"/></svg>
+                            <div class="absolute inset-0 flex flex-col items-center justify-center"><span class="text-xl font-black saude-agua-perc">0%</span><span class="text-[8px] text-gray-500 font-bold uppercase tracking-widest">Água</span></div>
+                        </div>
+                        <p class="text-[9px] font-bold text-blue-400 uppercase tracking-widest">Meta: <span class="val-agua-meta-litros">3.5</span>L</p>
+                    </div>
+                    <div class="card rounded-3xl p-5 flex flex-col items-center justify-center text-center">
+                        <div class="relative w-28 h-28 flex items-center justify-center mb-2">
+                            <svg class="w-full h-full"><circle class="text-gray-800" stroke-width="6" stroke="currentColor" fill="transparent" r="48" cx="56" cy="56"/><circle class="text-yellow-500 progress-ring__circle ring-cafeina-path" stroke-width="6" stroke-dasharray="301.6" stroke-dashoffset="301.6" stroke-linecap="round" stroke="currentColor" fill="transparent" r="48" cx="56" cy="56"/></svg>
+                            <div class="absolute inset-0 flex flex-col items-center justify-center"><span class="text-xl font-black saude-cafe-valor">0</span><small class="text-[8px] text-gray-500 ml-0.5 uppercase font-bold">mg</small></div>
+                        </div>
+                        <p class="text-[9px] font-bold text-yellow-500 uppercase tracking-widest">Limite Cafeína</p>
+                    </div>
                 </div>
 
                 <div class="card rounded-3xl p-5">
@@ -277,15 +295,6 @@
                     <!-- Gerado pelo JS -->
                 </div>
 
-                <!-- Metas Section -->
-                <div class="card rounded-3xl p-6 shadow-sm mt-6">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-gray-400 font-medium text-sm">Metas de Economia</h2>
-                        <button onclick="openMetaModal()" class="text-xs text-[#38bdf8] font-bold flex items-center space-x-1"><i data-lucide="plus" class="w-4 h-4"></i> <span>Nova Meta</span></button>
-                    </div>
-                    <div id="metas-list" class="space-y-4"></div>
-                </div>
-
                 <div class="card rounded-3xl p-6 shadow-sm mt-6">
                     <div class="flex justify-between items-center mb-4"><h2 class="text-gray-400 font-medium text-sm">Transações Recentes</h2><span class="text-xs text-[#38bdf8] font-bold cursor-pointer hover:underline" onclick="navigate('nav-financas', 'page-extrato', 'Extrato')">Ver tudo</span></div>
                     <div id="recent-trans-list" class="space-y-4"></div>
@@ -303,8 +312,8 @@
                         <button onclick="changeExtratoMonth(1)"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
                     </div>
 
-                    <!-- Botão de Exportar CSV -->
-                    <button onclick="exportarCSV()" class="w-9 h-9 bg-white/5 hover:bg-green-500/20 rounded-full flex items-center justify-center transition-colors">
+                    <!-- Botão de Exportar Excel -->
+                    <button onclick="exportarExcel('extrato')" class="w-9 h-9 bg-white/5 hover:bg-green-500/20 rounded-full flex items-center justify-center transition-colors">
                         <i data-lucide="download" class="w-4 h-4 text-green-400"></i>
                     </button>
                 </div>
@@ -410,6 +419,21 @@
             </div>
         </div>
 
+        <!-- MODAL DE METAS DE ECONOMIA (NOVO MODAL) -->
+        <div id="overlay-metas-fin" class="overlay">
+            <div class="w-12 h-1 bg-gray-800 rounded-full mx-auto mt-4 mb-4 shrink-0"></div>
+            <div class="px-6 flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold">Metas de Economia</h2>
+                <div class="flex space-x-3">
+                    <button onclick="openMetaModal()" class="w-8 h-8 bg-blue-500/10 rounded-full flex items-center justify-center"><i data-lucide="plus" class="w-4 h-4 text-blue-400"></i></button>
+                    <button onclick="closeAllOverlays()"><i data-lucide="x" class="w-6 h-6 text-gray-500"></i></button>
+                </div>
+            </div>
+            <div class="overlay-content space-y-4" id="metas-list">
+                <!-- Gerado por JS -->
+            </div>
+        </div>
+
         <!-- MODAL: NOVA META FINANCEIRA -->
         <div id="overlay-nova-meta" class="overlay">
             <div class="w-12 h-1 bg-gray-800 rounded-full mx-auto mt-4 mb-4 shrink-0"></div>
@@ -484,7 +508,6 @@
                     </div>
                     <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
                         <label class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Conta / Cartão</label>
-                        <!-- Agora populado com Emojis/Ícones textuais via JS -->
                         <select id="trans-acc-select" class="bg-transparent font-bold w-full outline-none text-xs"></select>
                     </div>
                 </div>
@@ -791,7 +814,12 @@
             <div class="w-12 h-1 bg-gray-800 rounded-full mx-auto mt-4 mb-4 shrink-0"></div>
             <div class="px-6 flex justify-between items-center mb-6">
                 <h2 class="text-xl font-bold">Relatórios</h2>
-                <button onclick="closeAllOverlays()"><i data-lucide="x" class="w-6 h-6 text-gray-500"></i></button>
+                <div class="flex space-x-3">
+                    <button onclick="exportarExcel('relatorio')" class="w-8 h-8 bg-green-500/10 hover:bg-green-500/20 rounded-full flex items-center justify-center transition-colors">
+                        <i data-lucide="download" class="w-4 h-4 text-green-400"></i>
+                    </button>
+                    <button onclick="closeAllOverlays()"><i data-lucide="x" class="w-6 h-6 text-gray-500"></i></button>
+                </div>
             </div>
             <div class="overlay-content space-y-6">
                 
@@ -912,8 +940,17 @@
             usuario: { 
                 firstName: "Murilo", lastName: "Finance", username: "mufinance", birthDate: "1996-02-26", peso: 100, idade: 30, avatarUrl: null,
                 contas: [{id: 'wallet', nome: 'Carteira', protected: true}, {id: 2, nome: 'Inter', protected: false}],
-                categorias_despesa: [{nome: 'Alimentação', protected: true}, {nome: 'Combustível', protected: true}, {nome: 'Manutenção', protected: true}, {nome: 'Moradia', protected: true}, {nome: 'Lazer', protected: false}],
-                categorias_receita: [{nome: 'Salário', protected: true}, {nome: 'Freelance', protected: false}]
+                categorias_despesa: [
+                    {id: 'd1', nome: 'Alimentação', protected: true}, 
+                    {id: 'd2', nome: 'Combustível', protected: true}, 
+                    {id: 'd3', nome: 'Manutenção', protected: true}, 
+                    {id: 'd4', nome: 'Moradia', protected: true}, 
+                    {id: 'd5', nome: 'Lazer', protected: false}
+                ],
+                categorias_receita: [
+                    {id: 'r1', nome: 'Salário', protected: true}, 
+                    {id: 'r2', nome: 'Freelance', protected: false}
+                ]
             },
             saude: { aguaMeta: 3500, cafeinaMeta: 400, historico: {}, proposito: {ativo: false, nome: '', inicio: '', dias: 0, celebrado: false} },
             financas: { 
@@ -1013,10 +1050,6 @@
         function closeAllOverlays() { 
             document.querySelectorAll('.overlay').forEach(o => o.classList.remove('active')); 
             document.getElementById('backdrop').classList.remove('active'); 
-            state.editingId = null; 
-            state.editingVehId = null; 
-            currentViewCardId = null;
-            editingCardId = null;
             
             const fab = document.getElementById('fab-container');
             if(fab) fab.classList.remove('active');
@@ -1044,6 +1077,14 @@
                     
                     state.veiculo = cd.veiculo || state.veiculo; 
                     state.notificacoes = cd.notificacoes || state.notificacoes;
+
+                    // Retro-compatibilidade: Adicionar IDs às categorias antigas
+                    if (state.usuario.categorias_despesa) {
+                        state.usuario.categorias_despesa.forEach((c, i) => { if(!c.id) c.id = 'old_d_' + i; });
+                    }
+                    if (state.usuario.categorias_receita) {
+                        state.usuario.categorias_receita.forEach((c, i) => { if(!c.id) c.id = 'old_r_' + i; });
+                    }
                 }
             } catch (e) { console.error("Erro no load:", e); }
             
@@ -1093,32 +1134,51 @@
             if (state.notificacoes.length > 10) state.notificacoes = state.notificacoes.slice(0, 10);
         }
 
-        // --- EXPORTAR EXTRATO EM CSV ---
-        function exportarCSV() {
-            const m = state.extratoDate.getMonth(), y = state.extratoDate.getFullYear();
-            const fil = state.financas.transacoes.filter(t => { const d = new Date(t.data); return d.getMonth() === m && d.getFullYear() === y; });
-            
+        // --- EXPORTAR EXCEL (.XLS via Tabela HTML) ---
+        function exportarExcel(origem) {
+            let fil = [];
+            let fileName = "";
+            if (origem === 'extrato') {
+                const m = state.extratoDate.getMonth(), y = state.extratoDate.getFullYear();
+                fil = state.financas.transacoes.filter(t => { const d = new Date(t.data); return d.getMonth() === m && d.getFullYear() === y; }).sort((a,b) => new Date(b.data) - new Date(a.data));
+                fileName = `Extrato_${m+1}_${y}.xls`;
+            } else {
+                fil = state.financas.transacoes.sort((a,b) => new Date(b.data) - new Date(a.data));
+                fileName = `Relatorio_Completo.xls`;
+            }
+
             if (!fil.length) {
-                showToast("Sem dados para exportar neste mês");
+                showToast("Sem dados para exportar");
                 return;
             }
 
-            let csv = "Data,Categoria,Conta,Tipo,Status,Valor\n";
+            let html = '<html xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="utf-8"></head><body><table border="1">';
+            html += '<tr><th style="background-color:#38bdf8; color:white;">Data</th><th style="background-color:#38bdf8; color:white;">Categoria</th><th style="background-color:#38bdf8; color:white;">Conta/Cartão</th><th style="background-color:#38bdf8; color:white;">Tipo</th><th style="background-color:#38bdf8; color:white;">Status</th><th style="background-color:#38bdf8; color:white;">Valor (R$)</th></tr>';
+            
             fil.forEach(t => {
                 const dataFormatada = t.data.split('-').reverse().join('/');
-                csv += `${dataFormatada},${t.cat},${t.conta},${t.tipo},${t.status},${t.valor.toFixed(2)}\n`;
+                const color = t.tipo === 'receita' ? '#166534' : '#991b1b';
+                html += `<tr>
+                    <td>${dataFormatada}</td>
+                    <td>${t.cat}</td>
+                    <td>${t.conta}</td>
+                    <td style="color:${color}; font-weight:bold;">${t.tipo.toUpperCase()}</td>
+                    <td>${t.status}</td>
+                    <td>${t.valor.toFixed(2).replace('.', ',')}</td>
+                </tr>`;
             });
+            html += '</table></body></html>';
 
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
             const link = document.createElement("a");
             const url = URL.createObjectURL(blob);
             link.setAttribute("href", url);
-            link.setAttribute("download", `Extrato_${m+1}_${y}.csv`);
+            link.setAttribute("download", fileName);
             link.style.visibility = 'hidden';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            showToast("Exportação Iniciada");
+            showToast("Exportação Concluída");
         }
 
         // --- AUTENTICAÇÃO ---
@@ -1268,6 +1328,7 @@
                 const novo = prompt("Novo nome para a categoria:", item.nome);
                 if(novo && novo.trim()) { item.nome = novo.trim(); }
             } else if (type === 'cartao' && id) {
+                editingCardId = id; // Define ANTES do toggleOverlay
                 const item = state.financas.cartoes.find(x => x.id.toString() === id.toString());
                 document.getElementById('new-card-title').innerText = "Editar Cartão";
                 document.getElementById('card-name-input').value = item.nome;
@@ -1275,7 +1336,6 @@
                 document.getElementById('card-brand-input').value = item.bandeira || 'MASTERCARD';
                 document.getElementById('card-due-input').value = item.vencimento || 10;
                 document.getElementById('card-color-input').value = item.cor || '#8b5cf6';
-                editingCardId = id;
                 toggleOverlay('new-card');
                 return;
             } else if (type === 'cartao' && !id) {
@@ -1468,7 +1528,7 @@
         }
 
         function openTransactionModal(t, id = null) {
-            state.editingId = id;
+            state.editingId = id; // Reseta ou define corretamente o ID
             
             setTransType(t);
             
@@ -1629,7 +1689,7 @@
         }
 
         function openVehModal(t, id = null) {
-            state.editingVehId = id;
+            state.editingVehId = id; // Define o ID antes do toggleOverlay para não ser apagado
             populateVehAccSelects();
 
             if(t === 'abastecer') {
@@ -1694,9 +1754,17 @@
                 const item = { id: newId, tipo: 'abastecimento', data: new Date().toISOString().split('T')[0], km, total: t, litros: l, media: med, conta: acc };
                 
                 if(state.editingVehId) { 
-                    const idx = state.veiculo.historico.findIndex(x => x.id === newId); state.veiculo.historico[idx] = item; 
+                    const idx = state.veiculo.historico.findIndex(x => x.id === newId); 
+                    if (idx > -1) state.veiculo.historico[idx] = item; 
+                    
                     const finIdx = state.financas.transacoes.findIndex(x => x.refId === newId);
-                    if(finIdx > -1) { state.financas.transacoes[finIdx].valor = t; state.financas.transacoes[finIdx].conta = acc; }
+                    if(finIdx > -1) { 
+                        state.financas.transacoes[finIdx].valor = t; 
+                        state.financas.transacoes[finIdx].conta = acc; 
+                        state.financas.transacoes[finIdx].data = item.data;
+                    } else {
+                        state.financas.transacoes.push({ id: Date.now()+1, refId: newId, data: item.data, valor: t, tipo: 'despesa', status: 'efetivada', cat: 'Combustível', conta: acc });
+                    }
                 }
                 else { 
                     state.veiculo.historico.unshift(item); 
@@ -1727,9 +1795,18 @@
                 const item = { id: newId, tipo: 'servico', data: new Date().toISOString().split('T')[0], km: k, nome: n, valor: v, isOil: o, conta: acc };
                 
                 if(state.editingVehId) { 
-                    const idx = state.veiculo.historico.findIndex(x => x.id === newId); state.veiculo.historico[idx] = item; 
+                    const idx = state.veiculo.historico.findIndex(x => x.id === newId); 
+                    if(idx > -1) state.veiculo.historico[idx] = item; 
+
                     const finIdx = state.financas.transacoes.findIndex(x => x.refId === newId);
-                    if(finIdx > -1) { state.financas.transacoes[finIdx].valor = v; state.financas.transacoes[finIdx].conta = acc; state.financas.transacoes[finIdx].cat = 'Manutenção'; }
+                    if(finIdx > -1) { 
+                        state.financas.transacoes[finIdx].valor = v; 
+                        state.financas.transacoes[finIdx].conta = acc; 
+                        state.financas.transacoes[finIdx].cat = 'Manutenção'; 
+                        state.financas.transacoes[finIdx].data = item.data;
+                    } else {
+                        state.financas.transacoes.push({ id: Date.now()+1, refId: newId, data: item.data, valor: v, tipo: 'despesa', status: 'efetivada', cat: 'Manutenção', conta: acc });
+                    }
                 }
                 else { 
                     state.veiculo.historico.unshift(item); 
@@ -2028,13 +2105,12 @@
 
             const hoje = new Date().toISOString().split('T')[0], s = state.saude.historico[hoje] || {agua:0, cafe:0};
             const aP = (s.agua / state.saude.aguaMeta) * 100;
-            const rA = document.getElementById('ring-agua-path'); if(rA) rA.style.strokeDashoffset = 301.6 - (Math.min(aP, 100)/100 * 301.6);
-            const rC = document.getElementById('ring-cafeina-path'); if(rC) rC.style.strokeDashoffset = 301.6 - (Math.min(s.cafe/state.saude.cafeinaMeta, 1) * 301.6);
             
-            const saudeAguaPerc = document.getElementById('saude-agua-perc');
-            const saudeCafeValor = document.getElementById('saude-cafe-valor');
-            if(saudeAguaPerc) saudeAguaPerc.innerText = Math.round(aP) + '%'; 
-            if(saudeCafeValor) saudeCafeValor.innerText = s.cafe;
+            document.querySelectorAll('.ring-agua-path').forEach(rA => { rA.style.strokeDashoffset = 301.6 - (Math.min(aP, 100)/100 * 301.6); });
+            document.querySelectorAll('.ring-cafeina-path').forEach(rC => { rC.style.strokeDashoffset = 301.6 - (Math.min(s.cafe/state.saude.cafeinaMeta, 1) * 301.6); });
+            
+            document.querySelectorAll('.saude-agua-perc').forEach(el => el.innerText = Math.round(aP) + '%');
+            document.querySelectorAll('.saude-cafe-valor').forEach(el => el.innerText = s.cafe);
 
             document.querySelectorAll('.val-agua-meta-text').forEach(el => el.innerText = state.saude.aguaMeta);
             document.querySelectorAll('.val-agua-meta-litros').forEach(el => el.innerText = (state.saude.aguaMeta/1000).toFixed(1));
@@ -2339,7 +2415,7 @@
             
             document.querySelectorAll('.btn-eye').forEach(el => el.classList.toggle('hidden', state.blurred));
             document.querySelectorAll('.btn-eye-off').forEach(el => el.classList.toggle('hidden', !state.blurred));
-            
+            // 
             document.querySelectorAll('.sensitive-value').forEach(el => { 
                 if (state.blurred) {
                     el.classList.add('blurred');
