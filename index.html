@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mu Finance v02.02</title>
+    <title>Mu Finance v02.03</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -41,12 +41,10 @@
         
         .progress-ring__circle { transition: stroke-dashoffset 0.5s ease; transform: rotate(-90deg); transform-origin: 50% 50%; }
         
-        /* Modificado para border-radius 50% (círculo perfeito) */
         .day-circle { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; position: relative; cursor: pointer; border: 1px solid #2d3139; color: #4b5563; font-weight: 700; transition: all 0.2s; }
         .day-circle.water-tracked { border-color: var(--accent-blue); color: var(--accent-blue); background: rgba(56, 189, 248, 0.05); }
         .day-circle.goal-met { background-color: var(--accent-blue); border-color: var(--accent-blue); color: #000; box-shadow: 0 0 15px rgba(56, 189, 248, 0.3); }
         
-        /* NOVO DESIGN DO MENU (NAV) */
         nav { 
             position: absolute; bottom: 0; width: 100%; 
             background-color: #16181D; 
@@ -71,7 +69,6 @@
         }
         .nav-btn.active .active-indicator { opacity: 1; transform: scaleX(1); }
         
-        /* FAB Styles */
         .fab-wrapper { position: relative; display: flex; justify-content: center; width: 70px; margin-top: -35px; }
         .fab-container { position: relative; }
         .main-fab {
@@ -103,7 +100,7 @@
         <div id="login-screen" class="absolute inset-0 bg-[#121418] z-[999] flex flex-col justify-center px-8 transition-opacity duration-300">
             <div class="text-center mb-10">
                 <h1 class="text-4xl font-bold tracking-tight mb-2">Mu Finance</h1>
-                <p class="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Personal Management v02.01</p>
+                <p class="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Personal Management v02.02</p>
             </div>
             <div class="space-y-4">
                 <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
@@ -142,22 +139,22 @@
             
             <!-- PÁGINA HOME -->
             <div id="page-home" class="page-content space-y-5 fade-in">
-                <!-- CARD SALDO (ATUALIZADO COM VISIBILITY TOGGLE) -->
+                <!-- CARD SALDO -->
                 <div class="card rounded-3xl p-6 shadow-lg border border-white/5 relative">
                     <div class="absolute top-4 right-4 z-20 cursor-pointer p-1" onclick="toggleVisibility()">
                         <div class="btn-eye"><i data-lucide="eye" class="w-5 h-5 text-gray-400 hover:text-white transition-colors"></i></div>
                         <div class="btn-eye-off hidden"><i data-lucide="eye-off" class="w-5 h-5 text-gray-400 hover:text-white transition-colors"></i></div>
                     </div>
                     
-                    <span class="text-gray-500 text-[10px] uppercase font-bold tracking-widest">Saldo</span>
+                    <span class="text-gray-500 text-[10px] uppercase font-bold tracking-widest">Saldo Geral (Caixa)</span>
                     <h2 class="text-4xl font-bold mt-2 sensitive-value fin-total-saldo" data-value="R$ 0,00">R$ 0,00</h2>
                     <div class="mt-4 pt-4 border-t border-white/5 flex justify-between text-[10px] font-bold uppercase">
                         <div class="text-green-400">Entradas: <span class="fin-receita-mes sensitive-value" data-value="R$ 0,00">R$ 0,00</span></div>
-                        <div class="text-red-400">Saídas: <span class="fin-despesa-mes sensitive-value" data-value="R$ 0,00">R$ 0,00</span></div>
+                        <div class="text-red-400">Saídas (Pagas): <span class="fin-despesa-mes sensitive-value" data-value="R$ 0,00">R$ 0,00</span></div>
                     </div>
                 </div>
 
-                <!-- CARD: PROPÓSITO (MOVIDO PARA HOME) -->
+                <!-- CARD: PROPÓSITO -->
                 <div class="card rounded-3xl p-5 relative">
                     <div class="flex justify-between items-start mb-2">
                         <div>
@@ -175,7 +172,7 @@
                     </div>
                 </div>
                 
-                <!-- GRÁFICOS: ÁGUA E CAFEÍNA (HOME) -->
+                <!-- GRÁFICOS: ÁGUA E CAFEÍNA -->
                 <div class="grid grid-cols-2 gap-4">
                     <div class="card rounded-3xl p-5 flex flex-col items-center justify-center text-center cursor-pointer active:scale-95 transition-all" onclick="navigate('nav-saude', 'page-saude', 'Saúde')">
                         <div class="relative w-28 h-28 flex items-center justify-center mb-2">
@@ -243,7 +240,7 @@
                     <div id="calendar-grid" class="grid grid-cols-7 gap-y-3 gap-x-2 text-center text-[9px] font-bold text-gray-600 mb-2"><div>DOM</div><div>SEG</div><div>TER</div><div>QUA</div><div>QUI</div><div>SEX</div><div>SAB</div></div>
                 </div>
 
-                <!-- CARD: PROPÓSITO (CÓPIA NO FINAL DA PÁGINA) -->
+                <!-- CARD: PROPÓSITO -->
                 <div class="card rounded-3xl p-5 relative">
                     <div class="flex justify-between items-start mb-2">
                         <div>
@@ -272,7 +269,7 @@
                         <div class="btn-eye-off hidden"><i data-lucide="eye-off" class="w-5 h-5 text-gray-400 hover:text-white transition-colors"></i></div>
                     </div>
                     <div class="relative z-10">
-                        <span class="text-gray-400 text-sm">Disponível</span>
+                        <span class="text-gray-400 text-sm">Disponível em Contas</span>
                         <h2 class="text-4xl font-bold mt-1 mb-4 sensitive-value fin-total-saldo" data-value="0">R$ 0,00</h2>
                         <div class="flex justify-between items-center mt-6">
                             <div><span class="text-xs text-gray-500 block mb-1">Gasto (Efetivado)</span><span class="text-sm font-semibold text-red-400 sensitive-value fin-despesa-mes" data-value="0">R$ 0,00</span></div>
@@ -419,7 +416,7 @@
             </div>
         </div>
 
-        <!-- MODAL DE METAS DE ECONOMIA (NOVO MODAL) -->
+        <!-- MODAL DE METAS DE ECONOMIA -->
         <div id="overlay-metas-fin" class="overlay">
             <div class="w-12 h-1 bg-gray-800 rounded-full mx-auto mt-4 mb-4 shrink-0"></div>
             <div class="px-6 flex justify-between items-center mb-6">
@@ -493,6 +490,7 @@
                 <div class="flex bg-black/30 rounded-xl p-1 mb-2">
                     <button onclick="setTransType('despesa')" id="btn-tt-despesa" class="flex-1 py-2 text-[10px] font-bold rounded-lg transition-all">Despesa</button>
                     <button onclick="setTransType('receita')" id="btn-tt-receita" class="flex-1 py-2 text-[10px] font-bold rounded-lg transition-all">Receita</button>
+                    <button onclick="setTransType('transferencia')" id="btn-tt-transf" class="flex-1 py-2 text-[10px] font-bold rounded-lg transition-all">Transf.</button>
                 </div>
                 <div class="bg-black/30 p-8 rounded-3xl border border-white/5 text-center">
                     <span class="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Valor</span>
@@ -501,37 +499,87 @@
                         <input type="number" id="trans-val-input" class="bg-transparent outline-none w-48 text-center" placeholder="0.00" step="0.01">
                     </div>
                 </div>
+                
+                <!-- DATA E CONTA ORIGEM -->
                 <div class="grid grid-cols-2 gap-4">
                     <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
                         <label class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Data</label>
                         <input type="date" id="trans-date-input" class="bg-transparent font-bold w-full outline-none text-xs">
                     </div>
                     <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
-                        <label class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Conta / Cartão</label>
+                        <label id="trans-acc-label" class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Conta / Cartão</label>
                         <select id="trans-acc-select" class="bg-transparent font-bold w-full outline-none text-xs"></select>
                     </div>
                 </div>
-                <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
-                    <label class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Categoria</label>
-                    <select id="trans-cat-select" class="bg-transparent font-bold w-full outline-none text-xs"></select>
+
+                <!-- CONTA DESTINO (APENAS TRANSFERÊNCIA) -->
+                <div id="trans-dest-container" class="hidden bg-black/20 p-4 rounded-2xl border border-white/5 border-l-4 border-l-blue-500">
+                    <label class="text-[9px] text-blue-400 uppercase font-bold block mb-1">Para qual conta? (Destino)</label>
+                    <select id="trans-dest-select" class="bg-transparent font-bold w-full outline-none text-xs"></select>
                 </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="space-y-1">
-                        <label class="text-[9px] text-gray-500 font-bold ml-2 uppercase">Status</label>
-                        <div class="flex bg-black/30 rounded-xl p-1">
-                            <button onclick="setTransState('status','previsivel')" id="btn-st-prev" class="flex-1 py-2 text-[9px] font-bold rounded-lg transition-all">Previsível</button>
-                            <button onclick="setTransState('status','efetivada')" id="btn-st-efet" class="flex-1 py-2 text-[9px] font-bold rounded-lg transition-all">Efetivada</button>
+                
+                <!-- CATEGORIA E STATUS (ESCONDIDOS NA TRANSFERÊNCIA) -->
+                <div id="trans-cat-status-container" class="space-y-5">
+                    <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
+                        <label class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Categoria</label>
+                        <select id="trans-cat-select" class="bg-transparent font-bold w-full outline-none text-xs"></select>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-1">
+                            <label class="text-[9px] text-gray-500 font-bold ml-2 uppercase">Status</label>
+                            <div class="flex bg-black/30 rounded-xl p-1">
+                                <button onclick="setTransState('status','previsivel')" id="btn-st-prev" class="flex-1 py-2 text-[9px] font-bold rounded-lg transition-all">Previsível</button>
+                                <button onclick="setTransState('status','efetivada')" id="btn-st-efet" class="flex-1 py-2 text-[9px] font-bold rounded-lg transition-all">Efetivada</button>
+                            </div>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[9px] text-gray-500 font-bold ml-2 uppercase">Tipo</label>
+                            <div class="flex bg-black/30 rounded-xl p-1">
+                                <button onclick="setTransState('fixa',false)" id="btn-fx-no" class="flex-1 py-2 text-[9px] font-bold rounded-lg transition-all">Única</button>
+                                <button onclick="setTransState('fixa',true)" id="btn-fx-yes" class="flex-1 py-2 text-[9px] font-bold rounded-lg transition-all">Fixa</button>
+                            </div>
                         </div>
                     </div>
-                    <div class="space-y-1">
-                        <label class="text-[9px] text-gray-500 font-bold ml-2 uppercase">Tipo</label>
-                        <div class="flex bg-black/30 rounded-xl p-1">
-                            <button onclick="setTransState('fixa',false)" id="btn-fx-no" class="flex-1 py-2 text-[9px] font-bold rounded-lg transition-all">Única</button>
-                            <button onclick="setTransState('fixa',true)" id="btn-fx-yes" class="flex-1 py-2 text-[9px] font-bold rounded-lg transition-all">Fixa</button>
+                    
+                    <!-- MARCAR AMIGO -->
+                    <div class="bg-black/20 p-4 rounded-2xl border border-white/5 flex items-center space-x-3">
+                        <div class="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0">
+                            <i data-lucide="at-sign" class="w-4 h-4 text-blue-500"></i>
+                        </div>
+                        <div class="flex-1">
+                            <label class="text-[9px] text-gray-500 uppercase font-bold block mb-0.5">Marcar Amigo (Opcional)</label>
+                            <input type="text" id="trans-amigo-input" placeholder="@usuario" class="bg-transparent font-bold w-full outline-none text-xs">
                         </div>
                     </div>
                 </div>
+
                 <button onclick="saveTransaction()" class="w-full py-5 rounded-3xl bg-blue-500 text-black font-bold text-lg mt-4 uppercase">Salvar</button>
+            </div>
+        </div>
+
+        <!-- MODAL NOVO: PAGAR FATURA -->
+        <div id="overlay-pay-invoice" class="overlay">
+            <div class="w-12 h-1 bg-gray-800 rounded-full mx-auto mt-4 mb-4 shrink-0"></div>
+            <div class="px-6 flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold">Pagar Fatura</h2>
+                <button onclick="closeAllOverlays()"><i data-lucide="x" class="w-6 h-6 text-gray-500"></i></button>
+            </div>
+            <div class="overlay-content space-y-4">
+                <input type="hidden" id="pay-inv-card-id">
+                
+                <div class="bg-black/30 p-8 rounded-3xl border border-white/5 text-center">
+                    <span class="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Valor da Fatura Fechada</span>
+                    <div class="text-4xl font-bold mt-2 text-white" id="pay-inv-amount">R$ 0,00</div>
+                    <p class="text-[9px] text-gray-500 mt-2">Ao confirmar, as transações deste cartão serão marcadas como pagas e o valor sairá da sua conta selecionada.</p>
+                </div>
+
+                <div class="bg-black/20 p-4 rounded-2xl border border-white/5 mt-4">
+                    <label class="text-[10px] text-gray-500 uppercase font-bold block mb-1">Pagar usando qual conta?</label>
+                    <select id="pay-inv-acc-select" class="bg-transparent font-bold w-full outline-none text-sm"></select>
+                </div>
+
+                <button onclick="confirmPayInvoice()" class="w-full py-5 rounded-3xl bg-green-500 text-black font-bold uppercase tracking-widest mt-4 active:scale-95 transition-transform">Confirmar Pagamento</button>
             </div>
         </div>
 
@@ -581,7 +629,7 @@
 
                 <div class="grid grid-cols-2 gap-4">
                     <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
-                        <label class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Limite (R$)</label>
+                        <label class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Limite Total (R$)</label>
                         <input type="number" id="card-limit-input" placeholder="0.00" class="bg-transparent font-bold w-full outline-none">
                     </div>
                     <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
@@ -607,7 +655,7 @@
                 </div>
                 <div>
                     <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Transações da Fatura</h3>
+                        <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Transações Ativas</h3>
                         <button onclick="openTransactionModal('despesa')" class="text-[9px] font-bold text-blue-400 uppercase tracking-widest bg-blue-500/10 px-3 py-1.5 rounded-lg active:scale-95 transition-transform">Lançar Compra</button>
                     </div>
                     <div id="card-detail-transactions" class="space-y-3 pb-10">
@@ -728,7 +776,7 @@
 
                 <!-- CONFIGURAÇÕES FINANCEIRAS INTEGRADAS -->
                 <section>
-                    <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3">Suas Contas</h3>
+                    <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3">Suas Contas (Bancos/Cofre)</h3>
                     <div id="list-contas" class="space-y-2 mb-3"></div>
                     <div class="flex space-x-2">
                         <input type="text" id="input-new-conta" placeholder="Nova conta..." class="flex-1 bg-black/20 p-3 rounded-xl border border-white/5 outline-none text-xs font-bold">
@@ -737,7 +785,7 @@
                 </section>
 
                 <section>
-                    <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3">Cartões de Crédito</h3>
+                    <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3 mt-8">Cartões de Crédito</h3>
                     <div id="list-cartoes" class="space-y-2 mb-3"></div>
                     <button onclick="editFinItem('cartao', null)" class="w-full py-4 rounded-xl bg-black/20 border border-dashed border-gray-600 text-gray-400 font-bold uppercase text-[10px] flex items-center justify-center space-x-2">
                         <i data-lucide="plus" class="w-4 h-4"></i><span>Adicionar Novo Cartão</span>
@@ -745,7 +793,7 @@
                 </section>
 
                 <section>
-                    <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3">Categorias de Despesa</h3>
+                    <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3 mt-8">Categorias de Despesa</h3>
                     <div id="list-cat-despesa" class="flex flex-wrap gap-2 mb-3"></div>
                     <div class="flex space-x-2">
                         <input type="text" id="input-new-cat-despesa" placeholder="Nova despesa..." class="flex-1 bg-black/20 p-3 rounded-xl border border-white/5 outline-none text-xs font-bold">
@@ -754,7 +802,7 @@
                 </section>
 
                 <section>
-                    <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3">Categorias de Receita</h3>
+                    <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3 mt-8">Categorias de Receita</h3>
                     <div id="list-cat-receita" class="flex flex-wrap gap-2 mb-3"></div>
                     <div class="flex space-x-2">
                         <input type="text" id="input-new-cat-receita" placeholder="Nova receita..." class="flex-1 bg-black/20 p-3 rounded-xl border border-white/5 outline-none text-xs font-bold">
@@ -939,7 +987,11 @@
             viewDate: new Date(), extratoDate: new Date(), blurred: false, editingId: null, editingVehId: null,
             usuario: { 
                 firstName: "Murilo", lastName: "Finance", username: "mufinance", birthDate: "1996-02-26", peso: 100, idade: 30, avatarUrl: null,
-                contas: [{id: 'wallet', nome: 'Carteira', protected: true}, {id: 2, nome: 'Inter', protected: false}],
+                contas: [
+                    {id: 'wallet', nome: 'Carteira', protected: true, somaSaldo: true}, 
+                    {id: 2, nome: 'Inter', protected: false, somaSaldo: true},
+                    {id: 3, nome: 'Reserva Oculta', protected: false, somaSaldo: false} // Exemplo de conta investimento
+                ],
                 categorias_despesa: [
                     {id: 'd1', nome: 'Alimentação', protected: true}, 
                     {id: 'd2', nome: 'Combustível', protected: true}, 
@@ -988,7 +1040,6 @@
             }
         }
 
-        // Fecha o FAB se clicar fora dele
         document.addEventListener('click', function(e) {
             const fab = document.getElementById('fab-container');
             if (fab && fab.classList.contains('active')) {
@@ -1078,17 +1129,13 @@
                     state.veiculo = cd.veiculo || state.veiculo; 
                     state.notificacoes = cd.notificacoes || state.notificacoes;
 
-                    // Retro-compatibilidade: Adicionar IDs às categorias antigas
-                    if (state.usuario.categorias_despesa) {
-                        state.usuario.categorias_despesa.forEach((c, i) => { if(!c.id) c.id = 'old_d_' + i; });
-                    }
-                    if (state.usuario.categorias_receita) {
-                        state.usuario.categorias_receita.forEach((c, i) => { if(!c.id) c.id = 'old_r_' + i; });
+                    if (state.usuario.contas) {
+                        state.usuario.contas.forEach((c) => { if(c.somaSaldo === undefined) c.somaSaldo = true; });
                     }
                 }
             } catch (e) { console.error("Erro no load:", e); }
             
-            checkVencimentos(); // Verifica os alertas de vencimentos
+            checkVencimentos();
         }
 
         async function saveDataToCloud() {
@@ -1134,7 +1181,7 @@
             if (state.notificacoes.length > 10) state.notificacoes = state.notificacoes.slice(0, 10);
         }
 
-        // --- EXPORTAR EXCEL (.XLS via Tabela HTML) ---
+        // --- EXPORTAR EXCEL (.XLS) ---
         function exportarExcel(origem) {
             let fil = [];
             let fileName = "";
@@ -1147,20 +1194,19 @@
                 fileName = `Relatorio_Completo.xls`;
             }
 
-            if (!fil.length) {
-                showToast("Sem dados para exportar");
-                return;
-            }
+            if (!fil.length) { showToast("Sem dados para exportar"); return; }
 
             let html = '<html xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="utf-8"></head><body><table border="1">';
-            html += '<tr><th style="background-color:#38bdf8; color:white;">Data</th><th style="background-color:#38bdf8; color:white;">Categoria</th><th style="background-color:#38bdf8; color:white;">Conta/Cartão</th><th style="background-color:#38bdf8; color:white;">Tipo</th><th style="background-color:#38bdf8; color:white;">Status</th><th style="background-color:#38bdf8; color:white;">Valor (R$)</th></tr>';
+            html += '<tr><th style="background-color:#38bdf8; color:white;">Data</th><th style="background-color:#38bdf8; color:white;">Categoria/Destino</th><th style="background-color:#38bdf8; color:white;">Conta/Origem</th><th style="background-color:#38bdf8; color:white;">Tipo</th><th style="background-color:#38bdf8; color:white;">Status</th><th style="background-color:#38bdf8; color:white;">Valor (R$)</th></tr>';
             
             fil.forEach(t => {
                 const dataFormatada = t.data.split('-').reverse().join('/');
-                const color = t.tipo === 'receita' ? '#166534' : '#991b1b';
+                const color = t.tipo === 'receita' ? '#166534' : (t.tipo === 'transferencia' ? '#1d4ed8' : '#991b1b');
+                const catDesc = t.tipo === 'transferencia' ? `Para: ${t.destino}` : t.cat;
+                
                 html += `<tr>
                     <td>${dataFormatada}</td>
-                    <td>${t.cat}</td>
+                    <td>${catDesc}</td>
                     <td>${t.conta}</td>
                     <td style="color:${color}; font-weight:bold;">${t.tipo.toUpperCase()}</td>
                     <td>${t.status}</td>
@@ -1210,10 +1256,7 @@
             const password = document.getElementById('login-pwd').value;
             const errorEl = document.getElementById('login-error');
             
-            if(!email || !password) {
-                errorEl.innerText = "Preencha todos os campos.";
-                return;
-            }
+            if(!email || !password) { errorEl.innerText = "Preencha todos os campos."; return; }
             
             try {
                 errorEl.innerText = "Verificando...";
@@ -1222,7 +1265,6 @@
                 document.getElementById('login-pwd').value = ''; 
             } catch (error) {
                 errorEl.innerText = "Credenciais inválidas. Tente novamente.";
-                console.error("Erro no login:", error);
             }
         };
 
@@ -1231,14 +1273,8 @@
             const password = document.getElementById('login-pwd').value;
             const errorEl = document.getElementById('login-error');
             
-            if(!email || !password) {
-                errorEl.innerText = "Preencha e-mail e senha para criar.";
-                return;
-            }
-            if(password.length < 6) {
-                errorEl.innerText = "Senha deve ter pelo menos 6 dígitos.";
-                return;
-            }
+            if(!email || !password) { errorEl.innerText = "Preencha e-mail e senha para criar."; return; }
+            if(password.length < 6) { errorEl.innerText = "Senha deve ter pelo menos 6 dígitos."; return; }
             
             try {
                 errorEl.innerText = "Criando conta...";
@@ -1248,25 +1284,36 @@
                 showToast("Conta criada com sucesso!");
             } catch (error) {
                 errorEl.innerText = "Erro ao criar. E-mail pode já estar em uso.";
-                console.error("Erro no cadastro:", error);
             }
         };
 
         window.handleLogout = async () => {
-            try {
-                await window.signOut(window.firebaseAuth);
-                closeAllOverlays();
-            } catch (error) {
-                console.error("Erro ao sair:", error);
-            }
+            try { await window.signOut(window.firebaseAuth); closeAllOverlays(); } 
+            catch (error) {}
         };
 
         // --- SISTEMA DE CONFIGURAÇÕES FINANCEIRAS ---
+        function toggleSomaSaldo(id) {
+            const conta = state.usuario.contas.find(c => c.id.toString() === id.toString());
+            if (conta) {
+                conta.somaSaldo = !conta.somaSaldo;
+                saveDataToCloud();
+                updateUI();
+            }
+        }
+
         function renderFinSettings() {
             document.getElementById('list-contas').innerHTML = state.usuario.contas.map(c => `
                 <div class="flex justify-between items-center bg-black/20 p-3 rounded-xl border border-white/5">
-                    <span class="text-xs font-bold">${c.nome}</span>
-                    <div class="flex space-x-2">
+                    <div class="flex items-center space-x-2">
+                        <span class="text-xs font-bold">${c.nome}</span>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <label class="flex items-center space-x-1.5 cursor-pointer">
+                            <input type="checkbox" onchange="toggleSomaSaldo('${c.id}')" ${c.somaSaldo !== false ? 'checked' : ''} class="w-3 h-3 accent-blue-500">
+                            <span class="text-[8px] text-gray-500 uppercase font-bold tracking-widest leading-none">Somar<br>Home</span>
+                        </label>
+                        <div class="w-px h-4 bg-gray-700 mx-1"></div>
                         ${c.protected ? '<i data-lucide="lock" class="w-4 h-4 text-gray-600"></i>' : `
                         <button onclick="editFinItem('conta', '${c.id}')"><i data-lucide="edit-2" class="w-4 h-4 text-blue-400 hover:text-white transition-colors"></i></button>
                         <button onclick="deleteFinItem('conta', '${c.id}')"><i data-lucide="trash-2" class="w-4 h-4 text-red-500/50 hover:text-red-500 transition-colors"></i></button>
@@ -1328,7 +1375,7 @@
                 const novo = prompt("Novo nome para a categoria:", item.nome);
                 if(novo && novo.trim()) { item.nome = novo.trim(); }
             } else if (type === 'cartao' && id) {
-                editingCardId = id; // Define ANTES do toggleOverlay
+                editingCardId = id; 
                 const item = state.financas.cartoes.find(x => x.id.toString() === id.toString());
                 document.getElementById('new-card-title').innerText = "Editar Cartão";
                 document.getElementById('card-name-input').value = item.nome;
@@ -1353,7 +1400,7 @@
             if (type === 'conta') {
                 const el = document.getElementById('input-new-conta');
                 if(!el.value.trim()) return;
-                state.usuario.contas.push({id: Date.now().toString(), nome: el.value.trim(), protected: false});
+                state.usuario.contas.push({id: Date.now().toString(), nome: el.value.trim(), protected: false, somaSaldo: true});
                 el.value = '';
             } else if (type === 'cat-despesa') {
                 const el = document.getElementById('input-new-cat-despesa');
@@ -1493,11 +1540,15 @@
             showToast("Meta Excluída");
         }
 
-        // --- FUNÇÃO AUXILIAR PARA MONTAR OS SELECTS FINANCEIROS ---
-        function getFinSelectOptions() {
-            let accs = state.usuario.contas.map(a => `<option value="${a.nome}">🏦 ${a.nome}</option>`).join('');
-            accs += state.financas.cartoes.map(c => `<option value="${c.nome}">💳 Cartão ${c.nome} (${c.bandeira || 'MASTERCARD'})</option>`).join('');
-            return accs;
+        function getFinSelectOptions(type = 'all') {
+            let options = '';
+            if (type === 'all' || type === 'contas') {
+                options += state.usuario.contas.map(a => `<option value="${a.nome}">🏦 ${a.nome}</option>`).join('');
+            }
+            if (type === 'all' || type === 'cartoes') {
+                options += state.financas.cartoes.map(c => `<option value="${c.nome}">💳 Cartão ${c.nome} (${c.bandeira || 'MASTERCARD'})</option>`).join('');
+            }
+            return options;
         }
 
         // --- FINANCEIRO GERAL ---
@@ -1506,39 +1557,52 @@
             
             document.getElementById('btn-tt-despesa').className = t === 'despesa' ? 'flex-1 py-2 text-[10px] font-bold rounded-lg bg-red-500/20 text-red-400' : 'flex-1 py-2 text-[10px] font-bold rounded-lg text-gray-500 hover:text-white';
             document.getElementById('btn-tt-receita').className = t === 'receita' ? 'flex-1 py-2 text-[10px] font-bold rounded-lg bg-green-500/20 text-green-400' : 'flex-1 py-2 text-[10px] font-bold rounded-lg text-gray-500 hover:text-white';
+            document.getElementById('btn-tt-transf').className = t === 'transferencia' ? 'flex-1 py-2 text-[10px] font-bold rounded-lg bg-blue-500/20 text-blue-400' : 'flex-1 py-2 text-[10px] font-bold rounded-lg text-gray-500 hover:text-white';
             
-            const titleEl = document.getElementById('trans-title');
-            if(titleEl) titleEl.innerText = t === 'despesa' ? 'Nova Despesa' : 'Nova Receita';
-
-            const cats = t === 'receita' ? state.usuario.categorias_receita : state.usuario.categorias_despesa;
-            document.getElementById('trans-cat-select').innerHTML = cats.map(c => `<option value="${c.nome}">${c.nome}</option>`).join('');
-
+            const transDestContainer = document.getElementById('trans-dest-container');
+            const transCatStatusContainer = document.getElementById('trans-cat-status-container');
             const accSelect = document.getElementById('trans-acc-select');
-            const currentVal = accSelect.value;
             
-            let accsOptions = state.usuario.contas.map(a => `<option value="${a.nome}">🏦 ${a.nome}</option>`).join('');
-            if (t === 'despesa') {
-                accsOptions += state.financas.cartoes.map(c => `<option value="${c.nome}">💳 Cartão ${c.nome} (${c.bandeira || 'MASTERCARD'})</option>`).join('');
-            }
-            
-            accSelect.innerHTML = accsOptions;
-            if(currentVal && accSelect.querySelector(`option[value="${currentVal}"]`)) {
-                accSelect.value = currentVal;
+            if (t === 'transferencia') {
+                transDestContainer.classList.remove('hidden');
+                transCatStatusContainer.classList.add('hidden');
+                document.getElementById('trans-title').innerText = 'Nova Transferência';
+                document.getElementById('trans-acc-label').innerText = 'Conta Origem';
+                
+                accSelect.innerHTML = getFinSelectOptions('contas'); // Apenas contas normais na origem
+                document.getElementById('trans-dest-select').innerHTML = getFinSelectOptions('all');
+            } else {
+                transDestContainer.classList.add('hidden');
+                transCatStatusContainer.classList.remove('hidden');
+                document.getElementById('trans-title').innerText = t === 'despesa' ? 'Nova Despesa' : 'Nova Receita';
+                document.getElementById('trans-acc-label').innerText = 'Conta / Cartão';
+                
+                const cats = t === 'receita' ? state.usuario.categorias_receita : state.usuario.categorias_despesa;
+                document.getElementById('trans-cat-select').innerHTML = cats.map(c => `<option value="${c.nome}">${c.nome}</option>`).join('');
+                
+                const currentVal = accSelect.value;
+                accSelect.innerHTML = t === 'despesa' ? getFinSelectOptions('all') : getFinSelectOptions('contas');
+                if(currentVal && accSelect.querySelector(`option[value="${currentVal}"]`)) accSelect.value = currentVal;
             }
         }
 
         function openTransactionModal(t, id = null) {
-            state.editingId = id; // Reseta ou define corretamente o ID
-            
+            state.editingId = id;
+            document.getElementById('trans-amigo-input').value = ''; 
             setTransType(t);
             
             if(id) { 
                 const tr = state.financas.transacoes.find(x => x.id === id); 
                 document.getElementById('trans-val-input').value = tr.valor; 
                 document.getElementById('trans-date-input').value = tr.data; 
-                document.getElementById('trans-cat-select').value = tr.cat; 
                 document.getElementById('trans-acc-select').value = tr.conta; 
-                setTransState('status', tr.status); 
+                
+                if (t === 'transferencia') {
+                    document.getElementById('trans-dest-select').value = tr.destino;
+                } else {
+                    document.getElementById('trans-cat-select').value = tr.cat; 
+                    setTransState('status', tr.status); 
+                }
             } else { 
                 document.getElementById('trans-val-input').value = ''; 
                 document.getElementById('trans-date-input').value = new Date().toISOString().split('T')[0]; 
@@ -1550,18 +1614,39 @@
         function saveTransaction() {
             const v = parseFloat(document.getElementById('trans-val-input').value);
             const d = document.getElementById('trans-date-input').value;
-            const c = document.getElementById('trans-cat-select').value;
             const a = document.getElementById('trans-acc-select').value;
+            const type = state.financas.temp.type;
             
             if(!v || !d) return;
+
+            let c = '', destino = '', status = state.financas.temp.status;
+
+            if (type === 'transferencia') {
+                destino = document.getElementById('trans-dest-select').value;
+                c = 'Transferência';
+                status = 'efetivada';
+                if (a === destino) { showToast("Contas iguais não permitido."); return; }
+            } else {
+                c = document.getElementById('trans-cat-select').value;
+            }
+
+            const amigo = document.getElementById('trans-amigo-input')?.value.trim();
             
             if(state.editingId) { 
                 const idx = state.financas.transacoes.findIndex(x => x.id === state.editingId); 
                 if(idx !== -1) {
-                    state.financas.transacoes[idx] = {...state.financas.transacoes[idx], valor:v, data:d, cat:c, conta:a, tipo: state.financas.temp.type, status:state.financas.temp.status}; 
+                    state.financas.transacoes[idx] = {...state.financas.transacoes[idx], valor:v, data:d, cat:c, conta:a, destino:destino, tipo:type, status:status}; 
                 }
             } else { 
-                state.financas.transacoes.push({ id:Date.now(), data:d, valor:v, tipo:state.financas.temp.type, status:state.financas.temp.status, cat:c, conta:a }); 
+                state.financas.transacoes.push({ id:Date.now(), data:d, valor:v, tipo:type, status:status, cat:c, conta:a, destino:destino }); 
+                
+                if (amigo && amigo.startsWith('@') && type !== 'transferencia') {
+                    state.notificacoes.unshift({
+                        titulo: 'Transação Dividida',
+                        msg: `Você marcou ${amigo} na transação de ${c}.`,
+                        data: new Date().toISOString()
+                    });
+                }
             }
             
             saveDataToCloud();
@@ -1595,9 +1680,14 @@
             document.getElementById('card-detail-title').innerText = card.nome;
 
             let fatura = 0;
-            const trans = state.financas.transacoes.filter(t => t.conta === card.nome).sort((a,b) => new Date(b.data) - new Date(a.data));
+            const trans = state.financas.transacoes.filter(t => t.conta === card.nome && (t.tipo === 'despesa' || t.tipo === 'receita')).sort((a,b) => new Date(b.data) - new Date(a.data));
 
-            trans.forEach(t => { if(t.status === 'efetivada') fatura += t.valor; });
+            trans.forEach(t => { 
+                if(t.status === 'efetivada') {
+                    if (t.tipo === 'receita') fatura -= t.valor;
+                    else fatura += t.valor;
+                } 
+            });
 
             const disp = card.limite - fatura;
 
@@ -1605,7 +1695,7 @@
                 <div class="flex items-center space-x-2 mb-4"><i data-lucide="credit-card" class="w-5 h-5" style="color: ${card.cor || '#8b5cf6'}"></i><span class="text-sm font-medium text-gray-300">${card.bandeira || 'MASTERCARD'}</span></div>
                 <div class="mb-4">
                     <span class="text-xs text-gray-400 block mb-1">Total da Fatura</span>
-                    <span class="text-3xl font-bold text-white sensitive-value" data-value="R$ ${fatura.toLocaleString('pt-BR', {minimumFractionDigits: 2})}">${state.blurred ? 'R$ •••••' : 'R$ ' + fatura.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                    <span class="text-3xl font-bold text-white sensitive-value" data-value="R$ ${Math.max(0, fatura).toLocaleString('pt-BR', {minimumFractionDigits: 2})}">${state.blurred ? 'R$ •••••' : 'R$ ' + Math.max(0, fatura).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
                 </div>
                 <div class="flex justify-between items-end mt-6">
                     <div>
@@ -1614,24 +1704,28 @@
                     </div>
                     <span class="text-xs text-gray-500 font-mono tracking-widest">Vence dia ${card.vencimento || 10}</span>
                 </div>
+                
+                ${fatura > 0 ? `<button onclick="openPayInvoiceModal('${card.id}')" class="w-full mt-4 py-3 bg-white/10 text-white rounded-xl font-bold text-[10px] uppercase tracking-widest border border-white/10 active:bg-white/20 transition-all">Pagar Fatura</button>` : ''}
             `;
 
             document.getElementById('card-detail-transactions').innerHTML = trans.length ? trans.map(t => {
                 const isRec = t.tipo === 'receita';
-                return `<div class="flex justify-between items-center group card p-4 rounded-2xl border border-white/5">
+                const isPago = t.status === 'fatura_paga';
+                
+                return `<div class="flex justify-between items-center group card p-4 rounded-2xl border ${isPago ? 'border-green-500/20 opacity-60' : 'border-white/5'}">
                     <div class="flex items-center space-x-3 overflow-hidden">
                         <div class="w-10 h-10 rounded-full ${isRec ? 'bg-green-500/10 text-green-500' : 'bg-purple-500/10 text-purple-500'} flex items-center justify-center shrink-0">
                             <i data-lucide="${isRec ? 'briefcase' : 'shopping-bag'}" class="w-5 h-5"></i>
                         </div>
                         <div class="truncate">
-                            <span class="block text-sm font-medium truncate">${t.cat}</span>
-                            <span class="block text-[10px] text-gray-500 uppercase tracking-wider truncate">${t.data.split('-').reverse().join('/')} <span class="text-blue-500 font-bold">• ${t.status}</span></span>
+                            <span class="block text-sm font-medium truncate ${isPago ? 'line-through' : ''}">${t.cat}</span>
+                            <span class="block text-[10px] text-gray-500 uppercase tracking-wider truncate">${t.data.split('-').reverse().join('/')} <span class="${isPago ? 'text-green-500' : 'text-blue-500'} font-bold">• ${isPago ? 'Pago' : t.status}</span></span>
                         </div>
                     </div>
                     <div class="flex flex-col items-end shrink-0 ml-2">
                         <span class="text-sm font-semibold ${isRec ? 'text-green-400' : 'text-red-400'}">${isRec ? '+' : '-'} R$ ${t.valor.toLocaleString('pt-BR', {minimumFractionDigits:2})}</span>
                         <div class="flex space-x-3 mt-1.5 opacity-80">
-                            <button class="text-gray-500 hover:text-white transition-colors" onclick="openTransactionModal('${t.tipo}', ${t.id})"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button>
+                            ${!isPago ? `<button class="text-gray-500 hover:text-white transition-colors" onclick="openTransactionModal('${t.tipo}', ${t.id})"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button>` : ''}
                             <button class="text-gray-500 hover:text-red-400 transition-colors" onclick="deleteTransaction(${t.id})"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
                         </div>
                     </div>
@@ -1639,6 +1733,58 @@
             }).join('') : '<p class="text-center text-gray-600 py-10 text-xs font-bold uppercase tracking-widest">Nenhuma transação neste cartão</p>';
             
             refreshIcons();
+        }
+
+        function openPayInvoiceModal(cardId) {
+            const card = state.financas.cartoes.find(c => c.id.toString() === cardId.toString());
+            if(!card) return;
+            
+            let fatura = 0;
+            state.financas.transacoes.forEach(t => { 
+                if(t.conta === card.nome && t.status === 'efetivada') { 
+                    if(t.tipo === 'receita') fatura -= t.valor; else fatura += t.valor; 
+                } 
+            });
+            
+            if(fatura <= 0) { showToast("Fatura está zerada."); return; }
+
+            document.getElementById('pay-inv-card-id').value = card.id;
+            document.getElementById('pay-inv-amount').innerText = `R$ ${fatura.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            document.getElementById('pay-inv-acc-select').innerHTML = getFinSelectOptions('contas');
+            
+            toggleOverlay('pay-invoice');
+        }
+
+        function confirmPayInvoice() {
+            const cardId = document.getElementById('pay-inv-card-id').value;
+            const card = state.financas.cartoes.find(c => c.id.toString() === cardId.toString());
+            const acc = document.getElementById('pay-inv-acc-select').value;
+            
+            let fatura = 0;
+            state.financas.transacoes.forEach(t => { 
+                if(t.conta === card.nome && t.status === 'efetivada') { 
+                    if(t.tipo === 'receita') fatura -= t.valor; else fatura += t.valor; 
+                    t.status = 'fatura_paga'; // Zera as transações atuais da fatura
+                } 
+            });
+
+            if (fatura > 0) {
+                state.financas.transacoes.push({
+                    id: Date.now(),
+                    data: new Date().toISOString().split('T')[0],
+                    valor: fatura,
+                    tipo: 'pagamento_cartao',
+                    conta: acc,
+                    destino: card.nome,
+                    cat: 'Pagamento de Fatura',
+                    status: 'efetivada'
+                });
+            }
+            
+            saveDataToCloud();
+            closeAllOverlays();
+            updateUI();
+            showToast("Fatura Paga com Sucesso!");
         }
 
         function saveNewCard() { 
@@ -1683,13 +1829,13 @@
 
         // --- VEÍCULO ---
         function populateVehAccSelects() {
-            const accs = getFinSelectOptions();
+            const accs = getFinSelectOptions('all');
             document.getElementById('input-fuel-acc').innerHTML = accs;
             document.getElementById('input-svc-acc').innerHTML = accs;
         }
 
         function openVehModal(t, id = null) {
-            state.editingVehId = id; // Define o ID antes do toggleOverlay para não ser apagado
+            state.editingVehId = id; 
             populateVehAccSelects();
 
             if(t === 'abastecer') {
@@ -1741,10 +1887,7 @@
                 const l = parseFloat(document.getElementById('input-fuel-liters').value) || 0;
                 const acc = document.getElementById('input-fuel-acc').value;
 
-                if(!km || !t || !l) {
-                    showToast("Preencha KM, Total e Litros.");
-                    return;
-                }
+                if(!km || !t || !l) { showToast("Preencha KM, Total e Litros."); return; }
                 
                 const newId = state.editingVehId || Date.now();
                 let med = 29.0; 
@@ -1776,7 +1919,6 @@
                 closeAllOverlays(); 
                 updateUI();
             } catch (e) {
-                console.error("Erro ao salvar abastecimento", e);
                 showToast("Erro ao salvar dados do veículo.");
             }
         }
@@ -1819,7 +1961,6 @@
                 closeAllOverlays(); 
                 updateUI();
             } catch(e) {
-                console.error("Erro ao salvar manutenção", e);
                 showToast("Erro ao salvar manutenção.");
             }
         }
@@ -1895,7 +2036,6 @@
             toggleOverlay('saude-dia');
         }
 
-        // --- PROPÓSITO (SAÚDE) ---
         function saveProposito() {
             state.saude.proposito = {
                 ativo: true,
@@ -1953,10 +2093,7 @@
             ).join('');
         }
 
-        function selectPresetAvatar(url) {
-            tempAvatar = url;
-            updateAvatarPreviewUI();
-        }
+        function selectPresetAvatar(url) { tempAvatar = url; updateAvatarPreviewUI(); }
 
         function handleAvatarUpload(event) {
             const file = event.target.files[0];
@@ -1970,15 +2107,11 @@
                 if(cropperInstance) cropperInstance.destroy();
                 
                 cropperInstance = new Cropper(document.getElementById('crop-image-target'), {
-                    aspectRatio: 1,
-                    viewMode: 1,
-                    background: false,
-                    autoCropArea: 0.8,
-                    dragMode: 'move'
+                    aspectRatio: 1, viewMode: 1, background: false, autoCropArea: 0.8, dragMode: 'move'
                 });
             }
             reader.readAsDataURL(file);
-            event.target.value = ''; // Permite subir o mesmo arquivo novamente
+            event.target.value = ''; 
         }
 
         function closeCropModal() {
@@ -1988,13 +2121,7 @@
 
         function applyCrop() {
             if(!cropperInstance) return;
-            // Gera um canvas limpo
-            const canvas = cropperInstance.getCroppedCanvas({
-                width: 200,
-                height: 200,
-                imageSmoothingEnabled: true,
-                imageSmoothingQuality: 'high',
-            });
+            const canvas = cropperInstance.getCroppedCanvas({ width: 200, height: 200, imageSmoothingEnabled: true, imageSmoothingQuality: 'high' });
             tempAvatar = canvas.toDataURL('image/jpeg', 0.9);
             updateAvatarPreviewUI();
             closeCropModal();
@@ -2004,10 +2131,7 @@
             const weight = parseFloat(document.getElementById('prof-weight').value) || 0;
             const birth = new Date(document.getElementById('prof-birth-date').value);
             
-            if (weight > 0) {
-                const water = weight * 35; 
-                document.getElementById('prof-water-goal').value = water;
-            }
+            if (weight > 0) document.getElementById('prof-water-goal').value = weight * 35; 
 
             if (weight > 0 && !isNaN(birth.getTime())) {
                 const today = new Date();
@@ -2042,7 +2166,7 @@
 
         // --- UI MASTER ---
         function updateUI() {
-            // Atualiza o Avatar ou Iniciais no cabeçalho
+            // Atualiza o Avatar
             const headerBtn = document.getElementById('header-initials');
             if (state.usuario.avatarUrl) {
                 headerBtn.innerHTML = `<img src="${state.usuario.avatarUrl}" class="w-full h-full object-cover">`;
@@ -2050,7 +2174,7 @@
                 headerBtn.innerHTML = (state.usuario.firstName[0] + (state.usuario.lastName ? state.usuario.lastName[0] : "")).toUpperCase();
             }
 
-            // --- LÓGICA DO PROPÓSITO ---
+            // Propósito
             const p = state.saude.proposito;
             const propTitles = document.querySelectorAll('.ui-prop-title');
             
@@ -2059,8 +2183,7 @@
                 propTitles.forEach(el => el.innerText = p.nome);
                 
                 const inicioDate = new Date(p.inicio + 'T00:00:00');
-                const today = new Date();
-                today.setHours(0,0,0,0);
+                const today = new Date(); today.setHours(0,0,0,0);
                 
                 const diffTime = Math.abs(today - inicioDate);
                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -2072,31 +2195,22 @@
                 
                 if (diffDays >= p.dias) {
                     document.querySelectorAll('.ui-prop-days-passed').forEach(el => el.innerText = "CONCLUÍDO!");
-                    document.querySelectorAll('.ui-prop-bar').forEach(el => {
-                        el.classList.remove('bg-[#34d399]');
-                        el.classList.add('bg-blue-500');
-                    });
+                    document.querySelectorAll('.ui-prop-bar').forEach(el => { el.classList.remove('bg-[#34d399]'); el.classList.add('bg-blue-500'); });
 
-                    // Animação de Confetes e Modal (Executa apenas uma vez)
                     if (!p.celebrado) {
                         document.getElementById('congrats-nome').innerText = p.nome;
                         document.getElementById('modal-congratulations').classList.remove('hidden');
                         document.getElementById('modal-congratulations').classList.add('flex');
                         
-                        // Dispara Confetti
                         if (window.confetti) {
-                            var duration = 3 * 1000;
-                            var end = Date.now() + duration;
-
+                            var duration = 3 * 1000; var end = Date.now() + duration;
                             (function frame() {
                                 confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#38bdf8', '#34d399', '#f97316'] });
                                 confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#38bdf8', '#34d399', '#f97316'] });
                                 if (Date.now() < end) requestAnimationFrame(frame);
                             }());
                         }
-                        
-                        p.celebrado = true;
-                        saveDataToCloud();
+                        p.celebrado = true; saveDataToCloud();
                     }
                 }
             } else {
@@ -2111,15 +2225,32 @@
             
             document.querySelectorAll('.saude-agua-perc').forEach(el => el.innerText = Math.round(aP) + '%');
             document.querySelectorAll('.saude-cafe-valor').forEach(el => el.innerText = s.cafe);
-
-            document.querySelectorAll('.val-agua-meta-text').forEach(el => el.innerText = state.saude.aguaMeta);
             document.querySelectorAll('.val-agua-meta-litros').forEach(el => el.innerText = (state.saude.aguaMeta/1000).toFixed(1));
-            document.querySelectorAll('.val-cafeina-meta-text').forEach(el => el.innerText = state.saude.cafeinaMeta);
 
-            let saldo = 0, recM = 0, desM = 0; const now = new Date();
+            // --- CÁLCULO FINANCEIRO ATUALIZADO ---
+            let saldo = 0, recM = 0, desM = 0; 
+            const now = new Date();
+            const contasSoma = state.usuario.contas.filter(c => c.somaSaldo !== false).map(c => c.nome);
+
             state.financas.transacoes.forEach(t => { 
-                if(t.status === 'efetivada') { if(t.tipo === 'receita') saldo += t.valor; else saldo -= t.valor; }
-                const td = new Date(t.data); if(td.getMonth() === now.getMonth() && td.getFullYear() === now.getFullYear() && t.status === 'efetivada') { if(t.tipo === 'receita') recM += t.valor; else desM += t.valor; }
+                const td = new Date(t.data);
+                const isThisMonth = td.getMonth() === now.getMonth() && td.getFullYear() === now.getFullYear();
+                const isEffective = t.status === 'efetivada' || t.status === 'fatura_paga';
+
+                if (t.tipo === 'receita' && isEffective) { 
+                    if(contasSoma.includes(t.conta)) { saldo += t.valor; if(isThisMonth) recM += t.valor; }
+                } else if (t.tipo === 'despesa' && isEffective) { 
+                    if(contasSoma.includes(t.conta)) { saldo -= t.valor; if(isThisMonth) desM += t.valor; }
+                } else if (t.tipo === 'transferencia') {
+                    if(contasSoma.includes(t.conta)) saldo -= t.valor; // Saiu
+                    if(contasSoma.includes(t.destino)) saldo += t.valor; // Entrou
+                    // Transferência não afeta receita/despesa do mês
+                } else if (t.tipo === 'pagamento_cartao') {
+                    if(contasSoma.includes(t.conta)) { 
+                        saldo -= t.valor; 
+                        if(isThisMonth) desM += t.valor; 
+                    }
+                }
             });
 
             const setSensitiveVal = (selector, val) => {
@@ -2134,6 +2265,7 @@
             setSensitiveVal('.fin-receita-mes', recM);
             setSensitiveVal('.fin-despesa-mes', desM);
             
+            // Veículo
             document.querySelectorAll('.veh-name-text').forEach(el => el.innerText = state.veiculo.nome);
             document.getElementById('veh-km-total').innerText = state.veiculo.hodometro.toLocaleString();
             document.getElementById('home-veh-km').innerText = state.veiculo.hodometro.toLocaleString();
@@ -2153,7 +2285,11 @@
         function renderCards() {
             const c = document.getElementById('card-carousel'); if(!c) return;
             c.innerHTML = state.financas.cartoes.map(x => {
-                let f = 0; state.financas.transacoes.forEach(t => { if(t.conta === x.nome && t.status === 'efetivada') f += t.valor; });
+                let f = 0; state.financas.transacoes.forEach(t => { 
+                    if(t.conta === x.nome && t.status === 'efetivada') {
+                        if (t.tipo === 'receita') f -= t.valor; else f += t.valor;
+                    } 
+                });
                 return `<div class="snap-center shrink-0 w-[85%] card rounded-3xl p-6 shadow-sm relative overflow-hidden bg-gradient-to-br from-[#1E2128] to-[#121418] border border-gray-700 cursor-pointer active:scale-[0.98] transition-transform" onclick="openCardDetails(${x.id})">
                     <div class="flex justify-between items-center mb-6">
                         <div class="flex items-center space-x-2"><i data-lucide="credit-card" class="w-5 h-5" style="color: ${x.cor || '#8b5cf6'}"></i><span class="text-sm font-medium text-gray-300">${x.nome}</span></div>
@@ -2161,7 +2297,7 @@
                     </div>
                     <div class="mb-4">
                         <span class="text-xs text-gray-400 block mb-1">Fatura Atual (Vence dia ${x.vencimento || 10})</span>
-                        <span class="text-3xl font-bold sensitive-value text-white" data-value="R$ ${f.toLocaleString('pt-BR', {minimumFractionDigits: 2})}">${state.blurred ? 'R$ •••••' : 'R$ ' + f.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                        <span class="text-3xl font-bold sensitive-value text-white" data-value="R$ ${Math.max(0,f).toLocaleString('pt-BR', {minimumFractionDigits: 2})}">${state.blurred ? 'R$ •••••' : 'R$ ' + Math.max(0,f).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
                     </div>
                     <div class="flex justify-between items-end mt-6">
                         <div>
@@ -2178,55 +2314,49 @@
             </div>`;
         }
 
+        function renderTransItem(t) {
+            const isRec = t.tipo === 'receita';
+            const isTransf = t.tipo === 'transferencia';
+            const isPgto = t.tipo === 'pagamento_cartao';
+
+            let icon = isRec ? 'briefcase' : 'shopping-bag';
+            let colorClass = isRec ? 'text-green-400' : 'text-red-400';
+            let bgClass = isRec ? 'bg-green-500/10 text-green-500' : 'bg-purple-500/10 text-purple-500';
+            let prefix = isRec ? '+' : '-';
+
+            if (isTransf) { icon = 'arrow-right-left'; colorClass = 'text-blue-400'; bgClass = 'bg-blue-500/10 text-blue-500'; prefix = ''; }
+            else if (isPgto) { icon = 'credit-card'; colorClass = 'text-red-400'; bgClass = 'bg-red-500/10 text-red-500'; prefix = '-'; }
+
+            const catName = isTransf ? `Transf. p/ ${t.destino}` : (isPgto ? `Fatura ${t.destino}` : t.cat);
+            const subtitle = isTransf ? `De ${t.conta}` : t.conta;
+
+            return `<div class="flex justify-between items-center group card p-4 rounded-2xl border border-white/5">
+                <div class="flex items-center space-x-3 overflow-hidden">
+                    <div class="w-10 h-10 rounded-full ${bgClass} flex items-center justify-center shrink-0"><i data-lucide="${icon}" class="w-5 h-5"></i></div>
+                    <div class="truncate">
+                        <span class="block text-sm font-medium truncate">${catName}</span>
+                        <span class="block text-[10px] text-gray-500 uppercase tracking-wider truncate">${subtitle} <span class="text-blue-500 font-bold">• ${t.status === 'fatura_paga' ? 'Paga' : t.status}</span></span>
+                    </div>
+                </div>
+                <div class="flex flex-col items-end shrink-0 ml-2">
+                    <span class="text-sm font-semibold ${colorClass}">${prefix} R$ ${t.valor.toLocaleString('pt-BR', {minimumFractionDigits:2})}</span>
+                    <div class="flex space-x-3 mt-1.5 opacity-80">
+                        ${(!isTransf && !isPgto && t.status !== 'fatura_paga') ? `<button class="text-gray-500 hover:text-white transition-colors" onclick="openTransactionModal('${t.tipo}', ${t.id})"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button>` : ''}
+                        <button class="text-gray-500 hover:text-red-400 transition-colors" onclick="deleteTransaction(${t.id})"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                    </div>
+                </div>
+            </div>`;
+        }
+
         function renderExtrato() {
             const m = state.extratoDate.getMonth(), y = state.extratoDate.getFullYear();
             const fil = state.financas.transacoes.filter(t => { const d = new Date(t.data); return d.getMonth() === m && d.getFullYear() === y; }).sort((a,b) => new Date(b.data) - new Date(a.data));
-            document.getElementById('extrato-month-content').innerHTML = fil.length ? fil.map(t => {
-                const isRec = t.tipo === 'receita';
-                return `<div class="flex justify-between items-center group card p-4 rounded-2xl border border-white/5">
-                    <div class="flex items-center space-x-3 overflow-hidden">
-                        <div class="w-10 h-10 rounded-full ${isRec ? 'bg-green-500/10 text-green-500' : 'bg-purple-500/10 text-purple-500'} flex items-center justify-center shrink-0">
-                            <i data-lucide="${isRec ? 'briefcase' : 'shopping-bag'}" class="w-5 h-5"></i>
-                        </div>
-                        <div class="truncate">
-                            <span class="block text-sm font-medium truncate">${t.cat}</span>
-                            <span class="block text-[10px] text-gray-500 uppercase tracking-wider truncate">${t.conta} <span class="text-blue-500 font-bold">• ${t.status}</span></span>
-                        </div>
-                    </div>
-                    <div class="flex flex-col items-end shrink-0 ml-2">
-                        <span class="text-sm font-semibold ${isRec ? 'text-green-400' : 'text-red-400'}">${isRec ? '+' : '-'} R$ ${t.valor.toLocaleString('pt-BR', {minimumFractionDigits:2})}</span>
-                        <div class="flex space-x-3 mt-1.5 opacity-80">
-                            <button class="text-gray-500 hover:text-white transition-colors" onclick="openTransactionModal('${t.tipo}', ${t.id})"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button>
-                            <button class="text-gray-500 hover:text-red-400 transition-colors" onclick="deleteTransaction(${t.id})"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
-                        </div>
-                    </div>
-                </div>`;
-            }).join('') : '<p class="text-center text-gray-600 py-10 text-xs font-bold uppercase tracking-widest">Nenhuma transação no mês</p>';
+            document.getElementById('extrato-month-content').innerHTML = fil.length ? fil.map(t => renderTransItem(t)).join('') : '<p class="text-center text-gray-600 py-10 text-xs font-bold uppercase tracking-widest">Nenhuma transação no mês</p>';
         }
 
         function renderRecentTrans() {
             const sorted = [...state.financas.transacoes].sort((a,b) => new Date(b.data) - new Date(a.data)).slice(0, 3);
-            document.getElementById('recent-trans-list').innerHTML = sorted.length ? sorted.map(t => {
-                const isRec = t.tipo === 'receita';
-                return `<div class="flex justify-between items-center group">
-                    <div class="flex items-center space-x-3 overflow-hidden">
-                        <div class="w-10 h-10 rounded-full ${isRec ? 'bg-green-500/10 text-green-500' : 'bg-purple-500/10 text-purple-500'} flex items-center justify-center shrink-0">
-                            <i data-lucide="${isRec ? 'briefcase' : 'shopping-bag'}" class="w-5 h-5"></i>
-                        </div>
-                        <div class="truncate">
-                            <span class="block text-sm font-medium truncate">${t.cat}</span>
-                            <span class="block text-[10px] text-gray-500 uppercase tracking-wider truncate">${t.conta} <span class="text-blue-500 font-bold">• ${t.status}</span></span>
-                        </div>
-                    </div>
-                    <div class="flex flex-col items-end shrink-0 ml-2">
-                        <span class="text-sm font-semibold ${isRec ? 'text-green-400' : 'text-red-400'}">${isRec ? '+' : '-'} R$ ${t.valor.toLocaleString('pt-BR', {minimumFractionDigits:2})}</span>
-                        <div class="flex space-x-3 mt-1.5 opacity-80">
-                            <button class="text-gray-500 hover:text-white transition-colors" onclick="openTransactionModal('${t.tipo}', ${t.id})"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button>
-                            <button class="text-gray-500 hover:text-red-400 transition-colors" onclick="deleteTransaction(${t.id})"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
-                        </div>
-                    </div>
-                </div>`
-            }).join('') : '<p class="text-center text-gray-600 py-4 text-xs font-bold uppercase tracking-widest">Nenhuma atividade recente</p>';
+            document.getElementById('recent-trans-list').innerHTML = sorted.length ? sorted.map(t => renderTransItem(t)).join('') : '<p class="text-center text-gray-600 py-4 text-xs font-bold uppercase tracking-widest">Nenhuma atividade recente</p>';
         }
 
         function renderVehTimeline() {
@@ -2280,9 +2410,7 @@
             renderCatChart();
         }
 
-        function selectAllMonths() {
-            document.querySelectorAll('.month-cb').forEach(cb => cb.checked = true);
-        }
+        function selectAllMonths() { document.querySelectorAll('.month-cb').forEach(cb => cb.checked = true); }
 
         function applyMonthFilter() {
             document.getElementById('month-filter-menu').classList.add('hidden');
@@ -2307,7 +2435,8 @@
                 let r = 0, g = 0;
                 
                 state.financas.transacoes.forEach(t => {
-                    if(t.status === 'efetivada') {
+                    const isEffective = t.status === 'efetivada' || t.status === 'fatura_paga';
+                    if(isEffective && t.tipo !== 'transferencia' && t.tipo !== 'pagamento_cartao') {
                         const [tY, tM] = t.data.split('-');
                         if (parseInt(tY) === currentYear && parseInt(tM) === monthIdx + 1) {
                             if (t.tipo === 'receita') r += t.valor;
@@ -2335,31 +2464,14 @@
                     ] 
                 }, 
                 options: { 
-                    responsive: true, 
-                    maintainAspectRatio: false, 
+                    responsive: true, maintainAspectRatio: false, 
                     plugins: { 
                         legend: { display: true, labels: { color: '#9ca3af', font: {size: 9}, boxWidth: 10, padding: 10 } },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return context.dataset.label + ': ' + context.parsed.y.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
-                                }
-                            }
-                        }
+                        tooltip: { callbacks: { label: function(context) { return context.dataset.label + ': ' + context.parsed.y.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'}); } } }
                     }, 
                     scales: { 
                         x: { grid: { display: false }, ticks: { color: '#4b5563', font: { size: 9 } } }, 
-                        y: { 
-                            display: true, 
-                            grid: { color: 'rgba(255,255,255,0.05)' }, 
-                            ticks: { 
-                                color: '#4b5563', 
-                                font: { size: 9 },
-                                callback: function(value) {
-                                    return 'R$ ' + value.toLocaleString('pt-BR');
-                                }
-                            } 
-                        } 
+                        y: { display: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#4b5563', font: { size: 9 }, callback: function(value) { return 'R$ ' + value.toLocaleString('pt-BR'); } } } 
                     } 
                 } 
             });
@@ -2372,7 +2484,8 @@
 
             const cats = {};
             state.financas.transacoes.forEach(t => {
-                if (t.tipo === 'despesa' && t.status === 'efetivada') {
+                const isEffective = t.status === 'efetivada' || t.status === 'fatura_paga';
+                if (t.tipo === 'despesa' && isEffective) {
                     const [tY, tM] = t.data.split('-');
                     if (parseInt(tY) === parseInt(year) && parseInt(tM) === parseInt(month)) {
                         cats[t.cat] = (cats[t.cat] || 0) + t.valor;
@@ -2390,19 +2503,11 @@
                 type: 'doughnut', 
                 data: { 
                     labels: labels.length ? labels : ['Nenhum Gasto'], 
-                    datasets: [{ 
-                        data: data.length ? data : [1], 
-                        backgroundColor: data.length ? bgColors : ['#374151'], 
-                        borderWidth: 0 
-                    }] 
+                    datasets: [{ data: data.length ? data : [1], backgroundColor: data.length ? bgColors : ['#374151'], borderWidth: 0 }] 
                 }, 
                 options: { 
-                    responsive: true, 
-                    maintainAspectRatio: false, 
-                    cutout: '75%', 
-                    plugins: { 
-                        legend: { display: true, position: 'right', labels: { color: '#e5e7eb', font: {size: 10}, padding: 15 } } 
-                    } 
+                    responsive: true, maintainAspectRatio: false, cutout: '75%', 
+                    plugins: { legend: { display: true, position: 'right', labels: { color: '#e5e7eb', font: {size: 10}, padding: 15 } } } 
                 } 
             });
         }
@@ -2415,22 +2520,18 @@
             
             document.querySelectorAll('.btn-eye').forEach(el => el.classList.toggle('hidden', state.blurred));
             document.querySelectorAll('.btn-eye-off').forEach(el => el.classList.toggle('hidden', !state.blurred));
-            // 
+            
             document.querySelectorAll('.sensitive-value').forEach(el => { 
                 if (state.blurred) {
-                    el.classList.add('blurred');
-                    el.innerText = 'R$ •••••';
+                    el.classList.add('blurred'); el.innerText = 'R$ •••••';
                 } else {
-                    el.classList.remove('blurred');
-                    el.innerText = el.getAttribute('data-value') || 'R$ 0,00';
+                    el.classList.remove('blurred'); el.innerText = el.getAttribute('data-value') || 'R$ 0,00';
                 }
             }); 
         }
 
         window.onload = () => { 
-            if(!state.isLoggedIn) {
-                document.getElementById('login-screen').classList.remove('hidden');
-            }
+            if(!state.isLoggedIn) { document.getElementById('login-screen').classList.remove('hidden'); }
             initializeAuthListener();
         };
     </script>
