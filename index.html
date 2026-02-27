@@ -3,12 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mu Finance v02</title>
+    <title>Mu Finance v02.01</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Adição do canvas-confetti -->
+    <!-- canvas-confetti -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Cropper.js (Leve) para corte de imagem -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+    
     <style>
         :root {
             --bg-main: #121418;
@@ -27,7 +31,7 @@
         ::-webkit-scrollbar { display: none; }
         .fade-in { animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .sensitive-value.blurred { filter: blur(15px); }
+        .sensitive-value.blurred { filter: blur(10px); transition: filter 0.3s ease; }
         
         .overlay { position: absolute; bottom: -100%; left: 0; width: 100%; height: 92%; background-color: var(--bg-card); border-top-left-radius: 32px; border-top-right-radius: 32px; z-index: 100; transition: bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 -10px 40px rgba(0,0,0,0.8); border-top: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; }
         .overlay.active { bottom: 0; }
@@ -36,7 +40,9 @@
         .backdrop.active { display: block; }
         
         .progress-ring__circle { transition: stroke-dashoffset 0.5s ease; transform: rotate(-90deg); transform-origin: 50% 50%; }
-        .day-circle { width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 10px; position: relative; cursor: pointer; border: 1px solid #2d3139; color: #4b5563; font-weight: 700; transition: all 0.2s; }
+        
+        /* Modificado para border-radius 50% (círculo perfeito) */
+        .day-circle { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; position: relative; cursor: pointer; border: 1px solid #2d3139; color: #4b5563; font-weight: 700; transition: all 0.2s; }
         .day-circle.water-tracked { border-color: var(--accent-blue); color: var(--accent-blue); background: rgba(56, 189, 248, 0.05); }
         .day-circle.goal-met { background-color: var(--accent-blue); border-color: var(--accent-blue); color: #000; box-shadow: 0 0 15px rgba(56, 189, 248, 0.3); }
         
@@ -97,7 +103,7 @@
         <div id="login-screen" class="absolute inset-0 bg-[#121418] z-[999] flex flex-col justify-center px-8 transition-opacity duration-300">
             <div class="text-center mb-10">
                 <h1 class="text-4xl font-bold tracking-tight mb-2">Mu Finance</h1>
-                <p class="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Personal Management</p>
+                <p class="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Personal Management v02.01</p>
             </div>
             <div class="space-y-4">
                 <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
@@ -136,15 +142,58 @@
             
             <!-- PÁGINA HOME -->
             <div id="page-home" class="page-content space-y-5 fade-in">
-                <div class="card rounded-3xl p-6 shadow-lg border border-white/5">
-                    <span class="text-gray-500 text-[10px] uppercase font-bold tracking-widest">Patrimônio Líquido</span>
-                    <h2 class="text-4xl font-bold mt-2 sensitive-value fin-total-saldo">R$ 0,00</h2>
+                <!-- CARD SALDO (ATUALIZADO COM VISIBILITY TOGGLE) -->
+                <div class="card rounded-3xl p-6 shadow-lg border border-white/5 relative">
+                    <div class="absolute top-4 right-4 z-20 cursor-pointer p-1" onclick="toggleVisibility()">
+                        <div class="btn-eye"><i data-lucide="eye" class="w-5 h-5 text-gray-400 hover:text-white transition-colors"></i></div>
+                        <div class="btn-eye-off hidden"><i data-lucide="eye-off" class="w-5 h-5 text-gray-400 hover:text-white transition-colors"></i></div>
+                    </div>
+                    
+                    <span class="text-gray-500 text-[10px] uppercase font-bold tracking-widest">Saldo</span>
+                    <h2 class="text-4xl font-bold mt-2 sensitive-value fin-total-saldo" data-value="R$ 0,00">R$ 0,00</h2>
                     <div class="mt-4 pt-4 border-t border-white/5 flex justify-between text-[10px] font-bold uppercase">
-                        <div class="text-green-400">Entradas: <span class="fin-receita-mes sensitive-value">R$ 0,00</span></div>
-                        <div class="text-red-400">Saídas: <span class="fin-despesa-mes sensitive-value">R$ 0,00</span></div>
+                        <div class="text-green-400">Entradas: <span class="fin-receita-mes sensitive-value" data-value="R$ 0,00">R$ 0,00</span></div>
+                        <div class="text-red-400">Saídas: <span class="fin-despesa-mes sensitive-value" data-value="R$ 0,00">R$ 0,00</span></div>
                     </div>
                 </div>
 
+                <!-- CARD: PROPÓSITO (MOVIDO PARA HOME) -->
+                <div class="card rounded-3xl p-5 relative">
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <span class="text-[9px] text-gray-500 font-bold uppercase tracking-widest block mb-1">Propósito</span>
+                            <h3 class="text-lg font-bold ui-prop-title">Configure um desafio</h3>
+                        </div>
+                        <button onclick="toggleOverlay('proposito-config')" class="p-1"><i data-lucide="settings" class="w-4 h-4 text-gray-500 hover:text-white transition-colors"></i></button>
+                    </div>
+                    <div class="w-full bg-gray-800 h-2.5 rounded-full overflow-hidden mt-4">
+                        <div class="bg-[#34d399] h-full transition-all duration-1000 ui-prop-bar" style="width: 0%"></div>
+                    </div>
+                    <div class="flex justify-between mt-2 text-[9px] font-bold text-gray-500 uppercase tracking-widest">
+                        <span class="ui-prop-days-passed">0 dias</span>
+                        <span class="ui-prop-days-total">0 dias</span>
+                    </div>
+                </div>
+                
+                <!-- GRÁFICOS: ÁGUA E CAFEÍNA (MOVIDOS PARA HOME) -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="card rounded-3xl p-5 flex flex-col items-center justify-center text-center cursor-pointer active:scale-95 transition-all" onclick="navigate('nav-saude', 'page-saude', 'Saúde')">
+                        <div class="relative w-28 h-28 flex items-center justify-center mb-2">
+                            <svg class="w-full h-full"><circle class="text-gray-800" stroke-width="6" stroke="currentColor" fill="transparent" r="48" cx="56" cy="56"/><circle id="ring-agua-path" class="text-blue-500 progress-ring__circle" stroke-width="6" stroke-dasharray="301.6" stroke-dashoffset="301.6" stroke-linecap="round" stroke="currentColor" fill="transparent" r="48" cx="56" cy="56"/></svg>
+                            <div class="absolute inset-0 flex flex-col items-center justify-center"><span class="text-xl font-black" id="saude-agua-perc">0%</span><span class="text-[8px] text-gray-500 font-bold uppercase tracking-widest">Água</span></div>
+                        </div>
+                        <p class="text-[9px] font-bold text-blue-400 uppercase tracking-widest">Meta: <span class="val-agua-meta-litros">3.5</span>L</p>
+                    </div>
+                    <div class="card rounded-3xl p-5 flex flex-col items-center justify-center text-center cursor-pointer active:scale-95 transition-all" onclick="navigate('nav-saude', 'page-saude', 'Saúde')">
+                        <div class="relative w-28 h-28 flex items-center justify-center mb-2">
+                            <svg class="w-full h-full"><circle class="text-gray-800" stroke-width="6" stroke="currentColor" fill="transparent" r="48" cx="56" cy="56"/><circle id="ring-cafeina-path" class="text-yellow-500 progress-ring__circle" stroke-width="6" stroke-dasharray="301.6" stroke-dashoffset="301.6" stroke-linecap="round" stroke="currentColor" fill="transparent" r="48" cx="56" cy="56"/></svg>
+                            <div class="absolute inset-0 flex flex-col items-center justify-center"><span class="text-xl font-black" id="saude-cafe-valor">0</span><small class="text-[8px] text-gray-500 ml-0.5 uppercase font-bold">mg</small></div>
+                        </div>
+                        <p class="text-[9px] font-bold text-yellow-500 uppercase tracking-widest">Limite Cafeína</p>
+                    </div>
+                </div>
+
+                <!-- CARD VEÍCULO SUMMARY -->
                 <div onclick="navigate('nav-veiculo', 'page-veiculo', 'Veículo')" class="card rounded-3xl p-5 flex items-center justify-between cursor-pointer active:scale-[0.98] transition-all">
                     <div class="flex items-center space-x-4">
                         <div id="home-veh-icon" class="w-12 h-12 rounded-2xl bg-orange-500/10 flex items-center justify-center text-orange-500"><i data-lucide="bike"></i></div>
@@ -155,58 +204,15 @@
                     </div>
                     <i data-lucide="chevron-right" class="w-5 h-5 text-gray-700"></i>
                 </div>
-
-                <div onclick="navigate('nav-saude', 'page-saude', 'Saúde')" class="card rounded-3xl p-5 cursor-pointer active:scale-[0.98] transition-all">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="font-bold flex items-center space-x-2"><i data-lucide="droplet" class="w-4 h-4 text-blue-500"></i><span>Hidratação</span></h3>
-                        <span class="text-xs text-gray-500"><span id="home-agua-valor">0</span> / <span class="val-agua-meta-text">3500</span>ml</span>
-                    </div>
-                    <div class="w-full bg-gray-800 h-1.5 rounded-full overflow-hidden"><div id="home-agua-bar" class="bg-blue-500 h-full transition-all" style="width: 0%"></div></div>
-                </div>
             </div>
 
             <!-- PÁGINA SAÚDE -->
             <div id="page-saude" class="page-content hidden space-y-6 fade-in">
                 
-                <!-- NOVO CARD: PROPÓSITO -->
-                <div class="card rounded-3xl p-5 relative">
-                    <div class="flex justify-between items-start mb-2">
-                        <div>
-                            <span class="text-[9px] text-gray-500 font-bold uppercase tracking-widest block mb-1">Propósito</span>
-                            <h3 class="text-lg font-bold" id="prop-title">Configure um desafio</h3>
-                        </div>
-                        <button onclick="toggleOverlay('proposito-config')" class="p-1"><i data-lucide="settings" class="w-4 h-4 text-gray-500 hover:text-white transition-colors"></i></button>
-                    </div>
-                    <div class="w-full bg-gray-800 h-2.5 rounded-full overflow-hidden mt-4">
-                        <div id="prop-bar" class="bg-[#34d399] h-full transition-all duration-1000" style="width: 0%"></div>
-                    </div>
-                    <div class="flex justify-between mt-2 text-[9px] font-bold text-gray-500 uppercase tracking-widest">
-                        <span id="prop-days-passed">0 dias</span>
-                        <span id="prop-days-total">0 dias</span>
-                    </div>
-                </div>
-
                 <div class="flex justify-between items-center px-1">
-                    <h2 class="text-lg font-bold">Monitoramento Hídrico</h2>
+                    <h2 class="text-lg font-bold">Registrar Hidratação e Cafeína</h2>
                 </div>
                 
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="card rounded-3xl p-5 flex flex-col items-center justify-center text-center">
-                        <div class="relative w-28 h-28 flex items-center justify-center mb-2">
-                            <svg class="w-full h-full"><circle class="text-gray-800" stroke-width="6" stroke="currentColor" fill="transparent" r="48" cx="56" cy="56"/><circle id="ring-agua-path" class="text-blue-500 progress-ring__circle" stroke-width="6" stroke-dasharray="301.6" stroke-dashoffset="301.6" stroke-linecap="round" stroke="currentColor" fill="transparent" r="48" cx="56" cy="56"/></svg>
-                            <div class="absolute inset-0 flex flex-col items-center justify-center"><span class="text-xl font-black" id="saude-agua-perc">0%</span><span class="text-[8px] text-gray-500 font-bold uppercase tracking-widest">Diário</span></div>
-                        </div>
-                        <p class="text-[9px] font-bold text-blue-400 uppercase tracking-widest">Meta: <span class="val-agua-meta-litros">3.5</span>L</p>
-                    </div>
-                    <div class="card rounded-3xl p-5 flex flex-col items-center justify-center text-center">
-                        <div class="relative w-28 h-28 flex items-center justify-center mb-2">
-                            <svg class="w-full h-full"><circle class="text-gray-800" stroke-width="6" stroke="currentColor" fill="transparent" r="48" cx="56" cy="56"/><circle id="ring-cafeina-path" class="text-yellow-500 progress-ring__circle" stroke-width="6" stroke-dasharray="301.6" stroke-dashoffset="301.6" stroke-linecap="round" stroke="currentColor" fill="transparent" r="48" cx="56" cy="56"/></svg>
-                            <div class="absolute inset-0 flex flex-col items-center justify-center"><span class="text-xl font-black" id="saude-cafe-valor">0</span><small class="text-[8px] text-gray-500 ml-0.5 uppercase font-bold">mg</small></div>
-                        </div>
-                        <p class="text-[9px] font-bold text-yellow-500 uppercase tracking-widest">Limite: <span class="val-cafeina-meta-text">400</span>mg</p>
-                    </div>
-                </div>
-
                 <div class="grid grid-cols-2 gap-3">
                     <button onclick="registrarSaude('escritorio')" class="card p-4 rounded-2xl flex items-center space-x-3 active:scale-95 transition-all"><i data-lucide="building" class="w-5 h-5 text-blue-500"></i><div class="text-left"><span class="block text-xs font-bold">Escritório</span><span class="block text-[10px] text-blue-400">+473ml</span></div></button>
                     <button onclick="registrarSaude('casa')" class="card p-4 rounded-2xl flex items-center space-x-3 active:scale-95 transition-all"><i data-lucide="home" class="w-5 h-5 text-blue-300"></i><div class="text-left"><span class="block text-xs font-bold">Em Casa</span><span class="block text-[10px] text-blue-300">+350ml</span></div></button>
@@ -218,6 +224,24 @@
                     <div class="flex justify-between items-center mb-6"><h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Calendário de Metas</h3><div class="flex items-center space-x-3"><button onclick="changeMonth(-1)"><i data-lucide="chevron-left" class="w-4 h-4"></i></button><span id="calendar-month-year" class="text-[10px] font-bold w-24 text-center uppercase tracking-tighter">Fev 2026</span><button onclick="changeMonth(1)"><i data-lucide="chevron-right" class="w-4 h-4"></i></button></div></div>
                     <div id="calendar-grid" class="grid grid-cols-7 gap-y-3 gap-x-2 text-center text-[9px] font-bold text-gray-600 mb-2"><div>DOM</div><div>SEG</div><div>TER</div><div>QUA</div><div>QUI</div><div>SEX</div><div>SAB</div></div>
                 </div>
+
+                <!-- CARD: PROPÓSITO (CÓPIA NO FINAL DA PÁGINA) -->
+                <div class="card rounded-3xl p-5 relative">
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <span class="text-[9px] text-gray-500 font-bold uppercase tracking-widest block mb-1">Propósito</span>
+                            <h3 class="text-lg font-bold ui-prop-title">Configure um desafio</h3>
+                        </div>
+                        <button onclick="toggleOverlay('proposito-config')" class="p-1"><i data-lucide="settings" class="w-4 h-4 text-gray-500 hover:text-white transition-colors"></i></button>
+                    </div>
+                    <div class="w-full bg-gray-800 h-2.5 rounded-full overflow-hidden mt-4">
+                        <div class="bg-[#34d399] h-full transition-all duration-1000 ui-prop-bar" style="width: 0%"></div>
+                    </div>
+                    <div class="flex justify-between mt-2 text-[9px] font-bold text-gray-500 uppercase tracking-widest">
+                        <span class="ui-prop-days-passed">0 dias</span>
+                        <span class="ui-prop-days-total">0 dias</span>
+                    </div>
+                </div>
             </div>
 
             <!-- PÁGINA FINANÇAS -->
@@ -226,8 +250,8 @@
                 <div class="card rounded-3xl p-6 shadow-sm relative overflow-hidden">
                     <div class="absolute right-0 top-0 w-32 h-32 bg-green-500/10 rounded-bl-full z-0"></div>
                     <div class="absolute top-4 right-4 z-20 cursor-pointer p-1" onclick="toggleVisibility()">
-                        <div id="icon-eye"><i data-lucide="eye" class="w-5 h-5 text-gray-400 hover:text-white transition-colors"></i></div>
-                        <div id="icon-eye-off" class="hidden"><i data-lucide="eye-off" class="w-5 h-5 text-gray-400 hover:text-white transition-colors"></i></div>
+                        <div class="btn-eye"><i data-lucide="eye" class="w-5 h-5 text-gray-400 hover:text-white transition-colors"></i></div>
+                        <div class="btn-eye-off hidden"><i data-lucide="eye-off" class="w-5 h-5 text-gray-400 hover:text-white transition-colors"></i></div>
                     </div>
                     <div class="relative z-10">
                         <span class="text-gray-400 text-sm">Disponível</span>
@@ -460,6 +484,7 @@
                     </div>
                     <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
                         <label class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Conta / Cartão</label>
+                        <!-- Agora populado com Emojis/Ícones textuais via JS -->
                         <select id="trans-acc-select" class="bg-transparent font-bold w-full outline-none text-xs"></select>
                     </div>
                 </div>
@@ -487,11 +512,26 @@
             </div>
         </div>
 
+        <!-- MODAL CROP IMAGEM (PERFIL) -->
+        <div id="overlay-crop" class="overlay z-[200]">
+            <div class="w-12 h-1 bg-gray-800 rounded-full mx-auto mt-4 mb-4 shrink-0"></div>
+            <div class="px-6 flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">Ajustar Foto</h2>
+                <button onclick="closeCropModal()"><i data-lucide="x" class="w-6 h-6 text-gray-500"></i></button>
+            </div>
+            <div class="px-6 flex-1 h-[300px] w-full relative">
+                <img id="crop-image-target" class="max-w-full block">
+            </div>
+            <div class="px-6 pb-6 mt-4">
+                <button onclick="applyCrop()" class="w-full py-4 rounded-3xl bg-blue-500 text-black font-bold tracking-widest uppercase active:scale-95 transition-transform">Confirmar</button>
+            </div>
+        </div>
+
         <!-- MODAL PADRÃO: NOVO CARTÃO -->
         <div id="overlay-new-card" class="overlay">
             <div class="w-12 h-1 bg-gray-800 rounded-full mx-auto mt-4 mb-4 shrink-0"></div>
             <div class="px-6 flex justify-between items-center mb-6">
-                <h2 class="text-xl font-bold">Novo Cartão</h2>
+                <h2 class="text-xl font-bold" id="new-card-title">Novo Cartão</h2>
                 <button onclick="closeAllOverlays()"><i data-lucide="x" class="w-6 h-6 text-gray-500"></i></button>
             </div>
             <div class="overlay-content space-y-4">
@@ -611,7 +651,7 @@
                     <div class="relative mb-4">
                         <div id="prof-avatar-preview" class="w-20 h-20 rounded-full bg-[#1E2128] border-2 border-white/10 flex items-center justify-center text-xl font-bold overflow-hidden shadow-xl">
                         </div>
-                        <button onclick="document.getElementById('avatar-upload').click()" class="absolute bottom-0 right-0 w-8 h-8 bg-[#38bdf8] rounded-full flex items-center justify-center border-2 border-[#1E2128] active:scale-90 transition-transform">
+                        <button onclick="document.getElementById('avatar-upload').click()" class="absolute bottom-0 right-0 w-8 h-8 bg-[#38bdf8] rounded-full flex items-center justify-center border-2 border-[#1E2128] active:scale-90 transition-transform z-10">
                             <i data-lucide="camera" class="w-4 h-4 text-black"></i>
                         </button>
                         <input type="file" id="avatar-upload" class="hidden" accept="image/*" onchange="handleAvatarUpload(event)">
@@ -676,7 +716,7 @@
                 <section>
                     <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3">Cartões de Crédito</h3>
                     <div id="list-cartoes" class="space-y-2 mb-3"></div>
-                    <button onclick="toggleOverlay('new-card')" class="w-full py-4 rounded-xl bg-black/20 border border-dashed border-gray-600 text-gray-400 font-bold uppercase text-[10px] flex items-center justify-center space-x-2">
+                    <button onclick="editFinItem('cartao', null)" class="w-full py-4 rounded-xl bg-black/20 border border-dashed border-gray-600 text-gray-400 font-bold uppercase text-[10px] flex items-center justify-center space-x-2">
                         <i data-lucide="plus" class="w-4 h-4"></i><span>Adicionar Novo Cartão</span>
                     </button>
                 </section>
@@ -850,6 +890,8 @@
         let barChartInstance = null, catChartInstance = null, chartsInitialized = false;
         let tempAvatar = null;
         let currentViewCardId = null;
+        let cropperInstance = null; // Instância do Cropper.js
+        let editingCardId = null; // Usado para editar cartão de crédito
         
         // 8 Avatares Personagens em Vetor
         const avatarPresets = [
@@ -877,7 +919,7 @@
             financas: { 
                 cartoes: [{id:1, nome:'Nubank', cor:'#8b5cf6', limite:5400, bandeira: 'MASTERCARD', vencimento: 10}], 
                 transacoes: [], 
-                metas: [], // Novas metas financeiras
+                metas: [],
                 temp: {type:'despesa', status:'previsivel', fixa:false} 
             },
             veiculo: { tipo: 'moto', nome: 'Fazer 250', hodometro: 12450, mediaGeral: 29.0, oleoIntervalo: 3000, oleoUltimaTrocaKM: 11000, historico: [] },
@@ -958,6 +1000,12 @@
                         document.getElementById('prop-giveup-container').classList.add('hidden');
                     }
                 }
+                if(id === 'new-card' && !editingCardId) {
+                    document.getElementById('new-card-title').innerText = "Novo Cartão";
+                    document.getElementById('card-name-input').value = '';
+                    document.getElementById('card-limit-input').value = '';
+                    document.getElementById('card-due-input').value = '';
+                }
             }
             refreshIcons();
         }
@@ -968,9 +1016,12 @@
             state.editingId = null; 
             state.editingVehId = null; 
             currentViewCardId = null;
+            editingCardId = null;
             
             const fab = document.getElementById('fab-container');
             if(fab) fab.classList.remove('active');
+
+            if(cropperInstance) cropperInstance.destroy();
 
             refreshIcons(); 
         }
@@ -989,7 +1040,7 @@
                     if(!state.saude.proposito) state.saude.proposito = { ativo: false, nome: '', inicio: '', dias: 0, celebrado: false };
                     
                     state.financas = cd.financas || state.financas; 
-                    if(!state.financas.metas) state.financas.metas = []; // Garante a existência do array de metas
+                    if(!state.financas.metas) state.financas.metas = [];
                     
                     state.veiculo = cd.veiculo || state.veiculo; 
                     state.notificacoes = cd.notificacoes || state.notificacoes;
@@ -1026,8 +1077,6 @@
                 const dueDay = parseInt(card.vencimento) || 10;
                 let diff = dueDay - currentDay;
                 
-                // Se o vencimento já passou neste mês, a diferença seria negativa.
-                // Mas queremos alertar se estiver faltando menos de 5 dias (o que pode envolver virada de mês).
                 if (diff < 0 && (daysInMonth - currentDay + dueDay) <= 5) {
                     diff = (daysInMonth - currentDay + dueDay);
                 }
@@ -1036,13 +1085,11 @@
                     const title = `Fatura: ${card.nome}`;
                     const msg = diff === 0 ? `Seu cartão vence HOJE!` : `Vence em ${diff} dia(s) (Dia ${dueDay}).`;
                     
-                    // Verifica se já não existe esta notificação (para não floodar)
                     if (!state.notificacoes.some(n => n.titulo === title && n.msg === msg)) {
                         state.notificacoes.unshift({titulo: title, msg: msg, data: today.toISOString()});
                     }
                 }
             });
-            // Mantém apenas as 10 últimas notificações
             if (state.notificacoes.length > 10) state.notificacoes = state.notificacoes.slice(0, 10);
         }
 
@@ -1156,15 +1203,18 @@
 
         // --- SISTEMA DE CONFIGURAÇÕES FINANCEIRAS ---
         function renderFinSettings() {
-            // Render Contas
             document.getElementById('list-contas').innerHTML = state.usuario.contas.map(c => `
                 <div class="flex justify-between items-center bg-black/20 p-3 rounded-xl border border-white/5">
                     <span class="text-xs font-bold">${c.nome}</span>
-                    ${c.protected ? '<i data-lucide="lock" class="w-4 h-4 text-gray-600"></i>' : `<button onclick="deleteFinItem('conta', '${c.id}')"><i data-lucide="trash-2" class="w-4 h-4 text-red-500/50 hover:text-red-500"></i></button>`}
+                    <div class="flex space-x-2">
+                        ${c.protected ? '<i data-lucide="lock" class="w-4 h-4 text-gray-600"></i>' : `
+                        <button onclick="editFinItem('conta', '${c.id}')"><i data-lucide="edit-2" class="w-4 h-4 text-blue-400 hover:text-white transition-colors"></i></button>
+                        <button onclick="deleteFinItem('conta', '${c.id}')"><i data-lucide="trash-2" class="w-4 h-4 text-red-500/50 hover:text-red-500 transition-colors"></i></button>
+                        `}
+                    </div>
                 </div>
             `).join('');
 
-            // Render Cartões
             document.getElementById('list-cartoes').innerHTML = state.financas.cartoes.map(c => `
                 <div class="flex justify-between items-center bg-black/20 p-3 rounded-xl border border-white/5">
                     <div class="flex items-center space-x-3">
@@ -1174,27 +1224,69 @@
                             <span class="text-[9px] text-gray-500 uppercase tracking-widest font-bold block">${c.bandeira || 'MASTERCARD'} • Dia ${c.vencimento || 10}</span>
                         </div>
                     </div>
-                    <button onclick="deleteFinItem('cartao', '${c.id}')"><i data-lucide="trash-2" class="w-4 h-4 text-red-500/50 hover:text-red-500"></i></button>
+                    <div class="flex space-x-2">
+                        <button onclick="editFinItem('cartao', '${c.id}')"><i data-lucide="edit-2" class="w-4 h-4 text-blue-400 hover:text-white transition-colors"></i></button>
+                        <button onclick="deleteFinItem('cartao', '${c.id}')"><i data-lucide="trash-2" class="w-4 h-4 text-red-500/50 hover:text-red-500 transition-colors"></i></button>
+                    </div>
                 </div>
             `).join('');
 
-            // Render Categorias Despesa
             document.getElementById('list-cat-despesa').innerHTML = state.usuario.categorias_despesa.map(c => `
                 <div class="flex items-center space-x-2 bg-red-500/10 text-red-400 px-3 py-1.5 rounded-lg border border-red-500/20">
                     <span class="text-[10px] font-bold uppercase">${c.nome}</span>
-                    ${c.protected ? '<i data-lucide="lock" class="w-3 h-3 text-red-900/50"></i>' : `<button onclick="deleteFinItem('cat-despesa', '${c.id}')"><i data-lucide="x" class="w-3 h-3 hover:text-white"></i></button>`}
+                    ${c.protected ? '<i data-lucide="lock" class="w-3 h-3 text-red-900/50"></i>' : `
+                    <button onclick="editFinItem('cat-despesa', '${c.id}')"><i data-lucide="edit-2" class="w-3 h-3 hover:text-white"></i></button>
+                    <button onclick="deleteFinItem('cat-despesa', '${c.id}')"><i data-lucide="x" class="w-3 h-3 hover:text-white"></i></button>
+                    `}
                 </div>
             `).join('');
 
-            // Render Categorias Receita
             document.getElementById('list-cat-receita').innerHTML = state.usuario.categorias_receita.map(c => `
                 <div class="flex items-center space-x-2 bg-green-500/10 text-green-400 px-3 py-1.5 rounded-lg border border-green-500/20">
                     <span class="text-[10px] font-bold uppercase">${c.nome}</span>
-                    ${c.protected ? '<i data-lucide="lock" class="w-3 h-3 text-green-900/50"></i>' : `<button onclick="deleteFinItem('cat-receita', '${c.id}')"><i data-lucide="x" class="w-3 h-3 hover:text-white"></i></button>`}
+                    ${c.protected ? '<i data-lucide="lock" class="w-3 h-3 text-green-900/50"></i>' : `
+                    <button onclick="editFinItem('cat-receita', '${c.id}')"><i data-lucide="edit-2" class="w-3 h-3 hover:text-white"></i></button>
+                    <button onclick="deleteFinItem('cat-receita', '${c.id}')"><i data-lucide="x" class="w-3 h-3 hover:text-white"></i></button>
+                    `}
                 </div>
             `).join('');
 
             refreshIcons();
+        }
+
+        function editFinItem(type, id) {
+            if (type === 'conta') {
+                const item = state.usuario.contas.find(x => x.id.toString() === id.toString());
+                const novo = prompt("Novo nome para a conta:", item.nome);
+                if(novo && novo.trim()) { item.nome = novo.trim(); }
+            } else if (type === 'cat-despesa') {
+                const item = state.usuario.categorias_despesa.find(x => x.id.toString() === id.toString());
+                const novo = prompt("Novo nome para a categoria:", item.nome);
+                if(novo && novo.trim()) { item.nome = novo.trim(); }
+            } else if (type === 'cat-receita') {
+                const item = state.usuario.categorias_receita.find(x => x.id.toString() === id.toString());
+                const novo = prompt("Novo nome para a categoria:", item.nome);
+                if(novo && novo.trim()) { item.nome = novo.trim(); }
+            } else if (type === 'cartao' && id) {
+                const item = state.financas.cartoes.find(x => x.id.toString() === id.toString());
+                document.getElementById('new-card-title').innerText = "Editar Cartão";
+                document.getElementById('card-name-input').value = item.nome;
+                document.getElementById('card-limit-input').value = item.limite;
+                document.getElementById('card-brand-input').value = item.bandeira || 'MASTERCARD';
+                document.getElementById('card-due-input').value = item.vencimento || 10;
+                document.getElementById('card-color-input').value = item.cor || '#8b5cf6';
+                editingCardId = id;
+                toggleOverlay('new-card');
+                return;
+            } else if (type === 'cartao' && !id) {
+                editingCardId = null;
+                toggleOverlay('new-card');
+                return;
+            }
+
+            saveDataToCloud();
+            renderFinSettings();
+            updateUI();
         }
 
         function addFinItem(type) {
@@ -1219,14 +1311,27 @@
         }
 
         function deleteFinItem(type, id) {
-            if (type === 'conta') state.usuario.contas = state.usuario.contas.filter(x => x.id !== id || x.protected);
+            if (type === 'conta') state.usuario.contas = state.usuario.contas.filter(x => x.id.toString() !== id.toString() || x.protected);
             if (type === 'cartao') state.financas.cartoes = state.financas.cartoes.filter(x => x.id.toString() !== id.toString());
-            if (type === 'cat-despesa') state.usuario.categorias_despesa = state.usuario.categorias_despesa.filter(x => x.id !== id || x.protected);
-            if (type === 'cat-receita') state.usuario.categorias_receita = state.usuario.categorias_receita.filter(x => x.id !== id || x.protected);
+            if (type === 'cat-despesa') state.usuario.categorias_despesa = state.usuario.categorias_despesa.filter(x => x.id.toString() !== id.toString() || x.protected);
+            if (type === 'cat-receita') state.usuario.categorias_receita = state.usuario.categorias_receita.filter(x => x.id.toString() !== id.toString() || x.protected);
             
             saveDataToCloud();
             renderFinSettings();
             updateUI(); 
+        }
+
+        function editCardLimit(id) {
+            const card = state.financas.cartoes.find(c => c.id.toString() === id.toString());
+            if(!card) return;
+            const novoLimite = prompt(`Digite o novo limite para ${card.nome}:`, card.limite);
+            if(novoLimite && !isNaN(novoLimite)) {
+                card.limite = parseFloat(novoLimite);
+                saveDataToCloud();
+                renderCardDetails();
+                updateUI();
+                showToast("Limite atualizado!");
+            }
         }
 
         // --- FINANCEIRO: METAS DE ECONOMIA ---
@@ -1312,9 +1417,6 @@
             const idx = state.financas.metas.findIndex(m => m.id == id);
             if(idx > -1) {
                 state.financas.metas[idx].reservado += val;
-                
-                // Lança isso como despesa também na carteira para debitar do saldo principal?
-                // Opcional: state.financas.transacoes.push({ ... })
                 showToast(`R$ ${val.toFixed(2)} guardado para ${state.financas.metas[idx].nome}`);
             }
 
@@ -1331,6 +1433,12 @@
             showToast("Meta Excluída");
         }
 
+        // --- FUNÇÃO AUXILIAR PARA MONTAR OS SELECTS FINANCEIROS ---
+        function getFinSelectOptions() {
+            let accs = state.usuario.contas.map(a => `<option value="${a.nome}">🏦 ${a.nome}</option>`).join('');
+            accs += state.financas.cartoes.map(c => `<option value="${c.nome}">💳 Cartão ${c.nome} (${c.bandeira || 'MASTERCARD'})</option>`).join('');
+            return accs;
+        }
 
         // --- FINANCEIRO GERAL ---
         function setTransType(t) {
@@ -1345,14 +1453,15 @@
             const cats = t === 'receita' ? state.usuario.categorias_receita : state.usuario.categorias_despesa;
             document.getElementById('trans-cat-select').innerHTML = cats.map(c => `<option value="${c.nome}">${c.nome}</option>`).join('');
 
-            let accs = state.usuario.contas.map(a => `<option value="${a.nome}">${a.nome}</option>`).join('');
-            if (t === 'despesa') {
-                accs += state.financas.cartoes.map(c => `<option value="${c.nome}">${c.nome}</option>`).join('');
-            }
-            
             const accSelect = document.getElementById('trans-acc-select');
             const currentVal = accSelect.value;
-            accSelect.innerHTML = accs;
+            
+            let accsOptions = state.usuario.contas.map(a => `<option value="${a.nome}">🏦 ${a.nome}</option>`).join('');
+            if (t === 'despesa') {
+                accsOptions += state.financas.cartoes.map(c => `<option value="${c.nome}">💳 Cartão ${c.nome} (${c.bandeira || 'MASTERCARD'})</option>`).join('');
+            }
+            
+            accSelect.innerHTML = accsOptions;
             if(currentVal && accSelect.querySelector(`option[value="${currentVal}"]`)) {
                 accSelect.value = currentVal;
             }
@@ -1420,13 +1529,12 @@
 
         function renderCardDetails() {
             if(!currentViewCardId) return;
-            const card = state.financas.cartoes.find(c => c.id === currentViewCardId);
+            const card = state.financas.cartoes.find(c => c.id.toString() === currentViewCardId.toString());
             if(!card) return;
 
             document.getElementById('card-detail-title').innerText = card.nome;
 
             let fatura = 0;
-            // Filtra todas as transações feitas NESTE cartão específico
             const trans = state.financas.transacoes.filter(t => t.conta === card.nome).sort((a,b) => new Date(b.data) - new Date(a.data));
 
             trans.forEach(t => { if(t.status === 'efetivada') fatura += t.valor; });
@@ -1441,7 +1549,7 @@
                 </div>
                 <div class="flex justify-between items-end mt-6">
                     <div>
-                        <span class="text-xs text-gray-500 block mb-1">Limite Disponível</span>
+                        <span class="text-xs text-gray-500 block mb-1">Limite Disponível <button onclick="editCardLimit(${card.id})" class="ml-1 text-blue-400 hover:text-white transition-colors"><i data-lucide="edit-3" class="w-3 h-3 inline"></i></button></span>
                         <span class="text-sm font-semibold text-green-400 sensitive-value" data-value="R$ ${disp.toLocaleString('pt-BR', {minimumFractionDigits: 2})}">${state.blurred ? 'R$ •••••' : 'R$ ' + disp.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
                     </div>
                     <span class="text-xs text-gray-500 font-mono tracking-widest">Vence dia ${card.vencimento || 10}</span>
@@ -1481,21 +1589,28 @@
             const c = document.getElementById('card-color-input').value;
             
             if(!n || !l) return; 
-            state.financas.cartoes.push({
-                id: Date.now(), 
-                nome: n, 
-                cor: c, 
-                limite: l,
-                bandeira: b,
-                vencimento: v
-            }); 
+
+            if(editingCardId) {
+                const idx = state.financas.cartoes.findIndex(x => x.id.toString() === editingCardId.toString());
+                if(idx > -1) {
+                    state.financas.cartoes[idx].nome = n;
+                    state.financas.cartoes[idx].limite = l;
+                    state.financas.cartoes[idx].bandeira = b;
+                    state.financas.cartoes[idx].vencimento = v;
+                    state.financas.cartoes[idx].cor = c;
+                }
+            } else {
+                state.financas.cartoes.push({
+                    id: Date.now(), 
+                    nome: n, 
+                    cor: c, 
+                    limite: l,
+                    bandeira: b,
+                    vencimento: v
+                }); 
+            }
             
             saveDataToCloud();
-            
-            document.getElementById('card-name-input').value = '';
-            document.getElementById('card-limit-input').value = '';
-            document.getElementById('card-due-input').value = '';
-
             toggleOverlay('perfil'); 
             updateUI(); 
         }
@@ -1508,9 +1623,7 @@
 
         // --- VEÍCULO ---
         function populateVehAccSelects() {
-            let accs = state.usuario.contas.map(a => `<option value="${a.nome}">${a.nome}</option>`).join('');
-            accs += state.financas.cartoes.map(c => `<option value="${c.nome}">${c.nome}</option>`).join('');
-            
+            const accs = getFinSelectOptions();
             document.getElementById('input-fuel-acc').innerHTML = accs;
             document.getElementById('input-svc-acc').innerHTML = accs;
         }
@@ -1561,61 +1674,77 @@
         }
 
         function saveRefueling() {
-            const km = parseInt(document.getElementById('input-fuel-km').value);
-            const t = parseFloat(document.getElementById('input-fuel-total').value);
-            const l = parseFloat(document.getElementById('input-fuel-liters').value);
-            const acc = document.getElementById('input-fuel-acc').value;
+            try {
+                const kmInput = parseInt(document.getElementById('input-fuel-km').value);
+                const km = !isNaN(kmInput) ? kmInput : state.veiculo.hodometro;
+                const t = parseFloat(document.getElementById('input-fuel-total').value) || 0;
+                const l = parseFloat(document.getElementById('input-fuel-liters').value) || 0;
+                const acc = document.getElementById('input-fuel-acc').value;
 
-            if(!km || !t || !l) return;
-            const newId = state.editingVehId || Date.now();
-            let med = 29.0; const last = state.veiculo.historico.find(h => h.tipo === 'abastecimento' && h.id !== newId);
-            if(last && km > last.km) med = (km - last.km) / l;
-            
-            const item = { id: newId, tipo: 'abastecimento', data: new Date().toISOString().split('T')[0], km, total: t, litros: l, media: med, conta: acc };
-            
-            if(state.editingVehId) { 
-                const idx = state.veiculo.historico.findIndex(x => x.id === newId); state.veiculo.historico[idx] = item; 
-                // Atualiza também em finanças
-                const finIdx = state.financas.transacoes.findIndex(x => x.refId === newId);
-                if(finIdx > -1) { state.financas.transacoes[finIdx].valor = t; state.financas.transacoes[finIdx].conta = acc; }
+                if(!km || !t || !l) {
+                    showToast("Preencha KM, Total e Litros.");
+                    return;
+                }
+                
+                const newId = state.editingVehId || Date.now();
+                let med = 29.0; 
+                const last = state.veiculo.historico.find(h => h.tipo === 'abastecimento' && h.id !== newId);
+                if(last && km > last.km && l > 0) med = (km - last.km) / l;
+                
+                const item = { id: newId, tipo: 'abastecimento', data: new Date().toISOString().split('T')[0], km, total: t, litros: l, media: med, conta: acc };
+                
+                if(state.editingVehId) { 
+                    const idx = state.veiculo.historico.findIndex(x => x.id === newId); state.veiculo.historico[idx] = item; 
+                    const finIdx = state.financas.transacoes.findIndex(x => x.refId === newId);
+                    if(finIdx > -1) { state.financas.transacoes[finIdx].valor = t; state.financas.transacoes[finIdx].conta = acc; }
+                }
+                else { 
+                    state.veiculo.historico.unshift(item); 
+                    state.financas.transacoes.push({ id: Date.now()+1, refId: newId, data: item.data, valor: t, tipo: 'despesa', status: 'efetivada', cat: 'Combustível', conta: acc }); 
+                }
+                state.veiculo.hodometro = Math.max(state.veiculo.hodometro, km);
+                
+                saveDataToCloud();
+                closeAllOverlays(); 
+                updateUI();
+            } catch (e) {
+                console.error("Erro ao salvar abastecimento", e);
+                showToast("Erro ao salvar dados do veículo.");
             }
-            else { 
-                state.veiculo.historico.unshift(item); 
-                state.financas.transacoes.push({ id: Date.now()+1, refId: newId, data: item.data, valor: t, tipo: 'despesa', status: 'efetivada', cat: 'Combustível', conta: acc }); 
-            }
-            state.veiculo.hodometro = Math.max(state.veiculo.hodometro, km);
-            
-            saveDataToCloud();
-            closeAllOverlays(); 
-            updateUI();
         }
 
         function saveService() {
-            const n = document.getElementById('input-svc-name').value;
-            const v = parseFloat(document.getElementById('input-svc-val').value) || 0;
-            const k = parseInt(document.getElementById('input-svc-km').value) || state.veiculo.hodometro;
-            const o = document.getElementById('input-svc-isoil').checked;
-            const acc = document.getElementById('input-svc-acc').value;
+            try {
+                const n = document.getElementById('input-svc-name').value;
+                const v = parseFloat(document.getElementById('input-svc-val').value) || 0;
+                const kmInput = parseInt(document.getElementById('input-svc-km').value);
+                const k = !isNaN(kmInput) ? kmInput : state.veiculo.hodometro;
+                const o = document.getElementById('input-svc-isoil').checked;
+                const acc = document.getElementById('input-svc-acc').value;
 
-            if(!n) return;
-            const newId = state.editingVehId || Date.now();
-            const item = { id: newId, tipo: 'servico', data: new Date().toISOString().split('T')[0], km: k, nome: n, valor: v, isOil: o, conta: acc };
-            
-            if(state.editingVehId) { 
-                const idx = state.veiculo.historico.findIndex(x => x.id === newId); state.veiculo.historico[idx] = item; 
-                const finIdx = state.financas.transacoes.findIndex(x => x.refId === newId);
-                if(finIdx > -1) { state.financas.transacoes[finIdx].valor = v; state.financas.transacoes[finIdx].conta = acc; state.financas.transacoes[finIdx].cat = 'Manutenção'; }
+                if(!n) { showToast("Preencha a descrição."); return; }
+                const newId = state.editingVehId || Date.now();
+                const item = { id: newId, tipo: 'servico', data: new Date().toISOString().split('T')[0], km: k, nome: n, valor: v, isOil: o, conta: acc };
+                
+                if(state.editingVehId) { 
+                    const idx = state.veiculo.historico.findIndex(x => x.id === newId); state.veiculo.historico[idx] = item; 
+                    const finIdx = state.financas.transacoes.findIndex(x => x.refId === newId);
+                    if(finIdx > -1) { state.financas.transacoes[finIdx].valor = v; state.financas.transacoes[finIdx].conta = acc; state.financas.transacoes[finIdx].cat = 'Manutenção'; }
+                }
+                else { 
+                    state.veiculo.historico.unshift(item); 
+                    state.financas.transacoes.push({ id: Date.now()+1, refId: newId, data: item.data, valor: v, tipo: 'despesa', status: 'efetivada', cat: 'Manutenção', conta: acc }); 
+                }
+                if(o) state.veiculo.oleoUltimaTrocaKM = k;
+                state.veiculo.hodometro = Math.max(state.veiculo.hodometro, k);
+                
+                saveDataToCloud();
+                closeAllOverlays(); 
+                updateUI();
+            } catch(e) {
+                console.error("Erro ao salvar manutenção", e);
+                showToast("Erro ao salvar manutenção.");
             }
-            else { 
-                state.veiculo.historico.unshift(item); 
-                state.financas.transacoes.push({ id: Date.now()+1, refId: newId, data: item.data, valor: v, tipo: 'despesa', status: 'efetivada', cat: 'Manutenção', conta: acc }); 
-            }
-            if(o) state.veiculo.oleoUltimaTrocaKM = k;
-            state.veiculo.hodometro = Math.max(state.veiculo.hodometro, k);
-            
-            saveDataToCloud();
-            closeAllOverlays(); 
-            updateUI();
         }
 
         function deleteVehActivity(id) { 
@@ -1627,7 +1756,7 @@
 
         function saveVehSettings() { 
             state.veiculo.nome = document.getElementById('input-veh-name').value; 
-            state.veiculo.oleoIntervalo = parseInt(document.getElementById('input-veh-oil-interval').value); 
+            state.veiculo.oleoIntervalo = parseInt(document.getElementById('input-veh-oil-interval').value) || 3000; 
             
             saveDataToCloud();
             closeAllOverlays(); 
@@ -1714,7 +1843,7 @@
             document.getElementById('modal-congratulations').classList.add('hidden');
         }
 
-        // --- AVATAR & PERFIL ---
+        // --- AVATAR, CROP & PERFIL ---
         function renderProfileForm() {
             tempAvatar = state.usuario.avatarUrl || null;
             updateAvatarPreviewUI();
@@ -1758,29 +1887,40 @@
 
             const reader = new FileReader();
             reader.onload = function(e) {
-                const img = new Image();
-                img.onload = function() {
-                    const canvas = document.createElement('canvas');
-                    const MAX_SIZE = 150; 
-                    let width = img.width;
-                    let height = img.height;
-
-                    if (width > height) { if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; } } 
-                    else { if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; } }
-
-                    canvas.width = width; canvas.height = height;
-                    const ctx = canvas.getContext('2d');
-                    
-                    ctx.fillStyle = '#1E2128'; 
-                    ctx.fillRect(0, 0, width, height);
-                    ctx.drawImage(img, 0, 0, width, height);
-                    
-                    tempAvatar = canvas.toDataURL('image/jpeg', 0.8);
-                    updateAvatarPreviewUI();
-                }
-                img.src = e.target.result;
+                document.getElementById('crop-image-target').src = e.target.result;
+                document.getElementById('overlay-crop').classList.add('active');
+                
+                if(cropperInstance) cropperInstance.destroy();
+                
+                cropperInstance = new Cropper(document.getElementById('crop-image-target'), {
+                    aspectRatio: 1,
+                    viewMode: 1,
+                    background: false,
+                    autoCropArea: 0.8,
+                    dragMode: 'move'
+                });
             }
             reader.readAsDataURL(file);
+            event.target.value = ''; // Permite subir o mesmo arquivo novamente
+        }
+
+        function closeCropModal() {
+            document.getElementById('overlay-crop').classList.remove('active');
+            if(cropperInstance) cropperInstance.destroy();
+        }
+
+        function applyCrop() {
+            if(!cropperInstance) return;
+            // Gera um canvas limpo
+            const canvas = cropperInstance.getCroppedCanvas({
+                width: 200,
+                height: 200,
+                imageSmoothingEnabled: true,
+                imageSmoothingQuality: 'high',
+            });
+            tempAvatar = canvas.toDataURL('image/jpeg', 0.9);
+            updateAvatarPreviewUI();
+            closeCropModal();
         }
 
         function autoCalcGoals() {
@@ -1835,10 +1975,11 @@
 
             // --- LÓGICA DO PROPÓSITO ---
             const p = state.saude.proposito;
-            const propCard = document.getElementById('prop-title').parentElement.parentElement;
+            const propTitles = document.querySelectorAll('.ui-prop-title');
+            
             if(p && p.ativo && p.inicio && p.dias > 0) {
-                propCard.classList.remove('hidden');
-                document.getElementById('prop-title').innerText = p.nome;
+                propTitles.forEach(el => el.parentElement.parentElement.parentElement.classList.remove('hidden'));
+                propTitles.forEach(el => el.innerText = p.nome);
                 
                 const inicioDate = new Date(p.inicio + 'T00:00:00');
                 const today = new Date();
@@ -1846,17 +1987,18 @@
                 
                 const diffTime = Math.abs(today - inicioDate);
                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                
                 let progresso = Math.min((diffDays / p.dias) * 100, 100);
                 
-                document.getElementById('prop-bar').style.width = progresso + '%';
-                document.getElementById('prop-days-passed').innerText = `${diffDays} dias passados`;
-                document.getElementById('prop-days-total').innerText = `${p.dias} dias total`;
+                document.querySelectorAll('.ui-prop-bar').forEach(el => el.style.width = progresso + '%');
+                document.querySelectorAll('.ui-prop-days-passed').forEach(el => el.innerText = `${diffDays} dias passados`);
+                document.querySelectorAll('.ui-prop-days-total').forEach(el => el.innerText = `${p.dias} dias total`);
                 
                 if (diffDays >= p.dias) {
-                    document.getElementById('prop-days-passed').innerText = "CONCLUÍDO!";
-                    document.getElementById('prop-bar').classList.remove('bg-[#34d399]');
-                    document.getElementById('prop-bar').classList.add('bg-blue-500');
+                    document.querySelectorAll('.ui-prop-days-passed').forEach(el => el.innerText = "CONCLUÍDO!");
+                    document.querySelectorAll('.ui-prop-bar').forEach(el => {
+                        el.classList.remove('bg-[#34d399]');
+                        el.classList.add('bg-blue-500');
+                    });
 
                     // Animação de Confetes e Modal (Executa apenas uma vez)
                     if (!p.celebrado) {
@@ -1864,22 +2006,15 @@
                         document.getElementById('modal-congratulations').classList.remove('hidden');
                         document.getElementById('modal-congratulations').classList.add('flex');
                         
-                        // Dispara Confetti usando a lib carregada
+                        // Dispara Confetti
                         if (window.confetti) {
                             var duration = 3 * 1000;
                             var end = Date.now() + duration;
 
                             (function frame() {
-                                confetti({
-                                    particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#38bdf8', '#34d399', '#f97316']
-                                });
-                                confetti({
-                                    particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#38bdf8', '#34d399', '#f97316']
-                                });
-
-                                if (Date.now() < end) {
-                                    requestAnimationFrame(frame);
-                                }
+                                confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#38bdf8', '#34d399', '#f97316'] });
+                                confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#38bdf8', '#34d399', '#f97316'] });
+                                if (Date.now() < end) requestAnimationFrame(frame);
                             }());
                         }
                         
@@ -1888,7 +2023,7 @@
                     }
                 }
             } else {
-                propCard.classList.add('hidden');
+                propTitles.forEach(el => el.parentElement.parentElement.parentElement.classList.add('hidden'));
             }
 
             const hoje = new Date().toISOString().split('T')[0], s = state.saude.historico[hoje] || {agua:0, cafe:0};
@@ -1896,8 +2031,11 @@
             const rA = document.getElementById('ring-agua-path'); if(rA) rA.style.strokeDashoffset = 301.6 - (Math.min(aP, 100)/100 * 301.6);
             const rC = document.getElementById('ring-cafeina-path'); if(rC) rC.style.strokeDashoffset = 301.6 - (Math.min(s.cafe/state.saude.cafeinaMeta, 1) * 301.6);
             
-            document.getElementById('home-agua-valor').innerText = s.agua; document.getElementById('home-agua-bar').style.width = Math.min(aP, 100) + '%';
-            document.getElementById('saude-agua-perc').innerText = Math.round(aP) + '%'; document.getElementById('saude-cafe-valor').innerText = s.cafe;
+            const saudeAguaPerc = document.getElementById('saude-agua-perc');
+            const saudeCafeValor = document.getElementById('saude-cafe-valor');
+            if(saudeAguaPerc) saudeAguaPerc.innerText = Math.round(aP) + '%'; 
+            if(saudeCafeValor) saudeCafeValor.innerText = s.cafe;
+
             document.querySelectorAll('.val-agua-meta-text').forEach(el => el.innerText = state.saude.aguaMeta);
             document.querySelectorAll('.val-agua-meta-litros').forEach(el => el.innerText = (state.saude.aguaMeta/1000).toFixed(1));
             document.querySelectorAll('.val-cafeina-meta-text').forEach(el => el.innerText = state.saude.cafeinaMeta);
@@ -2019,7 +2157,7 @@
             document.getElementById('veh-timeline').innerHTML = state.veiculo.historico.map(h => `
                 <div class="card p-4 rounded-2xl border border-white/5 flex items-center justify-between">
                     <div class="flex items-center space-x-3"><div class="w-8 h-8 rounded-lg ${h.tipo==='abastecimento'?'bg-orange-500/10 text-orange-500':'bg-blue-500/10 text-blue-500'} flex items-center justify-center"><i data-lucide="${h.tipo==='abastecimento'?'fuel':'wrench'}" class="w-4 h-4"></i></div><div><p class="text-xs font-bold uppercase">${h.tipo==='abastecimento'?'Abastecer':h.nome}</p><p class="text-[9px] text-gray-500 font-bold uppercase tracking-widest">${h.km} km</p></div></div>
-                    <div class="flex items-center space-x-2"><div class="text-right"><p class="text-xs font-black">R$ ${h.total?.toFixed(2) || h.valor?.toFixed(2)}</p>${h.media?`<p class="text-[9px] text-orange-400 font-bold font-mono">${h.media.toFixed(1)} km/l</p>`:''}</div><button onclick="openVehModal('${h.tipo==='abastecimento'?'abastecer':'servico'}', ${h.id})"><i data-lucide="edit-3" class="w-4 h-4 text-gray-600"></i></button><button onclick="deleteVehActivity(${h.id})"><i data-lucide="trash-2" class="w-4 h-4 text-red-900/50"></i></button></div>
+                    <div class="flex items-center space-x-2"><div class="text-right"><p class="text-xs font-black">R$ ${h.total?.toFixed(2) || h.valor?.toFixed(2)}</p>${h.media?`<p class="text-[9px] text-orange-400 font-bold font-mono">${h.media.toFixed(1)} km/l</p>`:''}</div><button onclick="openVehModal('${h.tipo==='abastecimento'?'abastecer':'servico'}', ${h.id})"><i data-lucide="edit-3" class="w-4 h-4 text-gray-600 hover:text-white transition-colors"></i></button><button onclick="deleteVehActivity(${h.id})"><i data-lucide="trash-2" class="w-4 h-4 text-red-900/50 hover:text-red-500 transition-colors"></i></button></div>
                 </div>`).join('');
         }
 
@@ -2198,12 +2336,10 @@
         
         function toggleVisibility() { 
             state.blurred = !state.blurred; 
-            const eye = document.getElementById('icon-eye'); 
-            const eyeOff = document.getElementById('icon-eye-off');
-            if(eye && eyeOff) { 
-                eye.classList.toggle('hidden', state.blurred); 
-                eyeOff.classList.toggle('hidden', !state.blurred); 
-            }
+            
+            document.querySelectorAll('.btn-eye').forEach(el => el.classList.toggle('hidden', state.blurred));
+            document.querySelectorAll('.btn-eye-off').forEach(el => el.classList.toggle('hidden', !state.blurred));
+            
             document.querySelectorAll('.sensitive-value').forEach(el => { 
                 if (state.blurred) {
                     el.classList.add('blurred');
