@@ -1,0 +1,22 @@
+{
+  "name": "Mu Finance",
+  "short_name": "MuFinance",
+  "description": "Gerenciador Financeiro e de Veículo",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#121418",
+  "theme_color": "#38bdf8",
+  "icons": [
+    {
+      "src": "https://api.dicebear.com/7.x/fun-emoji/svg?seed=Felix&backgroundColor=38bdf8",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://api.dicebear.com/7.x/fun-emoji/svg?seed=Felix&backgroundColor=38bdf8",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
