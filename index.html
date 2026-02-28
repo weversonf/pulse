@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mu Finance v03.14</title>
+    <title>Mu Finance v03.15</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -49,11 +49,6 @@
             scroll-behavior: smooth;
         }
         
-        @media (min-width: 768px) {
-            header { margin-left: 260px; padding: 20px 30px; }
-            main { margin-left: 260px; padding-bottom: 20px; }
-        }
-
         .card { background-color: var(--bg-card); border: 1px solid rgba(255,255,255,0.05); }
         ::-webkit-scrollbar { display: none; }
         .fade-in { animation: fadeIn 0.3s ease-in-out; }
@@ -74,11 +69,6 @@
         .backdrop { position: fixed; inset: 0; background-color: rgba(0,0,0,0.7); z-index: 90; display: none; }
         .backdrop.active { display: block; }
 
-        @media (min-width: 768px) {
-            .overlay { left: 260px; width: calc(100% - 260px); }
-            .backdrop { left: 260px; width: calc(100% - 260px); }
-        }
-        
         .progress-ring__circle { transition: stroke-dashoffset 0.5s ease; transform: rotate(-90deg); transform-origin: 50% 50%; }
         .day-circle { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; position: relative; cursor: pointer; border: 1px solid #2d3139; color: #4b5563; font-weight: 700; transition: all 0.2s; }
         .day-circle.water-tracked { border-color: var(--accent-blue); color: var(--accent-blue); background: rgba(56, 189, 248, 0.05); }
@@ -104,51 +94,83 @@
         .active-indicator { position: absolute; top: 0; width: 22px; height: 3px; background-color: var(--accent-blue); border-radius: 4px; opacity: 0; transform: scaleX(0); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         .nav-btn.active .active-indicator { opacity: 1; transform: scaleX(1); }
         
-        /* NAVEGAÇÃO - Desktop (sidebar à esquerda) */
+        .sidebar-toggle-btn { display: none; }
+        .sidebar-profile { display: none; }
+
+        /* NAVEGAÇÃO - Desktop (sidebar à esquerda e Retrátil) */
         @media (min-width: 768px) {
+            header { margin-left: 260px; padding: 20px 30px; transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+            main { margin-left: 260px; padding-bottom: 20px; transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+            .overlay { left: 260px; width: calc(100% - 260px); transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1), bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+            .backdrop { left: 260px; width: calc(100% - 260px); transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+
             nav {
                 top: 0; bottom: 0; right: auto; width: 260px; height: 100%; min-height: 100dvh;
                 flex-direction: column; border-top-left-radius: 0; border-top-right-radius: 0;
                 border-right: 1px solid rgba(255,255,255,0.05); 
-                padding: 40px 16px 20px 16px;
+                padding: 20px 16px; 
                 justify-content: flex-start; align-items: stretch; border-top: none; 
                 box-shadow: 10px 0 40px rgba(0,0,0,0.6);
-                gap: 8px; /* Espaçamento entre os botões para não ficarem colados */
+                gap: 8px; 
+                transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                overflow-x: hidden;
             }
+            
+            .sidebar-toggle-btn {
+                display: flex; align-items: center; justify-content: flex-end;
+                background: none; border: none; color: #6b7280;
+                cursor: pointer; padding: 0 16px; margin-bottom: 24px;
+                height: 32px; transition: all 0.2s ease; outline: none;
+            }
+            .sidebar-toggle-btn:hover { color: white; }
             
             .nav-btn { 
-                flex: none; /* A MÁGICA ESTÁ AQUI: impede que o botão estique verticalmente */
-                flex-direction: row; align-items: center; justify-content: flex-start; 
-                padding: 0 16px; 
-                height: 44px; /* Agora sim, a altura fica exatamente como você quer */
-                margin-bottom: 0; border-radius: 10px; 
+                flex: none; flex-direction: row; align-items: center; justify-content: flex-start; 
+                padding: 0 16px; height: 44px; margin-bottom: 0; border-radius: 10px; 
                 transition: all 0.2s ease; 
             }
-            
-            .nav-btn:hover { 
-                background-color: rgba(255,255,255,0.05); 
-                color: #ffffff; 
-            }
-            
-            .nav-btn.active { 
-                background-color: rgba(56, 189, 248, 0.08); 
-                color: var(--accent-blue); 
-            }
+            .nav-btn:hover { background-color: rgba(255,255,255,0.05); color: #ffffff; }
+            .nav-btn.active { background-color: rgba(56, 189, 248, 0.08); color: var(--accent-blue); }
             
             .nav-btn span { 
-                margin-top: 0 !important; 
-                margin-left: 14px; 
-                font-size: 14px !important; 
-                font-weight: 600; 
+                margin-top: 0 !important; margin-left: 14px; 
+                font-size: 14px !important; font-weight: 600; 
+                white-space: nowrap; transition: opacity 0.2s, width 0.2s, margin-left 0.2s;
             }
             
-            .active-indicator { 
-                left: 0; top: 50%; transform: translateY(-50%) scaleY(0); 
-                width: 4px; height: 20px; 
-                border-radius: 0 4px 4px 0; 
-            }
-            
+            .active-indicator { left: 0; top: 50%; transform: translateY(-50%) scaleY(0); width: 4px; height: 20px; border-radius: 0 4px 4px 0; }
             .nav-btn.active .active-indicator { transform: translateY(-50%) scaleY(1); }
+
+            .sidebar-profile {
+                display: flex; align-items: center; margin-top: auto; padding: 12px;
+                border-radius: 12px; cursor: pointer; transition: all 0.2s ease;
+                border: 1px solid rgba(255,255,255,0.05); background-color: rgba(255,255,255,0.02);
+                white-space: nowrap; overflow: hidden;
+            }
+            .sidebar-profile:hover { background-color: rgba(255,255,255,0.05); }
+            .sidebar-avatar {
+                width: 38px; height: 38px; border-radius: 50%; background-color: #1E2128;
+                display: flex; align-items: center; justify-content: center; font-size: 12px;
+                font-weight: bold; overflow: hidden; margin-right: 12px; flex-shrink: 0;
+                border: 2px solid rgba(255,255,255,0.1);
+            }
+            .sidebar-user-info { display: flex; flex-direction: column; overflow: hidden; transition: opacity 0.2s; }
+            .sidebar-user-info span:first-child { font-size: 13px; font-weight: 700; color: white; overflow: hidden; text-overflow: ellipsis; }
+            .sidebar-user-info span:last-child { font-size: 9px; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; }
+
+            /* MODO RETRÁTIL */
+            body.sidebar-collapsed header { margin-left: 80px; }
+            body.sidebar-collapsed main { margin-left: 80px; }
+            body.sidebar-collapsed .overlay { left: 80px; width: calc(100% - 80px); }
+            body.sidebar-collapsed .backdrop { left: 80px; width: calc(100% - 80px); }
+            body.sidebar-collapsed nav { width: 80px; padding-left: 12px; padding-right: 12px; }
+            body.sidebar-collapsed .sidebar-toggle-btn { justify-content: center; padding: 0; }
+            body.sidebar-collapsed .nav-btn { justify-content: center; padding: 0; width: 56px; }
+            body.sidebar-collapsed .nav-btn span { opacity: 0; width: 0; margin-left: 0; visibility: hidden; }
+            body.sidebar-collapsed .sidebar-profile { padding: 12px 0; justify-content: center; border-color: transparent; background-color: transparent; }
+            body.sidebar-collapsed .sidebar-profile:hover { background-color: rgba(255,255,255,0.05); border-radius: 50%; }
+            body.sidebar-collapsed .sidebar-avatar { margin-right: 0; border: none; }
+            body.sidebar-collapsed .sidebar-user-info { opacity: 0; width: 0; visibility: hidden; display: none; }
         }
         
         /* FAB */
@@ -170,11 +192,16 @@
 
     <div class="app-container">
         
-        <div id="login-screen" class="fixed inset-0 bg-[#121418] z-[999] flex flex-col justify-center items-center px-4 transition-opacity duration-300">
+        <div id="splash-screen" class="fixed inset-0 bg-[#121418] z-[1000] flex flex-col justify-center items-center transition-opacity duration-500">
+            <h1 class="text-4xl font-bold tracking-tight mb-2 animate-pulse text-white">Mu Finance</h1>
+            <p class="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Carregando...</p>
+        </div>
+
+        <div id="login-screen" class="fixed inset-0 bg-[#121418] z-[999] hidden flex flex-col justify-center items-center px-4 transition-opacity duration-300">
             <div class="w-full max-w-md">
                 <div class="text-center mb-10">
                     <h1 class="text-4xl font-bold tracking-tight mb-2">Mu Finance</h1>
-                    <p class="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Personal Management v02.02</p>
+                    <p class="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Personal Management v03.14</p>
                 </div>
                 <div class="space-y-4">
                 <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
@@ -392,7 +419,11 @@
 
         </main>
 
-        <nav>
+        <nav id="main-nav">
+            <button class="sidebar-toggle-btn" onclick="toggleSidebar()">
+                <i data-lucide="menu" class="w-6 h-6"></i>
+            </button>
+
             <button onclick="navigate('nav-home', 'page-home', 'Visão Geral')" id="nav-home" class="nav-btn active">
                 <div class="active-indicator"></div>
                 <i data-lucide="home" class="w-6 h-6"></i><span>Home</span>
@@ -424,6 +455,14 @@
                 <div class="active-indicator"></div>
                 <i data-lucide="bike" id="icon-nav-veh" class="w-6 h-6"></i><span>Veículo</span>
             </button>
+
+            <div class="sidebar-profile" onclick="toggleOverlay('perfil')">
+                <div class="sidebar-avatar" id="sidebar-avatar-preview">MU</div>
+                <div class="sidebar-user-info">
+                    <span id="sidebar-user-name">Carregando...</span>
+                    <span class="sidebar-user-label">Meu Perfil</span>
+                </div>
+            </div>
         </nav>
 
         <div id="backdrop" class="backdrop" onclick="closeAllOverlays()"></div>
@@ -1067,6 +1106,12 @@
             document.body.appendChild(toast);
             setTimeout(() => { toast.remove(); }, 3000);
         }
+        
+        // NOVO: Função para o Menu Retrátil
+        window.toggleSidebar = function() {
+            document.body.classList.toggle('sidebar-collapsed');
+            if (window.lucide) { lucide.createIcons(); }
+        };
 
         function toggleFab(e) {
             if(e) e.stopPropagation();
@@ -1236,12 +1281,20 @@
             if (window.onAuthStateChanged) {
                 window.onAuthStateChanged(window.firebaseAuth, async (user) => {
                     const loginScreen = document.getElementById('login-screen');
+                    const splashScreen = document.getElementById('splash-screen');
+                    
                     if (user) {
                         state.isLoggedIn = true; state.userId = user.uid; loginScreen.classList.add('hidden');
                         document.querySelectorAll('.fin-total-saldo').forEach(el => el.innerText = "Carregando...");
                         await loadDataFromCloud(); updateUI();
                     } else {
                         state.isLoggedIn = false; state.userId = null; loginScreen.classList.remove('hidden');
+                    }
+
+                    // Remove Splash Screen suavemente
+                    if (splashScreen) {
+                        splashScreen.classList.add('opacity-0');
+                        setTimeout(() => splashScreen.classList.add('hidden'), 500);
                     }
                 });
             } else { setTimeout(initializeAuthListener, 50); }
@@ -1440,7 +1493,6 @@
 
             let c = '', destino = '', status = state.financas.temp.status;
             
-            // VERIFICA SE É UM CARTÃO DE CRÉDITO
             const isCard = state.financas.cartoes.some(card => card.nome === a);
 
             if (type === 'transferencia') {
@@ -1448,7 +1500,6 @@
                 if (a === destino) { showToast("Contas iguais não permitido."); return; }
             } else {
                 c = document.getElementById('trans-cat-select').value;
-                // LÓGICA DO CARTÃO: Despesa em cartão vira efetivada direto para bater do limite
                 if (isCard && type === 'despesa') {
                     status = 'efetivada';
                 }
@@ -1738,6 +1789,18 @@
             const headerBtn = document.getElementById('header-initials');
             if (state.usuario.avatarUrl) { headerBtn.innerHTML = `<img src="${state.usuario.avatarUrl}" class="w-full h-full object-cover">`; } 
             else { headerBtn.innerHTML = (state.usuario.firstName[0] + (state.usuario.lastName ? state.usuario.lastName[0] : "")).toUpperCase(); }
+
+            // NOVO: Atualiza o perfil na Sidebar (Desktop)
+            const sidebarAvatar = document.getElementById('sidebar-avatar-preview');
+            const sidebarName = document.getElementById('sidebar-user-name');
+            if (sidebarAvatar && sidebarName) {
+                if (state.usuario.avatarUrl) {
+                    sidebarAvatar.innerHTML = `<img src="${state.usuario.avatarUrl}" class="w-full h-full object-cover">`;
+                } else {
+                    sidebarAvatar.innerHTML = (state.usuario.firstName[0] + (state.usuario.lastName ? state.usuario.lastName[0] : "")).toUpperCase();
+                }
+                sidebarName.innerText = state.usuario.firstName;
+            }
 
             const p = state.saude.proposito; const propTitles = document.querySelectorAll('.ui-prop-title');
             if(p && p.ativo && p.inicio && p.dias > 0) {
