@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mu Finance v03.12</title>
+    <title>Mu Finance v03.13</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -11,7 +11,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
     
-    <style>
+<style>
         :root {
             --bg-main: #121418;
             --bg-card: #1E2128;
@@ -110,16 +110,17 @@
                 top: 0; bottom: 0; right: auto; width: 260px; height: 100%; min-height: 100dvh;
                 flex-direction: column; border-top-left-radius: 0; border-top-right-radius: 0;
                 border-right: 1px solid rgba(255,255,255,0.05); 
-                padding: 40px 16px 20px 16px; /* Mais respiro no topo e ajuste nas laterais */
+                padding: 40px 16px 20px 16px;
                 justify-content: flex-start; align-items: stretch; border-top: none; 
                 box-shadow: 10px 0 40px rgba(0,0,0,0.6);
-                gap: 8px; /* Espaçamento uniforme entre os botões */
+                gap: 4px; /* Espaçamento menor e mais elegante entre os botões */
             }
             
             .nav-btn { 
-                flex-direction: row; align-items: center; justify-content: flex-start;
-                padding: 10px 20px;/* Área de clique maior e mais confortável */
-                height: auto; margin-bottom: 0; border-radius: 12px; 
+                flex-direction: row; align-items: center; justify-content: flex-start; 
+                padding: 0 16px; /* Removemos o padding vertical */
+                height: 42px; /* Altura fixa e mais fina para tirar o aspecto quadrado */
+                margin-bottom: 0; border-radius: 10px; 
                 transition: all 0.2s ease; 
             }
             
@@ -128,7 +129,6 @@
                 color: #ffffff; 
             }
             
-            /* Fundo estilo pílula sutil para o botão ativo no desktop */
             .nav-btn.active { 
                 background-color: rgba(56, 189, 248, 0.08); 
                 color: var(--accent-blue); 
@@ -136,13 +136,15 @@
             
             .nav-btn span { 
                 margin-top: 0 !important; 
-                margin-left: 16px; 
-                font-size: 14px !important; /* Fonte maior para melhor leitura no desktop */
+                margin-left: 14px; 
+                font-size: 14px !important; 
+                font-weight: 600; 
             }
             
             .active-indicator { 
                 left: 0; top: 50%; transform: translateY(-50%) scaleY(0); 
-                width: 4px; height: 24px; border-radius: 0 4px 4px 0; 
+                width: 4px; height: 18px; /* Indicador proporcional ao novo tamanho do botão */
+                border-radius: 0 4px 4px 0; 
             }
             
             .nav-btn.active .active-indicator { transform: translateY(-50%) scaleY(1); }
