@@ -3,13 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mu Finance v03.18</title>
+    <title>Mu Finance v03.19</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#121418">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+<script>
+  // Registro do Service Worker
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js')
+        .then(reg => console.log('Service Worker registrado!', reg))
+        .catch(err => console.log('Falha ao registrar SW', err));
+    });
+  }
+</script>
 
 <style>
         :root {
@@ -201,7 +217,7 @@
             <div class="w-full max-w-md">
                 <div class="text-center mb-10">
                     <h1 class="text-4xl font-bold tracking-tight mb-2">Mu Finance</h1>
-                    <p class="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Personal Management v03.14</p>
+                    <p class="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Personal Management v03.19</p>
                 </div>
                 <div class="space-y-4">
                 <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
