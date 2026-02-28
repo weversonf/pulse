@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mu Finance v03.06</title>
+    <title>Mu Finance v03.07</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -22,7 +22,7 @@
             --accent-orange: #f97316;
         }
         
-        body { background-color: #000; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; color: white; margin: 0; display: flex; justify-content: center; height: 100vh; height: 100dvh; overflow: hidden; }
+        body { background-color: #000; font-family: 'Inter', sans-serif; color: white; margin: 0; display: flex; justify-content: center; height: 100vh; height: 100dvh; overflow: hidden; }
         
         .app-container { 
             background-color: var(--bg-main); 
@@ -35,22 +35,17 @@
             box-shadow: 0 0 50px rgba(0,0,0,0.8); 
         }
 
-        /* DESKTOP layout adjustment */
+        /* DESKTOP: Barra na Esquerda */
         @media (min-width: 768px) {
             body { justify-content: flex-start; background-color: #0b0d11; }
             .app-container { max-width: none; width: 100%; flex-direction: row; box-shadow: none; }
             .content-area { flex: 1; display: flex; flex-direction: column; height: 100%; overflow: hidden; }
         }
         
-        main { 
-            flex: 1; 
-            overflow-y: auto; 
-            padding-bottom: calc(130px + env(safe-area-inset-bottom)); 
-            scroll-behavior: smooth; 
-        }
+        main { flex: 1; overflow-y: auto; padding-bottom: calc(130px + env(safe-area-inset-bottom)); scroll-behavior: smooth; }
 
         @media (min-width: 768px) {
-            main { padding-bottom: 40px; padding-left: 40px; padding-right: 40px; }
+            main { padding: 40px; }
         }
         
         .card { background-color: var(--bg-card); border: 1px solid rgba(255,255,255,0.05); }
@@ -59,74 +54,37 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .sensitive-value.blurred { filter: blur(10px); transition: filter 0.3s ease; }
         
+        /* Modais e Overlays */
         .overlay { position: absolute; bottom: -100%; left: 0; width: 100%; height: 92%; background-color: var(--bg-card); border-top-left-radius: 32px; border-top-right-radius: 32px; z-index: 100; transition: bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 -10px 40px rgba(0,0,0,0.8); border-top: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; }
         .overlay.active { bottom: 0; }
         .overlay-content { flex: 1; overflow-y: auto; padding: 0 24px 40px 24px; }
         .backdrop { position: absolute; inset: 0; background-color: rgba(0,0,0,0.7); z-index: 90; display: none; }
         .backdrop.active { display: block; }
         
-        .progress-ring__circle { transition: stroke-dashoffset 0.5s ease; transform: rotate(-90deg); transform-origin: 50% 50%; }
-        
-        .day-circle { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; position: relative; cursor: pointer; border: 1px solid #2d3139; color: #4b5563; font-weight: 700; transition: all 0.2s; }
-        .day-circle.water-tracked { border-color: var(--accent-blue); color: var(--accent-blue); background: rgba(56, 189, 248, 0.05); }
-        .day-circle.goal-met { background-color: var(--accent-blue); border-color: var(--accent-blue); color: #000; box-shadow: 0 0 15px rgba(56, 189, 248, 0.3); }
-        
         nav { 
-            position: absolute; 
-            bottom: 0; 
-            width: 100%; 
-            background-color: #16181D; 
-            border-top-left-radius: 32px; 
-            border-top-right-radius: 32px;
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center;
+            position: absolute; bottom: 0; width: 100%; background-color: #16181D; 
+            border-top-left-radius: 32px; border-top-right-radius: 32px;
+            display: flex; justify-content: space-between; align-items: center;
             padding: 5px 15px calc(15px + env(safe-area-inset-bottom)) 15px; 
-            z-index: 80; 
-            box-shadow: 0 -10px 40px rgba(0,0,0,0.6);
+            z-index: 80; box-shadow: 0 -10px 40px rgba(0,0,0,0.6);
         }
 
         @media (min-width: 768px) {
             nav {
-                position: relative;
-                width: 260px;
-                height: 100vh;
-                flex-direction: column;
-                justify-content: flex-start;
-                align-items: stretch;
-                border-radius: 0;
-                padding: 30px 15px;
-                box-shadow: none;
-                border-right: 1px solid rgba(255,255,255,0.05);
+                position: relative; width: 260px; height: 100vh; flex-direction: column;
+                justify-content: flex-start; align-items: stretch; border-radius: 0;
+                padding: 30px 15px; border-right: 1px solid rgba(255,255,255,0.05);
             }
         }
         
         .nav-btn { 
-            position: relative; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: flex-end;
-            color: #6b7280; 
-            border: none; 
-            background: none; 
-            cursor: pointer; 
-            flex: 1; 
-            transition: all 0.2s; 
-            padding-top: 15px; 
-            height: 100%;
+            position: relative; display: flex; flex-direction: column; align-items: center; 
+            justify-content: flex-end; color: #6b7280; border: none; background: none; 
+            cursor: pointer; flex: 1; transition: all 0.2s; padding-top: 15px; height: 100%;
         }
 
         @media (min-width: 768px) {
-            .nav-btn {
-                flex: none;
-                flex-direction: row;
-                justify-content: flex-start;
-                align-items: center;
-                padding: 12px 16px;
-                height: auto;
-                border-radius: 12px;
-            }
+            .nav-btn { flex: none; flex-direction: row; justify-content: flex-start; align-items: center; padding: 12px 16px; height: auto; border-radius: 12px; }
             .nav-btn span { margin-top: 0; margin-left: 12px; font-size: 13px; }
             .nav-btn:hover { background-color: rgba(255,255,255,0.05); }
         }
@@ -135,56 +93,20 @@
         .nav-btn span { font-size: 10px; font-weight: 600; margin-top: 4px; }
         
         .active-indicator {
-            position: absolute; 
-            top: 0; 
-            width: 22px; 
-            height: 3px;
-            background-color: var(--accent-blue); 
-            border-radius: 4px;
-            opacity: 0; 
-            transform: scaleX(0); 
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: absolute; top: 0; width: 22px; height: 3px; background-color: var(--accent-blue); 
+            border-radius: 4px; opacity: 0; transform: scaleX(0); transition: all 0.3s;
         }
-
         .nav-btn.active .active-indicator { opacity: 1; transform: scaleX(1); }
 
         @media (min-width: 768px) {
-            .active-indicator {
-                left: 0;
-                top: 50%;
-                transform: translateY(-50%) scaleY(0);
-                width: 4px;
-                height: 24px;
-                border-radius: 4px;
-            }
+            .active-indicator { left: 0; top: 50%; transform: translateY(-50%) scaleY(0); width: 4px; height: 24px; }
             .nav-btn.active .active-indicator { transform: translateY(-50%) scaleY(1); }
         }
-        
+
         .fab-wrapper { position: relative; display: flex; justify-content: center; width: 70px; margin-top: -35px; }
-        .fab-container { position: relative; }
-        .main-fab {
-            background-color: var(--accent-blue); color: #000; width: 56px; height: 56px; border-radius: 50%;
-            display: flex; justify-content: center; align-items: center;
-            box-shadow: 0 5px 20px rgba(56,189,248,0.4); z-index: 85;
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer;
-            border: none; outline: none;
-        }
-        .fab-container.active .main-fab { transform: rotate(45deg); }
+        @media (min-width: 768px) { .fab-wrapper { display: none; } }
         
-        .sub-fab {
-            position: absolute; top: 4px; left: 4px; width: 48px; height: 48px;
-            background-color: #1E2128; border-radius: 50%; display: flex; justify-content: center; align-items: center;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); opacity: 0; scale: 0; z-index: 84; cursor: pointer;
-            border: 1px solid rgba(255,255,255,0.05); outline: none;
-        }
-        .fab-container.active .sub-fab-left { transform: translate(-65px, -65px); opacity: 1; scale: 1; box-shadow: 0 10px 25px rgba(0,0,0,0.8); }
-        .fab-container.active .sub-fab-right { transform: translate(65px, -65px); opacity: 1; scale: 1; box-shadow: 0 10px 25px rgba(0,0,0,0.8); }
-
-        input, select { color-scheme: dark; }
-
-        @media (min-width: 768px) {
-            .fab-wrapper { display: none; }
-        }
+        .main-fab { background-color: var(--accent-blue); color: #000; width: 56px; height: 56px; border-radius: 50%; display: flex; justify-content: center; align-items: center; box-shadow: 0 5px 20px rgba(56,189,248,0.4); z-index: 85; transition: transform 0.3s; cursor: pointer; border: none; }
     </style>
 </head>
 <body>
@@ -194,7 +116,7 @@
         <div id="login-screen" class="absolute inset-0 bg-[#121418] z-[999] flex flex-col justify-center px-8 transition-opacity duration-300">
             <div class="text-center mb-10">
                 <h1 class="text-4xl font-bold tracking-tight mb-2">Mu Finance</h1>
-                <p class="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Personal Management v02.02</p>
+                <p class="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Personal Management v03.04</p>
             </div>
             <div class="space-y-4">
                 <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
@@ -213,7 +135,7 @@
             </div>
         </div>
 
-        <nav>
+        <nav id="app-nav" class="hidden">
             <button onclick="navigate('nav-home', 'page-home', 'Visão Geral')" id="nav-home" class="nav-btn active">
                 <div class="active-indicator"></div>
                 <i data-lucide="home" class="w-6 h-6"></i><span>Home</span>
@@ -222,238 +144,61 @@
                 <div class="active-indicator"></div>
                 <i data-lucide="activity" class="w-6 h-6"></i><span>Saúde</span>
             </button>
-
             <div class="fab-wrapper">
                 <div class="fab-container" id="fab-container">
-                    <button onclick="quickAction('fin')" class="sub-fab sub-fab-left text-green-400">
-                        <i data-lucide="dollar-sign" class="w-5 h-5"></i>
-                    </button>
-                    <button onclick="quickAction('veh')" class="sub-fab sub-fab-right text-orange-400">
-                        <i data-lucide="bike" id="icon-fab-veh" class="w-5 h-5"></i>
-                    </button>
-                    <button onclick="toggleFab(event)" class="main-fab">
-                        <i data-lucide="plus" class="w-8 h-8"></i>
-                    </button>
+                    <button onclick="toggleFab(event)" class="main-fab"><i data-lucide="plus" class="w-8 h-8"></i></button>
                 </div>
             </div>
-
             <button onclick="navigate('nav-financas', 'page-financas', 'Finanças')" id="nav-financas" class="nav-btn">
                 <div class="active-indicator"></div>
                 <i data-lucide="dollar-sign" class="w-6 h-6"></i><span>Finanças</span>
             </button>
             <button onclick="navigate('nav-veiculo', 'page-veiculo', 'Veículo')" id="nav-veiculo" class="nav-btn">
                 <div class="active-indicator"></div>
-                <i data-lucide="bike" id="icon-nav-veh" class="w-6 h-6"></i><span>Veículo</span>
+                <i data-lucide="bike" class="w-6 h-6"></i><span>Veículo</span>
             </button>
         </nav>
 
         <div class="content-area">
-            <header class="px-6 pt-10 pb-4 flex justify-between items-center shrink-0">
+            <header id="app-header" class="px-6 pt-10 pb-4 flex justify-between items-center shrink-0 hidden">
                 <div>
                     <h1 id="header-title" class="text-2xl font-bold tracking-tight">Mu Finance</h1>
                     <p class="text-[10px] text-gray-500 uppercase font-bold tracking-widest mt-1" id="header-subtitle">Dashboard Geral</p>
                 </div>
                 <div class="flex items-center space-x-3">
-                    <button onclick="toggleOverlay('notificacoes')" class="relative w-10 h-10 flex items-center justify-center rounded-full bg-[#1E2128] border border-gray-800 active:scale-90 transition-transform">
-                        <i data-lucide="bell" class="w-5 h-5 text-gray-400"></i>
-                        <span id="notif-badge" class="hidden absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full border border-[#1E2128]"></span>
-                    </button>
-                    <button onclick="toggleOverlay('perfil')" class="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 p-[2px] active:scale-90 transition-transform">
+                    <button onclick="toggleOverlay('perfil')" class="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 p-[2px]">
                         <div class="w-full h-full rounded-full bg-[#1E2128] flex items-center justify-center text-[10px] font-bold overflow-hidden" id="header-initials">MU</div>
                     </button>
                 </div>
             </header>
 
-            <main id="main-scroll" class="px-6">
+            <main id="main-scroll" class="px-6 hidden">
                 <div id="page-home" class="page-content space-y-5 fade-in">
                     <div class="card rounded-3xl p-6 shadow-lg border border-white/5 relative">
-                        <div class="absolute top-4 right-4 z-20 cursor-pointer p-1" onclick="toggleVisibility()">
-                            <div class="btn-eye"><i data-lucide="eye" class="w-5 h-5 text-gray-400 hover:text-white transition-colors"></i></div>
-                            <div class="btn-eye-off hidden"><i data-lucide="eye-off" class="w-5 h-5 text-gray-400 hover:text-white transition-colors"></i></div>
-                        </div>
                         <span class="text-gray-500 text-[10px] uppercase font-bold tracking-widest">Saldo Geral (Caixa)</span>
                         <h2 class="text-4xl font-bold mt-2 sensitive-value fin-total-saldo" data-value="R$ 0,00">R$ 0,00</h2>
-                        <div class="mt-4 pt-4 border-t border-white/5 flex justify-between text-[10px] font-bold uppercase">
-                            <div class="text-green-400">Entradas: <span class="fin-receita-mes sensitive-value" data-value="R$ 0,00">R$ 0,00</span></div>
-                            <div class="text-red-400">Saídas (Pagas): <span class="fin-despesa-mes sensitive-value" data-value="R$ 0,00">R$ 0,00</span></div>
-                        </div>
                     </div>
-
-                    <div class="card rounded-3xl p-5 relative">
-                        <div class="flex justify-between items-start mb-2">
-                            <div>
-                                <span class="text-[9px] text-gray-500 font-bold uppercase tracking-widest block mb-1">Propósito</span>
-                                <h3 class="text-lg font-bold ui-prop-title">Configure um desafio</h3>
-                            </div>
-                            <button onclick="toggleOverlay('proposito-config')" class="p-1"><i data-lucide="settings" class="w-4 h-4 text-gray-500 hover:text-white transition-colors"></i></button>
-                        </div>
-                        <div class="w-full bg-gray-800 h-2.5 rounded-full overflow-hidden mt-4">
-                            <div class="bg-[#34d399] h-full transition-all duration-1000 ui-prop-bar" style="width: 0%"></div>
-                        </div>
-                        <div class="flex justify-between mt-2 text-[9px] font-bold text-gray-500 uppercase tracking-widest">
-                            <span class="ui-prop-days-passed">0 dias</span>
-                            <span class="ui-prop-days-total">0 dias</span>
-                        </div>
-                    </div>
-                    
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="card rounded-3xl p-5 flex flex-col items-center justify-center text-center cursor-pointer active:scale-95 transition-all" onclick="navigate('nav-saude', 'page-saude', 'Saúde')">
-                            <div class="relative w-28 h-28 flex items-center justify-center mb-2">
-                                <svg class="w-full h-full"><circle class="text-gray-800" stroke-width="6" stroke="currentColor" fill="transparent" r="48" cx="56" cy="56"/><circle class="text-blue-500 progress-ring__circle ring-agua-path" stroke-width="6" stroke-dasharray="301.6" stroke-dashoffset="301.6" stroke-linecap="round" stroke="currentColor" fill="transparent" r="48" cx="56" cy="56"/></svg>
-                                <div class="absolute inset-0 flex flex-col items-center justify-center"><span class="text-xl font-black saude-agua-perc">0%</span><span class="text-[8px] text-gray-500 font-bold uppercase tracking-widest">Água</span></div>
-                            </div>
-                            <p class="text-[9px] font-bold text-blue-400 uppercase tracking-widest">Meta: <span class="val-agua-meta-litros">3.5</span>L</p>
-                        </div>
-                        <div class="card rounded-3xl p-5 flex flex-col items-center justify-center text-center cursor-pointer active:scale-95 transition-all" onclick="navigate('nav-saude', 'page-saude', 'Saúde')">
-                            <div class="relative w-28 h-28 flex items-center justify-center mb-2">
-                                <svg class="w-full h-full"><circle class="text-gray-800" stroke-width="6" stroke="currentColor" fill="transparent" r="48" cx="56" cy="56"/><circle class="text-yellow-500 progress-ring__circle ring-cafeina-path" stroke-width="6" stroke-dasharray="301.6" stroke-dashoffset="301.6" stroke-linecap="round" stroke="currentColor" fill="transparent" r="48" cx="56" cy="56"/></svg>
-                                <div class="absolute inset-0 flex flex-col items-center justify-center"><span class="text-xl font-black saude-cafe-valor">0</span><small class="text-[8px] text-gray-500 ml-0.5 uppercase font-bold">mg</small></div>
-                            </div>
-                            <p class="text-[9px] font-bold text-yellow-500 uppercase tracking-widest">Limite Cafeína</p>
-                        </div>
-                    </div>
-
-                    <div onclick="navigate('nav-veiculo', 'page-veiculo', 'Veículo')" class="card rounded-3xl p-5 flex items-center justify-between cursor-pointer active:scale-[0.98] transition-all">
-                        <div class="flex items-center space-x-4">
-                            <div id="home-veh-icon" class="w-12 h-12 rounded-2xl bg-orange-500/10 flex items-center justify-center text-orange-500"><i data-lucide="bike" id="icon-home-veh"></i></div>
-                            <div>
-                                <h3 class="font-bold veh-name-text">Fazer 250</h3>
-                                <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest"><span id="home-veh-media">29</span> km/l • <span id="home-veh-km">0</span> km</p>
-                            </div>
-                        </div>
-                        <i data-lucide="chevron-right" class="w-5 h-5 text-gray-700"></i>
-                    </div>
+                    <p class="text-gray-500 text-center py-10 text-xs">Bem-vindo, Weverson. Carregando dados...</p>
                 </div>
-
-                <div id="page-saude" class="page-content hidden space-y-6 fade-in">
-                    <div class="flex justify-between items-center px-1">
-                        <h2 class="text-lg font-bold">Registrar Hidratação e Cafeína</h2>
-                    </div>
-                    <div class="grid grid-cols-2 gap-3">
-                        <button onclick="registrarSaude('escritorio')" class="card p-4 rounded-2xl flex items-center space-x-3 active:scale-95 transition-all"><i data-lucide="building" class="w-5 h-5 text-blue-500"></i><div class="text-left"><span class="block text-xs font-bold">Escritório</span><span class="block text-[10px] text-blue-400">+473ml</span></div></button>
-                        <button onclick="registrarSaude('casa')" class="card p-4 rounded-2xl flex items-center space-x-3 active:scale-95 transition-all"><i data-lucide="home" class="w-5 h-5 text-blue-300"></i><div class="text-left"><span class="block text-xs font-bold">Em Casa</span><span class="block text-[10px] text-blue-300">+350ml</span></div></button>
-                        <button onclick="registrarSaude('cafe')" class="card p-4 rounded-2xl flex items-center space-x-3 active:scale-95 transition-all"><i data-lucide="coffee" class="w-5 h-5 text-orange-400"></i><div class="text-left"><span class="block text-xs font-bold">Café</span><span class="block text-[10px] text-orange-400">+80mg</span></div></button>
-                        <button onclick="registrarSaude('energetico')" class="card p-4 rounded-2xl flex items-center space-x-3 active:scale-95 transition-all"><i data-lucide="zap" class="w-5 h-5 text-yellow-400"></i><div class="text-left"><span class="block text-xs font-bold">Energético</span><span class="block text-[10px] text-yellow-400">+150mg</span></div></button>
-                    </div>
-                    <div class="grid grid-cols-2 gap-4 mt-6">
-                        <div class="card rounded-3xl p-5 flex flex-col items-center justify-center text-center">
-                            <div class="relative w-28 h-28 flex items-center justify-center mb-2">
-                                <svg class="w-full h-full"><circle class="text-gray-800" stroke-width="6" stroke="currentColor" fill="transparent" r="48" cx="56" cy="56"/><circle class="text-blue-500 progress-ring__circle ring-agua-path" stroke-width="6" stroke-dasharray="301.6" stroke-dashoffset="301.6" stroke-linecap="round" stroke="currentColor" fill="transparent" r="48" cx="56" cy="56"/></svg>
-                                <div class="absolute inset-0 flex flex-col items-center justify-center"><span class="text-xl font-black saude-agua-perc">0%</span><span class="text-[8px] text-gray-500 font-bold uppercase tracking-widest">Água</span></div>
-                            </div>
-                            <p class="text-[9px] font-bold text-blue-400 uppercase tracking-widest">Meta: <span class="val-agua-meta-litros">3.5</span>L</p>
-                        </div>
-                        <div class="card rounded-3xl p-5 flex flex-col items-center justify-center text-center">
-                            <div class="relative w-28 h-28 flex items-center justify-center mb-2">
-                                <svg class="w-full h-full"><circle class="text-gray-800" stroke-width="6" stroke="currentColor" fill="transparent" r="48" cx="56" cy="56"/><circle class="text-yellow-500 progress-ring__circle ring-cafeina-path" stroke-width="6" stroke-dasharray="301.6" stroke-dashoffset="301.6" stroke-linecap="round" stroke="currentColor" fill="transparent" r="48" cx="56" cy="56"/></svg>
-                                <div class="absolute inset-0 flex flex-col items-center justify-center"><span class="text-xl font-black saude-cafe-valor">0</span><small class="text-[8px] text-gray-500 ml-0.5 uppercase font-bold">mg</small></div>
-                            </div>
-                            <p class="text-[9px] font-bold text-yellow-500 uppercase tracking-widest">Limite Cafeína</p>
-                        </div>
-                    </div>
-                    <div class="card rounded-3xl p-5">
-                        <div class="flex justify-between items-center mb-6"><h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Calendário de Metas</h3><div class="flex items-center space-x-3"><button onclick="changeMonth(-1)"><i data-lucide="chevron-left" class="w-4 h-4"></i></button><span id="calendar-month-year" class="text-[10px] font-bold w-24 text-center uppercase tracking-tighter">Fev 2026</span><button onclick="changeMonth(1)"><i data-lucide="chevron-right" class="w-4 h-4"></i></button></div></div>
-                        <div id="calendar-grid" class="grid grid-cols-7 gap-y-3 gap-x-2 text-center text-[9px] font-bold text-gray-600 mb-2"><div>DOM</div><div>SEG</div><div>TER</div><div>QUA</div><div>QUI</div><div>SEX</div><div>SAB</div></div>
-                    </div>
-                </div>
-
-                <div id="page-financas" class="page-content hidden space-y-6 fade-in">
-                    <div class="card rounded-3xl p-6 shadow-sm relative overflow-hidden">
-                        <div class="absolute right-0 top-0 w-32 h-32 bg-green-500/10 rounded-bl-full z-0"></div>
-                        <div class="absolute top-4 right-4 z-20 cursor-pointer p-1" onclick="toggleVisibility()">
-                            <div class="btn-eye"><i data-lucide="eye" class="w-5 h-5 text-gray-400 hover:text-white transition-colors"></i></div>
-                            <div class="btn-eye-off hidden"><i data-lucide="eye-off" class="w-5 h-5 text-gray-400 hover:text-white transition-colors"></i></div>
-                        </div>
-                        <div class="relative z-10">
-                            <span class="text-gray-400 text-sm">Disponível em Contas</span>
-                            <h2 class="text-4xl font-bold mt-1 mb-4 sensitive-value fin-total-saldo" data-value="0">R$ 0,00</h2>
-                            <div class="flex justify-between items-center mt-6">
-                                <div><span class="text-xs text-gray-500 block mb-1">Gasto (Efetivado)</span><span class="text-sm font-semibold text-red-400 sensitive-value fin-despesa-mes" data-value="0">R$ 0,00</span></div>
-                                <div class="w-px h-8 bg-gray-700"></div>
-                                <div class="text-right"><span class="text-xs text-gray-500 block mb-1">Receita (Efetivada)</span><span class="text-sm font-semibold text-green-400 sensitive-value fin-receita-mes" data-value="0">R$ 0,00</span></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-4 gap-3">
-                        <button class="card rounded-2xl py-4 flex flex-col items-center justify-center hover:bg-gray-800 transition-colors border border-white/5" onclick="openTransactionModal('despesa')"><i data-lucide="arrow-up-right" class="w-6 h-6 text-red-400 mb-2"></i><span class="text-[10px] font-bold uppercase">Despesa</span></button>
-                        <button class="card rounded-2xl py-4 flex flex-col items-center justify-center hover:bg-gray-800 transition-colors border border-white/5" onclick="openTransactionModal('receita')"><i data-lucide="arrow-down-left" class="w-6 h-6 text-green-400 mb-2"></i><span class="text-[10px] font-bold uppercase">Receita</span></button>
-                        <button class="card rounded-2xl py-4 flex flex-col items-center justify-center hover:bg-gray-800 transition-colors border border-white/5" onclick="toggleOverlay('relatorios-fin')"><i data-lucide="pie-chart" class="w-6 h-6 text-[#38bdf8] mb-2"></i><span class="text-[10px] font-bold uppercase">Relatório</span></button>
-                        <button class="card rounded-2xl py-4 flex flex-col items-center justify-center hover:bg-gray-800 transition-colors border border-white/5" onclick="toggleOverlay('metas-fin')"><i data-lucide="target" class="w-6 h-6 text-purple-400 mb-2"></i><span class="text-[10px] font-bold uppercase">Metas</span></button>
-                    </div>
-                    <div class="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-2 -mx-6 px-6 relative mt-6 hide-scroll" id="card-carousel"></div>
-                    <div class="card rounded-3xl p-6 shadow-sm mt-6">
-                        <div class="flex justify-between items-center mb-4"><h2 class="text-gray-400 font-medium text-sm">Transações Recentes</h2><span class="text-xs text-[#38bdf8] font-bold cursor-pointer hover:underline" onclick="navigate('nav-financas', 'page-extrato', 'Extrato')">Ver tudo</span></div>
-                        <div id="recent-trans-list" class="space-y-4"></div>
-                    </div>
-                </div>
-
-                <div id="page-extrato" class="page-content hidden space-y-6 fade-in">
-                    <div class="flex items-center justify-between">
-                        <button onclick="navigate('nav-financas', 'page-financas', 'Finanças')" class="w-9 h-9 bg-white/5 rounded-full flex items-center justify-center"><i data-lucide="chevron-left" class="w-5 h-5"></i></button>
-                        <div class="flex items-center space-x-2 bg-white/5 rounded-xl px-2 py-1">
-                            <button onclick="changeExtratoMonth(-1)"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
-                            <span id="extrato-month-label" class="text-[10px] font-bold min-w-[70px] text-center uppercase">Fevereiro</span>
-                            <button onclick="changeExtratoMonth(1)"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
-                        </div>
-                        <button onclick="exportarExcel('extrato')" class="w-9 h-9 bg-white/5 hover:bg-green-500/20 rounded-full flex items-center justify-center transition-colors"><i data-lucide="download" class="w-4 h-4 text-green-400"></i></button>
-                    </div>
-                    <div id="extrato-month-content" class="space-y-2 pb-10"></div>
-                </div>
-
-                <div id="page-veiculo" class="page-content hidden space-y-6 fade-in">
-                    <div class="card rounded-3xl p-6 relative">
-                        <div class="flex justify-between items-start mb-6">
-                            <div>
-                                <h2 class="text-2xl font-bold veh-name-text">Fazer 250</h2>
-                                <p class="text-[10px] text-gray-500 uppercase font-bold tracking-widest mt-1">Total: <span id="veh-km-total">0</span> km</p>
-                            </div>
-                            <button onclick="toggleOverlay('veh-config')" class="w-9 h-9 bg-white/5 rounded-full flex items-center justify-center active:bg-white/10"><i data-lucide="settings" class="w-4 h-4 text-gray-400"></i></button>
-                        </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div class="bg-black/30 p-4 rounded-2xl border border-white/5"><span class="text-[9px] text-gray-500 font-bold uppercase block mb-1">Média km/L</span><span class="text-lg font-bold text-orange-400" id="veh-media-geral">29.0</span></div>
-                            <div class="bg-black/30 p-4 rounded-2xl border border-white/5"><span class="text-[9px] text-gray-500 font-bold uppercase block mb-1">Próx. Manutenção</span><span class="text-lg font-bold text-blue-400" id="veh-oleo-km">0</span></div>
-                        </div>
-                        <div class="mt-6 space-y-1.5">
-                            <div class="flex justify-between text-[8px] font-bold uppercase text-gray-500"><span>Saúde do Óleo</span><span id="veh-oleo-perc">0%</span></div>
-                            <div class="w-full bg-white/5 h-1.5 rounded-full overflow-hidden"><div id="veh-oleo-bar" class="h-full bg-blue-500 transition-all duration-700" style="width: 0%"></div></div>
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-3 gap-3">
-                        <button onclick="openVehModal('rota')" class="card py-5 rounded-2xl flex flex-col items-center border border-white/5 active:bg-green-500/10 transition-colors"><i data-lucide="map-pin" class="w-6 h-6 text-green-500 mb-2"></i><span class="text-[10px] font-bold uppercase">Rota</span></button>
-                        <button onclick="openVehModal('abastecer')" class="card py-5 rounded-2xl flex flex-col items-center border border-white/5 active:bg-orange-500/10 transition-colors"><i data-lucide="fuel" class="w-6 h-6 text-orange-500 mb-2"></i><span class="text-[10px] font-bold uppercase">Abastecer</span></button>
-                        <button onclick="openVehModal('servico')" class="card py-5 rounded-2xl flex flex-col items-center border border-white/5 active:bg-blue-500/10 transition-colors"><i data-lucide="wrench" class="w-6 h-6 text-blue-500 mb-2"></i><span class="text-[10px] font-bold uppercase">Manutenção</span></button>
-                    </div>
-                    <div class="space-y-4">
-                        <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest px-1">Histórico</h3>
-                        <div id="veh-timeline" class="space-y-3 pb-10"></div>
-                    </div>
-                </div>
+                <div id="page-saude" class="page-content hidden"></div>
+                <div id="page-financas" class="page-content hidden"></div>
+                <div id="page-veiculo" class="page-content hidden"></div>
             </main>
         </div>
 
         <div id="backdrop" class="backdrop" onclick="closeAllOverlays()"></div>
-
-        <div id="overlay-proposito-config" class="overlay">
+        
+        <div id="overlay-perfil" class="overlay">
             <div class="w-12 h-1 bg-gray-800 rounded-full mx-auto mt-4 mb-4 shrink-0"></div>
-            <div class="px-6 flex justify-between items-center mb-6"><h2 class="text-xl font-bold">Desafio</h2><button onclick="closeAllOverlays()"><i data-lucide="x" class="w-6 h-6 text-gray-500"></i></button></div>
-            <div class="overlay-content space-y-4">
-                <input type="text" id="input-prop-name" placeholder="Nome do Desafio" class="bg-black/20 p-4 rounded-2xl border border-white/5 w-full outline-none font-bold">
-                <div class="grid grid-cols-2 gap-4">
-                    <input type="date" id="input-prop-date" class="bg-black/20 p-4 rounded-2xl border border-white/5 outline-none text-xs font-bold">
-                    <input type="number" id="input-prop-days" placeholder="Dias" class="bg-black/20 p-4 rounded-2xl border border-white/5 outline-none font-bold">
-                </div>
-                <button onclick="saveProposito()" class="w-full py-5 rounded-3xl bg-green-500 text-black font-bold uppercase tracking-widest active:scale-95 transition-transform">Salvar</button>
-                <div id="prop-giveup-container" class="hidden"><button onclick="desistirProposito()" class="w-full py-4 text-red-500 font-bold uppercase text-[11px]">Desistir</button></div>
+            <div class="px-6 flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold">Perfil</h2>
+                <button onclick="handleLogout()" class="text-red-400 text-xs font-bold uppercase">Sair</button>
+            </div>
+            <div class="overlay-content">
+                <p class="text-gray-400 text-sm">Configurações de conta sincronizadas via Firebase.</p>
             </div>
         </div>
-
-        <div id="overlay-notificacoes" class="overlay">
-            <div class="w-12 h-1 bg-gray-800 rounded-full mx-auto mt-4 mb-4 shrink-0"></div>
-            <div class="px-6 flex justify-between items-center mb-6"><h2 class="text-xl font-bold">Avisos</h2><button onclick="closeAllOverlays()"><i data-lucide="x" class="w-6 h-6 text-gray-500"></i></button></div>
-            <div id="notif-list" class="overlay-content space-y-3"></div>
-        </div>
-
-        </div>
+    </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
@@ -473,72 +218,104 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
+        // Expondo para o escopo global com segurança
         window.firebaseAuth = auth;
         window.firebaseDb = db;
-        window.signInWithEmailAndPassword = signInWithEmailAndPassword;
-        window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
-        window.signOut = signOut;
+        window.apiLogin = signInWithEmailAndPassword;
+        window.apiRegister = createUserWithEmailAndPassword;
+        window.apiLogout = signOut;
         window.onAuthStateChanged = onAuthStateChanged;
-        window.firebaseDoc = doc;
-        window.firebaseSetDoc = setDoc;
-        window.firebaseGetDoc = getDoc;
+        
+        console.log("Firebase Pronto.");
     </script>
 
     <script>
-        /* MANTENHA TODO O SEU JAVASCRIPT ORIGINAL AQUI */
-        /* Incluindo apenas o essencial para o funcionamento do menu e UI */
-        let barChartInstance = null, catChartInstance = null, chartsInitialized = false;
-        let tempAvatar = null, currentViewCardId = null, cropperInstance = null, editingCardId = null;
-        
-        const avatarPresets = [
-            'https://api.dicebear.com/7.x/fun-emoji/svg?seed=Felix&backgroundColor=38bdf8',
-            'https://api.dicebear.com/7.x/fun-emoji/svg?seed=Aneka&backgroundColor=fb7185',
-            'https://api.dicebear.com/7.x/fun-emoji/svg?seed=Leo&backgroundColor=f97316',
-            'https://api.dicebear.com/7.x/fun-emoji/svg?seed=Zoey&backgroundColor=34d399',
-            'https://api.dicebear.com/7.x/fun-emoji/svg?seed=Max&backgroundColor=a855f7',
-            'https://api.dicebear.com/7.x/fun-emoji/svg?seed=Mia&backgroundColor=eab308',
-            'https://api.dicebear.com/7.x/fun-emoji/svg?seed=Sam&backgroundColor=6366f1',
-            'https://api.dicebear.com/7.x/fun-emoji/svg?seed=Jude&backgroundColor=475569'
-        ];
+        let state = { isLoggedIn: false, userId: null };
 
-        let state = {
-            isLoggedIn: false, userId: null, viewDate: new Date(), extratoDate: new Date(), blurred: false, editingId: null, editingVehId: null,
-            usuario: { firstName: "Murilo", lastName: "Finance", username: "mufinance", birthDate: "1996-02-26", peso: 100, idade: 30, avatarUrl: null, contas: [{id: 'wallet', nome: 'Carteira', protected: true, somaSaldo: true}], categorias_despesa: [{id: 'd1', nome: 'Alimentação', protected: true}], categorias_receita: [{id: 'r1', nome: 'Salário', protected: true}] },
-            saude: { aguaMeta: 3500, cafeinaMeta: 400, historico: {}, proposito: {ativo: false, nome: '', inicio: '', dias: 0, celebrado: false} },
-            financas: { cartoes: [], transacoes: [], metas: [], temp: {type:'despesa', status:'previsivel', fixa:false} },
-            veiculo: { tipo: 'moto', nome: 'Fazer 250', hodometro: 0, mediaGeral: 29.0, oleoIntervalo: 3000, oleoUltimaTrocaKM: 0, historico: [] },
-            notificacoes: []
-        };
+        // 1. Ouvinte de Autenticação (Destrava a tela)
+        function initializeAuthListener() {
+            if (typeof window.onAuthStateChanged !== 'function') {
+                console.log("Aguardando Firebase...");
+                setTimeout(initializeAuthListener, 100);
+                return;
+            }
 
-        function refreshIcons() { lucide.createIcons(); }
-        function showToast(msg) { const toast = document.createElement('div'); toast.className = 'fixed top-10 left-1/2 transform -translate-x-1/2 bg-black/90 text-white px-6 py-3 rounded-full text-[10px] font-bold uppercase tracking-widest z-[9999] border border-white/10 shadow-2xl fade-in text-center'; toast.innerText = msg; document.body.appendChild(toast); setTimeout(() => { toast.remove(); }, 3000); }
+            window.onAuthStateChanged(window.firebaseAuth, (user) => {
+                const loginScreen = document.getElementById('login-screen');
+                const appNav = document.getElementById('app-nav');
+                const appHeader = document.getElementById('app-header');
+                const mainScroll = document.getElementById('main-scroll');
 
-        function toggleFab(e) { if(e) e.stopPropagation(); document.getElementById('fab-container').classList.toggle('active'); }
-        function quickAction(type) { toggleFab(); if (type === 'fin') openTransactionModal('despesa'); else if (type === 'veh') openVehModal('abastecer'); }
+                if (user) {
+                    state.isLoggedIn = true;
+                    state.userId = user.uid;
+                    loginScreen.classList.add('hidden');
+                    appNav.classList.remove('hidden');
+                    appHeader.classList.remove('hidden');
+                    mainScroll.classList.remove('hidden');
+                    refreshIcons();
+                } else {
+                    state.isLoggedIn = false;
+                    loginScreen.classList.remove('hidden');
+                    appNav.classList.add('hidden');
+                    appHeader.classList.add('hidden');
+                    mainScroll.classList.add('hidden');
+                }
+            });
+        }
 
+        // 2. Funções de Login
+        async function handleLogin() {
+            const email = document.getElementById('login-email').value;
+            const pass = document.getElementById('login-pwd').value;
+            const err = document.getElementById('login-error');
+            if(!email || !pass) { err.innerText = "Campos Vazios"; return; }
+            
+            try {
+                err.innerText = "Entrando...";
+                await window.apiLogin(window.firebaseAuth, email, pass);
+            } catch (e) {
+                err.innerText = "Falha no Login";
+                console.error(e);
+            }
+        }
+
+        async function handleRegister() {
+            const email = document.getElementById('login-email').value;
+            const pass = document.getElementById('login-pwd').value;
+            const err = document.getElementById('login-error');
+            try {
+                await window.apiRegister(window.firebaseAuth, email, pass);
+            } catch (e) { err.innerText = "Erro ao Criar"; }
+        }
+
+        async function handleLogout() {
+            await window.apiLogout(window.firebaseAuth);
+            closeAllOverlays();
+        }
+
+        // 3. UI Helpers
         function navigate(navId, pageId, title) {
             document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
             document.getElementById(pageId).classList.remove('hidden');
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(navId)?.classList.add('active');
+            document.getElementById(navId).classList.add('active');
             document.getElementById('header-title').innerText = title;
-            closeAllOverlays(); updateUI();
         }
 
         function toggleOverlay(id) {
-            const el = document.getElementById('overlay-' + id);
-            if(!el) return;
-            if(el.classList.contains('active')) { closeAllOverlays(); }
-            else { closeAllOverlays(); el.classList.add('active'); document.getElementById('backdrop').classList.add('active'); }
-            refreshIcons();
+            document.getElementById('overlay-' + id).classList.add('active');
+            document.getElementById('backdrop').classList.add('active');
         }
 
-        function closeAllOverlays() { document.querySelectorAll('.overlay').forEach(o => o.classList.remove('active')); document.getElementById('backdrop').classList.remove('active'); const fab = document.getElementById('fab-container'); if(fab) fab.classList.remove('active'); refreshIcons(); }
+        function closeAllOverlays() {
+            document.querySelectorAll('.overlay').forEach(o => o.classList.remove('active'));
+            document.getElementById('backdrop').classList.remove('active');
+        }
 
-        /* ... Restante das funções (saveDataToCloud, updateUI, renderCards, etc) idênticas ao seu original ... */
-        /* Certifique-se de colar o restante do seu bloco <script> original aqui para manter todas as funcionalidades */
-        
-        window.onload = () => { initializeAuthListener(); };
+        function refreshIcons() { lucide.createIcons(); }
+
+        window.onload = initializeAuthListener;
     </script>
 </body>
 </html>
