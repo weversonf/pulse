@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mu Finance v03.17</title>
+    <title>Mu Finance v03.18</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -231,7 +231,7 @@
                     <i data-lucide="bell" class="w-5 h-5 text-gray-400"></i>
                     <span id="notif-badge" class="hidden absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full border border-[#1E2128]"></span>
                 </button>
-                <button onclick="toggleOverlay('perfil')" class="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 p-[2px] active:scale-90 transition-transform">
+                <button onclick="toggleOverlay('perfil')" class="md:hidden w-10 h-10 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 p-[2px] active:scale-90 transition-transform">
                     <div class="w-full h-full rounded-full bg-[#1E2128] flex items-center justify-center text-[10px] font-bold overflow-hidden" id="header-initials">MU</div>
                 </button>
             </div>
@@ -1632,24 +1632,74 @@
                     document.getElementById('input-svc-name').value = ''; document.getElementById('input-svc-val').value = ''; document.getElementById('input-svc-km').value = state.veiculo.hodometro; document.getElementById('input-svc-isoil').checked = false; 
                 }
                 toggleOverlay('veh-servico');
-            } else if (t === 'rota') {
-                document.getElementById('input-rota-km').value = ''; document.getElementById('input-rota-data').value = new Date().toISOString().split('T')[0]; document.getElementById('input-rota-origem').value = ''; document.getElementById('input-rota-destino').value = ''; document.getElementById('input-rota-motivo').value = 'Dia a Dia'; document.getElementById('rota-dist-preview').innerText = '0 km'; toggleOverlay('veh-rota');
+
+        } else if (t === 'rota') {
+                if(id) {
+                    // MODO EDIÇÃO: Carrega os dados da rota existente
+                    const h = state.veiculo.historico.find(x => x.id === id);
+                    document.getElementById('input-rota-km').value = h.km;
+                    document.getElementById('input-rota-data').value = h.data;
+                    document.getElementById('input-rota-origem').value = h.origem || '';
+                    document.getElementById('input-rota-destino').value = h.destino || '';
+                    document.getElementById('input-rota-motivo').value = h.motivo || 'Dia a Dia';
+                    document.getElementById('rota-dist-preview').innerText = h.distancia + ' km';
+                } else {
+                    // MODO NOVO: Limpa os campos
+                    document.getElementById('input-rota-km').value = ''; 
+                    document.getElementById('input-rota-data').value = new Date().toISOString().split('T')[0]; 
+                    document.getElementById('input-rota-origem').value = ''; 
+                    document.getElementById('input-rota-destino').value = ''; 
+                    document.getElementById('input-rota-motivo').value = 'Dia a Dia'; 
+                    document.getElementById('rota-dist-preview').innerText = '0 km';
+                }
+                toggleOverlay('veh-rota');
             }
         }
 
         function calcRota() {
-            const inputVal = parseInt(document.getElementById('input-rota-km').value); const preview = document.getElementById('rota-dist-preview');
-            if (!inputVal || inputVal <= state.veiculo.hodometro) { preview.innerText = '0 km'; } else { preview.innerText = (inputVal - state.veiculo.hodometro) + ' km'; }
+            const inputVal = parseInt(document.getElementById('input-rota-km').value); 
+            const preview = document.getElementById('rota-dist-preview');
+            // No modo edição, o cálculo de distância pode ser diferente, mas mantemos o padrão de comparação com o hodômetro atual para simplificar
+            if (!inputVal || inputVal <= (state.editingVehId ? 0 : state.veiculo.hodometro)) { 
+                preview.innerText = '0 km'; 
+            } else { 
+                preview.innerText = (inputVal - state.veiculo.hodometro) + ' km'; 
+            }
         }
 
         function saveRota() {
             try {
                 const km = parseInt(document.getElementById('input-rota-km').value);
-                if (!km || km <= state.veiculo.hodometro) { showToast("O hodômetro deve ser maior que o atual (" + state.veiculo.hodometro + ")."); return; }
-                const dist = km - state.veiculo.hodometro; const origem = document.getElementById('input-rota-origem').value.trim(); const destino = document.getElementById('input-rota-destino').value.trim(); const motivo = document.getElementById('input-rota-motivo').value; const dataRota = document.getElementById('input-rota-data').value || new Date().toISOString().split('T')[0];
-                const item = { id: Date.now(), tipo: 'rota', data: dataRota, km: km, distancia: dist, origem: origem, destino: destino, motivo: motivo };
-                state.veiculo.historico.unshift(item); state.veiculo.hodometro = km;
-                saveDataToCloud(); closeAllOverlays(); updateUI(); showToast("Rota de " + dist + "km registrada!");
+                const dataRota = document.getElementById('input-rota-data').value || new Date().toISOString().split('T')[0];
+                const origem = document.getElementById('input-rota-origem').value.trim();
+                const destino = document.getElementById('input-rota-destino').value.trim();
+                const motivo = document.getElementById('input-rota-motivo').value;
+
+                if (!km) { showToast("Informe o KM."); return; }
+
+                if(state.editingVehId) {
+                    // ATUALIZANDO ROTA EXISTENTE
+                    const idx = state.veiculo.historico.findIndex(x => x.id === state.editingVehId);
+                    if(idx > -1) {
+                        state.veiculo.historico[idx].km = km;
+                        state.veiculo.historico[idx].data = dataRota;
+                        state.veiculo.historico[idx].origem = origem;
+                        state.veiculo.historico[idx].destino = destino;
+                        state.veiculo.historico[idx].motivo = motivo;
+                        // Recalcula a distância baseada no KM anterior se necessário, ou mantém a original
+                        showToast("Registro de rota atualizado!");
+                    }
+                } else {
+                    // CRIANDO NOVA ROTA
+                    if (km <= state.veiculo.hodometro) { showToast("O hodômetro deve ser maior que o atual."); return; }
+                    const dist = km - state.veiculo.hodometro;
+                    const item = { id: Date.now(), tipo: 'rota', data: dataRota, km: km, distancia: dist, origem: origem, destino: destino, motivo: motivo };
+                    state.veiculo.historico.unshift(item); 
+                    state.veiculo.hodometro = km;
+                    showToast("Rota de " + dist + "km registrada!");
+                }
+
+                saveDataToCloud(); closeAllOverlays(); updateUI();
             } catch(e) { showToast("Erro ao salvar rota."); }
         }
 
