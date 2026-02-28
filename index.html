@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mu Finance v03.13</title>
+    <title>Mu Finance v03.14</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
-    
+
 <style>
         :root {
             --bg-main: #121418;
@@ -113,13 +113,14 @@
                 padding: 40px 16px 20px 16px;
                 justify-content: flex-start; align-items: stretch; border-top: none; 
                 box-shadow: 10px 0 40px rgba(0,0,0,0.6);
-                gap: 4px; /* Espaçamento menor e mais elegante entre os botões */
+                gap: 8px; /* Espaçamento entre os botões para não ficarem colados */
             }
             
             .nav-btn { 
+                flex: none; /* A MÁGICA ESTÁ AQUI: impede que o botão estique verticalmente */
                 flex-direction: row; align-items: center; justify-content: flex-start; 
-                padding: 0 16px; /* Removemos o padding vertical */
-                height: 20px; /* Altura fixa e mais fina para tirar o aspecto quadrado */
+                padding: 0 16px; 
+                height: 44px; /* Agora sim, a altura fica exatamente como você quer */
                 margin-bottom: 0; border-radius: 10px; 
                 transition: all 0.2s ease; 
             }
@@ -143,7 +144,7 @@
             
             .active-indicator { 
                 left: 0; top: 50%; transform: translateY(-50%) scaleY(0); 
-                width: 4px; height: 18px; /* Indicador proporcional ao novo tamanho do botão */
+                width: 4px; height: 20px; 
                 border-radius: 0 4px 4px 0; 
             }
             
@@ -163,6 +164,7 @@
 
         input, select { color-scheme: dark; }
     </style>
+
 </head>
 <body>
 
