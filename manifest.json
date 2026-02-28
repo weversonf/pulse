@@ -8,13 +8,13 @@
   "theme_color": "#38bdf8",
   "icons": [
     {
-      "src": "https://api.dicebear.com/7.x/fun-emoji/svg?seed=Felix&backgroundColor=38bdf8",
+      "src": "https://raw.githubusercontent.com/weversonf/pulse/main/LogoMuFinance_00.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "https://api.dicebear.com/7.x/fun-emoji/svg?seed=Felix&backgroundColor=38bdf8",
+      "src": "https://raw.githubusercontent.com/weversonf/pulse/main/LogoMuFinance_00.png",
       "sizes": "512x512",
       "type": "image/png"
     }
