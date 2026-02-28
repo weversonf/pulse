@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mu Finance v03.19</title>
+    <title>Mu Finance v03.20</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -201,6 +201,24 @@
         .fab-container.active .sub-fab-right { transform: translate(65px, -65px); opacity: 1; scale: 1; box-shadow: 0 10px 25px rgba(0,0,0,0.8); }
 
         input, select { color-scheme: dark; }
+
+    /* Esconde a logo no Mobile (opcional, já que o Mobile usa o Header do topo) */
+.sidebar-logo-container { display: none; }
+
+@media (min-width: 768px) {
+    .sidebar-logo-container { display: flex; }
+    
+    /* Quando a sidebar encolher, a logo diminui ou some */
+    body.sidebar-collapsed .sidebar-logo-img {
+        width: 40px; /* Tamanho reduzido para o modo ícone */
+        padding: 0;
+    }
+    
+    /* Se preferir que ela suma totalmente no modo encolhido, use:
+    body.sidebar-collapsed .sidebar-logo-container { display: none; } 
+    */
+}
+    
     </style>
 
 </head>
@@ -436,6 +454,11 @@
         </main>
 
         <nav id="main-nav">
+            <div class="sidebar-logo-container flex items-center justify-center py-6 px-4 mb-2">
+                <img src="https://raw.githubusercontent.com/weversonf/pulse/main/LogoMuFinance_00.png" 
+             alt="Mu Finance Logo" 
+             class="w-32 h-auto object-contain sidebar-logo-img transition-all duration-300">
+            </div>
             <button class="sidebar-toggle-btn" onclick="toggleSidebar()">
                 <i data-lucide="menu" class="w-6 h-6"></i>
             </button>
