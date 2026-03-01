@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mu Finance v03.25</title>
+    <title>Mu Finance v03.26</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -208,7 +208,7 @@
             <div class="w-full max-w-md">
                 <div class="text-center mb-10">
                     <h1 class="text-4xl font-bold tracking-tight mb-2">Mu Finance</h1>
-                    <p class="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Personal Management v03.25</p>
+                    <p class="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Personal Management v03.26</p>
                 </div>
                 <div class="space-y-4">
                 <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
@@ -1971,9 +1971,11 @@
                 let icon = 'wrench'; let colorClass = 'bg-blue-500/10 text-blue-500'; let title = h.nome; let valHtml = ''; let deleteBtn = `<button onclick="deleteVehActivity(${h.id})"><i data-lucide="trash-2" class="w-4 h-4 text-red-900/50 hover:text-red-500 transition-colors"></i></button>`; let editBtn = `<button onclick="openVehModal('servico', ${h.id})"><i data-lucide="edit-3" class="w-4 h-4 text-gray-600 hover:text-white transition-colors"></i></button>`;
                 if(h.tipo === 'abastecimento') {
                     icon = 'fuel'; colorClass = 'bg-orange-500/10 text-orange-500'; title = 'Abastecer'; valHtml = `<div class="text-right"><p class="text-xs font-black">R$ ${h.total?.toFixed(2)}</p>${h.media ? `<p class="text-[9px] text-orange-400 font-bold font-mono">${h.media.toFixed(1)} km/l</p>` : ''}</div>`; editBtn = `<button onclick="openVehModal('abastecer', ${h.id})"><i data-lucide="edit-3" class="w-4 h-4 text-gray-600 hover:text-white transition-colors"></i></button>`;
-                } else if(h.tipo === 'rota') {
-                    icon = 'map-pin'; colorClass = 'bg-green-500/10 text-green-500'; title = h.motivo || 'Rota'; let subtitle = (h.origem || h.destino) ? `${h.origem || '?'} ➔ ${h.destino || '?'}` : 'Deslocamento'; valHtml = `<div class="text-right"><p class="text-xs font-black text-green-400">+ ${h.distancia} km</p></div>`; editBtn = ``; 
-                    return `<div class="card p-4 rounded-2xl border border-white/5 flex items-center justify-between"><div class="flex items-center space-x-3"><div class="w-8 h-8 rounded-lg ${colorClass} flex items-center justify-center"><i data-lucide="${icon}" class="w-4 h-4"></i></div><div><p class="text-xs font-bold uppercase">${title}</p><p class="text-[9px] text-gray-500 font-bold uppercase tracking-widest">${subtitle} • ${h.km} km</p></div></div><div class="flex items-center space-x-2">${valHtml}${deleteBtn}</div></div>`;
+               
+               } else if(h.tipo === 'rota') {
+                    icon = 'map-pin'; colorClass = 'bg-green-500/10 text-green-500'; title = h.motivo || 'Rota'; let subtitle = (h.origem || h.destino) ? `${h.origem || '?'} ➔ ${h.destino || '?'}` : 'Deslocamento'; valHtml = `<div class="text-right"><p class="text-xs font-black text-green-400">+ ${h.distancia} km</p></div>`; editBtn = `<button onclick="openVehModal('rota', ${h.id})"><i data-lucide="edit-3" class="w-4 h-4 text-gray-600 hover:text-white transition-colors"></i></button>`; 
+                    return `<div class="card p-4 rounded-2xl border border-white/5 flex items-center justify-between"><div class="flex items-center space-x-3"><div class="w-8 h-8 rounded-lg ${colorClass} flex items-center justify-center"><i data-lucide="${icon}" class="w-4 h-4"></i></div><div><p class="text-xs font-bold uppercase">${title}</p><p class="text-[9px] text-gray-500 font-bold uppercase tracking-widest">${subtitle} • ${h.km} km</p></div></div><div class="flex items-center space-x-2">${valHtml}${editBtn}${deleteBtn}</div></div>`;
+                    
                 } else { valHtml = `<div class="text-right"><p class="text-xs font-black">R$ ${h.valor?.toFixed(2)}</p></div>`; }
                 return `<div class="card p-4 rounded-2xl border border-white/5 flex items-center justify-between"><div class="flex items-center space-x-3"><div class="w-8 h-8 rounded-lg ${colorClass} flex items-center justify-center"><i data-lucide="${icon}" class="w-4 h-4"></i></div><div><p class="text-xs font-bold uppercase">${title}</p><p class="text-[9px] text-gray-500 font-bold uppercase tracking-widest">${h.km} km</p></div></div><div class="flex items-center space-x-2">${valHtml}${editBtn}${deleteBtn}</div></div>`;
             }).join('');
