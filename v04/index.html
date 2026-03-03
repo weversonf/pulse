@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mu Finance v04.02</title>
+    <title>Mu Finance v04.03</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -118,7 +118,7 @@
     @media (min-width: 768px) {
         header { margin-left: 260px; padding: 20px 30px; transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         main { margin-left: 260px; padding-bottom: 20px; transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .overlay { left: 50%; transform: translateX(-50%); width: 60%; transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1), bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .overlay { left: 260px; width: calc(100% - 260px); transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1), bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
         .backdrop { left: 260px; width: calc(100% - 260px); transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
 
         /* Regras da Logo Desktop */
@@ -208,7 +208,7 @@
             <div class="w-full max-w-md">
                 <div class="text-center mb-10">
                     <h1 class="text-4xl font-bold tracking-tight mb-2">Mu Finance</h1>
-                    <p class="text-[10px] text-gray-500 uppercase tracking-widest font-bold">v04.02</p>
+                    <p class="text-[10px] text-gray-500 uppercase tracking-widest font-bold">v04.03</p>
                 </div>
                 <div class="space-y-4">
                 <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
@@ -231,7 +231,7 @@
         <header class="flex justify-between items-center shrink-0">
             <div>
                 <h1 id="header-title" class="text-2xl font-bold tracking-tight">Mu Finance</h1>
-                <p class="text-[10px] text-gray-500 uppercase font-bold tracking-widest mt-1" id="header-subtitle">Dashboard Geral v04.02</p>
+                <p class="text-[10px] text-gray-500 uppercase font-bold tracking-widest mt-1" id="header-subtitle">Dashboard Geral</p>
             </div>
             <div class="flex items-center space-x-3">
                 <button onclick="toggleOverlay('notificacoes')" class="relative w-10 h-10 flex items-center justify-center rounded-full bg-[#1E2128] border border-gray-800 active:scale-90 transition-transform">
@@ -249,7 +249,6 @@
             <div id="page-home" class="page-content space-y-5 fade-in">
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-    <!-- Card Original (No celular fica igual, no Desktop o rodapé de entradas/saídas some) -->
     <div class="card rounded-3xl p-6 shadow-lg border border-white/5 relative">
         <div class="absolute top-4 right-4 z-20 cursor-pointer p-1" onclick="toggleVisibility()">
             <div class="btn-eye"><i data-lucide="eye" class="w-5 h-5 text-gray-400 hover:text-white transition-colors"></i></div>
@@ -259,20 +258,17 @@
         <span class="text-gray-500 text-[10px] uppercase font-bold tracking-widest">Saldo Geral (Caixa)</span>
         <h2 class="text-4xl font-bold mt-2 sensitive-value fin-total-saldo" data-value="R$ 0,00">R$ 0,00</h2>
         
-        <!-- O 'md:hidden' aqui faz essa parte sumir só no computador -->
         <div class="mt-4 pt-4 border-t border-white/5 flex justify-between text-[10px] font-bold uppercase md:hidden">
             <div class="text-green-400">Entradas: <span class="fin-receita-mes sensitive-value" data-value="R$ 0,00">R$ 0,00</span></div>
             <div class="text-red-400">Saídas (Pagas): <span class="fin-despesa-mes sensitive-value" data-value="R$ 0,00">R$ 0,00</span></div>
         </div>
     </div>
 
-    <!-- Card Receitas (Oculto no celular, visível no desktop) -->
     <div class="hidden md:flex card rounded-3xl p-6 shadow-lg border border-green-500/10 relative flex-col justify-center">
         <span class="text-green-500 text-[10px] uppercase font-bold tracking-widest mb-1">Entradas (Mês)</span>
         <h2 class="text-3xl lg:text-4xl font-bold mt-1 sensitive-value fin-receita-mes text-green-400" data-value="R$ 0,00">R$ 0,00</h2>
     </div>
 
-    <!-- Card Despesas (Oculto no celular, visível no desktop) -->
     <div class="hidden md:flex card rounded-3xl p-6 shadow-lg border border-red-500/10 relative flex-col justify-center">
         <span class="text-red-500 text-[10px] uppercase font-bold tracking-widest mb-1">Saídas Pagas (Mês)</span>
         <h2 class="text-3xl lg:text-4xl font-bold mt-1 sensitive-value fin-despesa-mes text-red-400" data-value="R$ 0,00">R$ 0,00</h2>
@@ -437,22 +433,8 @@
                     <button onclick="openVehModal('servico')" class="card py-5 rounded-2xl flex flex-col items-center border border-white/5 active:bg-blue-500/10 transition-colors"><i data-lucide="wrench" class="w-6 h-6 text-blue-500 mb-2"></i><span class="text-[10px] font-bold uppercase">Manutenção</span></button>
                 </div>
                 <div class="space-y-4">
-                    <div class="flex items-center justify-between px-1 mb-4">
-                        <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Histórico</h3>
-                        <div class="flex items-center gap-3">
-                            <div class="flex gap-2">
-                                <button onclick="setVehHistoryFilter('fuel-maintenance')" id="dot-fuel-maintenance" class="w-2 h-2 rounded-full bg-orange-500 cursor-pointer transition-all"></button>
-                                <button onclick="setVehHistoryFilter('rota')" id="dot-rota" class="w-2 h-2 rounded-full bg-gray-600 cursor-pointer transition-all"></button>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <button onclick="prevVehMonth()" class="text-gray-500 hover:text-white transition-colors"><</button>
-                                <span id="veh-month-display" class="text-[10px] font-bold text-gray-500 uppercase w-12 text-center">Fev</span>
-                                <button onclick="nextVehMonth()" class="text-gray-500 hover:text-white transition-colors">></button>
-                            </div>
-                        </div>
-                    </div>
+                    <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest px-1">Histórico</h3>
                     <div id="veh-timeline" class="space-y-3 pb-10"></div>
-                    <div id="veh-pagination" class="flex justify-center gap-2 pb-10"></div>
                 </div>
             </div>
 
@@ -632,6 +614,14 @@
                     </div>
                 </div>
 
+                <div id="trans-impulso-container" class="flex items-center justify-between p-4 bg-purple-500/10 rounded-2xl border border-purple-500/20 mb-4 hidden">
+                    <div>
+                        <span class="text-xs font-bold text-purple-400 block">Desejo / Impulso?</span>
+                        <span class="text-[9px] text-gray-500 font-bold uppercase">Passar pelo filtro de ouro</span>
+                    </div>
+                    <input type="checkbox" id="trans-impulso-check" class="w-6 h-6 accent-purple-500 rounded cursor-pointer">
+                </div>
+
                 <div id="trans-dest-container" class="hidden bg-black/20 p-4 rounded-2xl border border-white/5 border-l-4 border-l-blue-500">
                     <label class="text-[9px] text-blue-400 uppercase font-bold block mb-1">Para qual conta? (Destino)</label>
                     <select id="trans-dest-select" class="bg-transparent font-bold w-full outline-none text-xs"></select>
@@ -783,28 +773,6 @@
                 
                 <div class="grid grid-cols-2 gap-4">
                     <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
-                        <label class="text-[10px] text-gray-500 uppercase font-bold block mb-1">Data</label>
-                        <input type="date" id="input-fuel-data" class="bg-transparent font-bold w-full outline-none text-xs">
-                    </div>
-                    <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
-                        <label class="text-[10px] text-gray-500 uppercase font-bold block mb-1">Hora</label>
-                        <input type="time" id="input-fuel-hora" class="bg-transparent font-bold w-full outline-none text-xs">
-                    </div>
-                </div>
-
-                <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
-                    <label class="text-[10px] text-gray-500 uppercase font-bold block mb-1">Tipo de Combustível</label>
-                    <select id="input-fuel-tipo" class="bg-transparent font-bold w-full outline-none text-xs">
-                        <option value="Gasolina Comum">Gasolina Comum</option>
-                        <option value="Gasolina Premium">Gasolina Premium</option>
-                        <option value="Diesel">Diesel</option>
-                        <option value="Etanol">Etanol</option>
-                        <option value="GNV">GNV</option>
-                    </select>
-                </div>
-
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
                         <label class="text-[10px] text-gray-500 uppercase font-bold block mb-1">Hodômetro Atual</label>
                         <input type="number" id="input-fuel-km" class="bg-transparent font-bold w-full outline-none">
                     </div>
@@ -812,6 +780,14 @@
                         <label class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Conta / Cartão</label>
                         <select id="input-fuel-acc" class="bg-transparent font-bold w-full outline-none text-xs"></select>
                     </div>
+                </div>
+
+                <div class="flex items-center justify-between p-4 bg-orange-500/10 rounded-2xl border border-orange-500/20 mt-4">
+                    <div>
+                        <span class="text-xs font-bold text-orange-400 block">Encheu o Tanque?</span>
+                        <span class="text-[9px] text-gray-500 font-bold uppercase">Ajuda a prever gastos futuros</span>
+                    </div>
+                    <input type="checkbox" id="input-fuel-full" class="w-6 h-6 accent-orange-500 rounded cursor-pointer" checked>
                 </div>
 
                 <button onclick="saveRefueling()" class="w-full py-5 rounded-3xl bg-orange-500 text-black font-bold text-lg mt-4 uppercase tracking-widest active:scale-95 transition-transform">Salvar</button>
@@ -826,17 +802,6 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div class="bg-black/20 p-4 rounded-2xl border border-white/5"><label class="text-[10px] text-gray-500 uppercase font-bold block mb-1">Valor (R$)</label><input type="number" id="input-svc-val" class="bg-transparent font-bold w-full outline-none" placeholder="0.00"></div>
                     <div class="bg-black/20 p-4 rounded-2xl border border-white/5"><label class="text-[10px] text-gray-500 uppercase font-bold block mb-1">km Atual</label><input type="number" id="input-svc-km" class="bg-transparent font-bold w-full outline-none"></div>
-                </div>
-                
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
-                        <label class="text-[10px] text-gray-500 uppercase font-bold block mb-1">Data</label>
-                        <input type="date" id="input-svc-data" class="bg-transparent font-bold w-full outline-none text-xs">
-                    </div>
-                    <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
-                        <label class="text-[10px] text-gray-500 uppercase font-bold block mb-1">Hora</label>
-                        <input type="time" id="input-svc-hora" class="bg-transparent font-bold w-full outline-none text-xs">
-                    </div>
                 </div>
                 
                 <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
@@ -869,18 +834,13 @@
                         <input type="date" id="input-rota-data" class="bg-transparent font-bold w-full outline-none text-xs">
                     </div>
                     <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
-                        <label class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Hora</label>
-                        <input type="time" id="input-rota-hora" class="bg-transparent font-bold w-full outline-none text-xs">
+                        <label class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Motivo / Tipo</label>
+                        <select id="input-rota-motivo" class="bg-transparent font-bold w-full outline-none text-xs">
+                            <option value="Dia a Dia">Dia a Dia</option>
+                            <option value="Trabalho">Trabalho (Makro)</option>
+                            <option value="Viagem">Viagem / Passeio</option>
+                        </select>
                     </div>
-                </div>
-
-                <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
-                    <label class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Motivo / Tipo</label>
-                    <select id="input-rota-motivo" class="bg-transparent font-bold w-full outline-none text-xs">
-                        <option value="Dia a Dia">Dia a Dia</option>
-                        <option value="Trabalho">Trabalho (Makro)</option>
-                        <option value="Viagem">Viagem / Passeio</option>
-                    </select>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
@@ -1113,8 +1073,46 @@
                 <div class="space-y-4">
                     <div class="bg-black/20 p-4 rounded-2xl border border-white/5"><label class="text-[10px] text-gray-500 uppercase font-bold block mb-1">Nome</label><input type="text" id="input-veh-name" class="bg-transparent font-bold w-full outline-none"></div>
                     <div class="bg-black/20 p-4 rounded-2xl border border-white/5"><label class="text-[10px] text-gray-500 uppercase font-bold block mb-1">Km Óleo</label><input type="number" id="input-veh-oil-interval" class="bg-transparent font-bold w-full outline-none"></div>
+                    <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
+                        <label class="text-[10px] text-gray-500 uppercase font-bold block mb-1">Final da Placa (Licenciamento CE)</label>
+                        <input type="number" id="input-veh-plate" min="0" max="9" class="bg-transparent font-bold w-full outline-none" placeholder="Ex: 7">
+                    </div>
                 </div>
                 <button onclick="saveVehSettings()" class="w-full py-4 rounded-3xl bg-orange-500 text-black font-bold uppercase tracking-widest active:scale-95 transition-transform">Salvar</button>
+            </div>
+        </div>
+
+        <div id="overlay-filtro-impulso" class="overlay z-[200]">
+            <div class="w-12 h-1 bg-gray-800 rounded-full mx-auto mt-4 mb-4 shrink-0"></div>
+            <div class="px-6 flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold text-purple-400">Filtro de Ouro</h2>
+                <button onclick="closeAllOverlays()"><i data-lucide="x" class="w-6 h-6 text-gray-500"></i></button>
+            </div>
+            <div class="overlay-content space-y-6 text-center mt-4">
+                <div class="text-5xl mb-2">🤔</div>
+                <h3 class="text-lg font-bold">Vale mesmo a pena?</h3>
+                <p class="text-[11px] text-gray-400 font-bold uppercase tracking-widest leading-relaxed">Para comprar isso, você está gastando:</p>
+                
+                <div class="grid grid-cols-2 gap-4 mt-4">
+                    <div class="bg-black/30 p-4 rounded-2xl border border-white/5">
+                        <span class="text-2xl font-black text-white" id="impulso-horas">0</span>
+                        <span class="text-[9px] text-gray-500 uppercase font-bold block mt-1">Horas de Vida<br>(Trabalho)</span>
+                    </div>
+                    <div class="bg-black/30 p-4 rounded-2xl border border-white/5">
+                        <span class="text-2xl font-black text-orange-400" id="impulso-tanques">0</span>
+                        <span class="text-[9px] text-gray-500 uppercase font-bold block mt-1">Tanques da<br>Moto</span>
+                    </div>
+                </div>
+
+                <div class="bg-purple-500/10 p-5 rounded-2xl border border-purple-500/20 mt-6">
+                    <label class="text-[10px] text-purple-400 uppercase font-bold block mb-2">Prefere enviar para uma Meta?</label>
+                    <select id="impulso-meta-select" class="bg-black/50 p-3 rounded-xl font-bold w-full outline-none text-xs text-white border border-white/5"></select>
+                </div>
+
+                <div class="flex space-x-3 mt-6">
+                    <button onclick="confirmarImpulso(false)" class="flex-1 py-4 rounded-2xl bg-purple-500 text-black font-bold uppercase tracking-widest text-[10px] active:scale-95 transition-transform">Desistir & Guardar</button>
+                    <button onclick="confirmarImpulso(true)" class="flex-1 py-4 rounded-2xl bg-white/5 text-gray-400 font-bold uppercase tracking-widest text-[10px] active:scale-95 transition-transform">Comprar Mesmo</button>
+                </div>
             </div>
         </div>
 
@@ -1164,6 +1162,7 @@
         let currentViewCardId = null;
         let cropperInstance = null;
         let editingCardId = null; 
+        let pendingTransaction = null;
         
         const avatarPresets = [
             'https://api.dicebear.com/7.x/fun-emoji/svg?seed=Felix&backgroundColor=38bdf8',
@@ -1177,13 +1176,13 @@
         ];
 
         let state = {
-            isLoggedIn: false, userId: null, viewDate: new Date(), extratoDate: new Date(), blurred: false, editingId: null, editingVehId: null, vehHistoryFilter: 'fuel-maintenance', vehHistoryMonth: new Date(), vehHistoryPage: 1,
+            isLoggedIn: false, userId: null, viewDate: new Date(), extratoDate: new Date(), blurred: false, editingId: null, editingVehId: null,
             usuario: { 
-                firstName: "Murilo", lastName: "Finance", username: "mufinance", birthDate: "1996-02-26", peso: 100, idade: 30, avatarUrl: null, salario: 0, visaoImpulso: 'ambos',
+                firstName: "Murilo", lastName: "Finance", username: "mufinance", birthDate: "1996-02-26", peso: 100, idade: 30, avatarUrl: null,
                 contas: [
-                    {id: 'wallet', nome: 'Carteira', protected: true, somaSaldo: true, cadeado: false, saldo: 0}, 
-                    {id: 2, nome: 'Inter', protected: false, somaSaldo: true, cadeado: false, saldo: 0},
-                    {id: 3, nome: 'Reserva Oculta', protected: false, somaSaldo: false, cadeado: true, saldo: 0}
+                    {id: 'wallet', nome: 'Carteira', protected: true, somaSaldo: true}, 
+                    {id: 2, nome: 'Inter', protected: false, somaSaldo: true},
+                    {id: 3, nome: 'Reserva Oculta', protected: false, somaSaldo: false}
                 ],
                 categorias_despesa: [
                     {id: 'd1', nome: 'Alimentação', protected: true}, {id: 'd2', nome: 'Combustível', protected: true}, {id: 'd3', nome: 'Manutenção', protected: true}, {id: 'd4', nome: 'Moradia', protected: true}, {id: 'd5', nome: 'Lazer', protected: false}
@@ -1197,7 +1196,7 @@
                 cartoes: [{id:1, nome:'Nubank', cor:'#8b5cf6', limite:5400, bandeira: 'MASTERCARD', vencimento: 10}], 
                 transacoes: [], metas: [], temp: {type:'despesa', status:'previsivel', fixa:false} 
             },
-            veiculo: { tipo: 'moto', nome: 'Fazer 250', hodometro: 12450, mediaGeral: 29.0, oleoIntervalo: 3000, oleoUltimaTrocaKM: 11000, historico: [], tributos: [] },
+            veiculo: { tipo: 'moto', nome: 'Fazer 250', hodometro: 12450, mediaGeral: 29.0, oleoIntervalo: 3000, oleoUltimaTrocaKM: 11000, placaFinal: '', historico: [] },
             notificacoes: []
         };
 
@@ -1266,6 +1265,7 @@
                     setVehType(state.veiculo.tipo);
                     document.getElementById('input-veh-name').value = state.veiculo.nome;
                     document.getElementById('input-veh-oil-interval').value = state.veiculo.oleoIntervalo;
+                    document.getElementById('input-veh-plate').value = state.veiculo.placaFinal || '';
                 }
                 if(id === 'proposito-config') {
                     if(state.saude.proposito && state.saude.proposito.ativo) {
@@ -1434,36 +1434,89 @@
             if (conta) { conta.somaSaldo = !conta.somaSaldo; saveDataToCloud(); updateUI(); }
         }
 
-        function toggleCadeado(id) {
+        window.ajustarSaldoConta = function(id) {
             const conta = state.usuario.contas.find(c => c.id.toString() === id.toString());
-            if (conta) { conta.cadeado = !conta.cadeado; saveDataToCloud(); updateUI(); }
-        }
-
-        function openAjusteSaldoModal(contaId) {
-            const conta = state.usuario.contas.find(c => c.id.toString() === contaId.toString());
             if(!conta) return;
-            const saldoReal = prompt('Qual o saldo real de ' + conta.nome + ' no seu banco?');
-            if(saldoReal === null || saldoReal.trim() === '') return;
-            const valor = parseFloat(saldoReal);
-            if(isNaN(valor)) { showToast('Valor invalido'); return; }
-            const saldoAtual = conta.saldo || 0;
-            const diferenca = valor - saldoAtual;
-            if(Math.abs(diferenca) < 0.01) { showToast('Saldos ja estao sincronizados'); return; }
-            state.financas.transacoes.push({ id:Date.now(), data:new Date().toISOString().split('T')[0], valor:Math.abs(diferenca), tipo:diferenca > 0 ? 'receita' : 'despesa', status:'efetivada', cat:'Ajuste de Saldo', conta:conta.nome, destino:'', fixa:false });
-            conta.saldo = valor;
-            saveDataToCloud(); updateUI(); showToast('Saldo ajustado');
+            
+            let saldoAtualApp = 0;
+            state.financas.transacoes.forEach(t => { 
+                if((t.status === 'efetivada' || t.status === 'fatura_paga') && (t.conta === conta.nome || t.destino === conta.nome)) {
+                    if(t.conta === conta.nome && (t.tipo === 'despesa' || t.tipo === 'pagamento_cartao' || t.tipo === 'transferencia')) saldoAtualApp -= t.valor;
+                    if(t.conta === conta.nome && t.tipo === 'receita') saldoAtualApp += t.valor;
+                    if(t.destino === conta.nome && t.tipo === 'transferencia') saldoAtualApp += t.valor;
+                }
+            });
+
+            const inputReal = prompt(`SALDO ATUAL NO APP: R$ ${saldoAtualApp.toFixed(2)}\n\nDigite o saldo EXATO que está no aplicativo do banco agora para a conta ${conta.nome}:`);
+            if(!inputReal || isNaN(inputReal.replace(',','.'))) return;
+            
+            const saldoReal = parseFloat(inputReal.replace(',','.'));
+            const diferenca = saldoReal - saldoAtualApp;
+            
+            if(Math.abs(diferenca) < 0.01) { showToast("Saldo já está batendo!"); return; }
+
+            const tipoAjuste = diferenca > 0 ? 'receita' : 'despesa';
+            state.financas.transacoes.push({ id: Date.now(), data: new Date().toISOString().split('T')[0], valor: Math.abs(diferenca), tipo: tipoAjuste, status: 'efetivada', cat: 'Ajuste de Saldo', conta: conta.nome, destino: '' });
+            saveDataToCloud(); updateUI(); showToast("Caixa ajustado com sucesso!");
         }
 
-        // ATUALIZAÇÃO: Renderiza a lista de contas mostrando o Tipo (Comum/Investimento)
+        window.verificarPrevisaoDetran = function() {
+            if(!state.veiculo.placaFinal || state.veiculo.placaFinal === '') return;
+            const anoAtual = new Date().getFullYear();
+            const calcMes = parseInt(state.veiculo.placaFinal); // Regra simplificada CE
+            const mesLicenciamento = calcMes === 0 ? 12 : calcMes + 2; 
+            
+            const jaPreviu = state.financas.transacoes.find(t => t.cat === 'Licenciamento/IPVA' && t.data.startsWith(anoAtual.toString()));
+            if(!jaPreviu) {
+                const dataPrevista = `${anoAtual}-${mesLicenciamento.toString().padStart(2, '0')}-10`;
+                state.financas.transacoes.push({ id: Date.now(), data: dataPrevista, valor: 350.00, tipo: 'despesa', status: 'previsivel', cat: 'Licenciamento/IPVA', conta: state.usuario.contas[0]?.nome || 'Carteira', destino: '' });
+                saveDataToCloud();
+            }
+        }
+
+        window.calcularValorTanqueCheio = function() {
+            const abastecimentosCheios = state.veiculo.historico.filter(h => h.tipo === 'abastecimento' && h.tanqueCheio === true);
+            if(abastecimentosCheios.length === 0) return 70.00; // Média inicial estimada para Fazer 250
+            const total = abastecimentosCheios.reduce((acc, curr) => acc + curr.total, 0);
+            return total / abastecimentosCheios.length;
+        }
+
+        window.confirmarImpulso = function(vaiComprar) {
+            if(!pendingTransaction) return;
+            if(vaiComprar) {
+                state.financas.transacoes.push(pendingTransaction);
+                showToast("Lançamento realizado!");
+            } else {
+                const metaId = document.getElementById('impulso-meta-select').value;
+                if(metaId && state.financas.metas.length > 0) {
+                    const idx = state.financas.metas.findIndex(m => m.id.toString() === metaId);
+                    if(idx > -1) {
+                        state.financas.metas[idx].reservado += pendingTransaction.valor;
+                        pendingTransaction.cat = 'Aporte Meta: ' + state.financas.metas[idx].nome;
+                        state.financas.transacoes.push(pendingTransaction);
+                        showToast(`R$ ${pendingTransaction.valor.toFixed(2)} salvos para sua meta!`);
+                    }
+                } else {
+                    showToast("Compra evitada. Dinheiro mantido!");
+                }
+            }
+            pendingTransaction = null;
+            saveDataToCloud(); closeAllOverlays(); updateUI();
+        }
+
+        // ATUALIZAÇÃO: Renderiza a lista de contas mostrando o Tipo (Comum/Investimento) e Cadeado
         function renderFinSettings() {
             document.getElementById('list-contas').innerHTML = state.usuario.contas.map(c => `
-                <div class="flex justify-between items-center bg-black/20 p-3 rounded-xl border border-white/5">
-                    <div class="flex flex-col justify-center"><span class="text-xs font-bold block">${c.nome}</span><span class="text-[8px] text-gray-500 uppercase font-bold tracking-widest mt-0.5">${c.tipo || 'Conta Comum'}</span></div>
+                <div class="flex justify-between items-center bg-black/20 p-3 rounded-xl border ${c.somaSaldo === false ? 'border-purple-500/30 bg-purple-500/5' : 'border-white/5'}">
+                    <div class="flex flex-col justify-center">
+                        <span class="text-xs font-bold flex items-center gap-1">${c.nome} ${c.somaSaldo === false ? '<i data-lucide="lock" class="w-3 h-3 text-purple-400"></i>' : ''}</span>
+                        <span class="text-[8px] text-gray-500 uppercase font-bold tracking-widest mt-0.5">${c.tipo || 'Conta Comum'}</span>
+                    </div>
                     <div class="flex items-center space-x-3">
-                        <label class="flex items-center space-x-1.5 cursor-pointer"><input type="checkbox" onchange="toggleSomaSaldo('${c.id}')" ${c.somaSaldo !== false ? 'checked' : ''} class="w-3 h-3 accent-blue-500"><span class="text-[8px] text-gray-500 uppercase font-bold tracking-widest leading-none">Somar</span></label>
-                        <label class="flex items-center space-x-1.5 cursor-pointer"><input type="checkbox" onchange="toggleCadeado('${c.id}')" ${c.cadeado ? 'checked' : ''} class="w-3 h-3 accent-yellow-500"><span class="text-[8px] text-gray-500 uppercase font-bold tracking-widest leading-none">Blindar</span></label>
+                        <button onclick="ajustarSaldoConta('${c.id}')" title="Ajustar Saldo (Pânico)" class="p-1.5 bg-blue-500/10 rounded-lg active:scale-90 transition-all"><i data-lucide="target" class="w-4 h-4 text-blue-400"></i></button>
+                        <button onclick="toggleSomaSaldo('${c.id}')" title="Blindar/Desblindar" class="p-1.5 ${c.somaSaldo === false ? 'bg-purple-500/20' : 'bg-gray-800'} rounded-lg active:scale-90 transition-all"><i data-lucide="${c.somaSaldo === false ? 'lock' : 'unlock'}" class="w-4 h-4 ${c.somaSaldo === false ? 'text-purple-400' : 'text-gray-500'}"></i></button>
                         <div class="w-px h-4 bg-gray-700 mx-1"></div>
-                        ${c.protected ? '<i data-lucide="lock" class="w-4 h-4 text-gray-600"></i>' : `<button onclick="editFinItem('conta', '${c.id}')"><i data-lucide="edit-2" class="w-4 h-4 text-blue-400 hover:text-white transition-colors"></i></button><button onclick="deleteFinItem('conta', '${c.id}')"><i data-lucide="trash-2" class="w-4 h-4 text-red-500/50 hover:text-red-500 transition-colors"></i></button>`}
+                        ${c.protected ? '<i data-lucide="shield" class="w-4 h-4 text-gray-600"></i>' : `<button onclick="editFinItem('conta', '${c.id}')"><i data-lucide="edit-2" class="w-4 h-4 text-blue-400 hover:text-white transition-colors"></i></button><button onclick="deleteFinItem('conta', '${c.id}')"><i data-lucide="trash-2" class="w-4 h-4 text-red-500/50 hover:text-red-500 transition-colors"></i></button>`}
                     </div>
                 </div>`).join('');
 
@@ -1516,7 +1569,7 @@
                 const tipo = tipoEl ? tipoEl.value : 'Conta Comum';
                 const saldo = saldoEl ? parseFloat(saldoEl.value) || 0 : 0;
 
-                state.usuario.contas.push({id: Date.now().toString(), nome: nome, tipo: tipo, protected: false, somaSaldo: true, cadeado: false, saldo: saldo});
+                state.usuario.contas.push({id: Date.now().toString(), nome: nome, tipo: tipo, protected: false, somaSaldo: true});
 
                 // Cria lançamento automático caso tenha saldo informado
                 if (saldo !== 0) {
@@ -1564,7 +1617,6 @@
                     <div class="w-full bg-gray-800 h-1.5 rounded-full overflow-hidden"><div class="${isComplete ? 'bg-green-500' : 'bg-purple-500'} h-full transition-all duration-700" style="width: ${perc}%"></div></div>
                 </div>`;
             }).join('');
-            refreshIcons();
         }
 
         function openMetaModal() {
@@ -1599,7 +1651,6 @@
             let options = '';
             if (type === 'all' || type === 'contas') options += state.usuario.contas.map(a => `<option value="${a.nome}">🏦 ${a.nome}</option>`).join('');
             if (type === 'all' || type === 'cartoes') options += state.financas.cartoes.map(c => `<option value="${c.nome}">💳 Cartão ${c.nome} (${c.bandeira || 'MASTERCARD'})</option>`).join('');
-
             return options;
         }
 
@@ -1610,13 +1661,19 @@
             document.getElementById('btn-tt-transf').className = t === 'transferencia' ? 'flex-1 py-2 text-[10px] font-bold rounded-lg bg-blue-500/20 text-blue-400' : 'flex-1 py-2 text-[10px] font-bold rounded-lg text-gray-500 hover:text-white';
             
             const transDestContainer = document.getElementById('trans-dest-container'); const transCatStatusContainer = document.getElementById('trans-cat-status-container'); const accSelect = document.getElementById('trans-acc-select');
+            const impulsoContainer = document.getElementById('trans-impulso-container');
             
             if (t === 'transferencia') {
                 transDestContainer.classList.remove('hidden'); transCatStatusContainer.classList.add('hidden');
+                if(impulsoContainer) { impulsoContainer.classList.add('hidden'); document.getElementById('trans-impulso-check').checked = false; }
                 document.getElementById('trans-title').innerText = 'Nova Transferência'; document.getElementById('trans-acc-label').innerText = 'Conta Origem';
                 accSelect.innerHTML = getFinSelectOptions('contas'); document.getElementById('trans-dest-select').innerHTML = getFinSelectOptions('all');
             } else {
                 transDestContainer.classList.add('hidden'); transCatStatusContainer.classList.remove('hidden');
+                if(impulsoContainer) {
+                    if(t === 'despesa') impulsoContainer.classList.remove('hidden');
+                    else { impulsoContainer.classList.add('hidden'); document.getElementById('trans-impulso-check').checked = false; }
+                }
                 document.getElementById('trans-title').innerText = t === 'despesa' ? 'Nova Despesa' : 'Nova Receita'; document.getElementById('trans-acc-label').innerText = 'Conta / Cartão';
                 const cats = t === 'receita' ? state.usuario.categorias_receita : state.usuario.categorias_despesa;
                 document.getElementById('trans-cat-select').innerHTML = cats.map(c => `<option value="${c.nome}">${c.nome}</option>`).join('');
@@ -1639,6 +1696,7 @@
             toggleOverlay('transaction');
         }
 
+        // ATUALIZADO V04: Interceptar compra por impulso
         function saveTransaction() {
             const v = parseFloat(document.getElementById('trans-val-input').value);
             const d = document.getElementById('trans-date-input').value;
@@ -1647,15 +1705,7 @@
 
             if(!v || !d) return;
 
-            if(type === 'despesa' && state.usuario.salario > 0) {
-                const horasTrabalhadas = (v / (state.usuario.salario / 160)).toFixed(1);
-                const tanksConsumidos = (v / 50).toFixed(2);
-                let msg = 'Voce vai gastar ' + horasTrabalhadas + ' horas de trabalho';
-                if(!confirm(msg + '. Tem certeza?')) return;
-            }
-
             let c = '', destino = '', status = state.financas.temp.status;
-            
             const isCard = state.financas.cartoes.some(card => card.nome === a);
 
             if (type === 'transferencia') {
@@ -1663,33 +1713,42 @@
                 if (a === destino) { showToast("Contas iguais não permitido."); return; }
             } else {
                 c = document.getElementById('trans-cat-select').value;
-                if (isCard && type === 'despesa') {
-                    status = 'efetivada';
-                }
+                if (isCard && type === 'despesa') status = 'efetivada';
             }
 
             const amigo = document.getElementById('trans-amigo-input')?.value.trim();
-            
+            const transObj = { id:Date.now(), data:d, valor:v, tipo:type, status:status, cat:c, conta:a, destino:destino };
+
             if(state.editingId) { 
                 const idx = state.financas.transacoes.findIndex(x => x.id === state.editingId); 
-                if(idx !== -1) { state.financas.transacoes[idx] = {...state.financas.transacoes[idx], valor:v, data:d, cat:c, conta:a, destino:destino, tipo:type, status:status}; }
+                if(idx !== -1) state.financas.transacoes[idx] = {...state.financas.transacoes[idx], valor:v, data:d, cat:c, conta:a, destino:destino, tipo:type, status:status}; 
+                saveDataToCloud(); closeAllOverlays(); updateUI(); showToast("Lançamento atualizado!");
             } else { 
-                const fixa = state.financas.temp.fixa || false;
-                state.financas.transacoes.push({ id:Date.now(), data:d, valor:v, tipo:type, status:status, cat:c, conta:a, destino:destino, fixa:fixa }); 
-                if(fixa && type !== 'transferencia') {
-                    const baseDate = new Date(d);
-                    for(let i = 1; i <= 12; i++) {
-                        const nextDate = new Date(baseDate);
-                        nextDate.setMonth(nextDate.getMonth() + i);
-                        const nextDateStr = nextDate.toISOString().split('T')[0];
-                        state.financas.transacoes.push({ id:Date.now() + i, data:nextDateStr, valor:v, tipo:type, status:'PREVISTA', cat:c, conta:a, destino:destino, fixa:fixa });
-                    }
+                // V04: Interceptador de Impulso
+                const isImpulso = document.getElementById('trans-impulso-check')?.checked;
+                if (isImpulso && type === 'despesa') {
+                    pendingTransaction = transObj;
+                    const taxaHora = 4000 / 220; // R$ 18,18 por hora base Fortaleza
+                    const valTanque = calcularValorTanqueCheio();
+                    document.getElementById('impulso-horas').innerText = (v / taxaHora).toFixed(1);
+                    document.getElementById('impulso-tanques').innerText = (v / valTanque).toFixed(1);
+                    
+                    const metaSelect = document.getElementById('impulso-meta-select');
+                    metaSelect.innerHTML = state.financas.metas.length > 0 
+                        ? state.financas.metas.map(m => `<option value="${m.id}">${m.nome}</option>`).join('') 
+                        : '<option value="">(Nenhuma meta cadastrada)</option>';
+                    
+                    document.getElementById('overlay-transaction').classList.remove('active');
+                    setTimeout(() => toggleOverlay('filtro-impulso'), 50);
+                    return;
                 }
+
+                state.financas.transacoes.push(transObj); 
                 if (amigo && amigo.startsWith('@') && type !== 'transferencia') {
                     state.notificacoes.unshift({ titulo: 'Transação Dividida', msg: `Você marcou ${amigo} na transação de ${c}.`, data: new Date().toISOString() });
                 }
+                saveDataToCloud(); closeAllOverlays(); updateUI(); showToast("Lançamento realizado!");
             }
-            saveDataToCloud(); closeAllOverlays(); updateUI(); showToast("Lançamento realizado!");
         }
 
         function setTransState(p, v) { 
@@ -1787,36 +1846,24 @@
             const accs = getFinSelectOptions('all'); document.getElementById('input-fuel-acc').innerHTML = accs; document.getElementById('input-svc-acc').innerHTML = accs;
         }
 
-        function openTributosModal() {
-            const tipo = prompt('Tipo de tributo (IPVA/Licenciamento):');
-            if(!tipo) return;
-            const mes = prompt('Mes (1-12):');
-            if(!mes || isNaN(mes) || mes < 1 || mes > 12) return;
-            const valor = prompt('Valor do tributo:');
-            if(!valor || isNaN(valor)) return;
-            const ano = new Date().getFullYear();
-            const data = ano + '-' + String(mes).padStart(2, '0') + '-01';
-            state.veiculo.tributos.push({ id:Date.now(), tipo:tipo, data:data, valor:parseFloat(valor), status:'PREVISTA' });
-            state.financas.transacoes.push({ id:Date.now() + 1, data:data, valor:parseFloat(valor), tipo:'despesa', status:'PREVISTA', cat:tipo + ' - ' + state.veiculo.nome, conta:'', destino:'', fixa:false });
-            saveDataToCloud(); updateUI(); showToast('Tributo adicionado');
-        }
-
         function openVehModal(t, id = null) {
             state.editingVehId = id; populateVehAccSelects();
             if(t === 'abastecer') {
                 if(id) { 
                     const h = state.veiculo.historico.find(x => x.id === id); 
-                    document.getElementById('input-fuel-price').value = (h.total / h.liters).toFixed(2); document.getElementById('input-fuel-liters').value = h.liters; document.getElementById('input-fuel-total').value = h.total; document.getElementById('input-fuel-km').value = h.km; document.getElementById('input-fuel-data').value = h.data || new Date().toISOString().split('T')[0]; document.getElementById('input-fuel-hora').value = h.hora || new Date().toTimeString().slice(0, 5); document.getElementById('input-fuel-tipo').value = h.combustivel || 'Gasolina Comum'; if(h.conta) document.getElementById('input-fuel-acc').value = h.conta;
+                    document.getElementById('input-fuel-price').value = (h.total / h.liters).toFixed(2); document.getElementById('input-fuel-liters').value = h.liters; document.getElementById('input-fuel-total').value = h.total; document.getElementById('input-fuel-km').value = h.km; if(h.conta) document.getElementById('input-fuel-acc').value = h.conta;
+                    document.getElementById('input-fuel-full').checked = h.tanqueCheio || false;
                 } else { 
-                    document.getElementById('input-fuel-price').value = ''; document.getElementById('input-fuel-liters').value = ''; document.getElementById('input-fuel-total').value = ''; document.getElementById('input-fuel-km').value = state.veiculo.hodometro; document.getElementById('input-fuel-data').value = new Date().toISOString().split('T')[0]; document.getElementById('input-fuel-hora').value = new Date().toTimeString().slice(0, 5); document.getElementById('input-fuel-tipo').value = 'Gasolina Comum';
+                    document.getElementById('input-fuel-price').value = ''; document.getElementById('input-fuel-liters').value = ''; document.getElementById('input-fuel-total').value = ''; document.getElementById('input-fuel-km').value = state.veiculo.hodometro; 
+                    document.getElementById('input-fuel-full').checked = true;
                 }
                 toggleOverlay('veh-abastecer');
             } else if (t === 'servico') {
                 if(id) { 
                     const h = state.veiculo.historico.find(x => x.id === id); 
-                    document.getElementById('input-svc-name').value = h.nome; document.getElementById('input-svc-val').value = h.valor; document.getElementById('input-svc-km').value = h.km; document.getElementById('input-svc-data').value = h.data || new Date().toISOString().split('T')[0]; document.getElementById('input-svc-hora').value = h.hora || new Date().toTimeString().slice(0, 5); document.getElementById('input-svc-isoil').checked = h.isOil; if(h.conta) document.getElementById('input-svc-acc').value = h.conta;
+                    document.getElementById('input-svc-name').value = h.nome; document.getElementById('input-svc-val').value = h.valor; document.getElementById('input-svc-km').value = h.km; document.getElementById('input-svc-isoil').checked = h.isOil; if(h.conta) document.getElementById('input-svc-acc').value = h.conta;
                 } else { 
-                    document.getElementById('input-svc-name').value = ''; document.getElementById('input-svc-val').value = ''; document.getElementById('input-svc-km').value = state.veiculo.hodometro; document.getElementById('input-svc-isoil').checked = false; document.getElementById('input-svc-data').value = new Date().toISOString().split('T')[0]; document.getElementById('input-svc-hora').value = new Date().toTimeString().slice(0, 5);
+                    document.getElementById('input-svc-name').value = ''; document.getElementById('input-svc-val').value = ''; document.getElementById('input-svc-km').value = state.veiculo.hodometro; document.getElementById('input-svc-isoil').checked = false; 
                 }
                 toggleOverlay('veh-servico');
 
@@ -1826,7 +1873,6 @@
                     const h = state.veiculo.historico.find(x => x.id === id);
                     document.getElementById('input-rota-km').value = h.km;
                     document.getElementById('input-rota-data').value = h.data;
-                    document.getElementById('input-rota-hora').value = h.hora || new Date().toTimeString().slice(0, 5);
                     document.getElementById('input-rota-origem').value = h.origem || '';
                     document.getElementById('input-rota-destino').value = h.destino || '';
                     document.getElementById('input-rota-motivo').value = h.motivo || 'Dia a Dia';
@@ -1835,7 +1881,6 @@
                     // MODO NOVO: Limpa os campos
                     document.getElementById('input-rota-km').value = ''; 
                     document.getElementById('input-rota-data').value = new Date().toISOString().split('T')[0]; 
-                    document.getElementById('input-rota-hora').value = new Date().toTimeString().slice(0, 5);
                     document.getElementById('input-rota-origem').value = ''; 
                     document.getElementById('input-rota-destino').value = ''; 
                     document.getElementById('input-rota-motivo').value = 'Dia a Dia'; 
@@ -1860,7 +1905,6 @@
             try {
                 const km = parseInt(document.getElementById('input-rota-km').value);
                 const dataRota = document.getElementById('input-rota-data').value || new Date().toISOString().split('T')[0];
-                const horaRota = document.getElementById('input-rota-hora').value || new Date().toTimeString().slice(0, 5);
                 const origem = document.getElementById('input-rota-origem').value.trim();
                 const destino = document.getElementById('input-rota-destino').value.trim();
                 const motivo = document.getElementById('input-rota-motivo').value;
@@ -1873,7 +1917,6 @@
                     if(idx > -1) {
                         state.veiculo.historico[idx].km = km;
                         state.veiculo.historico[idx].data = dataRota;
-                        state.veiculo.historico[idx].hora = horaRota;
                         state.veiculo.historico[idx].origem = origem;
                         state.veiculo.historico[idx].destino = destino;
                         state.veiculo.historico[idx].motivo = motivo;
@@ -1884,7 +1927,7 @@
                     // CRIANDO NOVA ROTA
                     if (km <= state.veiculo.hodometro) { showToast("O hodômetro deve ser maior que o atual."); return; }
                     const dist = km - state.veiculo.hodometro;
-                    const item = { id: Date.now(), tipo: 'rota', data: dataRota, hora: horaRota, km: km, distancia: dist, origem: origem, destino: destino, motivo: motivo };
+                    const item = { id: Date.now(), tipo: 'rota', data: dataRota, km: km, distancia: dist, origem: origem, destino: destino, motivo: motivo };
                     state.veiculo.historico.unshift(item); 
                     state.veiculo.hodometro = km;
                     showToast("Rota de " + dist + "km registrada!");
@@ -1900,14 +1943,17 @@
             else if (trig === 'total') { if (t && p) document.getElementById('input-fuel-liters').value = (t / p).toFixed(2); else if (t && l) document.getElementById('input-fuel-price').value = (t / l).toFixed(2); }
         }
 
+        // ATUALIZADO V04: Checkbox de tanque cheio no save
         function saveRefueling() {
             try {
-                const kmInput = parseInt(document.getElementById('input-fuel-km').value); const km = !isNaN(kmInput) ? kmInput : state.veiculo.hodometro; const t = parseFloat(document.getElementById('input-fuel-total').value) || 0; const l = parseFloat(document.getElementById('input-fuel-liters').value) || 0; const acc = document.getElementById('input-fuel-acc').value; const dataFuel = document.getElementById('input-fuel-data').value || new Date().toISOString().split('T')[0]; const horaFuel = document.getElementById('input-fuel-hora').value || new Date().toTimeString().slice(0, 5); const tipoFuel = document.getElementById('input-fuel-tipo').value || 'Gasolina Comum';
+                const kmInput = parseInt(document.getElementById('input-fuel-km').value); const km = !isNaN(kmInput) ? kmInput : state.veiculo.hodometro; const t = parseFloat(document.getElementById('input-fuel-total').value) || 0; const l = parseFloat(document.getElementById('input-fuel-liters').value) || 0; const acc = document.getElementById('input-fuel-acc').value;
                 if(!km || !t || !l) { showToast("Preencha KM, Total e Litros."); return; }
                 
                 const newId = state.editingVehId || Date.now(); let med = 29.0; const last = state.veiculo.historico.find(h => h.tipo === 'abastecimento' && h.id !== newId);
                 if(last && km > last.km && l > 0) med = (km - last.km) / l;
-                const item = { id: newId, tipo: 'abastecimento', data: dataFuel, hora: horaFuel, combustivel: tipoFuel, km, total: t, litros: l, media: med, conta: acc };
+                
+                const isFull = document.getElementById('input-fuel-full')?.checked || false;
+                const item = { id: newId, tipo: 'abastecimento', data: new Date().toISOString().split('T')[0], km, total: t, litros: l, media: med, conta: acc, tanqueCheio: isFull };
                 
                 if(state.editingVehId) { 
                     const idx = state.veiculo.historico.findIndex(x => x.id === newId); if (idx > -1) state.veiculo.historico[idx] = item; 
@@ -1924,9 +1970,9 @@
 
         function saveService() {
             try {
-                const n = document.getElementById('input-svc-name').value; const v = parseFloat(document.getElementById('input-svc-val').value) || 0; const kmInput = parseInt(document.getElementById('input-svc-km').value); const k = !isNaN(kmInput) ? kmInput : state.veiculo.hodometro; const o = document.getElementById('input-svc-isoil').checked; const acc = document.getElementById('input-svc-acc').value; const dataSvc = document.getElementById('input-svc-data').value || new Date().toISOString().split('T')[0]; const horaSvc = document.getElementById('input-svc-hora').value || new Date().toTimeString().slice(0, 5);
+                const n = document.getElementById('input-svc-name').value; const v = parseFloat(document.getElementById('input-svc-val').value) || 0; const kmInput = parseInt(document.getElementById('input-svc-km').value); const k = !isNaN(kmInput) ? kmInput : state.veiculo.hodometro; const o = document.getElementById('input-svc-isoil').checked; const acc = document.getElementById('input-svc-acc').value;
                 if(!n) { showToast("Preencha a descrição."); return; }
-                const newId = state.editingVehId || Date.now(); const item = { id: newId, tipo: 'servico', data: dataSvc, hora: horaSvc, km: k, nome: n, valor: v, isOil: o, conta: acc };
+                const newId = state.editingVehId || Date.now(); const item = { id: newId, tipo: 'servico', data: new Date().toISOString().split('T')[0], km: k, nome: n, valor: v, isOil: o, conta: acc };
                 
                 if(state.editingVehId) { 
                     const idx = state.veiculo.historico.findIndex(x => x.id === newId); if(idx > -1) state.veiculo.historico[idx] = item; 
@@ -1942,7 +1988,15 @@
         }
 
         function deleteVehActivity(id) { state.veiculo.historico = state.veiculo.historico.filter(x => x.id !== id); state.financas.transacoes = state.financas.transacoes.filter(x => x.refId !== id); saveDataToCloud(); updateUI(); }
-        function saveVehSettings() { state.veiculo.nome = document.getElementById('input-veh-name').value; state.veiculo.oleoIntervalo = parseInt(document.getElementById('input-veh-oil-interval').value) || 3000; saveDataToCloud(); closeAllOverlays(); updateUI(); }
+        
+        // ATUALIZADO V04: Salva a placa final
+        function saveVehSettings() { 
+            state.veiculo.nome = document.getElementById('input-veh-name').value; 
+            state.veiculo.oleoIntervalo = parseInt(document.getElementById('input-veh-oil-interval').value) || 3000; 
+            state.veiculo.placaFinal = document.getElementById('input-veh-plate').value;
+            saveDataToCloud(); closeAllOverlays(); updateUI(); 
+        }
+
         function setVehType(t) { 
             state.veiculo.tipo = t; 
             document.getElementById('btn-type-moto').className = t === 'moto' ? 'flex-1 py-3 text-xs font-bold rounded-xl bg-orange-500 text-black transition-all shadow-[0_0_15px_rgba(249,115,22,0.3)]' : 'flex-1 py-3 text-xs font-bold rounded-xl bg-transparent text-gray-400 transition-all';
@@ -1984,8 +2038,6 @@
         function renderProfileForm() {
             tempAvatar = state.usuario.avatarUrl || null; updateAvatarPreviewUI();
             document.getElementById('prof-first-name').value = state.usuario.firstName; document.getElementById('prof-last-name').value = state.usuario.lastName; document.getElementById('prof-username').value = state.usuario.username; document.getElementById('prof-birth-date').value = state.usuario.birthDate; document.getElementById('prof-weight').value = state.usuario.peso; document.getElementById('prof-water-goal').value = state.saude.aguaMeta; document.getElementById('prof-caf-goal').value = state.saude.cafeinaMeta;
-            if(document.getElementById('prof-salary')) document.getElementById('prof-salary').value = state.usuario.salario;
-            if(document.getElementById('prof-impulso-view')) document.getElementById('prof-impulso-view').value = state.usuario.visaoImpulso;
             renderFinSettings(); refreshIcons();
         }
 
@@ -2023,8 +2075,6 @@
 
         function saveProfile() {
             state.usuario.firstName = document.getElementById('prof-first-name').value; state.usuario.lastName = document.getElementById('prof-last-name').value; state.usuario.username = document.getElementById('prof-username').value; state.usuario.birthDate = document.getElementById('prof-birth-date').value; state.usuario.peso = parseFloat(document.getElementById('prof-weight').value) || 0; state.usuario.avatarUrl = tempAvatar;
-            if(document.getElementById('prof-salary')) state.usuario.salario = parseFloat(document.getElementById('prof-salary').value) || 0;
-            if(document.getElementById('prof-impulso-view')) state.usuario.visaoImpulso = document.getElementById('prof-impulso-view').value;
             const birth = new Date(state.usuario.birthDate); const today = new Date(); let age = today.getFullYear() - birth.getFullYear(); if (today.getMonth() < birth.getMonth() || (today.getMonth() === birth.getMonth() && today.getDate() < birth.getDate())) age--; state.usuario.idade = age;
             state.saude.aguaMeta = parseFloat(document.getElementById('prof-water-goal').value) || (state.usuario.peso * 35); state.saude.cafeinaMeta = parseFloat(document.getElementById('prof-caf-goal').value) || 400;
             saveDataToCloud(); closeAllOverlays(); updateUI();
@@ -2068,13 +2118,13 @@
             document.querySelectorAll('.ring-agua-path').forEach(rA => { rA.style.strokeDashoffset = 301.6 - (Math.min(aP, 100)/100 * 301.6); }); document.querySelectorAll('.ring-cafeina-path').forEach(rC => { rC.style.strokeDashoffset = 301.6 - (Math.min(s.cafe/state.saude.cafeinaMeta, 1) * 301.6); });
             document.querySelectorAll('.saude-agua-perc').forEach(el => el.innerText = Math.round(aP) + '%'); document.querySelectorAll('.saude-cafe-valor').forEach(el => el.innerText = s.cafe); document.querySelectorAll('.val-agua-meta-litros').forEach(el => el.innerText = (state.saude.aguaMeta/1000).toFixed(1));
 
-            let saldo = 0, saldoProtegido = 0, recM = 0, desM = 0; const now = new Date(); const contasSoma = state.usuario.contas.filter(c => c.somaSaldo !== false && !c.cadeado).map(c => c.nome); const contasProtegidas = state.usuario.contas.filter(c => c.cadeado).map(c => c.nome);
+            let saldo = 0, recM = 0, desM = 0; const now = new Date(); const contasSoma = state.usuario.contas.filter(c => c.somaSaldo !== false).map(c => c.nome);
             state.financas.transacoes.forEach(t => { 
                 const td = new Date(t.data); const isThisMonth = td.getMonth() === now.getMonth() && td.getFullYear() === now.getFullYear(); const isEffective = t.status === 'efetivada' || t.status === 'fatura_paga';
-                if (t.tipo === 'receita' && isEffective) { if(contasSoma.includes(t.conta)) { saldo += t.valor; if(isThisMonth) recM += t.valor; } if(contasProtegidas.includes(t.conta)) saldoProtegido += t.valor; } 
-                else if (t.tipo === 'despesa' && isEffective) { if(contasSoma.includes(t.conta)) { saldo -= t.valor; if(isThisMonth) desM += t.valor; } if(contasProtegidas.includes(t.conta)) saldoProtegido -= t.valor; } 
-                else if (t.tipo === 'transferencia') { if(contasSoma.includes(t.conta)) saldo -= t.valor; if(contasSoma.includes(t.destino)) saldo += t.valor; if(contasProtegidas.includes(t.conta)) saldoProtegido -= t.valor; if(contasProtegidas.includes(t.destino)) saldoProtegido += t.valor; } 
-                else if (t.tipo === 'pagamento_cartao') { if(contasSoma.includes(t.conta)) { saldo -= t.valor; if(isThisMonth) desM += t.valor; } if(contasProtegidas.includes(t.conta)) saldoProtegido -= t.valor; }
+                if (t.tipo === 'receita' && isEffective) { if(contasSoma.includes(t.conta)) { saldo += t.valor; if(isThisMonth) recM += t.valor; } } 
+                else if (t.tipo === 'despesa' && isEffective) { if(contasSoma.includes(t.conta)) { saldo -= t.valor; if(isThisMonth) desM += t.valor; } } 
+                else if (t.tipo === 'transferencia') { if(contasSoma.includes(t.conta)) saldo -= t.valor; if(contasSoma.includes(t.destino)) saldo += t.valor; } 
+                else if (t.tipo === 'pagamento_cartao') { if(contasSoma.includes(t.conta)) { saldo -= t.valor; if(isThisMonth) desM += t.valor; } }
             });
 
             const setSensitiveVal = (selector, val) => {
@@ -2097,6 +2147,9 @@
 
             renderCards(); if(document.getElementById('overlay-card-details').classList.contains('active')) renderCardDetails();
             renderExtrato(); renderRecentTrans(); renderVehTimeline(); renderCalendar(); renderNotifs(); renderMetasList(); refreshIcons();
+            
+            // V04: Checagem da previsão de tributos do veículo
+            verificarPrevisaoDetran();
         }
 
         function renderCards() {
@@ -2109,7 +2162,6 @@
                     <div class="flex justify-between items-end mt-6"><div><span class="text-xs text-gray-500 block mb-1">Limite Disponível</span><span class="text-sm font-semibold text-green-400 sensitive-value" data-value="R$ ${(x.limite - f).toLocaleString('pt-BR', {minimumFractionDigits: 2})}">${state.blurred ? 'R$ •••••' : 'R$ ' + (x.limite - f).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span></div><span class="text-xs text-gray-500 font-mono tracking-widest">•••• 4321</span></div>
                 </div>`;
             }).join('') + `<div class="snap-center shrink-0 w-[30%] card rounded-3xl p-6 shadow-sm flex flex-col items-center justify-center border border-dashed border-gray-700 cursor-pointer hover:bg-gray-800 transition-colors" onclick="toggleOverlay('new-card')"><div class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 mb-2"><i data-lucide="plus" class="w-5 h-5"></i></div></div>`;
-            refreshIcons();
         }
 
         function renderTransItem(t) {
@@ -2132,42 +2184,27 @@
 
             const fil = state.financas.transacoes.filter(t => { const d = new Date(t.data); return d.getMonth() === m && d.getFullYear() === y; }).sort((a,b) => new Date(b.data) - new Date(a.data));
             document.getElementById('extrato-month-content').innerHTML = fil.length ? fil.map(t => renderTransItem(t)).join('') : '<p class="text-center text-gray-600 py-10 text-xs font-bold uppercase tracking-widest">Nenhuma transação no mês</p>';
-            refreshIcons();
         }
 
         function renderRecentTrans() {
             const sorted = [...state.financas.transacoes].sort((a,b) => new Date(b.data) - new Date(a.data)).slice(0, 3);
             document.getElementById('recent-trans-list').innerHTML = sorted.length ? sorted.map(t => renderTransItem(t)).join('') : '<p class="text-center text-gray-600 py-4 text-xs font-bold uppercase tracking-widest">Nenhuma atividade recente</p>';
-            refreshIcons();
         }
 
         function renderVehTimeline() {
-            const monthNames = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-            const m = state.vehHistoryMonth.getMonth(); const y = state.vehHistoryMonth.getFullYear();
-            document.getElementById('veh-month-display').innerText = monthNames[m];
-            let filtered = state.veiculo.historico.filter(h => { const d = new Date(h.data); return d.getMonth() === m && d.getFullYear() === y; });
-            if(state.vehHistoryFilter === 'fuel-maintenance') { filtered = filtered.filter(h => h.tipo === 'abastecimento' || h.tipo === 'servico'); } else if(state.vehHistoryFilter === 'rota') { filtered = filtered.filter(h => h.tipo === 'rota'); }
-            const itemsPerPage = 10; const totalPages = Math.ceil(filtered.length / itemsPerPage); const startIdx = (state.vehHistoryPage - 1) * itemsPerPage; const endIdx = startIdx + itemsPerPage; const pageItems = filtered.slice(startIdx, endIdx);
-            document.getElementById('veh-timeline').innerHTML = pageItems.map(h => {
+            document.getElementById('veh-timeline').innerHTML = state.veiculo.historico.map(h => {
                 let icon = 'wrench'; let colorClass = 'bg-blue-500/10 text-blue-500'; let title = h.nome; let valHtml = ''; let deleteBtn = `<button onclick="deleteVehActivity(${h.id})"><i data-lucide="trash-2" class="w-4 h-4 text-red-900/50 hover:text-red-500 transition-colors"></i></button>`; let editBtn = `<button onclick="openVehModal('servico', ${h.id})"><i data-lucide="edit-3" class="w-4 h-4 text-gray-600 hover:text-white transition-colors"></i></button>`;
                 if(h.tipo === 'abastecimento') {
-                    icon = 'fuel'; colorClass = 'bg-orange-500/10 text-orange-500'; title = `Abastecimento - ${h.combustivel || 'Gasolina Comum'}`; valHtml = `<div class="text-right"><p class="text-xs font-black">R$ ${h.total?.toFixed(2)}</p>${h.media ? `<p class="text-[9px] text-orange-400 font-bold font-mono">${h.media.toFixed(1)} km/l</p>` : ''}</div>`; editBtn = `<button onclick="openVehModal('abastecer', ${h.id})"><i data-lucide="edit-3" class="w-4 h-4 text-gray-600 hover:text-white transition-colors"></i></button>`;
+                    icon = 'fuel'; colorClass = 'bg-orange-500/10 text-orange-500'; title = 'Abastecer'; valHtml = `<div class="text-right"><p class="text-xs font-black">R$ ${h.total?.toFixed(2)}</p>${h.media ? `<p class="text-[9px] text-orange-400 font-bold font-mono">${h.media.toFixed(1)} km/l</p>` : ''}</div>`; editBtn = `<button onclick="openVehModal('abastecer', ${h.id})"><i data-lucide="edit-3" class="w-4 h-4 text-gray-600 hover:text-white transition-colors"></i></button>`;
                
                } else if(h.tipo === 'rota') {
                     icon = 'map-pin'; colorClass = 'bg-green-500/10 text-green-500'; title = h.motivo || 'Rota'; let subtitle = (h.origem || h.destino) ? `${h.origem || '?'} ➔ ${h.destino || '?'}` : 'Deslocamento'; valHtml = `<div class="text-right"><p class="text-xs font-black text-green-400">+ ${h.distancia} km</p></div>`; editBtn = `<button onclick="openVehModal('rota', ${h.id})"><i data-lucide="edit-3" class="w-4 h-4 text-gray-600 hover:text-white transition-colors"></i></button>`; 
                     return `<div class="card p-4 rounded-2xl border border-white/5 flex items-center justify-between"><div class="flex items-center space-x-3"><div class="w-8 h-8 rounded-lg ${colorClass} flex items-center justify-center"><i data-lucide="${icon}" class="w-4 h-4"></i></div><div><p class="text-xs font-bold uppercase">${title}</p><p class="text-[9px] text-gray-500 font-bold uppercase tracking-widest">${subtitle} • ${h.km} km</p></div></div><div class="flex items-center space-x-2">${valHtml}${editBtn}${deleteBtn}</div></div>`;
                     
                 } else { valHtml = `<div class="text-right"><p class="text-xs font-black">R$ ${h.valor?.toFixed(2)}</p></div>`; }
-                return `<div class="card p-4 rounded-2xl border border-white/5 flex items-center justify-between"><div class="flex items-center space-x-3"><div class="w-8 h-8 rounded-lg ${colorClass} flex items-center justify-center"><i data-lucide="${icon}" class="w-4 h-4"></i></div><div><p class="text-xs font-bold uppercase">${title}</p><p class="text-[9px] text-gray-500 font-bold uppercase tracking-widest">${new Date(h.data).toLocaleDateString('pt-BR')} - ${h.km} km</p>
-</div></div><div class="flex items-center space-x-2">${valHtml}${editBtn}${deleteBtn}</div></div>`;
+                return `<div class="card p-4 rounded-2xl border border-white/5 flex items-center justify-between"><div class="flex items-center space-x-3"><div class="w-8 h-8 rounded-lg ${colorClass} flex items-center justify-center"><i data-lucide="${icon}" class="w-4 h-4"></i></div><div><p class="text-xs font-bold uppercase">${title}</p><p class="text-[9px] text-gray-500 font-bold uppercase tracking-widest">${h.km} km</p></div></div><div class="flex items-center space-x-2">${valHtml}${editBtn}${deleteBtn}</div></div>`;
             }).join('');
-            document.getElementById('veh-pagination').innerHTML = totalPages > 1 ? Array.from({length: totalPages}, (_, i) => { const p = i + 1; return `<button onclick='setVehHistoryPage(${p})' class='text-[10px] font-bold ${p === state.vehHistoryPage ? "text-orange-500" : "text-gray-500 hover:text-white"} transition-colors'>${p}</button>`; }).join(' | ') : '';
         }
-
-        function setVehHistoryFilter(f) { state.vehHistoryFilter = f; state.vehHistoryPage = 1; document.getElementById('dot-fuel-maintenance').className = f === 'fuel-maintenance' ? 'w-2 h-2 rounded-full bg-orange-500 cursor-pointer' : 'w-2 h-2 rounded-full bg-gray-600 cursor-pointer'; document.getElementById('dot-rota').className = f === 'rota' ? 'w-2 h-2 rounded-full bg-green-500 cursor-pointer' : 'w-2 h-2 rounded-full bg-gray-600 cursor-pointer'; renderVehTimeline(); }
-        function setVehHistoryPage(p) { state.vehHistoryPage = p; renderVehTimeline(); }
-        function prevVehMonth() { state.vehHistoryMonth.setMonth(state.vehHistoryMonth.getMonth() - 1); state.vehHistoryPage = 1; renderVehTimeline(); }
-        function nextVehMonth() { state.vehHistoryMonth.setMonth(state.vehHistoryMonth.getMonth() + 1); state.vehHistoryPage = 1; renderVehTimeline(); }
 
         function renderCalendar() {
             const grid = document.getElementById('calendar-grid'); const headers = Array.from(grid.children).slice(0, 7); grid.innerHTML = ''; headers.forEach(h => grid.appendChild(h));
@@ -2186,7 +2223,6 @@
             const b = document.getElementById('notif-badge');
             if(state.notificacoes.length > 0) { b.classList.remove('hidden'); document.getElementById('notif-list').innerHTML = state.notificacoes.map(n => `<div class="bg-white/5 p-4 rounded-2xl border border-white/5"><p class="text-sm font-bold text-[#38bdf8] uppercase tracking-widest">${n.titulo}</p><p class="text-xs text-gray-400 mt-1">${n.msg}</p></div>`).join(''); }
             else { b.classList.add('hidden'); document.getElementById('notif-list').innerHTML = '<p class="text-center text-gray-600 py-10 font-bold uppercase text-[10px]">Sem alertas no momento</p>'; }
-            refreshIcons();
         }
 
         function initCharts() {
@@ -2239,8 +2275,8 @@
             catChartInstance = new Chart(ctxCat, { type: 'doughnut', data: { labels: labels.length ? labels : ['Nenhum Gasto'], datasets: [{ data: data.length ? data : [1], backgroundColor: data.length ? bgColors : ['#374151'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '75%', plugins: { legend: { display: true, position: 'right', labels: { color: '#e5e7eb', font: {size: 10}, padding: 15 } } } } });
         }
 
-        function changeMonth(s) { state.viewDate.setMonth(state.viewDate.getMonth()+s); renderCalendar(); refreshIcons(); }
-        function changeExtratoMonth(s) { state.extratoDate.setMonth(state.extratoDate.getMonth()+s); renderExtrato(); refreshIcons(); }
+        function changeMonth(s) { state.viewDate.setMonth(state.viewDate.getMonth()+s); renderCalendar(); }
+        function changeExtratoMonth(s) { state.extratoDate.setMonth(state.extratoDate.getMonth()+s); renderExtrato(); }
         
         function toggleVisibility() { 
             state.blurred = !state.blurred; 
