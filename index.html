@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mu Finance v04.06</title>
+    <title>Mu Finance v04.07</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -1179,7 +1179,14 @@
         return map[catName] || (type === 'receita' ? 'trending-up' : 'shopping-bag');
     }
 
-    function refreshIcons() { if (window.lucide) lucide.createIcons(); }
+    // Melhorei a resiliência do refresh de ícones
+    function refreshIcons() { 
+        if (window.lucide) {
+            setTimeout(() => {
+                lucide.createIcons();
+            }, 50); 
+        }
+    }
 
     function showToast(msg) {
         const toast = document.createElement('div');
@@ -1748,7 +1755,7 @@
         renderExtrato();
         renderVehTimeline();
         renderCalendar();
-        renderMetMetasList(); // Restaurado
+        renderMetMetasList(); 
         refreshIcons();
     }
 
@@ -1816,7 +1823,6 @@
     }
 
     window.onload = () => { initializeAuthListener(); };
-</script>
-    
+</script>    
 </body>
 </html>
