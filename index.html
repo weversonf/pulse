@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mu Finance v04.03</title>
+    <title>Mu Finance v04.04</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -1159,7 +1159,7 @@
         notificacoes: []
     };
 
-    // 👉 UTILITÁRIOS DE INTERFACE
+    // 👉 UTILITÁRIOS DE INTERFACE E ÍCONES
     function getCategoryIcon(catName, type) {
         const map = {
             'Alimentação': 'utensils',
@@ -1209,11 +1209,7 @@
         else if (type === 'veh') openVehModal('abastecer');
     }
 
-    document.addEventListener('click', function(e) {
-        const fab = document.getElementById('fab-container');
-        if (fab && fab.classList.contains('active') && !fab.contains(e.target)) fab.classList.remove('active');
-    });
-
+    // 👉 NAVEGAÇÃO E OVERLAYS
     function navigate(navId, pageId, title) {
         document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
         document.getElementById(pageId).classList.remove('hidden');
@@ -1301,9 +1297,33 @@
         catch (e) { document.getElementById('login-error').innerText = "Credenciais inválidas."; }
     };
 
-    window.handleLogout = async () => { await window.signOut(window.firebaseAuth); location.reload(); };
+    // 👉 FINANCEIRO: RENDERS E LÓGICA
+    function renderCards() {
+        const c = document.getElementById('card-carousel');
+        if(!c) return;
+        c.innerHTML = state.financas.cartoes.map(x => {
+            let f = 0;
+            state.financas.transacoes.forEach(t => {
+                if(t.conta === x.nome && (t.status === 'efetivada' || t.status === 'fatura_paga')) {
+                    if (t.tipo === 'receita') f -= t.valor; else if(t.tipo === 'despesa') f += t.valor;
+                }
+            });
+            return `<div class="snap-center shrink-0 w-[85%] card rounded-3xl p-6 shadow-sm relative overflow-hidden bg-gradient-to-br from-[#1E2128] to-[#121418] border border-gray-700 cursor-pointer active:scale-[0.98] transition-transform" onclick="openCardDetails('${x.id}')">
+                <div class="flex justify-between items-center mb-6">
+                    <div class="flex items-center space-x-2"><i data-lucide="credit-card" class="w-5 h-5" style="color: ${x.cor || '#8b5cf6'}"></i><span class="text-sm font-medium text-gray-300">${x.nome}</span></div>
+                    <span class="text-sm font-bold italic text-gray-400" style="color: ${x.cor || '#8b5cf6'}">${x.bandeira || 'MASTERCARD'}</span>
+                </div>
+                <div class="mb-4">
+                    <span class="text-xs text-gray-400 block mb-1">Fatura Atual (Dia ${x.vencimento || 10})</span>
+                    <span class="text-3xl font-bold sensitive-value text-white" data-value="R$ ${Math.max(0,f).toLocaleString('pt-BR', {minimumFractionDigits: 2})}">${state.blurred ? 'R$ •••••' : 'R$ ' + Math.max(0,f).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                </div>
+                <div class="flex justify-between items-end mt-6">
+                    <div><span class="text-xs text-gray-500 block mb-1">Limite Disponível</span><span class="text-sm font-semibold text-green-400 sensitive-value" data-value="R$ ${(x.limite - f).toLocaleString('pt-BR', {minimumFractionDigits: 2})}">${state.blurred ? 'R$ •••••' : 'R$ ' + (x.limite - f).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span></div>
+                </div>
+            </div>`;
+        }).join('') + `<div class="snap-center shrink-0 w-[30%] card rounded-3xl p-6 shadow-sm flex flex-col items-center justify-center border border-dashed border-gray-700 cursor-pointer hover:bg-gray-800 transition-colors" onclick="toggleOverlay('perfil')"><div class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 mb-2"><i data-lucide="plus" class="w-5 h-5"></i></div></div>`;
+    }
 
-    // 👉 FINANCEIRO (TRANSAÇÕES)
     function renderTransItem(t) {
         const isRec = t.tipo === 'receita'; 
         const isTransf = t.tipo === 'transferencia'; 
@@ -1341,14 +1361,6 @@
         </div>`;
     }
 
-    function addMonthsSafe(dateStr, monthsToAdd) {
-        let d = new Date(dateStr + 'T12:00:00');
-        let day = d.getDate();
-        d.setMonth(d.getMonth() + monthsToAdd);
-        if (d.getDate() !== day) d.setDate(0); 
-        return d.toISOString().split('T')[0];
-    }
-
     function saveTransaction() {
         const v = parseFloat(document.getElementById('trans-val-input').value);
         const d = document.getElementById('trans-date-input').value;
@@ -1376,69 +1388,53 @@
         saveDataToCloud(); closeAllOverlays(); updateUI();
     }
 
-    function deleteTransaction(id) {
-        if(confirm("Excluir este lançamento?")) {
-            state.financas.transacoes = state.financas.transacoes.filter(x => x.id !== id);
-            saveDataToCloud(); updateUI();
+    // 👉 SAÚDE E PROPÓSITO
+    function renderCalendar() {
+        const grid = document.getElementById('calendar-grid');
+        if(!grid) return;
+        const headers = Array.from(grid.children).slice(0, 7); 
+        grid.innerHTML = ''; 
+        headers.forEach(h => grid.appendChild(h));
+        
+        const m = state.viewDate.getMonth(), y = state.viewDate.getFullYear();
+        const first = new Date(y, m, 1).getDay(), days = new Date(y, m+1, 0).getDate();
+        
+        for(let i=0; i<first; i++) grid.appendChild(document.createElement('div'));
+        for(let d=1; d<=days; d++) {
+            const k = `${y}-${(m+1).toString().padStart(2,'0')}-${d.toString().padStart(2,'0')}`;
+            const v = state.saude.historico[k] || {agua:0};
+            const dayDiv = document.createElement('div');
+            dayDiv.className = 'flex justify-center';
+            let cls = 'day-circle';
+            if(v.agua > 0) cls += ' water-tracked';
+            if(v.agua >= state.saude.aguaMeta) cls += ' goal-met';
+            dayDiv.innerHTML = `<div class="${cls}">${d}</div>`;
+            grid.appendChild(dayDiv);
         }
+        document.getElementById('calendar-month-year').innerText = new Date(y, m).toLocaleDateString('pt-BR', {month:'short', year:'numeric'}).toUpperCase();
     }
 
-    // 👉 FINANCEIRO (CARDS & SELECTS)
-    function getFinSelectOptions(type = 'all') {
-        let options = '';
-        if (type === 'all' || type === 'contas') options += state.usuario.contas.map(a => `<option value="${a.nome}">🏦 ${a.nome}</option>`).join('');
-        if (type === 'all' || type === 'cartoes') options += state.financas.cartoes.map(c => `<option value="${c.nome}">💳 ${c.nome}</option>`).join('');
-        return options;
+    function saveProposito() {
+        state.saude.proposito = { 
+            ativo: true, 
+            nome: document.getElementById('input-prop-name').value || 'Desafio', 
+            inicio: document.getElementById('input-prop-date').value, 
+            dias: parseInt(document.getElementById('input-prop-days').value) || 30, 
+            celebrado: false 
+        };
+        saveDataToCloud(); closeAllOverlays(); updateUI();
     }
 
-    function openTransactionModal(t, id = null) {
-        state.editingId = id; setTransType(t);
-        const descEl = document.getElementById('trans-desc-input');
-        const valEl = document.getElementById('trans-val-input');
-        const dateEl = document.getElementById('trans-date-input');
-        if(id) {
-            const tr = state.financas.transacoes.find(x => x.id === id);
-            valEl.value = tr.valor; dateEl.value = tr.data; if(descEl) descEl.value = tr.desc || "";
-            setTransState('status', tr.status); setTransState('fixa', tr.fixa);
-        } else {
-            valEl.value = ""; dateEl.value = new Date().toISOString().split('T')[0]; if(descEl) descEl.value = "";
-            setTransState('status', 'previsivel'); setTransState('fixa', false);
-        }
-        toggleOverlay('transaction');
+    function desistirProposito() { 
+        state.saude.proposito = { ativo: false, nome: '', inicio: '', dias: 0, celebrado: false }; 
+        saveDataToCloud(); closeAllOverlays(); updateUI(); 
     }
 
-    function setTransType(t) {
-        state.financas.temp.type = t;
-        document.getElementById('btn-tt-despesa').classList.toggle('bg-red-500/20', t==='despesa');
-        document.getElementById('btn-tt-receita').classList.toggle('bg-green-500/20', t==='receita');
-        document.getElementById('btn-tt-transf').classList.toggle('bg-blue-500/20', t==='transferencia');
-        const cats = t === 'receita' ? state.usuario.categorias_receita : state.usuario.categorias_despesa;
-        document.getElementById('trans-cat-select').innerHTML = cats.map(c => `<option value="${c.nome}">${c.nome}</option>`).join('');
-        document.getElementById('trans-acc-select').innerHTML = getFinSelectOptions(t === 'receita' ? 'contas' : 'all');
-    }
+    // 👉 CONTROLES DE DATA (PAGINAÇÃO)
+    function changeMonth(s) { state.viewDate.setMonth(state.viewDate.getMonth()+s); renderCalendar(); }
+    function changeExtratoMonth(s) { state.extratoDate.setMonth(state.extratoDate.getMonth()+s); renderExtrato(); }
 
-    function setTransState(p, v) { 
-        state.financas.temp[p] = v; 
-        if(p === 'status') {
-            document.getElementById('btn-st-prev').className = v === 'previsivel' ? 'flex-1 py-2 text-[9px] font-bold rounded-lg bg-blue-500/20 text-blue-400' : 'flex-1 py-2 text-[9px] font-bold rounded-lg text-gray-500';
-            document.getElementById('btn-st-efet').className = v === 'efetivada' ? 'flex-1 py-2 text-[9px] font-bold rounded-lg bg-green-500/20 text-green-400' : 'flex-1 py-2 text-[9px] font-bold rounded-lg text-gray-500';
-        }
-    }
-
-    // 👉 VEÍCULO
-    function setVehType(t) { state.veiculo.tipo = t; }
-    function openVehModal(t) { toggleOverlay('veh-' + t); }
-    function renderVehTimeline() {
-        const container = document.getElementById('veh-timeline');
-        if(!container) return;
-        container.innerHTML = state.veiculo.historico.map(h => `
-            <div class="card p-3 rounded-xl border border-white/5 flex justify-between">
-                <div><span class="text-[10px] font-bold block uppercase">${h.tipo}</span><span class="text-[9px] text-gray-500">${h.km} km • ${h.data}</span></div>
-                <button onclick="deleteVehActivity(${h.id})"><i data-lucide="trash-2" class="w-3.5 h-3.5 text-red-500/50"></i></button>
-            </div>`).join('');
-    }
-
-    // 👉 UPDATE UI CENTRAL
+    // 👉 UPDATE UI CENTRAL (O MAESTRO)
     function updateUI() {
         const now = new Date();
         const avatarHtml = state.usuario.avatarUrl ? `<img src="${state.usuario.avatarUrl}" class="w-full h-full object-cover">` : (state.usuario.firstName[0] + (state.usuario.lastName ? state.usuario.lastName[0] : "")).toUpperCase();
@@ -1446,6 +1442,26 @@
         if(document.getElementById('sidebar-avatar-preview')) document.getElementById('sidebar-avatar-preview').innerHTML = avatarHtml;
         if(document.getElementById('sidebar-user-name')) document.getElementById('sidebar-user-name').innerText = state.usuario.firstName;
 
+        // Lógica do Propósito (Sober/Desafio)
+        const p = state.saude.proposito;
+        const propTitles = document.querySelectorAll('.ui-prop-title');
+        if(p && p.ativo && p.inicio && p.dias > 0) {
+            propTitles.forEach(el => el.closest('.card-container')?.classList.remove('hidden'));
+            propTitles.forEach(el => el.innerText = p.nome);
+            const inicioDate = new Date(p.inicio + 'T00:00:00');
+            const today = new Date(); today.setHours(0,0,0,0);
+            const diffTime = Math.abs(today - inicioDate);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            let progresso = Math.min((diffDays / p.dias) * 100, 100);
+            
+            document.querySelectorAll('.ui-prop-bar').forEach(el => el.style.width = progresso + '%');
+            document.querySelectorAll('.ui-prop-days-passed').forEach(el => el.innerText = `${diffDays} dias passados`);
+            document.querySelectorAll('.ui-prop-days-total').forEach(el => el.innerText = `${p.dias} dias total`);
+        } else {
+            propTitles.forEach(el => el.closest('.card-container')?.classList.add('hidden'));
+        }
+
+        // Saldos
         let saldo = 0, recM = 0, desM = 0;
         const contasAtivas = state.usuario.contas.filter(c => c.somaSaldo).map(c => c.nome);
         state.financas.transacoes.forEach(t => {
@@ -1456,6 +1472,10 @@
                 if (t.tipo === 'receita') { saldo += t.valor; if(isMes) recM += t.valor; }
                 else if (t.tipo === 'despesa') { saldo -= t.valor; if(isMes) desM += t.valor; }
             }
+            if (t.tipo === 'transferencia') {
+                if(contasAtivas.includes(t.conta)) saldo -= t.valor;
+                if(contasAtivas.includes(t.destino)) saldo += t.valor;
+            }
         });
 
         const fmt = v => 'R$ ' + v.toLocaleString('pt-BR', {minimumFractionDigits:2});
@@ -1463,19 +1483,54 @@
         document.querySelectorAll('.fin-receita-mes').forEach(el => el.innerText = state.blurred ? 'R$ •••••' : fmt(recM));
         document.querySelectorAll('.fin-despesa-mes').forEach(el => el.innerText = state.blurred ? 'R$ •••••' : fmt(desM));
 
-        renderRecentTrans(); renderExtrato(); renderVehTimeline(); refreshIcons();
+        renderCards();
+        renderRecentTrans();
+        renderExtrato();
+        renderVehTimeline();
+        renderCalendar();
+        refreshIcons();
+    }
+
+    // 👉 OUTRAS FUNÇÕES AUXILIARES
+    function addMonthsSafe(dateStr, monthsToAdd) {
+        let d = new Date(dateStr + 'T12:00:00');
+        let day = d.getDate();
+        d.setMonth(d.getMonth() + monthsToAdd);
+        if (d.getDate() !== day) d.setDate(0); 
+        return d.toISOString().split('T')[0];
     }
 
     function renderRecentTrans() {
         const sorted = [...state.financas.transacoes].sort((a,b) => new Date(b.data) - new Date(a.data)).slice(0, 5);
-        document.getElementById('recent-trans-list').innerHTML = sorted.length ? sorted.map(t => renderTransItem(t)).join('') : '<p class="text-center text-gray-500 py-4">Vazio</p>';
+        const list = document.getElementById('recent-trans-list');
+        if(list) list.innerHTML = sorted.length ? sorted.map(t => renderTransItem(t)).join('') : '<p class="text-center text-gray-500 py-4">Vazio</p>';
     }
 
     function renderExtrato() {
         const m = state.extratoDate.getMonth(), y = state.extratoDate.getFullYear();
         const fil = state.financas.transacoes.filter(t => { const d = new Date(t.data); return d.getMonth() === m && d.getFullYear() === y; }).sort((a,b) => new Date(b.data) - new Date(a.data));
         const content = document.getElementById('extrato-month-content');
+        const label = document.getElementById('extrato-month-label');
+        if(label) label.innerText = new Date(y, m).toLocaleDateString('pt-BR', {month: 'long', year: 'numeric'}).toUpperCase();
         if(content) content.innerHTML = fil.length ? fil.map(t => renderTransItem(t)).join('') : '<p class="text-center text-gray-600 py-10">Vazio</p>';
+    }
+
+    function renderVehTimeline() {
+        const container = document.getElementById('veh-timeline');
+        if(!container) return;
+        container.innerHTML = state.veiculo.historico.map(h => `
+            <div class="card p-4 rounded-2xl border border-white/5 flex justify-between items-center">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 rounded-lg bg-orange-500/10 text-orange-500 flex items-center justify-center">
+                        <i data-lucide="${h.tipo === 'abastecimento' ? 'fuel' : 'wrench'}" class="w-4 h-4"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold uppercase">${h.tipo === 'abastecimento' ? 'Abastecimento' : (h.nome || 'Serviço')}</p>
+                        <p class="text-[9px] text-gray-500 font-bold uppercase tracking-widest">${h.km} km • ${h.data}</p>
+                    </div>
+                </div>
+                <button onclick="deleteVehActivity(${h.id})"><i data-lucide="trash-2" class="w-3.5 h-3.5 text-red-500/50"></i></button>
+            </div>`).join('');
     }
 
     function checkVencimentos() {
