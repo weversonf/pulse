@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mu Finance v04.05</title>
+    <title>Mu Finance v04.06</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -1114,7 +1114,6 @@
         window.firebaseGetDoc = getDoc;
     </script>
 
-
 <script>
     // 👉 VARIÁVEIS GLOBAIS
     let barChartInstance = null, catChartInstance = null, chartsInitialized = false;
@@ -1390,6 +1389,210 @@
         saveDataToCloud(); closeAllOverlays(); updateUI();
     }
 
+    // 👉 FINANCEIRO: METAS
+    function renderMetMetasList() {
+        const list = document.getElementById('metas-list');
+        if (!list) return;
+        if (!state.financas.metas || state.financas.metas.length === 0) {
+            list.innerHTML = '<p class="text-center text-gray-600 py-4 text-xs font-bold uppercase tracking-widest">Nenhuma meta configurada</p>';
+            return;
+        }
+        list.innerHTML = state.financas.metas.map(m => {
+            const perc = Math.min((m.reservado / m.alvo) * 100, 100);
+            const isComplete = perc >= 100;
+            return `
+            <div class="card p-4 rounded-2xl border border-white/5 cursor-pointer hover:border-purple-500/30 transition-all active:scale-95" onclick="openMetaAddModal(${m.id})">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-sm font-bold text-white">${m.nome}</span>
+                    ${isComplete ? '<span class="text-[9px] bg-green-500 text-black px-2 py-0.5 rounded-full font-bold uppercase">Atingida</span>' : `<span class="text-xs text-purple-400 font-bold">${perc.toFixed(0)}%</span>`}
+                </div>
+                <div class="flex justify-between items-end mb-2">
+                    <div>
+                        <span class="text-[9px] text-gray-500 font-bold uppercase block">Guardado</span>
+                        <span class="text-sm font-bold">R$ ${m.reservado.toLocaleString('pt-BR', {minimumFractionDigits:2})}</span>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-[9px] text-gray-500 font-bold uppercase block">Alvo</span>
+                        <span class="text-xs font-bold text-gray-400">R$ ${m.alvo.toLocaleString('pt-BR', {minimumFractionDigits:2})}</span>
+                    </div>
+                </div>
+                <div class="w-full bg-gray-800 h-1.5 rounded-full overflow-hidden">
+                    <div class="${isComplete ? 'bg-green-500' : 'bg-purple-500'} h-full transition-all duration-700" style="width: ${perc}%"></div>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    function openMetaModal() {
+        document.getElementById('input-meta-id').value = '';
+        document.getElementById('input-meta-nome').value = '';
+        document.getElementById('input-meta-alvo').value = '';
+        document.getElementById('input-meta-reservado').value = '';
+        document.getElementById('meta-modal-title').innerText = 'Nova Meta';
+        toggleOverlay('nova-meta');
+    }
+
+    function openMetaAddModal(id) {
+        document.getElementById('input-meta-add-id').value = id;
+        document.getElementById('input-meta-add-valor').value = '';
+        toggleOverlay('meta-add');
+    }
+
+    function saveMeta() {
+        const nome = document.getElementById('input-meta-nome').value;
+        const alvo = parseFloat(document.getElementById('input-meta-alvo').value);
+        const res = parseFloat(document.getElementById('input-meta-reservado').value) || 0;
+        const id = document.getElementById('input-meta-id').value;
+        if(!nome || !alvo) return;
+        if(id) {
+            const idx = state.financas.metas.findIndex(m => m.id == id);
+            if(idx > -1) { state.financas.metas[idx].nome = nome; state.financas.metas[idx].alvo = alvo; state.financas.metas[idx].reservado = res; }
+        } else {
+            state.financas.metas.push({ id: Date.now(), nome, alvo, reservado: res });
+        }
+        saveDataToCloud(); closeAllOverlays(); updateUI();
+    }
+
+    function addSaldoMeta() {
+        const id = document.getElementById('input-meta-add-id').value;
+        const val = parseFloat(document.getElementById('input-meta-add-valor').value);
+        if(!id || !val) return;
+        const idx = state.financas.metas.findIndex(m => m.id == id);
+        if(idx > -1) {
+            state.financas.metas[idx].reservado += val;
+            showToast(`R$ ${val.toFixed(2)} guardado para ${state.financas.metas[idx].nome}`);
+        }
+        saveDataToCloud(); closeAllOverlays(); updateUI();
+    }
+
+    function deleteMeta() {
+        const id = document.getElementById('input-meta-add-id').value;
+        if(!id) return;
+        if(confirm("Deseja excluir esta meta?")) {
+            state.financas.metas = state.financas.metas.filter(m => m.id != id);
+            saveDataToCloud(); closeAllOverlays(); updateUI();
+        }
+    }
+
+    // 👉 FINANCEIRO: RELATÓRIOS (GRÁFICOS)
+    function initCharts() {
+        const now = new Date();
+        if(!chartsInitialized) {
+            const filterValue = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+            const filterEl = document.getElementById('filter-cat-chart');
+            if (filterEl) filterEl.value = filterValue;
+            
+            const cbContainer = document.getElementById('month-checkboxes');
+            if(cbContainer) {
+                const monthNames = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+                cbContainer.innerHTML = monthNames.map((m, i) => `
+                <label class="flex items-center space-x-1.5 bg-black/20 p-1.5 rounded-lg cursor-pointer border border-white/5 hover:bg-white/5 transition-colors">
+                    <input type="checkbox" value="${i}" class="month-cb accent-blue-500 w-3 h-3" ${i <= now.getMonth() ? 'checked' : ''}>
+                    <span class="text-gray-300 font-bold text-[9px] uppercase">${m}</span>
+                </label>`).join('');
+            }
+            chartsInitialized = true;
+        }
+        renderBarChart(); renderCatChart();
+    }
+
+    function selectAllMonths() {
+        document.querySelectorAll('.month-cb').forEach(cb => cb.checked = true);
+    }
+
+    function applyMonthFilter() {
+        const menu = document.getElementById('month-filter-menu');
+        if (menu) menu.classList.add('hidden');
+        renderBarChart();
+    }
+
+    function renderBarChart() {
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const selectedBoxes = Array.from(document.querySelectorAll('.month-cb:checked')).map(cb => parseInt(cb.value));
+        selectedBoxes.sort((a,b) => a - b);
+        
+        const labels = [];
+        const recData = [];
+        const desData = [];
+        const salData = [];
+        const monthNames = ['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'];
+
+        selectedBoxes.forEach(monthIdx => {
+            labels.push(monthNames[monthIdx]);
+            let r = 0, g = 0;
+            state.financas.transacoes.forEach(t => {
+                const td = new Date(t.data);
+                const isEffective = t.status === 'efetivada' || t.status === 'fatura_paga';
+                if(isEffective && t.tipo !== 'transferencia' && t.tipo !== 'pagamento_cartao') {
+                    if (td.getFullYear() === currentYear && td.getMonth() === monthIdx) {
+                        if (t.tipo === 'receita') r += t.valor;
+                        if (t.tipo === 'despesa') g += t.valor;
+                    }
+                }
+            });
+            recData.push(r); desData.push(g); salData.push(r - g);
+        });
+
+        const ctxBar = document.getElementById('barChartFinance');
+        if (!ctxBar) return;
+        if(barChartInstance) barChartInstance.destroy();
+        barChartInstance = new Chart(ctxBar.getContext('2d'), { 
+            type: 'bar', 
+            data: { 
+                labels: labels.length ? labels : ['Nenhum'], 
+                datasets: [
+                    { label: 'Receitas', data: recData, backgroundColor: '#34d399', borderRadius: 4, barThickness: 5, order: 2 }, 
+                    { label: 'Despesas', data: desData, backgroundColor: '#fb7185', borderRadius: 4, barThickness: 5, order: 3 }, 
+                    { type: 'line', label: 'Saldo', data: salData, borderColor: '#38bdf8', backgroundColor: '#38bdf8', borderWidth: 2, tension: 0.3, pointRadius: 3, pointBackgroundColor: '#121418', fill: false, order: 1 }
+                ] 
+            }, 
+            options: { 
+                responsive: true, maintainAspectRatio: false, 
+                plugins: { legend: { display: true, labels: { color: '#9ca3af', font: {size: 9}, boxWidth: 10, padding: 10 } } }, 
+                scales: { 
+                    x: { grid: { display: false }, ticks: { color: '#4b5563', font: { size: 9 } } }, 
+                    y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#4b5563', font: { size: 9 } } } 
+                } 
+            } 
+        });
+    }
+
+    function renderCatChart() {
+        const filterEl = document.getElementById('filter-cat-chart');
+        if (!filterEl) return;
+        const [year, month] = filterEl.value.split('-');
+        const cats = {};
+        state.financas.transacoes.forEach(t => {
+            const td = new Date(t.data);
+            const isEffective = t.status === 'efetivada' || t.status === 'fatura_paga';
+            if (t.tipo === 'despesa' && isEffective) {
+                if (td.getFullYear() === parseInt(year) && (td.getMonth() + 1) === parseInt(month)) {
+                    cats[t.cat] = (cats[t.cat] || 0) + t.valor;
+                }
+            }
+        });
+
+        const labels = Object.keys(cats);
+        const data = Object.values(cats);
+        const bgColors = ['#38bdf8', '#fb7185', '#fbbf24', '#a855f7', '#34d399', '#f97316', '#6366f1'];
+        
+        const ctxCat = document.getElementById('categoryChart');
+        if (!ctxCat) return;
+        if(catChartInstance) catChartInstance.destroy();
+        catChartInstance = new Chart(ctxCat.getContext('2d'), { 
+            type: 'doughnut', 
+            data: { 
+                labels: labels.length ? labels : ['Sem Gastos'], 
+                datasets: [{ data: data.length ? data : [1], backgroundColor: data.length ? bgColors : ['#374151'], borderWidth: 0 }] 
+            }, 
+            options: { 
+                responsive: true, maintainAspectRatio: false, cutout: '75%', 
+                plugins: { legend: { display: true, position: 'right', labels: { color: '#e5e7eb', font: {size: 10}, padding: 15 } } } 
+            } 
+        });
+    }
+
     // 👉 FINANCEIRO (CARDS & SELECTS)
     function getFinSelectOptions(type = 'all') {
         let options = '';
@@ -1398,12 +1601,11 @@
         return options;
     }
 
-    // CORRIGIDO: Ordem de execução garantindo abertura do modal
     function openTransactionModal(t, id = null) {
         state.editingId = id; 
-        toggleOverlay('transaction'); // Abre o modal primeiro
+        toggleOverlay('transaction'); 
         
-        setTimeout(() => { // Atualiza o conteúdo após abertura para evitar erro de DOM
+        setTimeout(() => { 
             setTransType(t);
             const descEl = document.getElementById('trans-desc-input');
             const valEl = document.getElementById('trans-val-input');
@@ -1546,6 +1748,7 @@
         renderExtrato();
         renderVehTimeline();
         renderCalendar();
+        renderMetMetasList(); // Restaurado
         refreshIcons();
     }
 
