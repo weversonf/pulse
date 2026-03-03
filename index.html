@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mu Finance v04.03</title>
+    <title>Mu Finance v04.04</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -2356,9 +2356,24 @@ function renderVehTimeline() {
         }
 
         window.onload = () => { 
-            if(!state.isLoggedIn) { document.getElementById('login-screen').classList.remove('hidden'); }
-            initializeAuthListener();
-        };
+    // Localiza o splash screen
+    const splash = document.getElementById('splash-screen');
+
+    if(!state.isLoggedIn) { 
+        document.getElementById('login-screen').classList.remove('hidden'); 
+    }
+
+    initializeAuthListener();
+
+    // Adicione estas linhas abaixo para esconder o carregamento
+    if (splash) {
+        splash.style.transition = 'opacity 0.5s ease';
+        splash.style.opacity = '0';
+        setTimeout(() => {
+            splash.classList.add('hidden');
+        }, 500);
+    }
+};
 </script>
     
 </body>
