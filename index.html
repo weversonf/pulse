@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mu Finance v04.08</title>
+    <title>Mu Finance v03.29</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -231,7 +231,7 @@
         <header class="flex justify-between items-center shrink-0">
             <div>
                 <h1 id="header-title" class="text-2xl font-bold tracking-tight">Mu Finance</h1>
-                <p class="text-[10px] text-gray-500 uppercase font-bold tracking-widest mt-1" id="header-subtitle">Dashboard Geral v04.07</p>
+                <p class="text-[10px] text-gray-500 uppercase font-bold tracking-widest mt-1" id="header-subtitle">Dashboard v03.29</p>
             </div>
             <div class="flex items-center space-x-3">
                 <button onclick="toggleOverlay('notificacoes')" class="relative w-10 h-10 flex items-center justify-center rounded-full bg-[#1E2128] border border-gray-800 active:scale-90 transition-transform">
@@ -772,15 +772,10 @@
                         <label class="text-[10px] text-gray-500 uppercase font-bold block mb-1">Hodômetro Atual</label>
                         <input type="number" id="input-fuel-km" class="bg-transparent font-bold w-full outline-none">
                     </div>
-					<div class="bg-black/20 p-4 rounded-2xl border border-white/5">
-						<label class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Combustível</label>
-						<select id="input-fuel-type" class="bg-transparent font-bold w-full outline-none text-xs">
-							<option value="Gasolina Comum">Gasolina Comum</option>
-							<option value="Gasolina Aditivada">Gasolina Aditivada</option>
-							<option value="Etanol">Etanol</option>
-						</select>
-					</div>
-
+                    <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
+                        <label class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Conta / Cartão</label>
+                        <select id="input-fuel-acc" class="bg-transparent font-bold w-full outline-none text-xs"></select>
+                    </div>
                 </div>
 
                 <button onclick="saveRefueling()" class="w-full py-5 rounded-3xl bg-orange-500 text-black font-bold text-lg mt-4 uppercase tracking-widest active:scale-95 transition-transform">Salvar</button>
@@ -1139,12 +1134,11 @@
                     {id: 3, nome: 'Reserva Oculta', protected: false, somaSaldo: false}
                 ],
                 categorias_despesa: [
-    {id: 'd1', nome: 'Alimentação', icon: 'utensils-crossed', protected: true}, {id: 'd2', nome: 'Combustível', icon: 'fuel', protected: true}, {id: 'd3', nome: 'Manutenção', icon: 'wrench', protected: true}, {id: 'd4', nome: 'Moradia', icon: 'home', protected: true}, {id: 'd5', nome: 'Lazer', icon: 'gamepad-2', protected: false}
-],
-categorias_receita: [
-    {id: 'r1', nome: 'Salário', icon: 'briefcase', protected: true}, {id: 'r2', nome: 'Freelance', icon: 'laptop', protected: false}
-]
-
+                    {id: 'd1', nome: 'Alimentação', protected: true}, {id: 'd2', nome: 'Combustível', protected: true}, {id: 'd3', nome: 'Manutenção', protected: true}, {id: 'd4', nome: 'Moradia', protected: true}, {id: 'd5', nome: 'Lazer', protected: false}
+                ],
+                categorias_receita: [
+                    {id: 'r1', nome: 'Salário', protected: true}, {id: 'r2', nome: 'Freelance', protected: false}
+                ]
             },
             saude: { aguaMeta: 3500, cafeinaMeta: 400, historico: {}, proposito: {ativo: false, nome: '', inicio: '', dias: 0, celebrado: false} },
             financas: { 
@@ -1406,10 +1400,8 @@ categorias_receita: [
                     <div class="flex space-x-2"><button onclick="editFinItem('cartao', '${c.id}')"><i data-lucide="edit-2" class="w-4 h-4 text-blue-400 hover:text-white transition-colors"></i></button><button onclick="deleteFinItem('cartao', '${c.id}')"><i data-lucide="trash-2" class="w-4 h-4 text-red-500/50 hover:text-red-500 transition-colors"></i></button></div>
                 </div>`).join('');
 
-            document.getElementById('list-cat-despesa').innerHTML = state.usuario.categorias_despesa.map(c => `<div class="flex items-center space-x-2 bg-red-500/10 text-red-400 px-3 py-1.5 rounded-lg border border-red-500/20"><i data-lucide="${c.icon || 'tag'}" class="w-3 h-3"></i><span class="text-[10px] font-bold uppercase">${c.nome}</span>${c.protected ? '<i data-lucide="lock" class="w-3 h-3 text-red-900/50"></i>' : `<button onclick="editFinItem('cat-despesa', '${c.id}')"><i data-lucide="edit-2" class="w-3 h-3 hover:text-white"></i></button><button onclick="deleteFinItem('cat-despesa', '${c.id}')"><i data-lucide="x" class="w-3 h-3 hover:text-white"></i></button>`}</div>`).join('');
-
-            document.getElementById('list-cat-receita').innerHTML = state.usuario.categorias_receita.map(c => `<div class="flex items-center space-x-2 bg-green-500/10 text-green-400 px-3 py-1.5 rounded-lg border border-green-500/20"><i data-lucide="${c.icon || 'tag'}" class="w-3 h-3"></i><span class="text-[10px] font-bold uppercase">${c.nome}</span>${c.protected ? '<i data-lucide="lock" class="w-3 h-3 text-green-900/50"></i>' : `<button onclick="editFinItem('cat-receita', '${c.id}')"><i data-lucide="edit-2" class="w-3 h-3 hover:text-white"></i></button><button onclick="deleteFinItem('cat-receita', '${c.id}')"><i data-lucide="x" class="w-3 h-3 hover:text-white"></i></button>`}</div>`).join('');
-
+            document.getElementById('list-cat-despesa').innerHTML = state.usuario.categorias_despesa.map(c => `<div class="flex items-center space-x-2 bg-red-500/10 text-red-400 px-3 py-1.5 rounded-lg border border-red-500/20"><span class="text-[10px] font-bold uppercase">${c.nome}</span>${c.protected ? '<i data-lucide="lock" class="w-3 h-3 text-red-900/50"></i>' : `<button onclick="editFinItem('cat-despesa', '${c.id}')"><i data-lucide="edit-2" class="w-3 h-3 hover:text-white"></i></button><button onclick="deleteFinItem('cat-despesa', '${c.id}')"><i data-lucide="x" class="w-3 h-3 hover:text-white"></i></button>`}</div>`).join('');
+            document.getElementById('list-cat-receita').innerHTML = state.usuario.categorias_receita.map(c => `<div class="flex items-center space-x-2 bg-green-500/10 text-green-400 px-3 py-1.5 rounded-lg border border-green-500/20"><span class="text-[10px] font-bold uppercase">${c.nome}</span>${c.protected ? '<i data-lucide="lock" class="w-3 h-3 text-green-900/50"></i>' : `<button onclick="editFinItem('cat-receita', '${c.id}')"><i data-lucide="edit-2" class="w-3 h-3 hover:text-white"></i></button><button onclick="deleteFinItem('cat-receita', '${c.id}')"><i data-lucide="x" class="w-3 h-3 hover:text-white"></i></button>`}</div>`).join('');
             refreshIcons();
         }
 
@@ -1464,10 +1456,10 @@ categorias_receita: [
                 return;
             } else if (type === 'cat-despesa') {
                 el = document.getElementById('input-new-cat-despesa'); if(!el.value.trim()) return;
-                state.usuario.categorias_despesa.push({id: Date.now().toString(), nome: el.value.trim(), icon: 'tag', protected: false});
+                state.usuario.categorias_despesa.push({id: Date.now().toString(), nome: el.value.trim(), protected: false});
             } else if (type === 'cat-receita') {
                 el = document.getElementById('input-new-cat-receita'); if(!el.value.trim()) return;
-                state.usuario.categorias_receita.push({id: Date.now().toString(), nome: el.value.trim(), icon: 'tag', protected: false});
+                state.usuario.categorias_receita.push({id: Date.now().toString(), nome: el.value.trim(), protected: false});
             }
             if(el) el.value = ''; saveDataToCloud(); renderFinSettings();
         }
@@ -1759,7 +1751,7 @@ categorias_receita: [
         function saveRota() {
             try {
                 const km = parseInt(document.getElementById('input-rota-km').value);
-                const dataRota = document.getElementById('input-rota-data').value ? new Date(document.getElementById('input-rota-data').value + 'T00:00:00').toISOString() : new Date().toISOString();
+                const dataRota = document.getElementById('input-rota-data').value || new Date().toISOString().split('T')[0];
                 const origem = document.getElementById('input-rota-origem').value.trim();
                 const destino = document.getElementById('input-rota-destino').value.trim();
                 const motivo = document.getElementById('input-rota-motivo').value;
@@ -1801,13 +1793,11 @@ categorias_receita: [
         function saveRefueling() {
             try {
                 const kmInput = parseInt(document.getElementById('input-fuel-km').value); const km = !isNaN(kmInput) ? kmInput : state.veiculo.hodometro; const t = parseFloat(document.getElementById('input-fuel-total').value) || 0; const l = parseFloat(document.getElementById('input-fuel-liters').value) || 0; const acc = document.getElementById('input-fuel-acc').value;
-				const fuelType = document.getElementById('input-fuel-type').value;
                 if(!km || !t || !l) { showToast("Preencha KM, Total e Litros."); return; }
                 
                 const newId = state.editingVehId || Date.now(); let med = 29.0; const last = state.veiculo.historico.find(h => h.tipo === 'abastecimento' && h.id !== newId);
                 if(last && km > last.km && l > 0) med = (km - last.km) / l;
-                const item = { id: newId, tipo: 'abastecimento', data: new Date().toISOString(), km, total: t, litros: l, media: med, conta: acc, fuelType: fuelType };
-
+                const item = { id: newId, tipo: 'abastecimento', data: new Date().toISOString().split('T')[0], km, total: t, litros: l, media: med, conta: acc };
                 
                 if(state.editingVehId) { 
                     const idx = state.veiculo.historico.findIndex(x => x.id === newId); if (idx > -1) state.veiculo.historico[idx] = item; 
@@ -1826,8 +1816,7 @@ categorias_receita: [
             try {
                 const n = document.getElementById('input-svc-name').value; const v = parseFloat(document.getElementById('input-svc-val').value) || 0; const kmInput = parseInt(document.getElementById('input-svc-km').value); const k = !isNaN(kmInput) ? kmInput : state.veiculo.hodometro; const o = document.getElementById('input-svc-isoil').checked; const acc = document.getElementById('input-svc-acc').value;
                 if(!n) { showToast("Preencha a descrição."); return; }
-                const newId = state.editingVehId || Date.now(); const item = { id: newId, tipo: 'servico', data: new Date().toISOString(), km: k, nome: n, valor: v, isOil: o, conta: acc };
-
+                const newId = state.editingVehId || Date.now(); const item = { id: newId, tipo: 'servico', data: new Date().toISOString().split('T')[0], km: k, nome: n, valor: v, isOil: o, conta: acc };
                 
                 if(state.editingVehId) { 
                     const idx = state.veiculo.historico.findIndex(x => x.id === newId); if(idx > -1) state.veiculo.historico[idx] = item; 
@@ -2010,35 +1999,14 @@ categorias_receita: [
 
         function renderTransItem(t) {
             const isRec = t.tipo === 'receita'; const isTransf = t.tipo === 'transferencia'; const isPgto = t.tipo === 'pagamento_cartao';
-            let icon;
-if (isRec) {
-    const catObj = state.usuario.categorias_receita.find(c => c.nome === t.cat);
-    icon = catObj ? catObj.icon : 'dollar-sign';
-} else {
-    const catObj = state.usuario.categorias_despesa.find(c => c.nome === t.cat);
-    icon = catObj ? catObj.icon : 'shopping-bag';
-}
- let colorClass = isRec ? 'text-green-400' : 'text-red-400'; let bgClass = isRec ? 'bg-green-500/10 text-green-500' : 'bg-purple-500/10 text-purple-500'; let prefix = isRec ? '+' : '-';
+            let icon = isRec ? 'briefcase' : 'shopping-bag'; let colorClass = isRec ? 'text-green-400' : 'text-red-400'; let bgClass = isRec ? 'bg-green-500/10 text-green-500' : 'bg-purple-500/10 text-purple-500'; let prefix = isRec ? '+' : '-';
             if (isTransf) { icon = 'arrow-right-left'; colorClass = 'text-blue-400'; bgClass = 'bg-blue-500/10 text-blue-500'; prefix = ''; } else if (isPgto) { icon = 'credit-card'; colorClass = 'text-red-400'; bgClass = 'bg-red-500/10 text-red-500'; prefix = '-'; }
             const catName = isTransf ? `Transf. p/ ${t.destino}` : (isPgto ? `Fatura ${t.destino}` : t.cat); const subtitle = isTransf ? `De ${t.conta}` : t.conta;
 
             return `<div class="flex justify-between items-center group card p-4 rounded-2xl border border-white/5">
-    <div class="flex items-center space-x-3 overflow-hidden">
-        <div class="w-10 h-10 rounded-full ${bgClass} flex items-center justify-center shrink-0"><i data-lucide="${icon}" class="w-5 h-5"></i></div>
-        <div class="truncate">
-            <span class="block text-sm font-medium truncate">${catName}</span>
-            <span class="block text-[10px] text-gray-500 uppercase tracking-wider truncate">${subtitle} <span class="text-blue-500 font-bold">• ${t.status === 'fatura_paga' ? 'Paga' : t.status}</span></span>
-        </div>
-    </div>
-    <div class="flex flex-col items-end shrink-0 ml-2">
-        <span class="text-sm font-semibold ${colorClass}">${prefix} R$ ${t.valor.toLocaleString('pt-BR', {minimumFractionDigits:2})}</span>
-        <div class="flex space-x-3 mt-1.5 opacity-80">
-            ${!isPgto ? `<button class="text-gray-500 hover:text-white transition-colors" onclick="openTransactionModal('${t.tipo}', ${t.id})"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button>` : ''}
-            <button class="text-gray-500 hover:text-red-400 transition-colors" onclick="deleteTransaction(${t.id})"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
-        </div>
-    </div>
-</div>`;
-
+                <div class="flex items-center space-x-3 overflow-hidden"><div class="w-10 h-10 rounded-full ${bgClass} flex items-center justify-center shrink-0"><i data-lucide="${icon}" class="w-5 h-5"></i></div><div class="truncate"><span class="block text-sm font-medium truncate">${catName}</span><span class="block text-[10px] text-gray-500 uppercase tracking-wider truncate">${subtitle} <span class="text-blue-500 font-bold">• ${t.status === 'fatura_paga' ? 'Paga' : t.status}</span></span></div></div>
+                <div class="flex flex-col items-end shrink-0 ml-2"><span class="text-sm font-semibold ${colorClass}">${prefix} R$ ${t.valor.toLocaleString('pt-BR', {minimumFractionDigits:2})}</span><div class="flex space-x-3 mt-1.5 opacity-80">${(!isTransf && !isPgto && t.status !== 'fatura_paga') ? `<button class="text-gray-500 hover:text-white transition-colors" onclick="openTransactionModal('${t.tipo}', ${t.id})"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button>` : ''}<button class="text-gray-500 hover:text-red-400 transition-colors" onclick="deleteTransaction(${t.id})"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button></div></div>
+            </div>`;
         }
 
         function renderExtrato() {
@@ -2060,8 +2028,7 @@ if (isRec) {
             document.getElementById('veh-timeline').innerHTML = state.veiculo.historico.map(h => {
                 let icon = 'wrench'; let colorClass = 'bg-blue-500/10 text-blue-500'; let title = h.nome; let valHtml = ''; let deleteBtn = `<button onclick="deleteVehActivity(${h.id})"><i data-lucide="trash-2" class="w-4 h-4 text-red-900/50 hover:text-red-500 transition-colors"></i></button>`; let editBtn = `<button onclick="openVehModal('servico', ${h.id})"><i data-lucide="edit-3" class="w-4 h-4 text-gray-600 hover:text-white transition-colors"></i></button>`;
                 if(h.tipo === 'abastecimento') {
-                    icon = 'fuel'; colorClass = 'bg-orange-500/10 text-orange-500'; title = h.fuelType || 'Abastecer';
- valHtml = `<div class="text-right"><p class="text-xs font-black">R$ ${h.total?.toFixed(2)}</p>${h.media ? `<p class="text-[9px] text-orange-400 font-bold font-mono">${h.media.toFixed(1)} km/l</p>` : ''}</div>`; editBtn = `<button onclick="openVehModal('abastecer', ${h.id})"><i data-lucide="edit-3" class="w-4 h-4 text-gray-600 hover:text-white transition-colors"></i></button>`;
+                    icon = 'fuel'; colorClass = 'bg-orange-500/10 text-orange-500'; title = 'Abastecer'; valHtml = `<div class="text-right"><p class="text-xs font-black">R$ ${h.total?.toFixed(2)}</p>${h.media ? `<p class="text-[9px] text-orange-400 font-bold font-mono">${h.media.toFixed(1)} km/l</p>` : ''}</div>`; editBtn = `<button onclick="openVehModal('abastecer', ${h.id})"><i data-lucide="edit-3" class="w-4 h-4 text-gray-600 hover:text-white transition-colors"></i></button>`;
                
                } else if(h.tipo === 'rota') {
                     icon = 'map-pin'; colorClass = 'bg-green-500/10 text-green-500'; title = h.motivo || 'Rota'; let subtitle = (h.origem || h.destino) ? `${h.origem || '?'} ➔ ${h.destino || '?'}` : 'Deslocamento'; valHtml = `<div class="text-right"><p class="text-xs font-black text-green-400">+ ${h.distancia} km</p></div>`; editBtn = `<button onclick="openVehModal('rota', ${h.id})"><i data-lucide="edit-3" class="w-4 h-4 text-gray-600 hover:text-white transition-colors"></i></button>`; 
