@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mu Finance v03.29</title>
+    <title>Mu Finance v03.30</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -231,7 +231,7 @@
         <header class="flex justify-between items-center shrink-0">
             <div>
                 <h1 id="header-title" class="text-2xl font-bold tracking-tight">Mu Finance</h1>
-                <p class="text-[10px] text-gray-500 uppercase font-bold tracking-widest mt-1" id="header-subtitle">Dashboard v03.29</p>
+                <p class="text-[10px] text-gray-500 uppercase font-bold tracking-widest mt-1" id="header-subtitle">Dashboard Geral v03.30</p>
             </div>
             <div class="flex items-center space-x-3">
                 <button onclick="toggleOverlay('notificacoes')" class="relative w-10 h-10 flex items-center justify-center rounded-full bg-[#1E2128] border border-gray-800 active:scale-90 transition-transform">
@@ -769,6 +769,17 @@
                 
                 <div class="grid grid-cols-2 gap-4">
                     <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
+                        <label class="text-[10px] text-gray-500 uppercase font-bold block mb-1">Data</label>
+                        <input type="date" id="input-fuel-data" class="bg-transparent font-bold w-full outline-none text-xs">
+                    </div>
+                    <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
+                        <label class="text-[10px] text-gray-500 uppercase font-bold block mb-1">Hora</label>
+                        <input type="time" id="input-fuel-hora" class="bg-transparent font-bold w-full outline-none text-xs">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
                         <label class="text-[10px] text-gray-500 uppercase font-bold block mb-1">Hodômetro Atual</label>
                         <input type="number" id="input-fuel-km" class="bg-transparent font-bold w-full outline-none">
                     </div>
@@ -790,6 +801,17 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div class="bg-black/20 p-4 rounded-2xl border border-white/5"><label class="text-[10px] text-gray-500 uppercase font-bold block mb-1">Valor (R$)</label><input type="number" id="input-svc-val" class="bg-transparent font-bold w-full outline-none" placeholder="0.00"></div>
                     <div class="bg-black/20 p-4 rounded-2xl border border-white/5"><label class="text-[10px] text-gray-500 uppercase font-bold block mb-1">km Atual</label><input type="number" id="input-svc-km" class="bg-transparent font-bold w-full outline-none"></div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
+                        <label class="text-[10px] text-gray-500 uppercase font-bold block mb-1">Data</label>
+                        <input type="date" id="input-svc-data" class="bg-transparent font-bold w-full outline-none text-xs">
+                    </div>
+                    <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
+                        <label class="text-[10px] text-gray-500 uppercase font-bold block mb-1">Hora</label>
+                        <input type="time" id="input-svc-hora" class="bg-transparent font-bold w-full outline-none text-xs">
+                    </div>
                 </div>
                 
                 <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
@@ -822,13 +844,18 @@
                         <input type="date" id="input-rota-data" class="bg-transparent font-bold w-full outline-none text-xs">
                     </div>
                     <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
-                        <label class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Motivo / Tipo</label>
-                        <select id="input-rota-motivo" class="bg-transparent font-bold w-full outline-none text-xs">
-                            <option value="Dia a Dia">Dia a Dia</option>
-                            <option value="Trabalho">Trabalho (Makro)</option>
-                            <option value="Viagem">Viagem / Passeio</option>
-                        </select>
+                        <label class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Hora</label>
+                        <input type="time" id="input-rota-hora" class="bg-transparent font-bold w-full outline-none text-xs">
                     </div>
+                </div>
+
+                <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
+                    <label class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Motivo / Tipo</label>
+                    <select id="input-rota-motivo" class="bg-transparent font-bold w-full outline-none text-xs">
+                        <option value="Dia a Dia">Dia a Dia</option>
+                        <option value="Trabalho">Trabalho (Makro)</option>
+                        <option value="Viagem">Viagem / Passeio</option>
+                    </select>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
@@ -1700,17 +1727,17 @@
             if(t === 'abastecer') {
                 if(id) { 
                     const h = state.veiculo.historico.find(x => x.id === id); 
-                    document.getElementById('input-fuel-price').value = (h.total / h.liters).toFixed(2); document.getElementById('input-fuel-liters').value = h.liters; document.getElementById('input-fuel-total').value = h.total; document.getElementById('input-fuel-km').value = h.km; if(h.conta) document.getElementById('input-fuel-acc').value = h.conta;
+                    document.getElementById('input-fuel-price').value = (h.total / h.liters).toFixed(2); document.getElementById('input-fuel-liters').value = h.liters; document.getElementById('input-fuel-total').value = h.total; document.getElementById('input-fuel-km').value = h.km; document.getElementById('input-fuel-data').value = h.data || new Date().toISOString().split('T')[0]; document.getElementById('input-fuel-hora').value = h.hora || new Date().toTimeString().slice(0, 5); if(h.conta) document.getElementById('input-fuel-acc').value = h.conta;
                 } else { 
-                    document.getElementById('input-fuel-price').value = ''; document.getElementById('input-fuel-liters').value = ''; document.getElementById('input-fuel-total').value = ''; document.getElementById('input-fuel-km').value = state.veiculo.hodometro; 
+                    document.getElementById('input-fuel-price').value = ''; document.getElementById('input-fuel-liters').value = ''; document.getElementById('input-fuel-total').value = ''; document.getElementById('input-fuel-km').value = state.veiculo.hodometro; document.getElementById('input-fuel-data').value = new Date().toISOString().split('T')[0]; document.getElementById('input-fuel-hora').value = new Date().toTimeString().slice(0, 5);
                 }
                 toggleOverlay('veh-abastecer');
             } else if (t === 'servico') {
                 if(id) { 
                     const h = state.veiculo.historico.find(x => x.id === id); 
-                    document.getElementById('input-svc-name').value = h.nome; document.getElementById('input-svc-val').value = h.valor; document.getElementById('input-svc-km').value = h.km; document.getElementById('input-svc-isoil').checked = h.isOil; if(h.conta) document.getElementById('input-svc-acc').value = h.conta;
+                    document.getElementById('input-svc-name').value = h.nome; document.getElementById('input-svc-val').value = h.valor; document.getElementById('input-svc-km').value = h.km; document.getElementById('input-svc-data').value = h.data || new Date().toISOString().split('T')[0]; document.getElementById('input-svc-hora').value = h.hora || new Date().toTimeString().slice(0, 5); document.getElementById('input-svc-isoil').checked = h.isOil; if(h.conta) document.getElementById('input-svc-acc').value = h.conta;
                 } else { 
-                    document.getElementById('input-svc-name').value = ''; document.getElementById('input-svc-val').value = ''; document.getElementById('input-svc-km').value = state.veiculo.hodometro; document.getElementById('input-svc-isoil').checked = false; 
+                    document.getElementById('input-svc-name').value = ''; document.getElementById('input-svc-val').value = ''; document.getElementById('input-svc-km').value = state.veiculo.hodometro; document.getElementById('input-svc-isoil').checked = false; document.getElementById('input-svc-data').value = new Date().toISOString().split('T')[0]; document.getElementById('input-svc-hora').value = new Date().toTimeString().slice(0, 5);
                 }
                 toggleOverlay('veh-servico');
 
@@ -1720,6 +1747,7 @@
                     const h = state.veiculo.historico.find(x => x.id === id);
                     document.getElementById('input-rota-km').value = h.km;
                     document.getElementById('input-rota-data').value = h.data;
+                    document.getElementById('input-rota-hora').value = h.hora || new Date().toTimeString().slice(0, 5);
                     document.getElementById('input-rota-origem').value = h.origem || '';
                     document.getElementById('input-rota-destino').value = h.destino || '';
                     document.getElementById('input-rota-motivo').value = h.motivo || 'Dia a Dia';
@@ -1728,6 +1756,7 @@
                     // MODO NOVO: Limpa os campos
                     document.getElementById('input-rota-km').value = ''; 
                     document.getElementById('input-rota-data').value = new Date().toISOString().split('T')[0]; 
+                    document.getElementById('input-rota-hora').value = new Date().toTimeString().slice(0, 5);
                     document.getElementById('input-rota-origem').value = ''; 
                     document.getElementById('input-rota-destino').value = ''; 
                     document.getElementById('input-rota-motivo').value = 'Dia a Dia'; 
@@ -1752,6 +1781,7 @@
             try {
                 const km = parseInt(document.getElementById('input-rota-km').value);
                 const dataRota = document.getElementById('input-rota-data').value || new Date().toISOString().split('T')[0];
+                const horaRota = document.getElementById('input-rota-hora').value || new Date().toTimeString().slice(0, 5);
                 const origem = document.getElementById('input-rota-origem').value.trim();
                 const destino = document.getElementById('input-rota-destino').value.trim();
                 const motivo = document.getElementById('input-rota-motivo').value;
@@ -1764,6 +1794,7 @@
                     if(idx > -1) {
                         state.veiculo.historico[idx].km = km;
                         state.veiculo.historico[idx].data = dataRota;
+                        state.veiculo.historico[idx].hora = horaRota;
                         state.veiculo.historico[idx].origem = origem;
                         state.veiculo.historico[idx].destino = destino;
                         state.veiculo.historico[idx].motivo = motivo;
@@ -1774,7 +1805,7 @@
                     // CRIANDO NOVA ROTA
                     if (km <= state.veiculo.hodometro) { showToast("O hodômetro deve ser maior que o atual."); return; }
                     const dist = km - state.veiculo.hodometro;
-                    const item = { id: Date.now(), tipo: 'rota', data: dataRota, km: km, distancia: dist, origem: origem, destino: destino, motivo: motivo };
+                    const item = { id: Date.now(), tipo: 'rota', data: dataRota, hora: horaRota, km: km, distancia: dist, origem: origem, destino: destino, motivo: motivo };
                     state.veiculo.historico.unshift(item); 
                     state.veiculo.hodometro = km;
                     showToast("Rota de " + dist + "km registrada!");
@@ -1792,12 +1823,12 @@
 
         function saveRefueling() {
             try {
-                const kmInput = parseInt(document.getElementById('input-fuel-km').value); const km = !isNaN(kmInput) ? kmInput : state.veiculo.hodometro; const t = parseFloat(document.getElementById('input-fuel-total').value) || 0; const l = parseFloat(document.getElementById('input-fuel-liters').value) || 0; const acc = document.getElementById('input-fuel-acc').value;
+                const kmInput = parseInt(document.getElementById('input-fuel-km').value); const km = !isNaN(kmInput) ? kmInput : state.veiculo.hodometro; const t = parseFloat(document.getElementById('input-fuel-total').value) || 0; const l = parseFloat(document.getElementById('input-fuel-liters').value) || 0; const acc = document.getElementById('input-fuel-acc').value; const dataFuel = document.getElementById('input-fuel-data').value || new Date().toISOString().split('T')[0]; const horaFuel = document.getElementById('input-fuel-hora').value || new Date().toTimeString().slice(0, 5);
                 if(!km || !t || !l) { showToast("Preencha KM, Total e Litros."); return; }
                 
                 const newId = state.editingVehId || Date.now(); let med = 29.0; const last = state.veiculo.historico.find(h => h.tipo === 'abastecimento' && h.id !== newId);
                 if(last && km > last.km && l > 0) med = (km - last.km) / l;
-                const item = { id: newId, tipo: 'abastecimento', data: new Date().toISOString().split('T')[0], km, total: t, litros: l, media: med, conta: acc };
+                const item = { id: newId, tipo: 'abastecimento', data: dataFuel, hora: horaFuel, km, total: t, litros: l, media: med, conta: acc };
                 
                 if(state.editingVehId) { 
                     const idx = state.veiculo.historico.findIndex(x => x.id === newId); if (idx > -1) state.veiculo.historico[idx] = item; 
@@ -1814,9 +1845,9 @@
 
         function saveService() {
             try {
-                const n = document.getElementById('input-svc-name').value; const v = parseFloat(document.getElementById('input-svc-val').value) || 0; const kmInput = parseInt(document.getElementById('input-svc-km').value); const k = !isNaN(kmInput) ? kmInput : state.veiculo.hodometro; const o = document.getElementById('input-svc-isoil').checked; const acc = document.getElementById('input-svc-acc').value;
+                const n = document.getElementById('input-svc-name').value; const v = parseFloat(document.getElementById('input-svc-val').value) || 0; const kmInput = parseInt(document.getElementById('input-svc-km').value); const k = !isNaN(kmInput) ? kmInput : state.veiculo.hodometro; const o = document.getElementById('input-svc-isoil').checked; const acc = document.getElementById('input-svc-acc').value; const dataSvc = document.getElementById('input-svc-data').value || new Date().toISOString().split('T')[0]; const horaSvc = document.getElementById('input-svc-hora').value || new Date().toTimeString().slice(0, 5);
                 if(!n) { showToast("Preencha a descrição."); return; }
-                const newId = state.editingVehId || Date.now(); const item = { id: newId, tipo: 'servico', data: new Date().toISOString().split('T')[0], km: k, nome: n, valor: v, isOil: o, conta: acc };
+                const newId = state.editingVehId || Date.now(); const item = { id: newId, tipo: 'servico', data: dataSvc, hora: horaSvc, km: k, nome: n, valor: v, isOil: o, conta: acc };
                 
                 if(state.editingVehId) { 
                     const idx = state.veiculo.historico.findIndex(x => x.id === newId); if(idx > -1) state.veiculo.historico[idx] = item; 
