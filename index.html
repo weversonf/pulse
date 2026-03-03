@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mu Finance v03.33</title>
+    <title>Mu Finance v03.35</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -118,15 +118,7 @@
     @media (min-width: 768px) {
         header { margin-left: 260px; padding: 20px 30px; transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         main { margin-left: 260px; padding-bottom: 20px; transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        
-        .overlay { 
-            left: 50%; 
-            transform: translateX(-50%); 
-            width: 60%; 
-            transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1), bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
-        }
-
-        
+        .overlay { left: 50%; transform: translateX(-50%); width: 60%; transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1), bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         .backdrop { left: 260px; width: calc(100% - 260px); transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
 
         /* Regras da Logo Desktop */
@@ -239,7 +231,7 @@
         <header class="flex justify-between items-center shrink-0">
             <div>
                 <h1 id="header-title" class="text-2xl font-bold tracking-tight">Mu Finance</h1>
-                <p class="text-[10px] text-gray-500 uppercase font-bold tracking-widest mt-1" id="header-subtitle">Dashboard Geral v03.33</p>
+                <p class="text-[10px] text-gray-500 uppercase font-bold tracking-widest mt-1" id="header-subtitle">Dashboard Geral v03.35</p>
             </div>
             <div class="flex items-center space-x-3">
                 <button onclick="toggleOverlay('notificacoes')" class="relative w-10 h-10 flex items-center justify-center rounded-full bg-[#1E2128] border border-gray-800 active:scale-90 transition-transform">
@@ -2110,7 +2102,7 @@
 </div></div><div class="flex items-center space-x-2">${valHtml}${editBtn}${deleteBtn}</div></div>`;
             }).join('');
             const totalPages = Math.ceil(filtered.length / 10);
-            document.getElementById('veh-pagination').innerHTML = totalPages > 1 ? Array.from({length: totalPages}, (_, i) => { const pageNum = i + 1; const isActive = pageNum === state.vehHistoryPage; return `<button onclick="setVehHistoryPage(${pageNum})" class="text-[10px] font-bold ${isActive ? 'text-orange-500' : 'text-gray-500 hover:text-white'} transition-colors">${pageNum}</button>`; }).join(' | ') : '';
+            document.getElementById('veh-pagination').innerHTML = totalPages > 1 ? Array.from({length: totalPages}, (_, i) => { const pageNum = i + 1; const isActive = pageNum === state.vehHistoryPage; return `<button onclick='setVehHistoryPage(${pageNum})' class='text-[10px] font-bold ${isActive ? "text-orange-500" : "text-gray-500 hover:text-white"} transition-colors'>${pageNum}</button>`; }).join(' | ') : '';
         }
 
         function setVehHistoryFilter(filter) { state.vehHistoryFilter = filter; state.vehHistoryPage = 1; document.getElementById('dot-fuel-maintenance').className = filter === 'fuel-maintenance' ? 'w-2 h-2 rounded-full bg-orange-500 cursor-pointer transition-all' : 'w-2 h-2 rounded-full bg-gray-600 cursor-pointer transition-all'; document.getElementById('dot-rota').className = filter === 'rota' ? 'w-2 h-2 rounded-full bg-green-500 cursor-pointer transition-all' : 'w-2 h-2 rounded-full bg-gray-600 cursor-pointer transition-all'; renderVehTimeline(); }
