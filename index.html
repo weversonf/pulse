@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mu Finance v03.29</title>
+    <title>Mu Finance v04.01</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -588,78 +588,85 @@
         </div>
 
         <div id="overlay-transaction" class="overlay">
-            <div class="w-12 h-1 bg-gray-800 rounded-full mx-auto mt-4 mb-4 shrink-0"></div>
-            <div class="px-6 flex justify-between items-center mb-6">
-                <h2 class="text-xl font-bold" id="trans-title">Nova Despesa</h2>
-                <button onclick="closeAllOverlays()"><i data-lucide="x" class="w-6 h-6 text-gray-500"></i></button>
-            </div>
-            <div class="overlay-content space-y-5">
-                <div class="flex bg-black/30 rounded-xl p-1 mb-2">
-                    <button onclick="setTransType('despesa')" id="btn-tt-despesa" class="flex-1 py-2 text-[10px] font-bold rounded-lg transition-all">Despesa</button>
-                    <button onclick="setTransType('receita')" id="btn-tt-receita" class="flex-1 py-2 text-[10px] font-bold rounded-lg transition-all">Receita</button>
-                    <button onclick="setTransType('transferencia')" id="btn-tt-transf" class="flex-1 py-2 text-[10px] font-bold rounded-lg transition-all">Transf.</button>
-                </div>
-                <div class="bg-black/30 p-8 rounded-3xl border border-white/5 text-center">
-                    <span class="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Valor</span>
-                    <div class="text-4xl font-bold mt-2 flex justify-center items-center">
-                        <span class="text-gray-600 mr-2 text-2xl">R$</span>
-                        <input type="number" id="trans-val-input" class="bg-transparent outline-none w-48 text-center" placeholder="0.00" step="0.01">
-                    </div>
-                </div>
-                
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
-                        <label class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Data</label>
-                        <input type="date" id="trans-date-input" class="bg-transparent font-bold w-full outline-none text-xs">
-                    </div>
-                    <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
-                        <label id="trans-acc-label" class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Conta / Cartão</label>
-                        <select id="trans-acc-select" class="bg-transparent font-bold w-full outline-none text-xs"></select>
-                    </div>
-                </div>
-
-                <div id="trans-dest-container" class="hidden bg-black/20 p-4 rounded-2xl border border-white/5 border-l-4 border-l-blue-500">
-                    <label class="text-[9px] text-blue-400 uppercase font-bold block mb-1">Para qual conta? (Destino)</label>
-                    <select id="trans-dest-select" class="bg-transparent font-bold w-full outline-none text-xs"></select>
-                </div>
-                
-                <div id="trans-cat-status-container" class="space-y-5">
-                    <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
-                        <label class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Categoria</label>
-                        <select id="trans-cat-select" class="bg-transparent font-bold w-full outline-none text-xs"></select>
-                    </div>
-                    
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="space-y-1">
-                            <label class="text-[9px] text-gray-500 font-bold ml-2 uppercase">Status</label>
-                            <div class="flex bg-black/30 rounded-xl p-1">
-                                <button onclick="setTransState('status','previsivel')" id="btn-st-prev" class="flex-1 py-2 text-[9px] font-bold rounded-lg transition-all">Previsível</button>
-                                <button onclick="setTransState('status','efetivada')" id="btn-st-efet" class="flex-1 py-2 text-[9px] font-bold rounded-lg transition-all">Efetivada</button>
-                            </div>
-                        </div>
-                        <div class="space-y-1">
-                            <label class="text-[9px] text-gray-500 font-bold ml-2 uppercase">Tipo</label>
-                            <div class="flex bg-black/30 rounded-xl p-1">
-                                <button onclick="setTransState('fixa',false)" id="btn-fx-no" class="flex-1 py-2 text-[9px] font-bold rounded-lg transition-all">Única</button>
-                                <button onclick="setTransState('fixa',true)" id="btn-fx-yes" class="flex-1 py-2 text-[9px] font-bold rounded-lg transition-all">Fixa</button>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="bg-black/20 p-4 rounded-2xl border border-white/5 flex items-center space-x-3">
-                        <div class="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0">
-                            <i data-lucide="at-sign" class="w-4 h-4 text-blue-500"></i>
-                        </div>
-                        <div class="flex-1">
-                            <label class="text-[9px] text-gray-500 uppercase font-bold block mb-0.5">Marcar Amigo (Opcional)</label>
-                            <input type="text" id="trans-amigo-input" placeholder="@usuario" class="bg-transparent font-bold w-full outline-none text-xs">
-                        </div>
-                    </div>
-                </div>
-
-                <button onclick="saveTransaction()" class="w-full py-5 rounded-3xl bg-blue-500 text-black font-bold text-lg mt-4 uppercase">Salvar</button>
+    <div class="w-12 h-1 bg-gray-800 rounded-full mx-auto mt-4 mb-4 shrink-0"></div>
+    <div class="px-6 flex justify-between items-center mb-6">
+        <h2 class="text-xl font-bold" id="trans-title">Nova Despesa</h2>
+        <button onclick="closeAllOverlays()"><i data-lucide="x" class="w-6 h-6 text-gray-500"></i></button>
+    </div>
+    <div class="overlay-content space-y-5">
+        <div class="flex bg-black/30 rounded-xl p-1 mb-2">
+            <button onclick="setTransType('despesa')" id="btn-tt-despesa" class="flex-1 py-2 text-[10px] font-bold rounded-lg transition-all">Despesa</button>
+            <button onclick="setTransType('receita')" id="btn-tt-receita" class="flex-1 py-2 text-[10px] font-bold rounded-lg transition-all">Receita</button>
+            <button onclick="setTransType('transferencia')" id="btn-tt-transf" class="flex-1 py-2 text-[10px] font-bold rounded-lg transition-all">Transf.</button>
+        </div>
+        
+        <div class="bg-black/30 p-8 rounded-3xl border border-white/5 text-center">
+            <span class="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Valor</span>
+            <div class="text-4xl font-bold mt-2 flex justify-center items-center">
+                <span class="text-gray-600 mr-2 text-2xl">R$</span>
+                <input type="number" id="trans-val-input" class="bg-transparent outline-none w-48 text-center text-white" placeholder="0.00" step="0.01">
             </div>
         </div>
+        
+        <!-- CAMPO DESCRIÇÃO ADICIONADO AQUI -->
+        <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
+            <label class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Descrição</label>
+            <input type="text" id="trans-desc-input" class="bg-transparent font-bold w-full outline-none text-xs text-white" placeholder="Ex: Combustível Fazer 250">
+        </div>
+        
+        <div class="grid grid-cols-2 gap-4">
+            <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
+                <label class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Data</label>
+                <input type="date" id="trans-date-input" class="bg-transparent font-bold w-full outline-none text-xs text-white">
+            </div>
+            <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
+                <label id="trans-acc-label" class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Conta / Cartão</label>
+                <select id="trans-acc-select" class="bg-transparent font-bold w-full outline-none text-xs text-white"></select>
+            </div>
+        </div>
+
+        <div id="trans-dest-container" class="hidden bg-black/20 p-4 rounded-2xl border border-white/5 border-l-4 border-l-blue-500">
+            <label class="text-[9px] text-blue-400 uppercase font-bold block mb-1">Para qual conta? (Destino)</label>
+            <select id="trans-dest-select" class="bg-transparent font-bold w-full outline-none text-xs text-white"></select>
+        </div>
+        
+        <div id="trans-cat-status-container" class="space-y-5">
+            <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
+                <label class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Categoria</label>
+                <select id="trans-cat-select" class="bg-transparent font-bold w-full outline-none text-xs text-white"></select>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4">
+                <div class="space-y-1">
+                    <label class="text-[9px] text-gray-500 font-bold ml-2 uppercase">Status</label>
+                    <div class="flex bg-black/30 rounded-xl p-1">
+                        <button onclick="setTransState('status','previsivel')" id="btn-st-prev" class="flex-1 py-2 text-[9px] font-bold rounded-lg transition-all text-white">Previsível</button>
+                        <button onclick="setTransState('status','efetivada')" id="btn-st-efet" class="flex-1 py-2 text-[9px] font-bold rounded-lg transition-all text-white">Efetivada</button>
+                    </div>
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[9px] text-gray-500 font-bold ml-2 uppercase">Tipo</label>
+                    <div class="flex bg-black/30 rounded-xl p-1">
+                        <button onclick="setTransState('fixa',false)" id="btn-fx-no" class="flex-1 py-2 text-[9px] font-bold rounded-lg transition-all text-white">Única</button>
+                        <button onclick="setTransState('fixa',true)" id="btn-fx-yes" class="flex-1 py-2 text-[9px] font-bold rounded-lg transition-all text-white">Fixa</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-black/20 p-4 rounded-2xl border border-white/5 flex items-center space-x-3">
+                <div class="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0">
+                    <i data-lucide="at-sign" class="w-4 h-4 text-blue-500"></i>
+                </div>
+                <div class="flex-1">
+                    <label class="text-[9px] text-gray-500 uppercase font-bold block mb-0.5">Marcar Amigo (Opcional)</label>
+                    <input type="text" id="trans-amigo-input" placeholder="@usuario" class="bg-transparent font-bold w-full outline-none text-xs text-white">
+                </div>
+            </div>
+        </div>
+
+        <button onclick="saveTransaction()" class="w-full py-5 rounded-3xl bg-blue-500 text-black font-bold text-lg mt-4 uppercase active:scale-95 transition-transform">Salvar</button>
+    </div>
+</div>
 
         <div id="overlay-pay-invoice" class="overlay">
             <div class="w-12 h-1 bg-gray-800 rounded-full mx-auto mt-4 mb-4 shrink-0"></div>
@@ -1078,6 +1085,7 @@
     </div>
 
 <script type="module">
+        // CONFIGURAÇÕES FIREBASE
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -1106,13 +1114,15 @@
         window.firebaseGetDoc = getDoc;
     </script>
 
-    <script>
+<script>
+        // 👉 VARIÁVEIS GLOBAIS: Aqui guardamos o estado dos gráficos e instâncias para não duplicá-las na tela.
         let barChartInstance = null, catChartInstance = null, chartsInitialized = false;
         let tempAvatar = null;
         let currentViewCardId = null;
         let cropperInstance = null;
         let editingCardId = null; 
         
+        // 👉 AVATARES: Lista de imagens padrões divertidas caso o usuário não queira subir uma foto.
         const avatarPresets = [
             'https://api.dicebear.com/7.x/fun-emoji/svg?seed=Felix&backgroundColor=38bdf8',
             'https://api.dicebear.com/7.x/fun-emoji/svg?seed=Aneka&backgroundColor=fb7185',
@@ -1124,6 +1134,7 @@
             'https://api.dicebear.com/7.x/fun-emoji/svg?seed=Jude&backgroundColor=475569'
         ];
 
+        // 👉 STATE (O CORAÇÃO DO APP): Toda a informação do sistema vive aqui. É esse "objeto" que é salvo no banco de dados.
         let state = {
             isLoggedIn: false, userId: null, viewDate: new Date(), extratoDate: new Date(), blurred: false, editingId: null, editingVehId: null,
             usuario: { 
@@ -1149,6 +1160,7 @@
             notificacoes: []
         };
 
+        // 👉 FUNÇÕES DE INTERFACE: Atualizam ícones, mostram balõezinhos de aviso (toast) e controlam o menu lateral.
         function refreshIcons() { lucide.createIcons(); }
 
         function showToast(msg) {
@@ -1156,23 +1168,19 @@
             toast.className = 'fixed top-10 left-1/2 transform -translate-x-1/2 bg-black/90 text-white px-6 py-3 rounded-full text-[10px] font-bold uppercase tracking-widest z-[9999] border border-white/10 shadow-2xl fade-in text-center whitespace-nowrap';
             toast.innerText = msg;
             document.body.appendChild(toast);
-            setTimeout(() => { toast.remove(); }, 3000);
+            setTimeout(() => { toast.remove(); }, 3000); // Some após 3 segundos
         }
         
-        // NOVO: Função para o Menu Retrátil
         window.toggleSidebar = function() {
             document.body.classList.toggle('sidebar-collapsed');
             if (window.lucide) { lucide.createIcons(); }
         };
 
-        // Atalho Ctrl + B para Barra Lateral
         document.addEventListener('keydown', (e) => {
-            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
-                e.preventDefault();
-                toggleSidebar();
-            }
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') { e.preventDefault(); toggleSidebar(); }
         });
 
+        // 👉 BOTÃO FLUTUANTE (+): Abre as opções rápidas ou fecha se clicar fora.
         function toggleFab(e) {
             if(e) e.stopPropagation();
             document.getElementById('fab-container').classList.toggle('active');
@@ -1189,6 +1197,7 @@
             if (fab && fab.classList.contains('active') && !fab.contains(e.target)) fab.classList.remove('active');
         });
 
+        // 👉 NAVEGAÇÃO ENTRE TELAS: Esconde as outras "pages" e mostra a selecionada.
         function navigate(navId, pageId, title) {
             document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
             document.getElementById(pageId).classList.remove('hidden');
@@ -1199,6 +1208,7 @@
             closeAllOverlays(); updateUI();
         }
 
+        // 👉 CONTROLE DE MODAIS (TELAS ESCURAS SOBREPOSTAS): Abre ou fecha configurações, cadastros, etc.
         function toggleOverlay(id) {
             const el = document.getElementById('overlay-' + id);
             if(!el) return;
@@ -1247,6 +1257,7 @@
             refreshIcons(); 
         }
 
+        // 👉 FIREBASE / BANCO DE DADOS: Funções que conversam com a nuvem (Salvar e Carregar)
         async function loadDataFromCloud() {
             if(!state.userId || !window.firebaseDb) return;
             const appId = typeof __app_id !== 'undefined' ? __app_id : 'mu-finance';
@@ -1281,6 +1292,7 @@
             } catch (error) { console.error("Erro ao salvar no banco:", error); }
         }
 
+        // 👉 ALARMES E NOTIFICAÇÕES: Checa se a fatura do cartão está perto de vencer
         function checkVencimentos() {
             const today = new Date();
             const currentDay = today.getDate();
@@ -1302,6 +1314,7 @@
             if (state.notificacoes.length > 10) state.notificacoes = state.notificacoes.slice(0, 10);
         }
 
+        // 👉 EXPORTAÇÃO PARA EXCEL: Gera o download do arquivo XLS
         function exportarExcel(origem) {
             let fil = []; let fileName = "";
             if (origem === 'extrato') {
@@ -1337,6 +1350,7 @@
             showToast("Exportação Concluída");
         }
 
+        // 👉 LOGIN E AUTENTICAÇÃO
         const initializeAuthListener = () => {
             if (window.onAuthStateChanged) {
                 window.onAuthStateChanged(window.firebaseAuth, async (user) => {
@@ -1351,7 +1365,6 @@
                         state.isLoggedIn = false; state.userId = null; loginScreen.classList.remove('hidden');
                     }
 
-                    // Remove Splash Screen suavemente
                     if (splashScreen) {
                         splashScreen.classList.add('opacity-0');
                         setTimeout(() => splashScreen.classList.add('hidden'), 500);
@@ -1377,12 +1390,12 @@
 
         window.handleLogout = async () => { try { await window.signOut(window.firebaseAuth); closeAllOverlays(); } catch (error) {} };
 
+        // 👉 CONFIGURAÇÕES FINANCEIRAS: Adicionar/Remover Categorias, Contas e Cartões
         function toggleSomaSaldo(id) {
             const conta = state.usuario.contas.find(c => c.id.toString() === id.toString());
             if (conta) { conta.somaSaldo = !conta.somaSaldo; saveDataToCloud(); updateUI(); }
         }
 
-        // ATUALIZAÇÃO: Renderiza a lista de contas mostrando o Tipo (Comum/Investimento)
         function renderFinSettings() {
             document.getElementById('list-contas').innerHTML = state.usuario.contas.map(c => `
                 <div class="flex justify-between items-center bg-black/20 p-3 rounded-xl border border-white/5">
@@ -1429,7 +1442,6 @@
             saveDataToCloud(); renderFinSettings(); updateUI();
         }
 
-        // ATUALIZAÇÃO: Captura Tipo e Saldo Inicial na criação de novas Contas
         function addFinItem(type) {
             let el = null;
             if (type === 'conta') {
@@ -1445,9 +1457,8 @@
 
                 state.usuario.contas.push({id: Date.now().toString(), nome: nome, tipo: tipo, protected: false, somaSaldo: true});
 
-                // Cria lançamento automático caso tenha saldo informado
                 if (saldo !== 0) {
-                    state.financas.transacoes.push({ id: Date.now() + 1, data: new Date().toISOString().split('T')[0], valor: Math.abs(saldo), tipo: saldo > 0 ? 'receita' : 'despesa', cat: 'Saldo Inicial', conta: nome, destino: '', status: 'efetivada' });
+                    state.financas.transacoes.push({ id: Date.now() + 1, data: new Date().toISOString().split('T')[0], valor: Math.abs(saldo), tipo: saldo > 0 ? 'receita' : 'despesa', cat: 'Saldo Inicial', desc: 'Ajuste Automático', conta: nome, destino: '', status: 'efetivada' });
                 }
 
                 nomeEl.value = '';
@@ -1478,6 +1489,7 @@
             if(novoLimite && !isNaN(novoLimite)) { card.limite = parseFloat(novoLimite); saveDataToCloud(); renderCardDetails(); updateUI(); showToast("Limite atualizado!"); }
         }
 
+        // 👉 METAS FINANCEIRAS
         function renderMetasList() {
             const list = document.getElementById('metas-list');
             if(!state.financas.metas || state.financas.metas.length === 0) {
@@ -1528,6 +1540,7 @@
             return options;
         }
 
+        // 👉 TRANSAÇÕES: Abrir modal, configurar tipo (Receita/Despesa/Transferência) e salvar.
         function setTransType(t) {
             state.financas.temp.type = t;
             document.getElementById('btn-tt-despesa').className = t === 'despesa' ? 'flex-1 py-2 text-[10px] font-bold rounded-lg bg-red-500/20 text-red-400' : 'flex-1 py-2 text-[10px] font-bold rounded-lg text-gray-500 hover:text-white';
@@ -1555,25 +1568,47 @@
             state.editingId = id; document.getElementById('trans-amigo-input').value = ''; setTransType(t);
             if(id) { 
                 const tr = state.financas.transacoes.find(x => x.id === id); 
-                document.getElementById('trans-val-input').value = tr.valor; document.getElementById('trans-date-input').value = tr.data; document.getElementById('trans-acc-select').value = tr.conta; 
+                document.getElementById('trans-val-input').value = tr.valor; 
+                document.getElementById('trans-date-input').value = tr.data; 
+                document.getElementById('trans-acc-select').value = tr.conta; 
+                document.getElementById('trans-desc-input').value = tr.desc || ''; // Puxa descrição se existir
                 if (t === 'transferencia') { document.getElementById('trans-dest-select').value = tr.destino; } 
-                else { document.getElementById('trans-cat-select').value = tr.cat; setTransState('status', tr.status); }
+                else { document.getElementById('trans-cat-select').value = tr.cat; setTransState('status', tr.status); setTransState('fixa', tr.fixa || false); }
             } else { 
-                document.getElementById('trans-val-input').value = ''; document.getElementById('trans-date-input').value = new Date().toISOString().split('T')[0]; setTransState('status', 'previsivel'); 
+                document.getElementById('trans-val-input').value = ''; 
+                document.getElementById('trans-date-input').value = new Date().toISOString().split('T')[0]; 
+                document.getElementById('trans-desc-input').value = '';
+                setTransState('status', 'previsivel'); 
+                setTransState('fixa', false);
             }
             toggleOverlay('transaction');
         }
 
+        // 👉 FUNÇÃO DE APOIO V4: Calcula o próximo mês sem quebrar datas (ex: 31 de Janeiro não pode virar 3 de Março)
+        function addMonthsSafe(dateStr, monthsToAdd) {
+            let d = new Date(dateStr + 'T12:00:00');
+            let originalDay = d.getDate();
+            d.setMonth(d.getMonth() + monthsToAdd);
+            // Volta para o último dia do mês caso tenha estourado os dias
+            if (d.getDate() !== originalDay) d.setDate(0); 
+            return d.toISOString().split('T')[0];
+        }
+
+        // 👉 V4: SALVAR TRANSAÇÃO COM INTELIGÊNCIA DE 12 MESES
         function saveTransaction() {
             const v = parseFloat(document.getElementById('trans-val-input').value);
             const d = document.getElementById('trans-date-input').value;
             const a = document.getElementById('trans-acc-select').value;
             const type = state.financas.temp.type;
+            
+            // Pega o campo de descrição que adicionamos no HTML
+            const descInput = document.getElementById('trans-desc-input');
+            const desc = descInput ? descInput.value.trim() : '';
 
             if(!v || !d) return;
 
             let c = '', destino = '', status = state.financas.temp.status;
-            
+            const isFixa = state.financas.temp.fixa; // Verifica se o botão "Fixa" está acionado
             const isCard = state.financas.cartoes.some(card => card.nome === a);
 
             if (type === 'transferencia') {
@@ -1582,17 +1617,45 @@
             } else {
                 c = document.getElementById('trans-cat-select').value;
                 if (isCard && type === 'despesa') {
-                    status = 'efetivada';
+                    status = 'efetivada'; // Despesa no cartão sempre nasce efetivada no mês vigente
                 }
             }
 
             const amigo = document.getElementById('trans-amigo-input')?.value.trim();
             
             if(state.editingId) { 
+                // Se estiver editando, apenas altera os dados atuais
                 const idx = state.financas.transacoes.findIndex(x => x.id === state.editingId); 
-                if(idx !== -1) { state.financas.transacoes[idx] = {...state.financas.transacoes[idx], valor:v, data:d, cat:c, conta:a, destino:destino, tipo:type, status:status}; }
+                if(idx !== -1) { 
+                    state.financas.transacoes[idx] = {...state.financas.transacoes[idx], valor:v, data:d, cat:c, desc:desc, conta:a, destino:destino, tipo:type, status:status, fixa: isFixa}; 
+                }
             } else { 
-                state.financas.transacoes.push({ id:Date.now(), data:d, valor:v, tipo:type, status:status, cat:c, conta:a, destino:destino }); 
+                // Se for nova transação
+                const baseId = Date.now();
+                
+                // Lançamento do mês atual
+                state.financas.transacoes.push({ id: baseId, data:d, valor:v, tipo:type, status:status, cat:c, desc:desc, conta:a, destino:destino, fixa: isFixa }); 
+                
+                // 🔥 MÁGICA V4: Se for "Fixa", clona para os próximos 12 meses como "previsivel"
+                if(isFixa && type !== 'transferencia') {
+                    for(let i = 1; i <= 12; i++) {
+                        const dataClone = addMonthsSafe(d, i);
+                        state.financas.transacoes.push({
+                            id: baseId + i,
+                            data: dataClone,
+                            valor: v,
+                            tipo: type,
+                            status: 'previsivel', // O futuro sempre nasce apenas como previsto
+                            cat: c,
+                            desc: desc,
+                            conta: a,
+                            destino: destino,
+                            fixa: true
+                        });
+                    }
+                }
+
+                // Notificação de amigo marcado
                 if (amigo && amigo.startsWith('@') && type !== 'transferencia') {
                     state.notificacoes.unshift({ titulo: 'Transação Dividida', msg: `Você marcou ${amigo} na transação de ${c}.`, data: new Date().toISOString() });
                 }
@@ -1600,6 +1663,7 @@
             saveDataToCloud(); closeAllOverlays(); updateUI(); showToast("Lançamento realizado!");
         }
 
+        // 👉 BOTÕES DE OPÇÃO: Alterna a cor visual entre Previsível/Efetivada e Única/Fixa
         function setTransState(p, v) { 
             state.financas.temp[p] = v; 
             if(p === 'status') {
@@ -1612,6 +1676,7 @@
             }
         }
         
+        // 👉 CARTÕES DE CRÉDITO: Lógica para ver fatura e pagar.
         function openCardDetails(id) { currentViewCardId = id; renderCardDetails(); toggleOverlay('card-details'); }
 
         function renderCardDetails() {
@@ -1647,7 +1712,7 @@
                     <div class="flex items-center space-x-3 overflow-hidden">
                         <div class="w-10 h-10 rounded-full ${isRec ? 'bg-green-500/10 text-green-500' : 'bg-purple-500/10 text-purple-500'} flex items-center justify-center shrink-0"><i data-lucide="${isRec ? 'briefcase' : 'shopping-bag'}" class="w-5 h-5"></i></div>
                         <div class="truncate">
-                            <span class="block text-sm font-medium truncate ${isPago ? 'line-through' : ''}">${t.cat}</span>
+                            <span class="block text-sm font-medium truncate ${isPago ? 'line-through' : ''}">${t.desc || t.cat}</span>
                             <span class="block text-[10px] text-gray-500 uppercase tracking-wider truncate">${t.data.split('-').reverse().join('/')} <span class="${isPago ? 'text-green-500' : 'text-blue-500'} font-bold">• ${isPago ? 'Pago' : t.status}</span></span>
                         </div>
                     </div>
@@ -1691,6 +1756,7 @@
 
         function deleteTransaction(id) { state.financas.transacoes = state.financas.transacoes.filter(x => x.id !== id); saveDataToCloud(); updateUI(); }
 
+        // 👉 VEÍCULOS (Fazer 250): Abastecimento, Serviços e Rotas
         function populateVehAccSelects() {
             const accs = getFinSelectOptions('all'); document.getElementById('input-fuel-acc').innerHTML = accs; document.getElementById('input-svc-acc').innerHTML = accs;
         }
@@ -1714,9 +1780,8 @@
                 }
                 toggleOverlay('veh-servico');
 
-        } else if (t === 'rota') {
+            } else if (t === 'rota') {
                 if(id) {
-                    // MODO EDIÇÃO: Carrega os dados da rota existente
                     const h = state.veiculo.historico.find(x => x.id === id);
                     document.getElementById('input-rota-km').value = h.km;
                     document.getElementById('input-rota-data').value = h.data;
@@ -1725,7 +1790,6 @@
                     document.getElementById('input-rota-motivo').value = h.motivo || 'Dia a Dia';
                     document.getElementById('rota-dist-preview').innerText = h.distancia + ' km';
                 } else {
-                    // MODO NOVO: Limpa os campos
                     document.getElementById('input-rota-km').value = ''; 
                     document.getElementById('input-rota-data').value = new Date().toISOString().split('T')[0]; 
                     document.getElementById('input-rota-origem').value = ''; 
@@ -1740,7 +1804,6 @@
         function calcRota() {
             const inputVal = parseInt(document.getElementById('input-rota-km').value); 
             const preview = document.getElementById('rota-dist-preview');
-            // No modo edição, o cálculo de distância pode ser diferente, mas mantemos o padrão de comparação com o hodômetro atual para simplificar
             if (!inputVal || inputVal <= (state.editingVehId ? 0 : state.veiculo.hodometro)) { 
                 preview.innerText = '0 km'; 
             } else { 
@@ -1759,7 +1822,6 @@
                 if (!km) { showToast("Informe o KM."); return; }
 
                 if(state.editingVehId) {
-                    // ATUALIZANDO ROTA EXISTENTE
                     const idx = state.veiculo.historico.findIndex(x => x.id === state.editingVehId);
                     if(idx > -1) {
                         state.veiculo.historico[idx].km = km;
@@ -1767,11 +1829,9 @@
                         state.veiculo.historico[idx].origem = origem;
                         state.veiculo.historico[idx].destino = destino;
                         state.veiculo.historico[idx].motivo = motivo;
-                        // Recalcula a distância baseada no KM anterior se necessário, ou mantém a original
                         showToast("Registro de rota atualizado!");
                     }
                 } else {
-                    // CRIANDO NOVA ROTA
                     if (km <= state.veiculo.hodometro) { showToast("O hodômetro deve ser maior que o atual."); return; }
                     const dist = km - state.veiculo.hodometro;
                     const item = { id: Date.now(), tipo: 'rota', data: dataRota, km: km, distancia: dist, origem: origem, destino: destino, motivo: motivo };
@@ -1839,6 +1899,7 @@
             document.getElementById('btn-type-carro').className = t === 'carro' ? 'flex-1 py-3 text-xs font-bold rounded-xl bg-orange-500 text-black transition-all shadow-[0_0_15px_rgba(249,115,22,0.3)]' : 'flex-1 py-3 text-xs font-bold rounded-xl bg-transparent text-gray-400 transition-all';
         }
 
+        // 👉 SAÚDE E HÁBITOS: Controle de Água, Cafeína e Propósito.
         function registrarSaude(t) { 
             const h = new Date().toISOString().split('T')[0]; if(!state.saude.historico[h]) state.saude.historico[h]={agua:0, cafe:0}; 
             if(t==='escritorio') state.saude.historico[h].agua+=473; else if(t==='casa') state.saude.historico[h].agua+=350; else if(t==='cafe') state.saude.historico[h].cafe+=80; else if(t==='energetico') state.saude.historico[h].cafe+=150;
@@ -1871,6 +1932,7 @@
         function desistirProposito() { state.saude.proposito = { ativo: false, nome: '', inicio: '', dias: 0, celebrado: false }; saveDataToCloud(); closeAllOverlays(); updateUI(); }
         function fecharComemoracao() { document.getElementById('modal-congratulations').classList.add('hidden'); }
 
+        // 👉 PERFIL E AVATAR: Cortar fotos e atualizar dados pessoais.
         function renderProfileForm() {
             tempAvatar = state.usuario.avatarUrl || null; updateAvatarPreviewUI();
             document.getElementById('prof-first-name').value = state.usuario.firstName; document.getElementById('prof-last-name').value = state.usuario.lastName; document.getElementById('prof-username').value = state.usuario.username; document.getElementById('prof-birth-date').value = state.usuario.birthDate; document.getElementById('prof-weight').value = state.usuario.peso; document.getElementById('prof-water-goal').value = state.saude.aguaMeta; document.getElementById('prof-caf-goal').value = state.saude.cafeinaMeta;
@@ -1916,12 +1978,12 @@
             saveDataToCloud(); closeAllOverlays(); updateUI();
         }
 
+        // 👉 ATUALIZADOR MESTRE: Repinta a tela inteira quando algum dado muda (Saldos, barrinhas, anéis de água, etc.)
         function updateUI() {
             const headerBtn = document.getElementById('header-initials');
             if (state.usuario.avatarUrl) { headerBtn.innerHTML = `<img src="${state.usuario.avatarUrl}" class="w-full h-full object-cover">`; } 
             else { headerBtn.innerHTML = (state.usuario.firstName[0] + (state.usuario.lastName ? state.usuario.lastName[0] : "")).toUpperCase(); }
 
-            // NOVO: Atualiza o perfil na Sidebar (Desktop)
             const sidebarAvatar = document.getElementById('sidebar-avatar-preview');
             const sidebarName = document.getElementById('sidebar-user-name');
             if (sidebarAvatar && sidebarName) {
@@ -1997,11 +2059,17 @@
             }).join('') + `<div class="snap-center shrink-0 w-[30%] card rounded-3xl p-6 shadow-sm flex flex-col items-center justify-center border border-dashed border-gray-700 cursor-pointer hover:bg-gray-800 transition-colors" onclick="toggleOverlay('new-card')"><div class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 mb-2"><i data-lucide="plus" class="w-5 h-5"></i></div></div>`;
         }
 
+        // 👉 RENDERIZADORES DE LISTAS: Constroem o HTML das listagens baseados nos dados
         function renderTransItem(t) {
             const isRec = t.tipo === 'receita'; const isTransf = t.tipo === 'transferencia'; const isPgto = t.tipo === 'pagamento_cartao';
             let icon = isRec ? 'briefcase' : 'shopping-bag'; let colorClass = isRec ? 'text-green-400' : 'text-red-400'; let bgClass = isRec ? 'bg-green-500/10 text-green-500' : 'bg-purple-500/10 text-purple-500'; let prefix = isRec ? '+' : '-';
             if (isTransf) { icon = 'arrow-right-left'; colorClass = 'text-blue-400'; bgClass = 'bg-blue-500/10 text-blue-500'; prefix = ''; } else if (isPgto) { icon = 'credit-card'; colorClass = 'text-red-400'; bgClass = 'bg-red-500/10 text-red-500'; prefix = '-'; }
-            const catName = isTransf ? `Transf. p/ ${t.destino}` : (isPgto ? `Fatura ${t.destino}` : t.cat); const subtitle = isTransf ? `De ${t.conta}` : t.conta;
+            
+            // Usa a descrição se tiver, senão usa a categoria
+            let titleText = t.desc ? t.desc : t.cat;
+            
+            const catName = isTransf ? `Transf. p/ ${t.destino}` : (isPgto ? `Fatura ${t.destino}` : titleText); 
+            const subtitle = isTransf ? `De ${t.conta}` : t.conta;
 
             return `<div class="flex justify-between items-center group card p-4 rounded-2xl border border-white/5">
                 <div class="flex items-center space-x-3 overflow-hidden"><div class="w-10 h-10 rounded-full ${bgClass} flex items-center justify-center shrink-0"><i data-lucide="${icon}" class="w-5 h-5"></i></div><div class="truncate"><span class="block text-sm font-medium truncate">${catName}</span><span class="block text-[10px] text-gray-500 uppercase tracking-wider truncate">${subtitle} <span class="text-blue-500 font-bold">• ${t.status === 'fatura_paga' ? 'Paga' : t.status}</span></span></div></div>
@@ -2058,6 +2126,7 @@
             else { b.classList.add('hidden'); document.getElementById('notif-list').innerHTML = '<p class="text-center text-gray-600 py-10 font-bold uppercase text-[10px]">Sem alertas no momento</p>'; }
         }
 
+        // 👉 GRÁFICOS: Inicializa e desenha as barras e rosquinhas de despesas
         function initCharts() {
             const now = new Date();
             if(!chartsInitialized) {
