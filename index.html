@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mu Finance v04.04</title>
+    <title>Mu Finance v04.05</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -1114,6 +1114,7 @@
         window.firebaseGetDoc = getDoc;
     </script>
 
+
 <script>
     // 👉 VARIÁVEIS GLOBAIS
     let barChartInstance = null, catChartInstance = null, chartsInitialized = false;
@@ -1232,9 +1233,10 @@
             if(id === 'relatorios-fin') setTimeout(initCharts, 200); 
             if(id === 'perfil') renderProfileForm(); 
             if(id === 'veh-config') {
-                setVehType(state.veiculo.tipo);
-                document.getElementById('input-veh-name').value = state.veiculo.nome;
-                document.getElementById('input-veh-oil-interval').value = state.veiculo.oleoIntervalo;
+                const type = state.veiculo.tipo || 'moto';
+                setVehType(type);
+                if(document.getElementById('input-veh-name')) document.getElementById('input-veh-name').value = state.veiculo.nome;
+                if(document.getElementById('input-veh-oil-interval')) document.getElementById('input-veh-oil-interval').value = state.veiculo.oleoIntervalo;
             }
         }
         refreshIcons();
@@ -1280,11 +1282,11 @@
                 const splash = document.getElementById('splash-screen');
                 if (user) {
                     state.isLoggedIn = true; state.userId = user.uid;
-                    document.getElementById('login-screen').classList.add('hidden');
+                    if(document.getElementById('login-screen')) document.getElementById('login-screen').classList.add('hidden');
                     await loadDataFromCloud(); updateUI();
                 } else {
                     state.isLoggedIn = false;
-                    document.getElementById('login-screen').classList.remove('hidden');
+                    if(document.getElementById('login-screen')) document.getElementById('login-screen').classList.remove('hidden');
                 }
                 if (splash) splash.classList.add('hidden');
             });
@@ -1294,7 +1296,7 @@
     window.handleLogin = async () => {
         const email = document.getElementById('login-email').value; const pwd = document.getElementById('login-pwd').value;
         try { await window.signInWithEmailAndPassword(window.firebaseAuth, email, pwd); } 
-        catch (e) { document.getElementById('login-error').innerText = "Credenciais inválidas."; }
+        catch (e) { if(document.getElementById('login-error')) document.getElementById('login-error').innerText = "Credenciais inválidas."; }
     };
 
     // 👉 FINANCEIRO: RENDERS E LÓGICA
@@ -1388,6 +1390,77 @@
         saveDataToCloud(); closeAllOverlays(); updateUI();
     }
 
+    // 👉 FINANCEIRO (CARDS & SELECTS)
+    function getFinSelectOptions(type = 'all') {
+        let options = '';
+        if (type === 'all' || type === 'contas') options += state.usuario.contas.map(a => `<option value="${a.nome}">🏦 ${a.nome}</option>`).join('');
+        if (type === 'all' || type === 'cartoes') options += state.financas.cartoes.map(c => `<option value="${c.nome}">💳 ${c.nome}</option>`).join('');
+        return options;
+    }
+
+    // CORRIGIDO: Ordem de execução garantindo abertura do modal
+    function openTransactionModal(t, id = null) {
+        state.editingId = id; 
+        toggleOverlay('transaction'); // Abre o modal primeiro
+        
+        setTimeout(() => { // Atualiza o conteúdo após abertura para evitar erro de DOM
+            setTransType(t);
+            const descEl = document.getElementById('trans-desc-input');
+            const valEl = document.getElementById('trans-val-input');
+            const dateEl = document.getElementById('trans-date-input');
+            
+            if(id) {
+                const tr = state.financas.transacoes.find(x => x.id === id);
+                if(valEl) valEl.value = tr.valor; 
+                if(dateEl) dateEl.value = tr.data; 
+                if(descEl) descEl.value = tr.desc || "";
+                setTransState('status', tr.status); 
+                setTransState('fixa', tr.fixa);
+            } else {
+                if(valEl) valEl.value = ""; 
+                if(dateEl) dateEl.value = new Date().toISOString().split('T')[0]; 
+                if(descEl) descEl.value = "";
+                setTransState('status', 'previsivel'); 
+                setTransState('fixa', false);
+            }
+        }, 10);
+    }
+
+    function setTransType(t) {
+        state.financas.temp.type = t;
+        
+        const btnDesp = document.getElementById('btn-tt-despesa');
+        const btnRec = document.getElementById('btn-tt-receita');
+        const btnTransf = document.getElementById('btn-tt-transf');
+        
+        if(btnDesp) btnDesp.classList.toggle('bg-red-500/20', t==='despesa');
+        if(btnRec) btnRec.classList.toggle('bg-green-500/20', t==='receita');
+        if(btnTransf) btnTransf.classList.toggle('bg-blue-500/20', t==='transferencia');
+        
+        const cats = t === 'receita' ? state.usuario.categorias_receita : state.usuario.categorias_despesa;
+        const catSelect = document.getElementById('trans-cat-select');
+        const accSelect = document.getElementById('trans-acc-select');
+        
+        if(catSelect) catSelect.innerHTML = cats.map(c => `<option value="${c.nome}">${c.nome}</option>`).join('');
+        if(accSelect) accSelect.innerHTML = getFinSelectOptions(t === 'receita' ? 'contas' : 'all');
+    }
+
+    function setTransState(p, v) { 
+        state.financas.temp[p] = v; 
+        if(p === 'status') {
+            const btnPrev = document.getElementById('btn-st-prev');
+            const btnEfet = document.getElementById('btn-st-efet');
+            if(btnPrev) btnPrev.className = v === 'previsivel' ? 'flex-1 py-2 text-[9px] font-bold rounded-lg bg-blue-500/20 text-blue-400' : 'flex-1 py-2 text-[9px] font-bold rounded-lg text-gray-500';
+            if(btnEfet) btnEfet.className = v === 'efetivada' ? 'flex-1 py-2 text-[9px] font-bold rounded-lg bg-green-500/20 text-green-400' : 'flex-1 py-2 text-[9px] font-bold rounded-lg text-gray-500';
+        }
+        if(p === 'fixa') {
+            const btnNo = document.getElementById('btn-fx-no');
+            const btnYes = document.getElementById('btn-fx-yes');
+            if(btnNo) btnNo.className = v === false ? 'flex-1 py-2 text-[9px] font-bold rounded-lg bg-white/20 text-white' : 'flex-1 py-2 text-[9px] font-bold rounded-lg text-gray-500';
+            if(btnYes) btnYes.className = v === true ? 'flex-1 py-2 text-[9px] font-bold rounded-lg bg-white/20 text-white' : 'flex-1 py-2 text-[9px] font-bold rounded-lg text-gray-500';
+        }
+    }
+
     // 👉 SAÚDE E PROPÓSITO
     function renderCalendar() {
         const grid = document.getElementById('calendar-grid');
@@ -1411,23 +1484,8 @@
             dayDiv.innerHTML = `<div class="${cls}">${d}</div>`;
             grid.appendChild(dayDiv);
         }
-        document.getElementById('calendar-month-year').innerText = new Date(y, m).toLocaleDateString('pt-BR', {month:'short', year:'numeric'}).toUpperCase();
-    }
-
-    function saveProposito() {
-        state.saude.proposito = { 
-            ativo: true, 
-            nome: document.getElementById('input-prop-name').value || 'Desafio', 
-            inicio: document.getElementById('input-prop-date').value, 
-            dias: parseInt(document.getElementById('input-prop-days').value) || 30, 
-            celebrado: false 
-        };
-        saveDataToCloud(); closeAllOverlays(); updateUI();
-    }
-
-    function desistirProposito() { 
-        state.saude.proposito = { ativo: false, nome: '', inicio: '', dias: 0, celebrado: false }; 
-        saveDataToCloud(); closeAllOverlays(); updateUI(); 
+        const lbl = document.getElementById('calendar-month-year');
+        if(lbl) lbl.innerText = new Date(y, m).toLocaleDateString('pt-BR', {month:'short', year:'numeric'}).toUpperCase();
     }
 
     // 👉 CONTROLES DE DATA (PAGINAÇÃO)
@@ -1438,11 +1496,11 @@
     function updateUI() {
         const now = new Date();
         const avatarHtml = state.usuario.avatarUrl ? `<img src="${state.usuario.avatarUrl}" class="w-full h-full object-cover">` : (state.usuario.firstName[0] + (state.usuario.lastName ? state.usuario.lastName[0] : "")).toUpperCase();
-        document.getElementById('header-initials').innerHTML = avatarHtml;
+        if(document.getElementById('header-initials')) document.getElementById('header-initials').innerHTML = avatarHtml;
         if(document.getElementById('sidebar-avatar-preview')) document.getElementById('sidebar-avatar-preview').innerHTML = avatarHtml;
         if(document.getElementById('sidebar-user-name')) document.getElementById('sidebar-user-name').innerText = state.usuario.firstName;
 
-        // Lógica do Propósito (Sober/Desafio)
+        // Lógica do Propósito
         const p = state.saude.proposito;
         const propTitles = document.querySelectorAll('.ui-prop-title');
         if(p && p.ativo && p.inicio && p.dias > 0) {
@@ -1491,15 +1549,6 @@
         refreshIcons();
     }
 
-    // 👉 OUTRAS FUNÇÕES AUXILIARES
-    function addMonthsSafe(dateStr, monthsToAdd) {
-        let d = new Date(dateStr + 'T12:00:00');
-        let day = d.getDate();
-        d.setMonth(d.getMonth() + monthsToAdd);
-        if (d.getDate() !== day) d.setDate(0); 
-        return d.toISOString().split('T')[0];
-    }
-
     function renderRecentTrans() {
         const sorted = [...state.financas.transacoes].sort((a,b) => new Date(b.data) - new Date(a.data)).slice(0, 5);
         const list = document.getElementById('recent-trans-list');
@@ -1531,6 +1580,21 @@
                 </div>
                 <button onclick="deleteVehActivity(${h.id})"><i data-lucide="trash-2" class="w-3.5 h-3.5 text-red-500/50"></i></button>
             </div>`).join('');
+    }
+
+    function deleteTransaction(id) {
+        if(confirm("Excluir este lançamento?")) {
+            state.financas.transacoes = state.financas.transacoes.filter(x => x.id !== id);
+            saveDataToCloud(); updateUI();
+        }
+    }
+
+    function addMonthsSafe(dateStr, monthsToAdd) {
+        let d = new Date(dateStr + 'T12:00:00');
+        let day = d.getDate();
+        d.setMonth(d.getMonth() + monthsToAdd);
+        if (d.getDate() !== day) d.setDate(0); 
+        return d.toISOString().split('T')[0];
     }
 
     function checkVencimentos() {
