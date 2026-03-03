@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mu Finance v04.02</title>
+    <title>Mu Finance v04.03</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -2196,10 +2196,66 @@
             document.getElementById('recent-trans-list').innerHTML = sorted.length ? sorted.map(t => renderTransItem(t)).join('') : '<p class="text-center text-gray-600 py-4 text-xs font-bold uppercase tracking-widest">Nenhuma atividade recente</p>';
         }
 
-        // ATUALIZAÇÃO: Exibição da Data e Hora no Histórico do Veículo
-        function renderVehTimeline() {
-            document.getElementById('veh-timeline').innerHTML = state.veiculo.historico.map(h => {
-                let icon = 'wrench'; let colorClass = 'bg-blue-500/10 text-blue-500'; let title = h.nome; let valHtml = ''; let deleteBtn = `<button onclick="deleteVehActivity(${h.id})"><i data-lucide="trash-2" class="w-4 h-4 text-red-900/50 hover:text-red-500 transition-colors"></i></button>`; let editBtn = `<button onclick="openVehModal('servico', ${h.id})"><i data-lucide="edit-3" class="w-4 h-4 text-gray-600 hover:text-white transition-colors"></i></button>`;
+// ATUALIZAÇÃO: Exibição da Data e Hora no Histórico do Veículo
+function renderVehTimeline() {
+    document.getElementById('veh-timeline').innerHTML = state.veiculo.historico.map(h => {
+
+        let icon = 'wrench';
+        let colorClass = 'bg-blue-500/10 text-blue-500';
+        let title = h.nome;
+        let valHtml = '';
+        let deleteBtn = `<button onclick="deleteVehActivity(${h.id})">
+                            <i data-lucide="trash-2" class="w-4 h-4 text-red-900/50 hover:text-red-500 transition-colors"></i>
+                         </button>`;
+        let editBtn = `<button onclick="openVehModal('servico', ${h.id})">
+                            <i data-lucide="edit-3" class="w-4 h-4 text-gray-600 hover:text-white transition-colors"></i>
+                       </button>`;
+
+        // 🔥 TRATAMENTO ESPECÍFICO PARA ABASTECIMENTO
+        if (h.tipo === 'abastecimento') {
+            icon = 'fuel';
+            colorClass = 'bg-orange-500/10 text-orange-500';
+
+            title = `Abastecimento - ${h.tipoCombustivel || 'Combustível'}`;
+
+            valHtml = `
+                <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">
+                    ${h.km} KM | ${h.dataFormatada}
+                </p>
+            `;
+        } else {
+            // Demais registros continuam padrão
+            valHtml = `
+                <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">
+                    ${h.km || ''} KM
+                </p>
+                <p class="text-[9px] text-gray-600 mt-1">
+                    ${h.dataFormatada || ''}
+                </p>
+            `;
+        }
+
+        return `
+            <div class="card p-4 rounded-2xl flex justify-between items-start border border-white/5">
+                <div class="flex items-start space-x-3">
+                    <div class="w-10 h-10 rounded-xl ${colorClass} flex items-center justify-center">
+                        <i data-lucide="${icon}" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold">${title}</h3>
+                        ${valHtml}
+                    </div>
+                </div>
+                <div class="flex space-x-2">
+                    ${editBtn}
+                    ${deleteBtn}
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    lucide.createIcons();
+}
                 
                 const dataFormatada = h.data ? h.data.split('-').reverse().join('/') : '';
                 const horaFormatada = h.hora ? ` às ${h.hora}` : '';
