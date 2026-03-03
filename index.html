@@ -760,10 +760,34 @@
             </div>
         </div>
 
+        <!-- ... existing code ... -->
         <div id="overlay-veh-abastecer" class="overlay">
             <div class="w-12 h-1 bg-gray-800 rounded-full mx-auto mt-4 mb-4 shrink-0"></div>
             <div class="px-6 flex justify-between items-center mb-6"><h2 class="text-xl font-bold" id="veh-fuel-title">Abastecer</h2><button onclick="closeAllOverlays()"><i data-lucide="x" class="w-6 h-6 text-gray-500"></i></button></div>
             <div class="overlay-content space-y-4">
+                
+                <!-- NOVOS CAMPOS: DATA E HORA -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
+                        <label class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Data</label>
+                        <input type="date" id="input-fuel-data" class="bg-transparent font-bold w-full outline-none text-xs">
+                    </div>
+                    <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
+                        <label class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Hora</label>
+                        <input type="time" id="input-fuel-hora" class="bg-transparent font-bold w-full outline-none text-xs">
+                    </div>
+                </div>
+
+                <!-- NOVO CAMPO: TIPO DE COMBUSTÍVEL -->
+                <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
+                    <label class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Tipo de Combustível</label>
+                    <select id="input-fuel-tipo" class="bg-transparent font-bold w-full outline-none text-xs">
+                        <option value="Gasolina Comum">Gasolina Comum</option>
+                        <option value="Gasolina Aditivada">Gasolina Aditivada</option>
+                        <option value="Etanol">Etanol</option>
+                    </select>
+                </div>
+
                 <div class="grid grid-cols-2 gap-4"><div class="bg-black/20 p-4 rounded-2xl border border-white/5"><label class="text-[10px] text-gray-500 uppercase font-bold block mb-1">Preço/L (R$)</label><input type="number" id="input-fuel-price" oninput="calcFuel('price')" class="bg-transparent font-bold w-full outline-none text-orange-400" placeholder="0.00" step="0.01"></div><div class="bg-black/20 p-4 rounded-2xl border border-white/5"><label class="text-[10px] text-gray-500 uppercase font-bold block mb-1">Litros</label><input type="number" id="input-fuel-liters" oninput="calcFuel('liters')" class="bg-transparent font-bold w-full outline-none" placeholder="0.00" step="0.01"></div></div>
                 <div class="bg-black/30 p-6 rounded-2xl border border-white/5 text-center"><label class="text-[10px] text-gray-500 uppercase font-bold block mb-1">Total Pago (R$)</label><input type="number" id="input-fuel-total" oninput="calcFuel('total')" class="bg-transparent font-black text-3xl w-full outline-none text-center" placeholder="0.00"></div>
                 
@@ -786,6 +810,19 @@
             <div class="w-12 h-1 bg-gray-800 rounded-full mx-auto mt-4 mb-4 shrink-0"></div>
             <div class="px-6 flex justify-between items-center mb-6"><h2 class="text-xl font-bold" id="veh-svc-title">Manutenção</h2><button onclick="closeAllOverlays()"><i data-lucide="x" class="w-6 h-6 text-gray-500"></i></button></div>
             <div class="overlay-content space-y-4">
+                
+                <!-- NOVOS CAMPOS: DATA E HORA -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
+                        <label class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Data</label>
+                        <input type="date" id="input-svc-data" class="bg-transparent font-bold w-full outline-none text-xs">
+                    </div>
+                    <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
+                        <label class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Hora</label>
+                        <input type="time" id="input-svc-hora" class="bg-transparent font-bold w-full outline-none text-xs">
+                    </div>
+                </div>
+
                 <div class="bg-black/20 p-4 rounded-2xl border border-white/5"><label class="text-[10px] text-gray-500 uppercase font-bold block mb-1">Descrição</label><input type="text" id="input-svc-name" class="bg-transparent font-bold w-full outline-none" placeholder="Troca de Pneus"></div>
                 <div class="grid grid-cols-2 gap-4">
                     <div class="bg-black/20 p-4 rounded-2xl border border-white/5"><label class="text-[10px] text-gray-500 uppercase font-bold block mb-1">Valor (R$)</label><input type="number" id="input-svc-val" class="bg-transparent font-bold w-full outline-none" placeholder="0.00"></div>
@@ -817,19 +854,89 @@
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
+                    <!-- DATA AJUSTADA AQUI -->
+                    <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
+                        <label class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Data</label>
+                        <input type="date" id="input-rota-data" class="bg-transparent font-bold w-full outline-none text-xs">
+                    </div>
+                    <!-- NOVA HORA AQUI -->
+                    <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
+                        <label class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Hora</label>
+                        <input type="time" id="input-rota-hora" class="bg-transparent font-bold w-full outline-none text-xs">
+                    </div>
+                </div>
+
+                <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
+                    <label class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Motivo / Tipo</label>
+                    <select id="input-rota-motivo" class="bg-transparent font-bold w-full outline-none text-xs">
+                        <option value="Dia a Dia">Dia a Dia</option>
+                        <option value="Trabalho">Trabalho (Makro)</option>
+                        <option value="Viagem">Viagem / Passeio</option>
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
+                        <label class="text-[10px] text-gray-500 uppercase font-bold block mb-1">Origem (Opcional)</label>
+                        <input type="text" id="input-rota-origem" class="bg-transparent font-bold w-full outline-none text-xs" placeholder="Ex: Casa">
+                    </div>
+                    <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
+                        <label class="text-[10px] text-gray-500 uppercase font-bold block mb-1">Destino (Opcional)</label>
+                        <input type="text" id="input-rota-destino" class="bg-transparent font-bold w-full outline-none text-xs" placeholder="Ex: Makro">
+                    </div>
+                </div>
+
+                <button onclick="saveRota()" class="w-full py-5 rounded-3xl bg-green-500 text-black font-bold text-lg mt-4 uppercase tracking-widest active:scale-95 transition-transform">Salvar Rota</button>
+            </div>
+        </div>
+
+        <div id="overlay-veh-servico" class="overlay">
+            <div class="w-12 h-1 bg-gray-800 rounded-full mx-auto mt-4 mb-4 shrink-0"></div>
+            <div class="px-6 flex justify-between items-center mb-6"><h2 class="text-xl font-bold" id="veh-svc-title">Manutenção</h2><button onclick="closeAllOverlays()"><i data-lucide="x" class="w-6 h-6 text-gray-500"></i></button></div>
+            <div class="overlay-content space-y-4">
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
+                        <label class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Data</label>
+                        <input type="date" id="input-svc-data" class="bg-transparent font-bold w-full outline-none text-xs">
+                    </div>
+                    <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
+                        <label class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Hora</label>
+                        <input type="time" id="input-svc-hora" class="bg-transparent font-bold w-full outline-none text-xs">
+                    </div>
+                </div>
+
+                <div class="bg-black/20 p-4 rounded-2xl border border-white/5"><label class="text-[10px] text-gray-500 uppercase font-bold block mb-1">Descrição</label><input type="text" id="input-svc-name" class="bg-transparent font-bold w-full outline-none" placeholder="Troca de Pneus"></div>
+<!-- ... existing code ... -->
+        <div id="overlay-veh-rota" class="overlay">
+            <div class="w-12 h-1 bg-gray-800 rounded-full mx-auto mt-4 mb-4 shrink-0"></div>
+            <div class="px-6 flex justify-between items-center mb-6"><h2 class="text-xl font-bold">Registrar Rota</h2><button onclick="closeAllOverlays()"><i data-lucide="x" class="w-6 h-6 text-gray-500"></i></button></div>
+            <div class="overlay-content space-y-4">
+                
+                <div class="bg-black/30 p-6 rounded-2xl border border-white/5 text-center">
+<!-- ... existing code ... -->
+                <div class="grid grid-cols-2 gap-4">
                     <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
                         <label class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Data</label>
                         <input type="date" id="input-rota-data" class="bg-transparent font-bold w-full outline-none text-xs">
                     </div>
                     <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
-                        <label class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Motivo / Tipo</label>
-                        <select id="input-rota-motivo" class="bg-transparent font-bold w-full outline-none text-xs">
-                            <option value="Dia a Dia">Dia a Dia</option>
-                            <option value="Trabalho">Trabalho (Makro)</option>
-                            <option value="Viagem">Viagem / Passeio</option>
-                        </select>
+                        <label class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Hora</label>
+                        <input type="time" id="input-rota-hora" class="bg-transparent font-bold w-full outline-none text-xs">
                     </div>
                 </div>
+
+                <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
+                    <label class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Motivo / Tipo</label>
+                    <select id="input-rota-motivo" class="bg-transparent font-bold w-full outline-none text-xs">
+                        <option value="Dia a Dia">Dia a Dia</option>
+                        <option value="Trabalho">Trabalho (Makro)</option>
+                        <option value="Viagem">Viagem / Passeio</option>
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+<!-- ... existing code ... -->
 
                 <div class="grid grid-cols-2 gap-4">
                     <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
