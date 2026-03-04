@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mu Finance v04.25</title>
+    <title>Mu Finance v04.26</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -220,7 +220,7 @@
             <div class="w-full max-w-md">
                 <div class="text-center mb-10">
                     <h1 class="text-4xl font-bold tracking-tight mb-2">Mu Finance</h1>
-                    <p class="text-[10px] text-gray-500 uppercase tracking-widest font-bold">v04.25</p>
+                    <p class="text-[10px] text-gray-500 uppercase tracking-widest font-bold">v04.26</p>
                 </div>
                 <div class="space-y-4">
                 <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
@@ -243,7 +243,7 @@
         <header class="flex justify-between items-center shrink-0">
             <div>
                 <h1 id="header-title" class="text-2xl font-bold tracking-tight">Mu Finance</h1>
-                <p class="text-[10px] text-gray-500 uppercase font-bold tracking-widest mt-1" id="header-subtitle">Dashboard Geral v04.25</p>
+                <p class="text-[10px] text-gray-500 uppercase font-bold tracking-widest mt-1" id="header-subtitle">Dashboard Geral v04.26</p>
             </div>
             <div class="flex items-center space-x-3">
                 <button onclick="toggleOverlay('notificacoes')" class="relative w-10 h-10 flex items-center justify-center rounded-full bg-[#1E2128] border border-gray-800 active:scale-90 transition-transform">
@@ -1413,7 +1413,7 @@
         window.firebaseGetDoc = getDoc;
     </script>
 
-    <script>
+<script>
         let barChartInstance = null, catChartInstance = null, chartsInitialized = false;
         let tempAvatar = null;
         let currentViewCardId = null;
@@ -1457,7 +1457,6 @@
             notificacoes: []
         };
 
-        // V04.09: Renderizar carrossel de saldo com contas
         function renderSaldoCarousel() {
             if (!state.usuario.contas || state.usuario.contas.length === 0) return;
             
@@ -1593,13 +1592,11 @@
             setTimeout(() => { toast.remove(); }, 3000);
         }
         
-        // NOVO: Função para o Menu Retrátil
         window.toggleSidebar = function() {
             document.body.classList.toggle('sidebar-collapsed');
             if (window.lucide) { lucide.createIcons(); }
         };
 
-        // Atalho Ctrl + B para Barra Lateral
         document.addEventListener('keydown', (e) => {
             if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
                 e.preventDefault();
@@ -1633,7 +1630,7 @@
             closeAllOverlays(); updateUI();
         }
 
-function toggleOverlay(id) {
+        function toggleOverlay(id) {
             const el = document.getElementById('overlay-' + id);
             if(!el) return;
             if(el.classList.contains('active')) { closeAllOverlays(); }
@@ -1644,7 +1641,6 @@ function toggleOverlay(id) {
                 
                 if(id === 'relatorios-fin') setTimeout(initCharts, 200); 
                 
-                // --- ALTERAÇÃO AQUI: adicionado o checkUsernameCooldown ---
                 if(id === 'perfil') {
                     renderProfileForm(); 
                     checkUsernameCooldown();
@@ -1792,7 +1788,6 @@ function toggleOverlay(id) {
                         state.isLoggedIn = false; state.userId = null; loginScreen.classList.remove('hidden');
                     }
 
-                    // Remove Splash Screen suavemente
                     if (splashScreen) {
                         splashScreen.classList.add('opacity-0');
                         setTimeout(() => splashScreen.classList.add('hidden'), 500);
@@ -1823,7 +1818,7 @@ function toggleOverlay(id) {
             if (conta) { conta.somaSaldo = !conta.somaSaldo; saveDataToCloud(); updateUI(); }
         }
 
-                window.selectBankColor = function(color) {
+        window.selectBankColor = function(color) {
             document.getElementById('edit-account-cor').value = color;
             document.querySelectorAll('.color-option').forEach(btn => {
                 if (btn.getAttribute('data-color') === color) {
@@ -1835,6 +1830,7 @@ function toggleOverlay(id) {
                 }
             });
         };
+        
         window.openEditAccountModal = function(id) {
             const conta = state.usuario.contas.find(c => c.id.toString() === id.toString());
             if(!conta) return;
@@ -1904,7 +1900,7 @@ function toggleOverlay(id) {
         window.verificarPrevisaoDetran = function() {
             if(!state.veiculo.placaFinal || state.veiculo.placaFinal === '') return;
             const anoAtual = new Date().getFullYear();
-            const calcMes = parseInt(state.veiculo.placaFinal); // Regra simplificada CE
+            const calcMes = parseInt(state.veiculo.placaFinal); 
             const mesLicenciamento = calcMes === 0 ? 12 : calcMes + 2; 
             
             const jaPreviu = state.financas.transacoes.find(t => t.cat === 'Licenciamento/IPVA' && t.data.startsWith(anoAtual.toString()));
@@ -1917,12 +1913,11 @@ function toggleOverlay(id) {
 
         window.calcularValorTanqueCheio = function() {
             const abastecimentosCheios = state.veiculo.historico.filter(h => h.tipo === 'abastecimento' && h.tanqueCheio === true);
-            if(abastecimentosCheios.length === 0) return 70.00; // Média inicial estimada para Fazer 250
+            if(abastecimentosCheios.length === 0) return 70.00; 
             const total = abastecimentosCheios.reduce((acc, curr) => acc + curr.total, 0);
             return total / abastecimentosCheios.length;
         }
 
-        // ATUALIZAÇÃO: Renderiza a lista de contas mostrando o Tipo (Comum/Investimento) e Cadeado
         function renderFinSettings() {
             document.getElementById('list-contas').innerHTML = state.usuario.contas.map(c => `
                 <div class="flex justify-between items-center bg-black/20 p-3 rounded-xl border ${c.somaSaldo === false ? 'border-purple-500/30 bg-purple-500/5' : 'border-white/5'}">
@@ -1973,8 +1968,7 @@ function toggleOverlay(id) {
             saveDataToCloud(); renderFinSettings(); updateUI();
         }
 
-        // ATUALIZAÇÃO: Captura Tipo e Saldo Inicial na criação de novas Contas
-                window.selectNewBankColor = function(color) {
+        window.selectNewBankColor = function(color) {
             document.getElementById('add-account-cor').value = color;
             document.querySelectorAll('#overlay-add-account .color-option').forEach(btn => {
                 if (btn.getAttribute('data-color') === color) {
@@ -1987,7 +1981,6 @@ function toggleOverlay(id) {
             });
         };
         
-        // Swipe down para fechar páginas (Relatório, Metas, Extrato, Cartões, Orçamento)
         let touchStartY = 0;
         let touchEndY = 0;
         
@@ -2010,50 +2003,43 @@ function toggleOverlay(id) {
             const diff = touchEndY - touchStartY;
             
             if (diff > swipeThreshold) {
-                // Swipe down detectado - fechar página
                 navigate('nav-financas', 'page-financas', 'Finanças');
             }
         }
 
-        // Garanta que esta variável global exista no seu script (fora das funções)
-let editingAccountId = null;
+        let editingAccountId = null;
 
-// Adiciona a função de cor que estava em falta
-function selectNewBankColor(cor) {
-    const inputCor = document.getElementById('add-account-cor');
-    if (inputCor) inputCor.value = cor;
-    
-    // Atualiza o visual das bolinhas (remove o destaque de todas e coloca na clicada)
-    document.querySelectorAll('.color-option').forEach(el => {
-        el.classList.remove('ring-2', 'ring-white', 'scale-110');
-    });
-    
-    const bolinhaSelecionada = document.querySelector(`.color-option[data-color="${cor}"]`);
-    if(bolinhaSelecionada) {
-        bolinhaSelecionada.classList.add('ring-2', 'ring-white', 'scale-110');
-    }
-}
+        function selectNewBankColor(cor) {
+            const inputCor = document.getElementById('add-account-cor');
+            if (inputCor) inputCor.value = cor;
+            
+            document.querySelectorAll('.color-option').forEach(el => {
+                el.classList.remove('ring-2', 'ring-white', 'scale-110');
+            });
+            
+            const bolinhaSelecionada = document.querySelector(`.color-option[data-color="${cor}"]`);
+            if(bolinhaSelecionada) {
+                bolinhaSelecionada.classList.add('ring-2', 'ring-white', 'scale-110');
+            }
+        }
 
-// Única versão correta da função para adicionar conta
-function openAddAccountModal() {
-    editingAccountId = null; // Avisa que é uma conta nova
-    
-    const titulo = document.getElementById('titulo-modal-conta');
-    if (titulo) titulo.innerText = "Adicionar Conta";
-    
-    // Limpa os dados do ecrã
-    document.getElementById('add-account-nome').value = '';
-    document.getElementById('add-account-tipo').value = 'Carteira';
-    document.getElementById('add-account-saldo').value = '';
-    
-    const inputCor = document.getElementById('add-account-cor');
-    if(inputCor) inputCor.value = '#38bdf8';
-    
-    // Chama a função de cor que agora já existe
-    setTimeout(() => selectNewBankColor('#38bdf8'), 50);
-    
-    toggleOverlay('add-account'); 
-}
+        function openAddAccountModal() {
+            editingAccountId = null; 
+            
+            const titulo = document.getElementById('titulo-modal-conta');
+            if (titulo) titulo.innerText = "Adicionar Conta";
+            
+            document.getElementById('add-account-nome').value = '';
+            document.getElementById('add-account-tipo').value = 'Carteira';
+            document.getElementById('add-account-saldo').value = '';
+            
+            const inputCor = document.getElementById('add-account-cor');
+            if(inputCor) inputCor.value = '#38bdf8';
+            
+            setTimeout(() => selectNewBankColor('#38bdf8'), 50);
+            
+            toggleOverlay('add-account'); 
+        }
 
         function saveNewAccount() {
             const nome = document.getElementById('add-account-nome').value.trim();
@@ -2089,7 +2075,6 @@ function openAddAccountModal() {
 
                 state.usuario.contas.push({id: Date.now().toString(), nome: nome, tipo: tipo, protected: false, somaSaldo: true});
 
-                // Cria lançamento automático caso tenha saldo informado
                 if (saldo !== 0) {
                     state.financas.transacoes.push({ id: Date.now() + 1, data: new Date().toISOString().split('T')[0], valor: Math.abs(saldo), tipo: saldo > 0 ? 'receita' : 'despesa', cat: 'Saldo Inicial', conta: nome, destino: '', status: 'efetivada' });
                 }
@@ -2385,7 +2370,6 @@ function deleteTransaction(id) {
 
         } else if (t === 'rota') {
                 if(id) {
-                    // MODO EDIÇÃO: Carrega os dados da rota existente
                     const h = state.veiculo.historico.find(x => x.id === id);
                     document.getElementById('input-rota-km').value = h.km;
                     document.getElementById('input-rota-data').value = h.data;
@@ -2394,7 +2378,6 @@ function deleteTransaction(id) {
                     document.getElementById('input-rota-motivo').value = h.motivo || 'Dia a Dia';
                     document.getElementById('rota-dist-preview').innerText = h.distancia + ' km';
                 } else {
-                    // MODO NOVO: Limpa os campos
                     document.getElementById('input-rota-km').value = ''; 
                     document.getElementById('input-rota-data').value = new Date().toISOString().split('T')[0];
                     document.getElementById('input-rota-hora').value = new Date().toTimeString().slice(0, 5);
@@ -2410,7 +2393,6 @@ function deleteTransaction(id) {
         function calcRota() {
             const inputVal = parseInt(document.getElementById('input-rota-km').value); 
             const preview = document.getElementById('rota-dist-preview');
-            // No modo edição, o cálculo de distância pode ser diferente, mas mantemos o padrão de comparação com o hodômetro atual para simplificar
             if (!inputVal || inputVal <= (state.editingVehId ? 0 : state.veiculo.hodometro)) { 
                 preview.innerText = '0 km'; 
             } else { 
@@ -2430,7 +2412,6 @@ function deleteTransaction(id) {
                 if (!km) { showToast("Informe o KM."); return; }
 
                 if(state.editingVehId) {
-                    // ATUALIZANDO ROTA EXISTENTE
                     const idx = state.veiculo.historico.findIndex(x => x.id === state.editingVehId);
                     if(idx > -1) {
                         state.veiculo.historico[idx].km = km;
@@ -2439,11 +2420,9 @@ function deleteTransaction(id) {
                         state.veiculo.historico[idx].origem = origem;
                         state.veiculo.historico[idx].destino = destino;
                         state.veiculo.historico[idx].motivo = motivo;
-                        // Recalcula a distância baseada no KM anterior se necessário, ou mantém a original
                         showToast("Registro de rota atualizado!");
                     }
                 } else {
-                    // CRIANDO NOVA ROTA
                     if (km <= state.veiculo.hodometro) { showToast("O hodômetro deve ser maior que o atual."); return; }
                     const dist = km - state.veiculo.hodometro;
                     const item = { id: Date.now(), tipo: 'rota', data: dataRota, hora: horaRota, km: km, distancia: dist, origem: origem, destino: destino, motivo: motivo };
@@ -2462,7 +2441,6 @@ function deleteTransaction(id) {
             else if (trig === 'total') { if (t && p) document.getElementById('input-fuel-liters').value = (t / p).toFixed(2); else if (t && l) document.getElementById('input-fuel-price').value = (t / l).toFixed(2); }
         }
 
-        // ATUALIZADO V04: Checkbox de tanque cheio no save
         function saveRefueling() {
             try {
                 const kmInput = parseInt(document.getElementById('input-fuel-km').value); const km = !isNaN(kmInput) ? kmInput : state.veiculo.hodometro; const t = parseFloat(document.getElementById('input-fuel-total').value) || 0; const l = parseFloat(document.getElementById('input-fuel-liters').value) || 0; const acc = document.getElementById('input-fuel-acc').value;
@@ -2512,7 +2490,6 @@ function deleteTransaction(id) {
 
         function deleteVehActivity(id) { state.veiculo.historico = state.veiculo.historico.filter(x => x.id !== id); state.financas.transacoes = state.financas.transacoes.filter(x => x.refId !== id); saveDataToCloud(); updateUI(); }
         
-        // ATUALIZADO V04: Salva a placa final
         function saveVehSettings() { 
             state.veiculo.nome = document.getElementById('input-veh-name').value; 
             state.veiculo.oleoIntervalo = parseInt(document.getElementById('input-veh-oil-interval').value) || 3000; 
@@ -2596,8 +2573,7 @@ function deleteTransaction(id) {
             }
         }
 
-function saveProfile() {
-            // Verifica se houve mudança no @usuario para registrar a data (Regra de 90 dias)
+        function saveProfile() {
             const novoUsername = document.getElementById('prof-username').value.trim();
             const usernameAtual = state.usuario.username || '';
             
@@ -2605,7 +2581,6 @@ function saveProfile() {
                 localStorage.setItem('lastUsernameChange', Date.now().toString());
             }
 
-            // Salva os dados no estado
             state.usuario.firstName = document.getElementById('prof-first-name').value; 
             state.usuario.lastName = document.getElementById('prof-last-name').value; 
             state.usuario.username = novoUsername; 
@@ -2613,14 +2588,12 @@ function saveProfile() {
             state.usuario.peso = parseFloat(document.getElementById('prof-weight').value) || 0; 
             state.usuario.avatarUrl = tempAvatar;
             
-            // Calcula a idade
             const birth = new Date(state.usuario.birthDate); 
             const today = new Date(); 
             let age = today.getFullYear() - birth.getFullYear(); 
             if (today.getMonth() < birth.getMonth() || (today.getMonth() === birth.getMonth() && today.getDate() < birth.getDate())) age--; 
             state.usuario.idade = age;
             
-            // Metas de saúde
             state.saude.aguaMeta = parseFloat(document.getElementById('prof-water-goal').value) || (state.usuario.peso * 35); 
             state.saude.cafeinaMeta = parseFloat(document.getElementById('prof-caf-goal').value) || 400;
             
@@ -2634,7 +2607,6 @@ function saveProfile() {
             if (state.usuario.avatarUrl) { headerBtn.innerHTML = `<img src="${state.usuario.avatarUrl}" class="w-full h-full object-cover">`; } 
             else { headerBtn.innerHTML = (state.usuario.firstName[0] + (state.usuario.lastName ? state.usuario.lastName[0] : "")).toUpperCase(); }
 
-            // NOVO: Atualiza o perfil na Sidebar (Desktop)
             const sidebarAvatar = document.getElementById('sidebar-avatar-preview');
             const sidebarName = document.getElementById('sidebar-user-name');
             if (sidebarAvatar && sidebarName) {
@@ -2698,7 +2670,6 @@ function saveProfile() {
             renderCards(); if(document.getElementById('overlay-card-details').classList.contains('active')) renderCardDetails();
             renderExtrato(); renderRecentTrans(); renderVehTimeline(); renderCalendar(); renderNotifs(); renderMetasList(); refreshIcons();
             
-            // V04: Checagem da previsão de tributos do veículo
             verificarPrevisaoDetran();
         }
 
@@ -2854,29 +2825,29 @@ function saveProfile() {
             refreshIcons();
         }
 
-function renderCalendar() {
-    const grid = document.getElementById('calendar-grid'); const headers = Array.from(grid.children).slice(0, 7); grid.innerHTML = ''; headers.forEach(h => grid.appendChild(h));
-    const m = state.viewDate.getMonth(), y = state.viewDate.getFullYear(); const first = new Date(y, m, 1).getDay(), days = new Date(y, m+1, 0).getDate();
-    for(let i=0; i<first; i++) grid.appendChild(document.createElement('div'));
-    
-    for(let d=1; d<=days; d++) {
-        const k = `${y}-${(m+1).toString().padStart(2,'0')}-${d.toString().padStart(2,'0')}`; 
-        const v = state.saude.historico[k] || {agua:0, cafe:0};
-        
-        const dayDiv = document.createElement('div'); dayDiv.className = 'flex justify-center';
-        
-        let markers = '';
-        if(v.agua > 0) markers += '<div class="dot dot-agua"></div>';
-        if(v.cafe > 0) { const cafeCls = v.cafe > state.saude.cafeinaMeta ? 'dot-cafe-alert' : 'dot-cafe'; markers += `<div class="dot ${cafeCls}"></div>`; }
+        function renderCalendar() {
+            const grid = document.getElementById('calendar-grid'); const headers = Array.from(grid.children).slice(0, 7); grid.innerHTML = ''; headers.forEach(h => grid.appendChild(h));
+            const m = state.viewDate.getMonth(), y = state.viewDate.getFullYear(); const first = new Date(y, m, 1).getDay(), days = new Date(y, m+1, 0).getDate();
+            for(let i=0; i<first; i++) grid.appendChild(document.createElement('div'));
+            
+            for(let d=1; d<=days; d++) {
+                const k = `${y}-${(m+1).toString().padStart(2,'0')}-${d.toString().padStart(2,'0')}`; 
+                const v = state.saude.historico[k] || {agua:0, cafe:0};
+                
+                const dayDiv = document.createElement('div'); dayDiv.className = 'flex justify-center';
+                
+                let markers = '';
+                if(v.agua > 0) markers += '<div class="dot dot-agua"></div>';
+                if(v.cafe > 0) { const cafeCls = v.cafe > state.saude.cafeinaMeta ? 'dot-cafe-alert' : 'dot-cafe'; markers += `<div class="dot ${cafeCls}"></div>`; }
 
-        let circleCls = 'day-circle';
-        if(v.agua >= state.saude.aguaMeta && state.saude.aguaMeta > 0) circleCls += ' goal-met';
+                let circleCls = 'day-circle';
+                if(v.agua >= state.saude.aguaMeta && state.saude.aguaMeta > 0) circleCls += ' goal-met';
 
-        dayDiv.innerHTML = `<div class="${circleCls}" onclick="openSaudeDiaModal('${k}')">${d}<div class="absolute bottom-1 flex justify-center w-full">${markers}</div></div>`; 
-        grid.appendChild(dayDiv);
-    }
-    document.getElementById('calendar-month-year').innerText = new Date(y, m).toLocaleDateString('pt-BR', {month:'short', year:'numeric'}).toUpperCase();
-}
+                dayDiv.innerHTML = `<div class="${circleCls}" onclick="openSaudeDiaModal('${k}')">${d}<div class="absolute bottom-1 flex justify-center w-full">${markers}</div></div>`; 
+                grid.appendChild(dayDiv);
+            }
+            document.getElementById('calendar-month-year').innerText = new Date(y, m).toLocaleDateString('pt-BR', {month:'short', year:'numeric'}).toUpperCase();
+        }
 
         function renderNotifs() {
             const b = document.getElementById('notif-badge');
@@ -2947,60 +2918,34 @@ function renderCalendar() {
             }); 
         }
 
-		function openAddAccountModal() {
-			toggleOverlay('nova-conta');
-		}
+        function checkUsernameCooldown() {
+            const usernameInput = document.getElementById('prof-username');
+            const lastChange = localStorage.getItem('lastUsernameChange'); 
 
-		function saveNewAccount() {
-			const nome = document.getElementById('conta-name-input').value;
-			const saldo = document.getElementById('conta-saldo-input').value;
-
-			if(!nome) {
-				alert("Preencha o nome da conta.");
-				return;
-			}
-
-			// Lógica para salvar a conta no seu sistema de estados/banco de dados
-			console.log("Conta adicionada:", nome, saldo);
-
-			// Limpa os campos e fecha a tela
-			document.getElementById('conta-name-input').value = '';
-			document.getElementById('conta-saldo-input').value = '';
-			closeAllOverlays();
-		}
-		
-function checkUsernameCooldown() {
-    const usernameInput = document.getElementById('prof-username');
-    const lastChange = localStorage.getItem('lastUsernameChange'); 
-
-    if (lastChange) {
-        const daysSinceChange = (Date.now() - parseInt(lastChange)) / (1000 * 60 * 60 * 24);
-        
-        if (daysSinceChange < 90) {
-            const daysLeft = Math.ceil(90 - daysSinceChange);
+            if (lastChange) {
+                const daysSinceChange = (Date.now() - parseInt(lastChange)) / (1000 * 60 * 60 * 24);
+                
+                if (daysSinceChange < 90) {
+                    const daysLeft = Math.ceil(90 - daysSinceChange);
+                    
+                    usernameInput.readOnly = true;
+                    usernameInput.classList.add('opacity-50', 'cursor-pointer');
+                    
+                    usernameInput.onclick = function() {
+                        document.getElementById('texto-aviso-usuario').innerText = `Você só pode alterar o seu @usuário a cada 90 dias.\n\nFaltam ${daysLeft} dias para poder alterar novamente.`;
+                        toggleOverlay('aviso-usuario');
+                    };
+                    
+                    return false;
+                }
+            }
             
-            // Usa readOnly no lugar de disabled para permitir o clique
-            usernameInput.readOnly = true;
-            usernameInput.classList.add('opacity-50', 'cursor-pointer');
-            
-            // Adiciona a ação de clique para abrir o lightbox
-            usernameInput.onclick = function() {
-                document.getElementById('texto-aviso-usuario').innerText = `Você só pode alterar o seu @usuário a cada 90 dias.\n\nFaltam ${daysLeft} dias para poder alterar novamente.`;
-                toggleOverlay('aviso-usuario');
-            };
-            
-            return false;
+            usernameInput.readOnly = false;
+            usernameInput.classList.remove('opacity-50', 'cursor-pointer');
+            usernameInput.onclick = null;
+            return true;
         }
-    }
-    
-    // Libera o campo se já passou do prazo ou se nunca foi alterado
-    usernameInput.readOnly = false;
-    usernameInput.classList.remove('opacity-50', 'cursor-pointer');
-    usernameInput.onclick = null; // Remove o evento de clique
-    return true;
-}
-		
-		
+        
         window.onload = () => { 
             if(!state.isLoggedIn) { document.getElementById('login-screen').classList.remove('hidden'); }
             initializeAuthListener();
