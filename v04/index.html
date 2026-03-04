@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mu Finance v04.23</title>
+    <title>Mu Finance v04.24</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -220,7 +220,7 @@
             <div class="w-full max-w-md">
                 <div class="text-center mb-10">
                     <h1 class="text-4xl font-bold tracking-tight mb-2">Mu Finance</h1>
-                    <p class="text-[10px] text-gray-500 uppercase tracking-widest font-bold">v04.23</p>
+                    <p class="text-[10px] text-gray-500 uppercase tracking-widest font-bold">v04.24</p>
                 </div>
                 <div class="space-y-4">
                 <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
@@ -243,7 +243,7 @@
         <header class="flex justify-between items-center shrink-0">
             <div>
                 <h1 id="header-title" class="text-2xl font-bold tracking-tight">Mu Finance</h1>
-                <p class="text-[10px] text-gray-500 uppercase font-bold tracking-widest mt-1" id="header-subtitle">Dashboard Geral v04.23</p>
+                <p class="text-[10px] text-gray-500 uppercase font-bold tracking-widest mt-1" id="header-subtitle">Dashboard Geral v04.24</p>
             </div>
             <div class="flex items-center space-x-3">
                 <button onclick="toggleOverlay('notificacoes')" class="relative w-10 h-10 flex items-center justify-center rounded-full bg-[#1E2128] border border-gray-800 active:scale-90 transition-transform">
@@ -1298,6 +1298,20 @@
             </div>
         </div>
 
+	<div id="overlay-aviso-usuario" class="overlay">
+    <div class="w-12 h-1 bg-gray-800 rounded-full mx-auto mt-4 mb-4 shrink-0"></div>
+    <div class="px-6 flex justify-between items-center mb-6">
+        <h2 class="text-xl font-bold text-red-500">Ação Bloqueada</h2>
+        <button onclick="closeAllOverlays()"><i data-lucide="x" class="w-6 h-6 text-gray-500"></i></button>
+    </div>
+    <div class="px-6 pb-6 text-center space-y-4">
+        <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
+            <p class="text-gray-300 text-sm" id="texto-aviso-usuario"></p>
+        </div>
+        <button onclick="closeAllOverlays()" class="w-full py-4 rounded-3xl bg-gray-800 text-white font-bold uppercase tracking-widest mt-4 active:scale-95 transition-transform">Entendi</button>
+    </div>
+</div>
+		
         <div id="overlay-edit-account" class="overlay">
             <div class="w-12 h-1 bg-gray-800 rounded-full mx-auto mt-4 mb-4 shrink-0"></div>
             <div class="px-6 flex justify-between items-center mb-6">
@@ -2004,27 +2018,41 @@ function toggleOverlay(id) {
         // Garanta que esta variável global exista no seu script (fora das funções)
 let editingAccountId = null;
 
-function openAddAccountModal() {
-    // 1. Reseta a variável de edição para indicar que é uma NOVA conta
-    editingAccountId = null; 
+// Adiciona a função de cor que estava em falta
+function selectNewBankColor(cor) {
+    const inputCor = document.getElementById('add-account-cor');
+    if (inputCor) inputCor.value = cor;
     
-    // 2. Altera o título do modal
-    const tituloModal = document.getElementById('titulo-modal-conta');
-    if (tituloModal) {
-        tituloModal.innerText = "Adicionar Conta";
+    // Atualiza o visual das bolinhas (remove o destaque de todas e coloca na clicada)
+    document.querySelectorAll('.color-option').forEach(el => {
+        el.classList.remove('ring-2', 'ring-white', 'scale-110');
+    });
+    
+    const bolinhaSelecionada = document.querySelector(`.color-option[data-color="${cor}"]`);
+    if(bolinhaSelecionada) {
+        bolinhaSelecionada.classList.add('ring-2', 'ring-white', 'scale-110');
     }
+}
 
-    // 3. Limpa e reseta os campos para os valores padrão
+// Única versão correta da função para adicionar conta
+function openAddAccountModal() {
+    editingAccountId = null; // Avisa que é uma conta nova
+    
+    const titulo = document.getElementById('titulo-modal-conta');
+    if (titulo) titulo.innerText = "Adicionar Conta";
+    
+    // Limpa os dados do ecrã
     document.getElementById('add-account-nome').value = '';
     document.getElementById('add-account-tipo').value = 'Carteira';
     document.getElementById('add-account-saldo').value = '';
-    document.getElementById('add-account-cor').value = '#38bdf8';
     
-    // 4. Aciona a seleção visual de cor
-    setTimeout(() => selectNewBankColor('#38bdf8'), 100);
+    const inputCor = document.getElementById('add-account-cor');
+    if(inputCor) inputCor.value = '#38bdf8';
     
-    // 5. Abre o modal (Ajuste se o ID no HTML for diferente)
-    toggleOverlay('add-account');
+    // Chama a função de cor que agora já existe
+    setTimeout(() => selectNewBankColor('#38bdf8'), 50);
+    
+    toggleOverlay('add-account'); 
 }
 
         function saveNewAccount() {
@@ -2949,16 +2977,29 @@ function checkUsernameCooldown() {
         const daysSinceChange = (Date.now() - parseInt(lastChange)) / (1000 * 60 * 60 * 24);
         
         if (daysSinceChange < 90) {
-            usernameInput.disabled = true;
-            usernameInput.classList.add('opacity-50', 'cursor-not-allowed');
+            const daysLeft = Math.ceil(90 - daysSinceChange);
+            
+            // Usa readOnly no lugar de disabled para permitir o clique
+            usernameInput.readOnly = true;
+            usernameInput.classList.add('opacity-50', 'cursor-pointer');
+            
+            // Adiciona a ação de clique para abrir o lightbox
+            usernameInput.onclick = function() {
+                document.getElementById('texto-aviso-usuario').innerText = `Você só pode alterar o seu @usuário a cada 90 dias.\n\nFaltam ${daysLeft} dias para poder alterar novamente.`;
+                toggleOverlay('aviso-usuario');
+            };
+            
             return false;
         }
     }
     
-    usernameInput.disabled = false;
-    usernameInput.classList.remove('opacity-50', 'cursor-not-allowed');
+    // Libera o campo se já passou do prazo ou se nunca foi alterado
+    usernameInput.readOnly = false;
+    usernameInput.classList.remove('opacity-50', 'cursor-pointer');
+    usernameInput.onclick = null; // Remove o evento de clique
     return true;
 }
+		
 		
         window.onload = () => { 
             if(!state.isLoggedIn) { document.getElementById('login-screen').classList.remove('hidden'); }
