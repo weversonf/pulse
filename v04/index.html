@@ -248,7 +248,7 @@
             
             <div id="page-home" class="page-content space-y-5 fade-in">
 
-					<div class="card rounded-3xl p-6 shadow-sm relative overflow-hidden">
+				<div class="card rounded-3xl p-6 shadow-sm relative overflow-hidden">
 						<div class="absolute right-0 top-0 w-32 h-32 bg-green-500/10 rounded-bl-full z-0"></div>
 						<div class="absolute top-4 right-4 z-20 cursor-pointer p-1" onclick="toggleVisibility()">
 							<div class="btn-eye"><i data-lucide="eye" class="w-5 h-5 text-gray-400 hover:text-white transition-colors"></i></div>
@@ -2270,7 +2270,7 @@
                     document.getElementById('input-fuel-price').value = ''; document.getElementById('input-fuel-liters').value = ''; document.getElementById('input-fuel-total').value = ''; document.getElementById('input-fuel-km').value = state.veiculo.hodometro; 
                     document.getElementById('input-fuel-data').value = new Date().toISOString().split('T')[0];
                     document.getElementById('input-fuel-hora').value = new Date().toTimeString().slice(0, 5);
-                    document.getElementById('input-fuel-full').checked = true;
+                    document.getElementById('input-fuel-full').checked = false;
                 }
                 toggleOverlay('veh-abastecer');
             } else if (t === 'servico') {
