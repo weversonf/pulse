@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mu Finance v04.20</title>
+    <title>Mu Finance v04.21</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -64,6 +64,18 @@
         padding-bottom: calc(130px + env(safe-area-inset-bottom));
         scroll-behavior: smooth;
     }
+	
+	
+		/* Ajustes do Calendário de Saúde */
+	.day-circle { width: 32px; height: 32px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; cursor: pointer; position: relative; transition: all 0.2s; border: 1px solid rgba(255,255,255,0.05); }
+	.day-circle:active { scale: 0.9; background: rgba(255,255,255,0.1); }
+	.day-circle.goal-met { background: rgba(56, 189, 248, 0.2); border-color: #38bdf8; color: #38bdf8; }
+
+	.dot { width: 4px; height: 4px; border-radius: 50%; margin: 0 1px; }
+	.dot-agua { background-color: #38bdf8; }
+	.dot-cafe { background-color: #eab308; }
+	.dot-cafe-alert { background-color: #ef4444;
+	}
     
     .card { background-color: var(--bg-card); border: 1px solid rgba(255,255,255,0.05); }
     ::-webkit-scrollbar { display: none; }
@@ -208,7 +220,7 @@
             <div class="w-full max-w-md">
                 <div class="text-center mb-10">
                     <h1 class="text-4xl font-bold tracking-tight mb-2">Mu Finance</h1>
-                    <p class="text-[10px] text-gray-500 uppercase tracking-widest font-bold">v04.20</p>
+                    <p class="text-[10px] text-gray-500 uppercase tracking-widest font-bold">v04.21</p>
                 </div>
                 <div class="space-y-4">
                 <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
@@ -231,7 +243,7 @@
         <header class="flex justify-between items-center shrink-0">
             <div>
                 <h1 id="header-title" class="text-2xl font-bold tracking-tight">Mu Finance</h1>
-                <p class="text-[10px] text-gray-500 uppercase font-bold tracking-widest mt-1" id="header-subtitle">Dashboard Geral v04.20</p>
+                <p class="text-[10px] text-gray-500 uppercase font-bold tracking-widest mt-1" id="header-subtitle">Dashboard Geral v04.21</p>
             </div>
             <div class="flex items-center space-x-3">
                 <button onclick="toggleOverlay('notificacoes')" class="relative w-10 h-10 flex items-center justify-center rounded-full bg-[#1E2128] border border-gray-800 active:scale-90 transition-transform">
@@ -718,80 +730,97 @@
             </div>
         </div>
 
+<!-- MODAL DE EXCLUSÃO INTELIGENTE -->
+<div id="overlay-delete-options" class="overlay flex items-center justify-center p-4">
+    <div class="w-full max-w-xs bg-[#1E2128] rounded-[2rem] p-6 border border-white/10 shadow-2xl text-center">
+        <div class="w-12 h-12 bg-red-500/10 text-red-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <i data-lucide="trash-2" class="w-6 h-6"></i>
+        </div>
+        <h3 class="text-sm font-black uppercase tracking-widest text-white mb-2">Excluir Transação</h3>
+        <p class="text-[10px] text-gray-500 uppercase font-bold mb-6">Esta é uma transação fixa. Como deseja prosseguir?</p>
+        
+        <div class="space-y-3">
+            <button id="btn-del-all" class="w-full py-3 bg-red-500/10 text-red-500 rounded-xl font-black text-[9px] uppercase tracking-widest border border-red-500/20">1. Excluir Todas</button>
+            <button id="btn-del-future" class="w-full py-3 bg-white/5 text-white rounded-xl font-black text-[9px] uppercase tracking-widest border border-white/5">2. Desta em diante</button>
+            <button id="btn-del-only" class="w-full py-3 bg-white/5 text-gray-400 rounded-xl font-black text-[9px] uppercase tracking-widest border border-white/5">3. Somente esta</button>
+            <button onclick="closeAllOverlays()" class="w-full py-3 text-gray-600 font-black text-[9px] uppercase tracking-widest mt-2">Cancelar</button>
+        </div>
+    </div>
+</div>
+		
         <div id="overlay-transaction" class="overlay">
-            <div class="w-12 h-1 bg-gray-800 rounded-full mx-auto mt-4 mb-4 shrink-0"></div>
-            <div class="px-6 flex justify-between items-center mb-6">
-                <h2 class="text-xl font-bold" id="trans-title">Nova Despesa</h2>
-                <button onclick="closeAllOverlays()"><i data-lucide="x" class="w-6 h-6 text-gray-500"></i></button>
-            </div>
-            <div class="overlay-content space-y-5">
-                <div class="flex bg-black/30 rounded-xl p-1 mb-2">
-                    <button onclick="setTransType('despesa')" id="btn-tt-despesa" class="flex-1 py-2 text-[10px] font-bold rounded-lg transition-all">Despesa</button>
-                    <button onclick="setTransType('receita')" id="btn-tt-receita" class="flex-1 py-2 text-[10px] font-bold rounded-lg transition-all">Receita</button>
-                    <button onclick="setTransType('transferencia')" id="btn-tt-transf" class="flex-1 py-2 text-[10px] font-bold rounded-lg transition-all">Transf.</button>
-                </div>
-                <div class="bg-black/30 p-8 rounded-3xl border border-white/5 text-center">
-                    <span class="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Valor</span>
-                    <div class="text-4xl font-bold mt-2 flex justify-center items-center">
-                        <span class="text-gray-600 mr-2 text-2xl">R$</span>
-                        <input type="number" id="trans-val-input" class="bg-transparent outline-none w-48 text-center" placeholder="0.00" step="0.01">
-                    </div>
-                </div>
-                
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
-                        <label class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Data</label>
-                        <input type="date" id="trans-date-input" class="bg-transparent font-bold w-full outline-none text-xs">
-                    </div>
-                    <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
-                        <label id="trans-acc-label" class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Conta / Cartão</label>
-                        <select id="trans-acc-select" class="bg-transparent font-bold w-full outline-none text-xs"></select>
-                    </div>
-                </div>
-
-
-                <div id="trans-dest-container" class="hidden bg-black/20 p-4 rounded-2xl border border-white/5 border-l-4 border-l-blue-500">
-                    <label class="text-[9px] text-blue-400 uppercase font-bold block mb-1">Para qual conta? (Destino)</label>
-                    <select id="trans-dest-select" class="bg-transparent font-bold w-full outline-none text-xs"></select>
-                </div>
-                
-                <div id="trans-cat-status-container" class="space-y-5">
-                    <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
-                        <label class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Categoria</label>
-                        <select id="trans-cat-select" class="bg-transparent font-bold w-full outline-none text-xs"></select>
-                    </div>
-                    
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="space-y-1">
-                            <label class="text-[9px] text-gray-500 font-bold ml-2 uppercase">Status</label>
-                            <div class="flex bg-black/30 rounded-xl p-1">
-                                <button onclick="setTransState('status','previsivel')" id="btn-st-prev" class="flex-1 py-2 text-[9px] font-bold rounded-lg transition-all">Previsível</button>
-                                <button onclick="setTransState('status','efetivada')" id="btn-st-efet" class="flex-1 py-2 text-[9px] font-bold rounded-lg transition-all">Efetivada</button>
-                            </div>
-                        </div>
-                        <div class="space-y-1">
-                            <label class="text-[9px] text-gray-500 font-bold ml-2 uppercase">Tipo</label>
-                            <div class="flex bg-black/30 rounded-xl p-1">
-                                <button onclick="setTransState('fixa',false)" id="btn-fx-no" class="flex-1 py-2 text-[9px] font-bold rounded-lg transition-all">Única</button>
-                                <button onclick="setTransState('fixa',true)" id="btn-fx-yes" class="flex-1 py-2 text-[9px] font-bold rounded-lg transition-all">Fixa</button>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="bg-black/20 p-4 rounded-2xl border border-white/5 flex items-center space-x-3">
-                        <div class="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0">
-                            <i data-lucide="at-sign" class="w-4 h-4 text-blue-500"></i>
-                        </div>
-                        <div class="flex-1">
-                            <label class="text-[9px] text-gray-500 uppercase font-bold block mb-0.5">Marcar Amigo (Opcional)</label>
-                            <input type="text" id="trans-amigo-input" placeholder="@usuario" class="bg-transparent font-bold w-full outline-none text-xs">
-                        </div>
-                    </div>
-                </div>
-
-                <button onclick="saveTransaction()" class="w-full py-5 rounded-3xl bg-blue-500 text-black font-bold text-lg mt-4 uppercase">Salvar</button>
+    <div class="w-12 h-1 bg-gray-800 rounded-full mx-auto mt-4 mb-4 shrink-0"></div>
+    <div class="px-6 flex justify-between items-center mb-6">
+        <h2 class="text-xl font-bold" id="trans-title">Nova Despesa</h2>
+        <button onclick="closeAllOverlays()"><i data-lucide="x" class="w-6 h-6 text-gray-500"></i></button>
+    </div>
+    <div class="overlay-content space-y-5">
+        <div class="flex bg-black/30 rounded-xl p-1 mb-2">
+            <button onclick="setTransType('despesa')" id="btn-tt-despesa" class="flex-1 py-2 text-[10px] font-bold rounded-lg transition-all">Despesa</button>
+            <button onclick="setTransType('receita')" id="btn-tt-receita" class="flex-1 py-2 text-[10px] font-bold rounded-lg transition-all">Receita</button>
+            <button onclick="setTransType('transferencia')" id="btn-tt-transf" class="flex-1 py-2 text-[10px] font-bold rounded-lg transition-all">Transf.</button>
+        </div>
+        <div class="bg-black/30 p-8 rounded-3xl border border-white/5 text-center">
+            <span class="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Valor</span>
+            <div class="text-4xl font-bold mt-2 flex justify-center items-center">
+                <span class="text-gray-600 mr-2 text-2xl">R$</span>
+                <input type="number" id="trans-val-input" class="bg-transparent outline-none w-48 text-center" placeholder="0.00" step="0.01">
             </div>
         </div>
+        
+        <div class="grid grid-cols-2 gap-4">
+            <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
+                <label class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Data</label>
+                <input type="date" id="trans-date-input" class="bg-transparent font-bold w-full outline-none text-xs">
+            </div>
+            <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
+                <label id="trans-acc-label" class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Conta / Cartão</label>
+                <select id="trans-acc-select" class="bg-transparent font-bold w-full outline-none text-xs"></select>
+            </div>
+        </div>
+
+        <div id="trans-dest-container" class="hidden bg-black/20 p-4 rounded-2xl border border-white/5 border-l-4 border-l-blue-500">
+            <label class="text-[9px] text-blue-400 uppercase font-bold block mb-1">Para qual conta? (Destino)</label>
+            <select id="trans-dest-select" class="bg-transparent font-bold w-full outline-none text-xs"></select>
+        </div>
+        
+        <div id="trans-cat-status-container" class="space-y-5">
+            <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
+                <label class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Categoria</label>
+                <select id="trans-cat-select" class="bg-transparent font-bold w-full outline-none text-xs"></select>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4">
+                <div class="space-y-1">
+                    <label class="text-[9px] text-gray-500 font-bold ml-2 uppercase">Status</label>
+                    <div class="flex bg-black/30 rounded-xl p-1">
+                        <button onclick="setTransState('status','previsivel')" id="btn-st-prev" class="flex-1 py-2 text-[9px] font-bold rounded-lg transition-all">Previsível</button>
+                        <button onclick="setTransState('status','efetivada')" id="btn-st-efet" class="flex-1 py-2 text-[9px] font-bold rounded-lg transition-all">Efetivada</button>
+                    </div>
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[9px] text-gray-500 font-bold ml-2 uppercase">Tipo</label>
+                    <div class="flex bg-black/30 rounded-xl p-1">
+                        <button onclick="setTransState('fixa',false)" id="btn-fx-no" class="flex-1 py-2 text-[9px] font-bold rounded-lg transition-all">Única</button>
+                        <button onclick="setTransState('fixa',true)" id="btn-fx-yes" class="flex-1 py-2 text-[9px] font-bold rounded-lg transition-all">Fixa</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-black/20 p-4 rounded-2xl border border-white/5 flex items-center space-x-3">
+                <div class="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0">
+                    <i data-lucide="at-sign" class="w-4 h-4 text-blue-500"></i>
+                </div>
+                <div class="flex-1">
+                    <label class="text-[9px] text-gray-500 uppercase font-bold block mb-0.5">Marcar Amigo (Opcional)</label>
+                    <input type="text" id="trans-amigo-input" placeholder="@usuario" class="bg-transparent font-bold w-full outline-none text-xs">
+                </div>
+            </div>
+        </div>
+
+        <button onclick="saveTransaction()" class="w-full py-5 rounded-3xl bg-blue-500 text-black font-bold text-lg mt-4 uppercase">Salvar</button>
+    </div>
+</div>
 
         <div id="overlay-pay-invoice" class="overlay">
             <div class="w-12 h-1 bg-gray-800 rounded-full mx-auto mt-4 mb-4 shrink-0"></div>
@@ -2126,41 +2155,41 @@
             toggleOverlay('transaction');
         }
 
-        // ATUALIZADO V04: Interceptar compra por impulso
-        function saveTransaction() {
-            const v = parseFloat(document.getElementById('trans-val-input').value);
-            const d = document.getElementById('trans-date-input').value;
-            const a = document.getElementById('trans-acc-select').value;
-            const type = state.financas.temp.type;
 
-            if(!v || !d) return;
+function saveTransaction() {
+    const v = parseFloat(document.getElementById('trans-val-input').value);
+    const dStr = document.getElementById('trans-date-input').value;
+    const a = document.getElementById('trans-acc-select').value;
+    const c = document.getElementById('trans-cat-select').value;
+    const type = state.financas.temp.type;
+    const status = state.financas.temp.status;
+    const isFixa = document.getElementById('trans-fixa-input')?.checked;
 
-            let c = '', destino = '', status = state.financas.temp.status;
-            const isCard = state.financas.cartoes.some(card => card.nome === a);
+    if(!v || !dStr) return;
 
-            if (type === 'transferencia') {
-                destino = document.getElementById('trans-dest-select').value; c = 'Transferência'; status = 'efetivada';
-                if (a === destino) { showToast("Contas iguais não permitido."); return; }
-            } else {
-                c = document.getElementById('trans-cat-select').value;
-                if (isCard && type === 'despesa') status = 'efetivada';
-            }
-
-            const amigo = document.getElementById('trans-amigo-input')?.value.trim();
-            const transObj = { id:Date.now(), data:d, valor:v, tipo:type, status:status, cat:c, conta:a, destino:destino };
-
-            if(state.editingId) { 
-                const idx = state.financas.transacoes.findIndex(x => x.id === state.editingId); 
-                if(idx !== -1) state.financas.transacoes[idx] = {...state.financas.transacoes[idx], valor:v, data:d, cat:c, conta:a, destino:destino, tipo:type, status:status}; 
-                saveDataToCloud(); closeAllOverlays(); updateUI(); showToast("Lançamento atualizado!");
-            } else { 
-                state.financas.transacoes.push(transObj); 
-                if (amigo && amigo.startsWith('@') && type !== 'transferencia') {
-                    state.notificacoes.unshift({ titulo: 'Transação Dividida', msg: `Você marcou ${amigo} na transação de ${c}.`, data: new Date().toISOString() });
-                }
-                saveDataToCloud(); closeAllOverlays(); updateUI(); showToast("Lançamento realizado!");
-            }
+    if(state.editingId) { 
+        const idx = state.financas.transacoes.findIndex(x => x.id === state.editingId); 
+        if(idx !== -1) { state.financas.transacoes[idx] = {...state.financas.transacoes[idx], valor:v, data:dStr, cat:c, conta:a, tipo:type, status:status}; }
+    } else { 
+        const groupId = isFixa ? Date.now() : null;
+        const parcelas = isFixa ? 12 : 1;
+        const [year, month, day] = dStr.split('-').map(Number);
+        
+        for(let i = 0; i < parcelas; i++) {
+            let dataParcela = new Date(year, month - 1 + i, day);
+            if (dataParcela.getMonth() !== ((month - 1 + i) % 12)) dataParcela.setDate(0); 
+            
+            const pY = dataParcela.getFullYear();
+            const pM = String(dataParcela.getMonth() + 1).padStart(2, '0');
+            const pD = String(dataParcela.getDate()).padStart(2, '0');
+            
+            state.financas.transacoes.push({ 
+                id: Date.now() + i, groupId: groupId, data: `${pY}-${pM}-${pD}`, valor: v, tipo: type, status: status, cat: c, conta: a
+            });
         }
+    }
+    saveDataToCloud(); closeAllOverlays(); updateUI(); showToast("Lançamento realizado!");
+}
 
         function setTransState(p, v) { 
             state.financas.temp[p] = v; 
@@ -2251,7 +2280,22 @@
             saveDataToCloud(); toggleOverlay('perfil'); updateUI(); 
         }
 
-        function deleteTransaction(id) { state.financas.transacoes = state.financas.transacoes.filter(x => x.id !== id); saveDataToCloud(); updateUI(); }
+function deleteTransaction(id) { 
+    const t = state.financas.transacoes.find(x => x.id === id);
+    if(!t) return;
+
+    if(t.groupId) {
+        toggleOverlay('delete-options');
+        document.getElementById('btn-del-all').onclick = () => { state.financas.transacoes = state.financas.transacoes.filter(x => x.groupId !== t.groupId); finishDelete(); };
+        document.getElementById('btn-del-future').onclick = () => { state.financas.transacoes = state.financas.transacoes.filter(x => x.groupId !== t.groupId || new Date(x.data) < new Date(t.data)); finishDelete(); };
+        document.getElementById('btn-del-only').onclick = () => { state.financas.transacoes = state.financas.transacoes.filter(x => x.id !== id); finishDelete(); };
+    } else {
+        state.financas.transacoes = state.financas.transacoes.filter(x => x.id !== id);
+        finishDelete();
+    }
+
+    function finishDelete() { saveDataToCloud(); closeAllOverlays(); updateUI(); showToast("Excluído!"); }
+}
 
         function populateVehAccSelects() {
             const accs = getFinSelectOptions('all'); document.getElementById('input-fuel-acc').innerHTML = accs; document.getElementById('input-svc-acc').innerHTML = accs;
@@ -2649,6 +2693,7 @@
                             <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">${banco} • ${statusLabel}</p>
                         </div>
                         <div class="flex-shrink-0 text-right">
+
                             <p class="text-sm font-bold ${textClass}">${prefix}R$ ${Math.abs(t.valor).toFixed(2)}</p>
                             <p class="text-[9px] text-gray-500 font-bold mt-1">${data}</p>
                         </div>
@@ -2730,18 +2775,29 @@
             refreshIcons();
         }
 
-        function renderCalendar() {
-            const grid = document.getElementById('calendar-grid'); const headers = Array.from(grid.children).slice(0, 7); grid.innerHTML = ''; headers.forEach(h => grid.appendChild(h));
-            const m = state.viewDate.getMonth(), y = state.viewDate.getFullYear(); const first = new Date(y, m, 1).getDay(), days = new Date(y, m+1, 0).getDate();
-            for(let i=0; i<first; i++) grid.appendChild(document.createElement('div'));
-            for(let d=1; d<=days; d++) {
-                const k = `${y}-${(m+1).toString().padStart(2,'0')}-${d.toString().padStart(2,'0')}`; const v = state.saude.historico[k] || {agua:0};
-                const dayDiv = document.createElement('div'); dayDiv.className = 'flex justify-center';
-                let cls = 'day-circle'; if(v.agua > 0) cls += ' water-tracked'; if(v.agua >= state.saude.aguaMeta) cls += ' goal-met';
-                dayDiv.innerHTML = `<div class="${cls}" onclick="openSaudeDiaModal('${k}')">${d}</div>`; grid.appendChild(dayDiv);
-            }
-            document.getElementById('calendar-month-year').innerText = new Date(y, m).toLocaleDateString('pt-BR', {month:'short', year:'numeric'}).toUpperCase();
-        }
+function renderCalendar() {
+    const grid = document.getElementById('calendar-grid'); const headers = Array.from(grid.children).slice(0, 7); grid.innerHTML = ''; headers.forEach(h => grid.appendChild(h));
+    const m = state.viewDate.getMonth(), y = state.viewDate.getFullYear(); const first = new Date(y, m, 1).getDay(), days = new Date(y, m+1, 0).getDate();
+    for(let i=0; i<first; i++) grid.appendChild(document.createElement('div'));
+    
+    for(let d=1; d<=days; d++) {
+        const k = `${y}-${(m+1).toString().padStart(2,'0')}-${d.toString().padStart(2,'0')}`; 
+        const v = state.saude.historico[k] || {agua:0, cafe:0};
+        
+        const dayDiv = document.createElement('div'); dayDiv.className = 'flex justify-center';
+        
+        let markers = '';
+        if(v.agua > 0) markers += '<div class="dot dot-agua"></div>';
+        if(v.cafe > 0) { const cafeCls = v.cafe > state.saude.cafeinaMeta ? 'dot-cafe-alert' : 'dot-cafe'; markers += `<div class="dot ${cafeCls}"></div>`; }
+
+        let circleCls = 'day-circle';
+        if(v.agua >= state.saude.aguaMeta && state.saude.aguaMeta > 0) circleCls += ' goal-met';
+
+        dayDiv.innerHTML = `<div class="${circleCls}" onclick="openSaudeDiaModal('${k}')">${d}<div class="absolute bottom-1 flex justify-center w-full">${markers}</div></div>`; 
+        grid.appendChild(dayDiv);
+    }
+    document.getElementById('calendar-month-year').innerText = new Date(y, m).toLocaleDateString('pt-BR', {month:'short', year:'numeric'}).toUpperCase();
+}
 
         function renderNotifs() {
             const b = document.getElementById('notif-badge');
