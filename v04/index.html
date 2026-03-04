@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mu Finance v04.08</title>
+    <title>Mu Finance v04.09</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -208,7 +208,7 @@
             <div class="w-full max-w-md">
                 <div class="text-center mb-10">
                     <h1 class="text-4xl font-bold tracking-tight mb-2">Mu Finance</h1>
-                    <p class="text-[10px] text-gray-500 uppercase tracking-widest font-bold">v04.08</p>
+                    <p class="text-[10px] text-gray-500 uppercase tracking-widest font-bold">v04.09</p>
                 </div>
                 <div class="space-y-4">
                 <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
@@ -231,7 +231,7 @@
         <header class="flex justify-between items-center shrink-0">
             <div>
                 <h1 id="header-title" class="text-2xl font-bold tracking-tight">Mu Finance</h1>
-                <p class="text-[10px] text-gray-500 uppercase font-bold tracking-widest mt-1" id="header-subtitle">Dashboard Geral</p>
+                <p class="text-[10px] text-gray-500 uppercase font-bold tracking-widest mt-1" id="header-subtitle">Dashboard Geral v04.09</p>
             </div>
             <div class="flex items-center space-x-3">
                 <button onclick="toggleOverlay('notificacoes')" class="relative w-10 h-10 flex items-center justify-center rounded-full bg-[#1E2128] border border-gray-800 active:scale-90 transition-transform">
@@ -255,8 +255,14 @@
             <div class="btn-eye-off hidden"><i data-lucide="eye-off" class="w-5 h-5 text-gray-400 hover:text-white transition-colors"></i></div>
         </div>
         
-        <span class="text-gray-500 text-[10px] uppercase font-bold tracking-widest">Saldo Geral (Caixa)</span>
-        <h2 class="text-4xl font-bold mt-2 sensitive-value fin-total-saldo" data-value="R$ 0,00">R$ 0,00</h2>
+        <div id="saldo-carousel-container" class="relative touch-pan-y" style="cursor: grab;">
+            <div id="saldo-carousel" class="flex transition-transform duration-300 ease-out">
+                <!-- Cards de saldo serão inseridos aqui via JavaScript -->
+            </div>
+            <div id="saldo-dots" class="flex justify-center gap-2 mt-4">
+                <!-- Pontinhos indicadores serão inseridos aqui -->
+            </div>
+        </div>
         
         <div class="mt-4 pt-4 border-t border-white/5 flex justify-between text-[10px] font-bold uppercase md:hidden">
             <div class="text-green-400">Entradas: <span class="fin-receita-mes sensitive-value" data-value="R$ 0,00">R$ 0,00</span></div>
@@ -614,13 +620,6 @@
                     </div>
                 </div>
 
-                <div id="trans-impulso-container" class="flex items-center justify-between p-4 bg-purple-500/10 rounded-2xl border border-purple-500/20 mb-4 hidden">
-                    <div>
-                        <span class="text-xs font-bold text-purple-400 block">Desejo / Impulso?</span>
-                        <span class="text-[9px] text-gray-500 font-bold uppercase">Passar pelo filtro de ouro</span>
-                    </div>
-                    <input type="checkbox" id="trans-impulso-check" class="w-6 h-6 accent-purple-500 rounded cursor-pointer">
-                </div>
 
                 <div id="trans-dest-container" class="hidden bg-black/20 p-4 rounded-2xl border border-white/5 border-l-4 border-l-blue-500">
                     <label class="text-[9px] text-blue-400 uppercase font-bold block mb-1">Para qual conta? (Destino)</label>
@@ -1240,6 +1239,111 @@
             notificacoes: []
         };
 
+        // V04.09: Renderizar carrossel de saldo com contas
+        function renderSaldoCarousel() {
+            if (!state.usuario.contas || state.usuario.contas.length === 0) return;
+            
+            const carousel = document.getElementById('saldo-carousel');
+            const dotsContainer = document.getElementById('saldo-dots');
+            if (!carousel || !dotsContainer) return;
+            
+            // Contas não-blindadas
+            const contasNaoBlinadas = state.usuario.contas.filter(c => !c.protected);
+            const currentIndex = state.saldoCarouselIndex || 0;
+            
+            // Cores por banco
+            const coresBanco = {
+                'Carteira': '#38bdf8',
+                'Inter': '#ff6b35',
+                'Nubank': '#9b59b6',
+                'Banco do Brasil': '#ffd700',
+                'Caixa': '#0066cc',
+                'Bradesco': '#cc0000',
+                'Santander': '#ff0000'
+            };
+            
+            // Calcular saldos por conta
+            const saldosPorConta = {};
+            state.usuario.contas.forEach(c => { saldosPorConta[c.nome] = 0; });
+            
+            state.financas.transacoes.forEach(t => {
+                if (t.tipo === 'receita' && (t.status === 'efetivada' || t.status === 'fatura_paga')) {
+                    if (saldosPorConta.hasOwnProperty(t.conta)) saldosPorConta[t.conta] += t.valor;
+                } else if (t.tipo === 'despesa' && (t.status === 'efetivada' || t.status === 'fatura_paga')) {
+                    if (saldosPorConta.hasOwnProperty(t.conta)) saldosPorConta[t.conta] -= t.valor;
+                } else if (t.tipo === 'transferencia') {
+                    if (saldosPorConta.hasOwnProperty(t.conta)) saldosPorConta[t.conta] -= t.valor;
+                    if (saldosPorConta.hasOwnProperty(t.destino)) saldosPorConta[t.destino] += t.valor;
+                }
+            });
+            
+            // Calcular saldo geral (sem blindadas)
+            let saldoGeral = 0;
+            contasNaoBlinadas.forEach(c => { saldoGeral += saldosPorConta[c.nome] || 0; });
+            
+            // Criar cards
+            let cardsHTML = '';
+            
+            // Card Saldo Geral
+            cardsHTML += `
+                <div class="flex-shrink-0 w-full card rounded-3xl p-6 bg-gradient-to-br from-blue-500/10 to-blue-500/5 border border-blue-500/20 flex flex-col justify-center min-h-[180px]" style="cursor: pointer;">
+                    <div class="flex justify-between items-start mb-4">
+                        <span class="text-blue-400 text-[10px] uppercase font-bold tracking-widest">Saldo Geral</span>
+                        <div class="btn-eye"><i data-lucide="eye" class="w-5 h-5 text-gray-400 hover:text-white transition-colors"></i></div>
+                    </div>
+                    <h2 class="text-4xl font-bold sensitive-value" data-value="R$ ${saldoGeral.toLocaleString('pt-BR', {minimumFractionDigits:2})}">R$ ${saldoGeral.toLocaleString('pt-BR', {minimumFractionDigits:2})}</h2>
+                </div>
+            `;
+            
+            // Cards de contas não-blindadas
+            contasNaoBlinadas.forEach(conta => {
+                const cor = coresBanco[conta.tipo] || '#6b7280';
+                const saldo = saldosPorConta[conta.nome] || 0;
+                cardsHTML += `
+                    <div class="flex-shrink-0 w-full card rounded-3xl p-6 bg-gradient-to-br from-[${cor}]/10 to-[${cor}]/5 border border-[${cor}]/20 flex flex-col justify-center min-h-[180px]" style="cursor: pointer; border-color: ${cor}20;">
+                        <div class="flex justify-between items-start mb-4">
+                            <span class="text-[10px] uppercase font-bold tracking-widest" style="color: ${cor}">${conta.tipo}</span>
+                            <div class="btn-eye"><i data-lucide="eye" class="w-5 h-5 text-gray-400 hover:text-white transition-colors"></i></div>
+                        </div>
+                        <h2 class="text-4xl font-bold sensitive-value" data-value="R$ ${saldo.toLocaleString('pt-BR', {minimumFractionDigits:2})}" style="color: ${cor}">R$ ${saldo.toLocaleString('pt-BR', {minimumFractionDigits:2})}</h2>
+                    </div>
+                `;
+            });
+            
+            carousel.innerHTML = cardsHTML;
+            carousel.style.transform = `translateX(-${currentIndex * 100}%)`;
+            
+            // Criar pontinhos
+            let dotsHTML = '';
+            for (let i = 0; i <= contasNaoBlinadas.length; i++) {
+                const isActive = i === currentIndex;
+                const cor = i === 0 ? '#38bdf8' : (coresBanco[contasNaoBlinadas[i-1]?.tipo] || '#6b7280');
+                dotsHTML += `<button onclick="setSaldoCarouselIndex(${i})" class="w-2 h-2 rounded-full transition-all ${isActive ? 'w-6' : ''}" style="background-color: ${isActive ? cor : '#4b5563'};"></button>`;
+            }
+            dotsContainer.innerHTML = dotsHTML;
+            
+            // Adicionar swipe
+            let touchStartX = 0;
+            carousel.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; });
+            carousel.addEventListener('touchend', e => {
+                const touchEndX = e.changedTouches[0].clientX;
+                if (touchStartX - touchEndX > 50) setSaldoCarouselIndex(Math.min(currentIndex + 1, contasNaoBlinadas.length));
+                else if (touchEndX - touchStartX > 50) setSaldoCarouselIndex(Math.max(currentIndex - 1, 0));
+            });
+            
+            // Click para navegar
+            carousel.addEventListener('click', () => {
+                setSaldoCarouselIndex((currentIndex + 1) % (contasNaoBlinadas.length + 1));
+            });
+            
+            refreshIcons();
+        }
+        
+        function setSaldoCarouselIndex(index) {
+            state.saldoCarouselIndex = index;
+            renderSaldoCarousel();
+        }
+
         function refreshIcons() { lucide.createIcons(); }
 
         function showToast(msg) {
@@ -1739,19 +1843,13 @@
             document.getElementById('btn-tt-transf').className = t === 'transferencia' ? 'flex-1 py-2 text-[10px] font-bold rounded-lg bg-blue-500/20 text-blue-400' : 'flex-1 py-2 text-[10px] font-bold rounded-lg text-gray-500 hover:text-white';
             
             const transDestContainer = document.getElementById('trans-dest-container'); const transCatStatusContainer = document.getElementById('trans-cat-status-container'); const accSelect = document.getElementById('trans-acc-select');
-            const impulsoContainer = document.getElementById('trans-impulso-container');
             
             if (t === 'transferencia') {
                 transDestContainer.classList.remove('hidden'); transCatStatusContainer.classList.add('hidden');
-                if(impulsoContainer) { impulsoContainer.classList.add('hidden'); document.getElementById('trans-impulso-check').checked = false; }
                 document.getElementById('trans-title').innerText = 'Nova Transferência'; document.getElementById('trans-acc-label').innerText = 'Conta Origem';
                 accSelect.innerHTML = getFinSelectOptions('contas'); document.getElementById('trans-dest-select').innerHTML = getFinSelectOptions('all');
             } else {
                 transDestContainer.classList.add('hidden'); transCatStatusContainer.classList.remove('hidden');
-                if(impulsoContainer) {
-                    if(t === 'despesa') impulsoContainer.classList.remove('hidden');
-                    else { impulsoContainer.classList.add('hidden'); document.getElementById('trans-impulso-check').checked = false; }
-                }
                 document.getElementById('trans-title').innerText = t === 'despesa' ? 'Nova Despesa' : 'Nova Receita'; document.getElementById('trans-acc-label').innerText = 'Conta / Cartão';
                 const cats = t === 'receita' ? state.usuario.categorias_receita : state.usuario.categorias_despesa;
                 document.getElementById('trans-cat-select').innerHTML = cats.map(c => `<option value="${c.nome}">${c.nome}</option>`).join('');
@@ -1802,25 +1900,6 @@
                 if(idx !== -1) state.financas.transacoes[idx] = {...state.financas.transacoes[idx], valor:v, data:d, cat:c, conta:a, destino:destino, tipo:type, status:status}; 
                 saveDataToCloud(); closeAllOverlays(); updateUI(); showToast("Lançamento atualizado!");
             } else { 
-                // V04: Interceptador de Impulso
-                const isImpulso = document.getElementById('trans-impulso-check')?.checked;
-                if (isImpulso && type === 'despesa') {
-                    pendingTransaction = transObj;
-                    const taxaHora = 4000 / 220; // R$ 18,18 por hora base Fortaleza
-                    const valTanque = calcularValorTanqueCheio();
-                    document.getElementById('impulso-horas').innerText = (v / taxaHora).toFixed(1);
-                    document.getElementById('impulso-tanques').innerText = (v / valTanque).toFixed(1);
-                    
-                    const metaSelect = document.getElementById('impulso-meta-select');
-                    metaSelect.innerHTML = state.financas.metas.length > 0 
-                        ? state.financas.metas.map(m => `<option value="${m.id}">${m.nome}</option>`).join('') 
-                        : '<option value="">(Nenhuma meta cadastrada)</option>';
-                    
-                    document.getElementById('overlay-transaction').classList.remove('active');
-                    setTimeout(() => toggleOverlay('filtro-impulso'), 50);
-                    return;
-                }
-
                 state.financas.transacoes.push(transObj); 
                 if (amigo && amigo.startsWith('@') && type !== 'transferencia') {
                     state.notificacoes.unshift({ titulo: 'Transação Dividida', msg: `Você marcou ${amigo} na transação de ${c}.`, data: new Date().toISOString() });
@@ -2225,6 +2304,7 @@
                 document.querySelectorAll(selector).forEach(el => { el.setAttribute('data-value', str); if(!state.blurred) el.innerText = str; });
             };
             setSensitiveVal('.fin-total-saldo', saldo); setSensitiveVal('.fin-receita-mes', recM); setSensitiveVal('.fin-despesa-mes', desM);
+            renderSaldoCarousel();
             
             const vehIconType = state.veiculo.tipo === 'carro' ? 'car' : 'bike';
             const homeIconContainer = document.getElementById('home-veh-icon'); if(homeIconContainer) homeIconContainer.innerHTML = `<i data-lucide="${vehIconType}" id="icon-home-veh"></i>`;
