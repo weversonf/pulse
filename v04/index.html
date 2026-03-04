@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mu Finance v04.05</title>
+    <title>Mu Finance v04.07</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -208,7 +208,7 @@
             <div class="w-full max-w-md">
                 <div class="text-center mb-10">
                     <h1 class="text-4xl font-bold tracking-tight mb-2">Mu Finance</h1>
-                    <p class="text-[10px] text-gray-500 uppercase tracking-widest font-bold">v04.05</p>
+                    <p class="text-[10px] text-gray-500 uppercase tracking-widest font-bold">v04.07</p>
                 </div>
                 <div class="space-y-4">
                 <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
@@ -773,6 +773,17 @@
                 
                 <div class="grid grid-cols-2 gap-4">
                     <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
+                        <label class="text-[10px] text-gray-500 uppercase font-bold block mb-1">Data</label>
+                        <input type="date" id="input-fuel-data" class="bg-transparent font-bold w-full outline-none text-white">
+                    </div>
+                    <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
+                        <label class="text-[10px] text-gray-500 uppercase font-bold block mb-1">Hora</label>
+                        <input type="time" id="input-fuel-hora" class="bg-transparent font-bold w-full outline-none text-white">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
                         <label class="text-[10px] text-gray-500 uppercase font-bold block mb-1">Hodômetro Atual</label>
                         <input type="number" id="input-fuel-km" class="bg-transparent font-bold w-full outline-none">
                     </div>
@@ -799,6 +810,11 @@
             <div class="px-6 flex justify-between items-center mb-6"><h2 class="text-xl font-bold" id="veh-svc-title">Manutenção</h2><button onclick="closeAllOverlays()"><i data-lucide="x" class="w-6 h-6 text-gray-500"></i></button></div>
             <div class="overlay-content space-y-4">
                 <div class="bg-black/20 p-4 rounded-2xl border border-white/5"><label class="text-[10px] text-gray-500 uppercase font-bold block mb-1">Descrição</label><input type="text" id="input-svc-name" class="bg-transparent font-bold w-full outline-none" placeholder="Troca de Pneus"></div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-black/20 p-4 rounded-2xl border border-white/5"><label class="text-[10px] text-gray-500 uppercase font-bold block mb-1">Data</label><input type="date" id="input-svc-data" class="bg-transparent font-bold w-full outline-none text-white"></div>
+                    <div class="bg-black/20 p-4 rounded-2xl border border-white/5"><label class="text-[10px] text-gray-500 uppercase font-bold block mb-1">Hora</label><input type="time" id="input-svc-hora" class="bg-transparent font-bold w-full outline-none text-white"></div>
+                </div>
+
                 <div class="grid grid-cols-2 gap-4">
                     <div class="bg-black/20 p-4 rounded-2xl border border-white/5"><label class="text-[10px] text-gray-500 uppercase font-bold block mb-1">Valor (R$)</label><input type="number" id="input-svc-val" class="bg-transparent font-bold w-full outline-none" placeholder="0.00"></div>
                     <div class="bg-black/20 p-4 rounded-2xl border border-white/5"><label class="text-[10px] text-gray-500 uppercase font-bold block mb-1">km Atual</label><input type="number" id="input-svc-km" class="bg-transparent font-bold w-full outline-none"></div>
@@ -828,10 +844,14 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-3 gap-4">
                     <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
                         <label class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Data</label>
                         <input type="date" id="input-rota-data" class="bg-transparent font-bold w-full outline-none text-xs">
+                    </div>
+                    <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
+                        <label class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Hora</label>
+                        <input type="time" id="input-rota-hora" class="bg-transparent font-bold w-full outline-none text-white">
                     </div>
                     <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
                         <label class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Motivo / Tipo</label>
@@ -918,30 +938,11 @@
                 </div>
 
                 <section>
-                    <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3">Suas Contas (Bancos/Cofre)</h3>
-                    <div id="list-contas" class="space-y-2 mb-3"></div>
-                    <div class="flex space-x-2">
-<div class="bg-black/20 p-5 rounded-3xl border border-white/5 space-y-4 mt-4 w-full">
-    <label class="text-[9px] text-blue-400 font-bold uppercase tracking-widest block">Adicionar Nova Conta</label>
-    <input type="text" id="input-new-conta-nome" placeholder="Nome da Conta (Ex: Banco Inter)" class="bg-transparent border-b border-white/10 w-full p-2 outline-none text-sm font-bold text-white">
-    
-    <div class="grid grid-cols-2 gap-3">
-        <div class="space-y-1">
-            <label class="text-[8px] text-gray-500 uppercase font-bold ml-1">Tipo</label>
-            <select id="input-new-conta-tipo" class="w-full bg-black/40 p-3 rounded-xl text-xs font-bold outline-none border border-white/5 text-white">
-                <option value="Conta Comum">Conta Comum</option>
-                <option value="Investimento">Investimento</option>
-            </select>
-        </div>
-        <div class="space-y-1">
-            <label class="text-[8px] text-gray-500 uppercase font-bold ml-1">Saldo Inicial (R$)</label>
-            <input type="number" id="input-new-conta-saldo" placeholder="0.00" step="0.01" class="w-full bg-black/40 p-3 rounded-xl text-xs font-bold outline-none border border-white/5 text-white">
-        </div>
-    </div>
-    
-    <button onclick="addFinItem('conta')" class="w-full bg-blue-500 text-black py-4 rounded-2xl font-bold uppercase text-[10px] tracking-widest mt-2 active:scale-95 transition-all">Salvar Conta</button>
-</div>
+                    <div class="flex justify-between items-center mb-3">
+                        <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Suas Contas (Bancos/Cofre)</h3>
+                        <button onclick="openAddAccountModal()" class="bg-green-500 text-black px-4 py-2 rounded-xl font-bold text-xs uppercase tracking-widest flex items-center space-x-2 hover:bg-green-600 transition-colors active:scale-95"><i data-lucide="plus" class="w-5 h-5"></i><span>Adicionar</span></button>
                     </div>
+                    <div id="list-contas" class="space-y-2 mb-3"></div>
                 </section>
 
                 <section>
@@ -1082,36 +1083,36 @@
             </div>
         </div>
 
-        <div id="overlay-filtro-impulso" class="overlay z-[200]">
+        <div id="overlay-add-account" class="overlay">
             <div class="w-12 h-1 bg-gray-800 rounded-full mx-auto mt-4 mb-4 shrink-0"></div>
-            <div class="px-6 flex justify-between items-center mb-4">
-                <h2 class="text-xl font-bold text-purple-400">Filtro de Ouro</h2>
+            <div class="px-6 flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold">Adicionar Conta</h2>
                 <button onclick="closeAllOverlays()"><i data-lucide="x" class="w-6 h-6 text-gray-500"></i></button>
             </div>
-            <div class="overlay-content space-y-6 text-center mt-4">
-                <div class="text-5xl mb-2">🤔</div>
-                <h3 class="text-lg font-bold">Vale mesmo a pena?</h3>
-                <p class="text-[11px] text-gray-400 font-bold uppercase tracking-widest leading-relaxed">Para comprar isso, você está gastando:</p>
+            <div class="overlay-content space-y-4">
+                <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
+                    <label class="text-[9px] text-gray-500 uppercase font-bold block mb-2">Nome da Conta</label>
+                    <input type="text" id="add-account-nome" class="bg-transparent font-bold w-full outline-none text-white border-b border-white/10 pb-2" placeholder="Ex: Banco Inter">
+                </div>
                 
-                <div class="grid grid-cols-2 gap-4 mt-4">
-                    <div class="bg-black/30 p-4 rounded-2xl border border-white/5">
-                        <span class="text-2xl font-black text-white" id="impulso-horas">0</span>
-                        <span class="text-[9px] text-gray-500 uppercase font-bold block mt-1">Horas de Vida<br>(Trabalho)</span>
-                    </div>
-                    <div class="bg-black/30 p-4 rounded-2xl border border-white/5">
-                        <span class="text-2xl font-black text-orange-400" id="impulso-tanques">0</span>
-                        <span class="text-[9px] text-gray-500 uppercase font-bold block mt-1">Tanques da<br>Moto</span>
-                    </div>
+                <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
+                    <label class="text-[9px] text-gray-500 uppercase font-bold block mb-2">Tipo da Conta</label>
+                    <select id="add-account-tipo" class="bg-transparent font-bold w-full outline-none text-white border-b border-white/10 pb-2">
+                        <option value="Conta Comum">Conta Comum</option>
+                        <option value="Investimento">Investimento</option>
+                        <option value="Poupanca">Poupanca</option>
+                        <option value="Cofre">Cofre</option>
+                    </select>
                 </div>
-
-                <div class="bg-purple-500/10 p-5 rounded-2xl border border-purple-500/20 mt-6">
-                    <label class="text-[10px] text-purple-400 uppercase font-bold block mb-2">Prefere enviar para uma Meta?</label>
-                    <select id="impulso-meta-select" class="bg-black/50 p-3 rounded-xl font-bold w-full outline-none text-xs text-white border border-white/5"></select>
+                
+                <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
+                    <label class="text-[9px] text-gray-500 uppercase font-bold block mb-2">Saldo Inicial (R$)</label>
+                    <input type="number" id="add-account-saldo" step="0.01" class="bg-transparent font-bold w-full outline-none text-white border-b border-white/10 pb-2" placeholder="0.00">
                 </div>
-
+                
                 <div class="flex space-x-3 mt-6">
-                    <button onclick="confirmarImpulso(false)" class="flex-1 py-4 rounded-2xl bg-purple-500 text-black font-bold uppercase tracking-widest text-[10px] active:scale-95 transition-transform">Desistir & Guardar</button>
-                    <button onclick="confirmarImpulso(true)" class="flex-1 py-4 rounded-2xl bg-white/5 text-gray-400 font-bold uppercase tracking-widest text-[10px] active:scale-95 transition-transform">Comprar Mesmo</button>
+                    <button onclick="saveNewAccount()" class="flex-1 py-4 rounded-2xl bg-green-500 text-black font-bold uppercase tracking-widest text-[10px] active:scale-95 transition-transform">Salvar</button>
+                    <button onclick="closeAllOverlays()" class="flex-1 py-4 rounded-2xl bg-white/5 text-gray-400 font-bold uppercase tracking-widest text-[10px] active:scale-95 transition-transform">Cancelar</button>
                 </div>
             </div>
         </div>
@@ -1556,29 +1557,6 @@
             return total / abastecimentosCheios.length;
         }
 
-        window.confirmarImpulso = function(vaiComprar) {
-            if(!pendingTransaction) return;
-            if(vaiComprar) {
-                state.financas.transacoes.push(pendingTransaction);
-                showToast("Lançamento realizado!");
-            } else {
-                const metaId = document.getElementById('impulso-meta-select').value;
-                if(metaId && state.financas.metas.length > 0) {
-                    const idx = state.financas.metas.findIndex(m => m.id.toString() === metaId);
-                    if(idx > -1) {
-                        state.financas.metas[idx].reservado += pendingTransaction.valor;
-                        pendingTransaction.cat = 'Aporte Meta: ' + state.financas.metas[idx].nome;
-                        state.financas.transacoes.push(pendingTransaction);
-                        showToast(`R$ ${pendingTransaction.valor.toFixed(2)} salvos para sua meta!`);
-                    }
-                } else {
-                    showToast("Compra evitada. Dinheiro mantido!");
-                }
-            }
-            pendingTransaction = null;
-            saveDataToCloud(); closeAllOverlays(); updateUI();
-        }
-
         // ATUALIZAÇÃO: Renderiza a lista de contas mostrando o Tipo (Comum/Investimento) e Cadeado
         function renderFinSettings() {
             document.getElementById('list-contas').innerHTML = state.usuario.contas.map(c => `
@@ -1631,6 +1609,31 @@
         }
 
         // ATUALIZAÇÃO: Captura Tipo e Saldo Inicial na criação de novas Contas
+        function openAddAccountModal() {
+            document.getElementById('add-account-nome').value = '';
+            document.getElementById('add-account-tipo').value = 'Conta Comum';
+            document.getElementById('add-account-saldo').value = '';
+            toggleOverlay('overlay-add-account');
+        }
+
+        function saveNewAccount() {
+            const nome = document.getElementById('add-account-nome').value.trim();
+            const tipo = document.getElementById('add-account-tipo').value;
+            const saldo = parseFloat(document.getElementById('add-account-saldo').value) || 0;
+
+            if (!nome) { showToast('Informe o nome da conta.'); return; }
+
+            state.usuario.contas.push({id: Date.now().toString(), nome: nome, tipo: tipo, protected: false, somaSaldo: true});
+
+            if (saldo !== 0) {
+                state.financas.transacoes.push({ id: Date.now() + 1, data: new Date().toISOString().split('T')[0], valor: Math.abs(saldo), tipo: saldo > 0 ? 'receita' : 'despesa', cat: 'Saldo Inicial', conta: nome, destino: '', status: 'efetivada' });
+            }
+
+            closeAllOverlays();
+            saveDataToCloud(); renderFinSettings(); updateUI();
+            showToast('Conta adicionada com sucesso!');
+        }
+
         function addFinItem(type) {
             let el = null;
             if (type === 'conta') {
@@ -1927,9 +1930,13 @@
                 if(id) { 
                     const h = state.veiculo.historico.find(x => x.id === id); 
                     document.getElementById('input-fuel-price').value = (h.total / h.liters).toFixed(2); document.getElementById('input-fuel-liters').value = h.liters; document.getElementById('input-fuel-total').value = h.total; document.getElementById('input-fuel-km').value = h.km; if(h.conta) document.getElementById('input-fuel-acc').value = h.conta;
+                    document.getElementById('input-fuel-data').value = h.data || new Date().toISOString().split('T')[0];
+                    document.getElementById('input-fuel-hora').value = h.hora || new Date().toTimeString().slice(0, 5);
                     document.getElementById('input-fuel-full').checked = h.tanqueCheio || false;
                 } else { 
                     document.getElementById('input-fuel-price').value = ''; document.getElementById('input-fuel-liters').value = ''; document.getElementById('input-fuel-total').value = ''; document.getElementById('input-fuel-km').value = state.veiculo.hodometro; 
+                    document.getElementById('input-fuel-data').value = new Date().toISOString().split('T')[0];
+                    document.getElementById('input-fuel-hora').value = new Date().toTimeString().slice(0, 5);
                     document.getElementById('input-fuel-full').checked = true;
                 }
                 toggleOverlay('veh-abastecer');
@@ -1937,8 +1944,12 @@
                 if(id) { 
                     const h = state.veiculo.historico.find(x => x.id === id); 
                     document.getElementById('input-svc-name').value = h.nome; document.getElementById('input-svc-val').value = h.valor; document.getElementById('input-svc-km').value = h.km; document.getElementById('input-svc-isoil').checked = h.isOil; if(h.conta) document.getElementById('input-svc-acc').value = h.conta;
+                    document.getElementById('input-svc-data').value = h.data || new Date().toISOString().split('T')[0];
+                    document.getElementById('input-svc-hora').value = h.hora || new Date().toTimeString().slice(0, 5);
                 } else { 
-                    document.getElementById('input-svc-name').value = ''; document.getElementById('input-svc-val').value = ''; document.getElementById('input-svc-km').value = state.veiculo.hodometro; document.getElementById('input-svc-isoil').checked = false; 
+                    document.getElementById('input-svc-name').value = ''; document.getElementById('input-svc-val').value = ''; document.getElementById('input-svc-km').value = state.veiculo.hodometro; document.getElementById('input-svc-isoil').checked = false;
+                    document.getElementById('input-svc-data').value = new Date().toISOString().split('T')[0];
+                    document.getElementById('input-svc-hora').value = new Date().toTimeString().slice(0, 5);
                 }
                 toggleOverlay('veh-servico');
 
@@ -1955,7 +1966,8 @@
                 } else {
                     // MODO NOVO: Limpa os campos
                     document.getElementById('input-rota-km').value = ''; 
-                    document.getElementById('input-rota-data').value = new Date().toISOString().split('T')[0]; 
+                    document.getElementById('input-rota-data').value = new Date().toISOString().split('T')[0];
+                    document.getElementById('input-rota-hora').value = new Date().toTimeString().slice(0, 5);
                     document.getElementById('input-rota-origem').value = ''; 
                     document.getElementById('input-rota-destino').value = ''; 
                     document.getElementById('input-rota-motivo').value = 'Dia a Dia'; 
@@ -1980,6 +1992,7 @@
             try {
                 const km = parseInt(document.getElementById('input-rota-km').value);
                 const dataRota = document.getElementById('input-rota-data').value || new Date().toISOString().split('T')[0];
+                const horaRota = document.getElementById('input-rota-hora').value || new Date().toTimeString().slice(0, 5);
                 const origem = document.getElementById('input-rota-origem').value.trim();
                 const destino = document.getElementById('input-rota-destino').value.trim();
                 const motivo = document.getElementById('input-rota-motivo').value;
@@ -1992,6 +2005,7 @@
                     if(idx > -1) {
                         state.veiculo.historico[idx].km = km;
                         state.veiculo.historico[idx].data = dataRota;
+                        state.veiculo.historico[idx].hora = horaRota;
                         state.veiculo.historico[idx].origem = origem;
                         state.veiculo.historico[idx].destino = destino;
                         state.veiculo.historico[idx].motivo = motivo;
@@ -2002,7 +2016,7 @@
                     // CRIANDO NOVA ROTA
                     if (km <= state.veiculo.hodometro) { showToast("O hodômetro deve ser maior que o atual."); return; }
                     const dist = km - state.veiculo.hodometro;
-                    const item = { id: Date.now(), tipo: 'rota', data: dataRota, km: km, distancia: dist, origem: origem, destino: destino, motivo: motivo };
+                    const item = { id: Date.now(), tipo: 'rota', data: dataRota, hora: horaRota, km: km, distancia: dist, origem: origem, destino: destino, motivo: motivo };
                     state.veiculo.historico.unshift(item); 
                     state.veiculo.hodometro = km;
                     showToast("Rota de " + dist + "km registrada!");
@@ -2022,21 +2036,23 @@
         function saveRefueling() {
             try {
                 const kmInput = parseInt(document.getElementById('input-fuel-km').value); const km = !isNaN(kmInput) ? kmInput : state.veiculo.hodometro; const t = parseFloat(document.getElementById('input-fuel-total').value) || 0; const l = parseFloat(document.getElementById('input-fuel-liters').value) || 0; const acc = document.getElementById('input-fuel-acc').value;
+                const dataFuel = document.getElementById('input-fuel-data').value || new Date().toISOString().split('T')[0];
+                const horaFuel = document.getElementById('input-fuel-hora').value || new Date().toTimeString().slice(0, 5);
                 if(!km || !t || !l) { showToast("Preencha KM, Total e Litros."); return; }
                 
                 const newId = state.editingVehId || Date.now(); let med = 29.0; const last = state.veiculo.historico.find(h => h.tipo === 'abastecimento' && h.id !== newId);
                 if(last && km > last.km && l > 0) med = (km - last.km) / l;
                 
                 const isFull = document.getElementById('input-fuel-full')?.checked || false;
-                const item = { id: newId, tipo: 'abastecimento', data: new Date().toISOString().split('T')[0], km, total: t, litros: l, media: med, conta: acc, tanqueCheio: isFull };
+                const item = { id: newId, tipo: 'abastecimento', data: dataFuel, hora: horaFuel, km, total: t, litros: l, media: med, conta: acc, tanqueCheio: isFull };
                 
                 if(state.editingVehId) { 
                     const idx = state.veiculo.historico.findIndex(x => x.id === newId); if (idx > -1) state.veiculo.historico[idx] = item; 
                     const finIdx = state.financas.transacoes.findIndex(x => x.refId === newId);
-                    if(finIdx > -1) { state.financas.transacoes[finIdx].valor = t; state.financas.transacoes[finIdx].conta = acc; state.financas.transacoes[finIdx].data = item.data; } 
-                    else { state.financas.transacoes.push({ id: Date.now()+1, refId: newId, data: item.data, valor: t, tipo: 'despesa', status: 'efetivada', cat: 'Combustível', conta: acc }); }
+                    if(finIdx > -1) { state.financas.transacoes[finIdx].valor = t; state.financas.transacoes[finIdx].conta = acc; state.financas.transacoes[finIdx].data = item.data; state.financas.transacoes[finIdx].hora = item.hora; } 
+                    else { state.financas.transacoes.push({ id: Date.now()+1, refId: newId, data: item.data, hora: item.hora, valor: t, tipo: 'despesa', status: 'efetivada', cat: 'Combustível', conta: acc }); }
                 } else { 
-                    state.veiculo.historico.unshift(item); state.financas.transacoes.push({ id: Date.now()+1, refId: newId, data: item.data, valor: t, tipo: 'despesa', status: 'efetivada', cat: 'Combustível', conta: acc }); 
+                    state.veiculo.historico.unshift(item); state.financas.transacoes.push({ id: Date.now()+1, refId: newId, data: item.data, hora: item.hora, valor: t, tipo: 'despesa', status: 'efetivada', cat: 'Combustível', conta: acc }); 
                 }
                 state.veiculo.hodometro = Math.max(state.veiculo.hodometro, km);
                 saveDataToCloud(); closeAllOverlays(); updateUI();
@@ -2046,16 +2062,18 @@
         function saveService() {
             try {
                 const n = document.getElementById('input-svc-name').value; const v = parseFloat(document.getElementById('input-svc-val').value) || 0; const kmInput = parseInt(document.getElementById('input-svc-km').value); const k = !isNaN(kmInput) ? kmInput : state.veiculo.hodometro; const o = document.getElementById('input-svc-isoil').checked; const acc = document.getElementById('input-svc-acc').value;
+                const dataSvc = document.getElementById('input-svc-data').value || new Date().toISOString().split('T')[0];
+                const horaSvc = document.getElementById('input-svc-hora').value || new Date().toTimeString().slice(0, 5);
                 if(!n) { showToast("Preencha a descrição."); return; }
-                const newId = state.editingVehId || Date.now(); const item = { id: newId, tipo: 'servico', data: new Date().toISOString().split('T')[0], km: k, nome: n, valor: v, isOil: o, conta: acc };
+                const newId = state.editingVehId || Date.now(); const item = { id: newId, tipo: 'servico', data: dataSvc, hora: horaSvc, km: k, nome: n, valor: v, isOil: o, conta: acc };
                 
                 if(state.editingVehId) { 
                     const idx = state.veiculo.historico.findIndex(x => x.id === newId); if(idx > -1) state.veiculo.historico[idx] = item; 
                     const finIdx = state.financas.transacoes.findIndex(x => x.refId === newId);
-                    if(finIdx > -1) { state.financas.transacoes[finIdx].valor = v; state.financas.transacoes[finIdx].conta = acc; state.financas.transacoes[finIdx].cat = 'Manutenção'; state.financas.transacoes[finIdx].data = item.data; } 
-                    else { state.financas.transacoes.push({ id: Date.now()+1, refId: newId, data: item.data, valor: v, tipo: 'despesa', status: 'efetivada', cat: 'Manutenção', conta: acc }); }
+                    if(finIdx > -1) { state.financas.transacoes[finIdx].valor = v; state.financas.transacoes[finIdx].conta = acc; state.financas.transacoes[finIdx].cat = 'Manutenção'; state.financas.transacoes[finIdx].data = item.data; state.financas.transacoes[finIdx].hora = item.hora; } 
+                    else { state.financas.transacoes.push({ id: Date.now()+1, refId: newId, data: item.data, hora: item.hora, valor: v, tipo: 'despesa', status: 'efetivada', cat: 'Manutenção', conta: acc }); }
                 } else { 
-                    state.veiculo.historico.unshift(item); state.financas.transacoes.push({ id: Date.now()+1, refId: newId, data: item.data, valor: v, tipo: 'despesa', status: 'efetivada', cat: 'Manutenção', conta: acc }); 
+                    state.veiculo.historico.unshift(item); state.financas.transacoes.push({ id: Date.now()+1, refId: newId, data: item.data, hora: item.hora, valor: v, tipo: 'despesa', status: 'efetivada', cat: 'Manutenção', conta: acc }); 
                 }
                 if(o) state.veiculo.oleoUltimaTrocaKM = k; state.veiculo.hodometro = Math.max(state.veiculo.hodometro, k);
                 saveDataToCloud(); closeAllOverlays(); updateUI();
