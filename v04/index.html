@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mu Finance v04.26</title>
+    <title>Mu Finance v04.27</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -220,7 +220,7 @@
             <div class="w-full max-w-md">
                 <div class="text-center mb-10">
                     <h1 class="text-4xl font-bold tracking-tight mb-2">Mu Finance</h1>
-                    <p class="text-[10px] text-gray-500 uppercase tracking-widest font-bold">v04.26</p>
+                    <p class="text-[10px] text-gray-500 uppercase tracking-widest font-bold">v04.27</p>
                 </div>
                 <div class="space-y-4">
                 <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
@@ -243,7 +243,7 @@
         <header class="flex justify-between items-center shrink-0">
             <div>
                 <h1 id="header-title" class="text-2xl font-bold tracking-tight">Mu Finance</h1>
-                <p class="text-[10px] text-gray-500 uppercase font-bold tracking-widest mt-1" id="header-subtitle">Dashboard Geral v04.26</p>
+                <p class="text-[10px] text-gray-500 uppercase font-bold tracking-widest mt-1" id="header-subtitle">Dashboard Geral v04.27</p>
             </div>
             <div class="flex items-center space-x-3">
                 <button onclick="toggleOverlay('notificacoes')" class="relative w-10 h-10 flex items-center justify-center rounded-full bg-[#1E2128] border border-gray-800 active:scale-90 transition-transform">
@@ -574,6 +574,12 @@
                         <div class="w-full bg-white/5 h-1.5 rounded-full overflow-hidden"><div id="veh-oleo-bar" class="h-full bg-blue-500 transition-all duration-700" style="width: 0%"></div></div>
                     </div>
                 </div>
+                <div class="flex gap-2 overflow-x-auto pb-2 -mx-6 px-6">
+                    <button onclick="switchVehTab('resumo')" id="veh-tab-resumo" class="px-4 py-2 rounded-lg text-[10px] font-bold uppercase whitespace-nowrap bg-white/20 text-white transition-all">Resumo</button>
+                    <button onclick="switchVehTab('relatorio')" id="veh-tab-relatorio" class="px-4 py-2 rounded-lg text-[10px] font-bold uppercase whitespace-nowrap text-gray-500 transition-all">Relatório</button>
+                    <button onclick="switchVehTab('historico')" id="veh-tab-historico" class="px-4 py-2 rounded-lg text-[10px] font-bold uppercase whitespace-nowrap text-gray-500 transition-all">Histórico</button>
+                </div>
+
                 <div class="grid grid-cols-3 gap-3">
                     <button onclick="openVehModal('rota')" class="card py-5 rounded-2xl flex flex-col items-center border border-white/5 active:bg-green-500/10 transition-colors"><i data-lucide="map-pin" class="w-6 h-6 text-green-500 mb-2"></i><span class="text-[10px] font-bold uppercase">Rota</span></button>
                     <button onclick="openVehModal('abastecer')" class="card py-5 rounded-2xl flex flex-col items-center border border-white/5 active:bg-orange-500/10 transition-colors"><i data-lucide="fuel" class="w-6 h-6 text-orange-500 mb-2"></i><span class="text-[10px] font-bold uppercase">Abastecer</span></button>
@@ -583,6 +589,81 @@
                     <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest px-1">Histórico</h3>
                     <div id="veh-timeline" class="space-y-3 pb-10"></div>
                 </div>
+                <div id="veh-relatorio" class="hidden space-y-6">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
+                            <span class="text-[9px] text-gray-500 font-bold uppercase block mb-1">Média Real</span>
+                            <span class="text-lg font-bold text-orange-400" id="veh-media-real">--</span>
+                            <span class="text-[8px] text-gray-600 block mt-1">Meta: 29 km/L</span>
+                        </div>
+                        <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
+                            <span class="text-[9px] text-gray-500 font-bold uppercase block mb-1">Custo por KM</span>
+                            <span class="text-lg font-bold text-blue-400" id="veh-cpk">--</span>
+                            <span class="text-[8px] text-gray-600 block mt-1">R$ por km</span>
+                        </div>
+                        <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
+                            <span class="text-[9px] text-gray-500 font-bold uppercase block mb-1">Próx. Troca Óleo</span>
+                            <span class="text-lg font-bold text-green-400" id="veh-oleo-prox">--</span>
+                            <span class="text-[8px] text-gray-600 block mt-1">km restantes</span>
+                        </div>
+                        <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
+                            <span class="text-[9px] text-gray-500 font-bold uppercase block mb-1">Gasto Mensal</span>
+                            <span class="text-lg font-bold text-red-400" id="veh-gasto-mensal">--</span>
+                            <span class="text-[8px] text-gray-600 block mt-1">Combustível + Manutenção</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
+                        <span class="text-[9px] text-gray-500 font-bold uppercase block mb-4">Evolução do Consumo (km/L)</span>
+                        <canvas id="veh-chart-consumo" height="80"></canvas>
+                    </div>
+
+                    <div class="space-y-3">
+                        <span class="text-[9px] text-gray-500 font-bold uppercase block">Saúde dos Consumíveis</span>
+                        <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-[9px] text-gray-400">Óleo</span>
+                                <span class="text-[9px] font-bold" id="veh-health-oleo-perc">0%</span>
+                            </div>
+                            <div class="w-full bg-black/40 h-2 rounded-full overflow-hidden">
+                                <div id="veh-health-oleo-bar" class="h-full bg-green-500 transition-all duration-700" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-[9px] text-gray-400">Pastilhas de Freio</span>
+                                <span class="text-[9px] font-bold" id="veh-health-freio-perc">0%</span>
+                            </div>
+                            <div class="w-full bg-black/40 h-2 rounded-full overflow-hidden">
+                                <div id="veh-health-freio-bar" class="h-full bg-green-500 transition-all duration-700" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-[9px] text-gray-400">Corrente/Relação</span>
+                                <span class="text-[9px] font-bold" id="veh-health-corrente-perc">0%</span>
+                            </div>
+                            <div class="w-full bg-black/40 h-2 rounded-full overflow-hidden">
+                                <div id="veh-health-corrente-bar" class="h-full bg-green-500 transition-all duration-700" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-[9px] text-gray-400">Pneus</span>
+                                <span class="text-[9px] font-bold" id="veh-health-pneus-perc">0%</span>
+                            </div>
+                            <div class="w-full bg-black/40 h-2 rounded-full overflow-hidden">
+                                <div id="veh-health-pneus-bar" class="h-full bg-green-500 transition-all duration-700" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
+                        <span class="text-[9px] text-gray-500 font-bold uppercase block mb-4">Distribuição de Gastos</span>
+                        <canvas id="veh-chart-gastos" height="80"></canvas>
+                    </div>
+                </div>
+
             </div>
 
         </main>
@@ -786,10 +867,15 @@
             <select id="trans-dest-select" class="bg-transparent font-bold w-full outline-none text-xs"></select>
         </div>
         
-        <div id="trans-cat-status-container" class="space-y-5">
+            <div id="trans-cat-status-container" class="space-y-5">
             <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
                 <label class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Categoria</label>
                 <select id="trans-cat-select" class="bg-transparent font-bold w-full outline-none text-xs"></select>
+            </div>
+
+            <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
+                <label class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Descrição</label>
+                <input type="text" id="trans-descricao-input" placeholder="Ex: Aluguel, Supermercado..." class="bg-transparent font-bold w-full outline-none text-xs">
             </div>
             
             <div class="grid grid-cols-2 gap-4">
@@ -803,8 +889,8 @@
                 <div class="space-y-1">
                     <label class="text-[9px] text-gray-500 font-bold ml-2 uppercase">Tipo</label>
                     <div class="flex bg-black/30 rounded-xl p-1">
-                        <button onclick="setTransState('fixa',false)" id="btn-fx-no" class="flex-1 py-2 text-[9px] font-bold rounded-lg transition-all">Única</button>
-                        <button onclick="setTransState('fixa',true)" id="btn-fx-yes" class="flex-1 py-2 text-[9px] font-bold rounded-lg transition-all">Fixa</button>
+                        <button onclick="setTransState('fixa',false)" id="btn-fx-no" class="flex-1 py-2 text-[9px] font-bold rounded-lg bg-white/20 text-white transition-all">Única</button>
+                        <button onclick="setTransState('fixa',true)" id="btn-fx-yes" class="flex-1 py-2 text-[9px] font-bold rounded-lg transition-all">Fixo (12m)</button>
                     </div>
                 </div>
             </div>
@@ -2185,10 +2271,13 @@
             if(id) { 
                 const tr = state.financas.transacoes.find(x => x.id === id); 
                 document.getElementById('trans-val-input').value = tr.valor; document.getElementById('trans-date-input').value = tr.data; document.getElementById('trans-acc-select').value = tr.conta; 
+                document.getElementById('trans-descricao-input').value = tr.descricao || '';
                 if (t === 'transferencia') { document.getElementById('trans-dest-select').value = tr.destino; } 
                 else { document.getElementById('trans-cat-select').value = tr.cat; setTransState('status', tr.status); }
             } else { 
-                document.getElementById('trans-val-input').value = ''; document.getElementById('trans-date-input').value = new Date().toISOString().split('T')[0]; setTransState('status', 'previsivel'); 
+                document.getElementById('trans-val-input').value = ''; document.getElementById('trans-date-input').value = new Date().toISOString().split('T')[0]; 
+                document.getElementById('trans-descricao-input').value = ''; 
+                setTransState('status', 'previsivel'); setTransState('fixa', false);
             }
             toggleOverlay('transaction');
         }
@@ -2199,15 +2288,16 @@ function saveTransaction() {
     const dStr = document.getElementById('trans-date-input').value;
     const a = document.getElementById('trans-acc-select').value;
     const c = document.getElementById('trans-cat-select').value;
+    const desc = document.getElementById('trans-descricao-input').value || '';
     const type = state.financas.temp.type;
     const status = state.financas.temp.status;
-    const isFixa = document.getElementById('trans-fixa-input')?.checked;
+    const isFixa = state.financas.temp.fixa;
 
     if(!v || !dStr) return;
 
     if(state.editingId) { 
         const idx = state.financas.transacoes.findIndex(x => x.id === state.editingId); 
-        if(idx !== -1) { state.financas.transacoes[idx] = {...state.financas.transacoes[idx], valor:v, data:dStr, cat:c, conta:a, tipo:type, status:status}; }
+        if(idx !== -1) { state.financas.transacoes[idx] = {...state.financas.transacoes[idx], valor:v, data:dStr, cat:c, conta:a, tipo:type, status:status, descricao:desc}; }
     } else { 
         const groupId = isFixa ? Date.now() : null;
         const parcelas = isFixa ? 12 : 1;
@@ -2221,12 +2311,16 @@ function saveTransaction() {
             const pM = String(dataParcela.getMonth() + 1).padStart(2, '0');
             const pD = String(dataParcela.getDate()).padStart(2, '0');
             
+            const statusParcela = i === 0 ? status : 'previsivel';
+            
             state.financas.transacoes.push({ 
-                id: Date.now() + i, groupId: groupId, data: `${pY}-${pM}-${pD}`, valor: v, tipo: type, status: status, cat: c, conta: a
+                id: Date.now() + i, groupId: groupId, data: `${pY}-${pM}-${pD}`, valor: v, tipo: type, status: statusParcela, cat: c, conta: a, descricao: desc
             });
         }
     }
-    saveDataToCloud(); closeAllOverlays(); updateUI(); showToast("Lançamento realizado!");
+    saveDataToCloud(); closeAllOverlays(); updateUI(); 
+    const toastMsg = isFixa ? "Lançamento fixo (12 meses) realizado!" : "Lançamento realizado!";
+    showToast(toastMsg);
 }
 
         function setTransState(p, v) { 
@@ -2946,6 +3040,210 @@ function deleteTransaction(id) {
             return true;
         }
         
+
+        // ===== FUNÇÕES DE RELATÓRIO VEICULAR =====
+        
+        function switchVehTab(tab) {
+            const resumoDiv = document.querySelector('[id="veh-resumo"]');
+            const relatorioDiv = document.getElementById('veh-relatorio');
+            const historicoDiv = document.querySelector('[id="veh-historico"]');
+            
+            if (resumoDiv) resumoDiv.classList.add('hidden');
+            if (relatorioDiv) relatorioDiv.classList.add('hidden');
+            if (historicoDiv) historicoDiv.classList.add('hidden');
+            
+            document.getElementById('veh-tab-resumo').classList.remove('bg-white/20', 'text-white');
+            document.getElementById('veh-tab-relatorio').classList.remove('bg-white/20', 'text-white');
+            document.getElementById('veh-tab-historico').classList.remove('bg-white/20', 'text-white');
+            document.getElementById('veh-tab-resumo').classList.add('text-gray-500');
+            document.getElementById('veh-tab-relatorio').classList.add('text-gray-500');
+            document.getElementById('veh-tab-historico').classList.add('text-gray-500');
+            
+            if (tab === 'resumo') {
+                if (resumoDiv) resumoDiv.classList.remove('hidden');
+                document.getElementById('veh-tab-resumo').classList.add('bg-white/20', 'text-white');
+                document.getElementById('veh-tab-resumo').classList.remove('text-gray-500');
+            } else if (tab === 'relatorio') {
+                if (relatorioDiv) relatorioDiv.classList.remove('hidden');
+                document.getElementById('veh-tab-relatorio').classList.add('bg-white/20', 'text-white');
+                document.getElementById('veh-tab-relatorio').classList.remove('text-gray-500');
+                setTimeout(() => renderVehRelatorio(), 100);
+            } else if (tab === 'historico') {
+                if (historicoDiv) historicoDiv.classList.remove('hidden');
+                document.getElementById('veh-tab-historico').classList.add('bg-white/20', 'text-white');
+                document.getElementById('veh-tab-historico').classList.remove('text-gray-500');
+            }
+        }
+
+        function renderVehRelatorio() {
+            calcularMediaReal();
+            calcularCPK();
+            calcularProximaTrocaOleo();
+            calcularGastoMensal();
+            renderVehCharts();
+            updateHealthBars();
+        }
+
+        function calcularMediaReal() {
+            const fills = state.veiculo.historico.filter(h => h.tipo === 'abastecimento' && h.tanqueCheio);
+            let mediaReal = 29.0;
+            if (fills.length >= 2) {
+                let totalKm = 0, totalLitros = 0;
+                for (let i = 1; i < fills.length; i++) {
+                    const kmDiff = fills[i].km - fills[i-1].km;
+                    if (kmDiff > 0) {
+                        totalKm += kmDiff;
+                        totalLitros += fills[i].litros;
+                    }
+                }
+                if (totalLitros > 0) mediaReal = totalKm / totalLitros;
+            }
+            const el = document.getElementById('veh-media-real');
+            if (el) el.innerText = mediaReal.toFixed(1) + ' km/L';
+            return mediaReal;
+        }
+
+        function calcularCPK() {
+            let totalGasto = 0, totalKm = state.veiculo.hodometro;
+            state.veiculo.historico.forEach(h => {
+                if (h.tipo === 'abastecimento') totalGasto += h.total;
+                else if (h.tipo === 'servico') totalGasto += h.valor;
+            });
+            const cpk = totalKm > 0 ? totalGasto / totalKm : 0;
+            const el = document.getElementById('veh-cpk');
+            if (el) el.innerText = 'R$ ' + cpk.toFixed(2);
+            return cpk;
+        }
+
+        function calcularProximaTrocaOleo() {
+            const kmRestantes = (state.veiculo.oleoUltimaTrocaKM + state.veiculo.oleoIntervalo) - state.veiculo.hodometro;
+            const el = document.getElementById('veh-oleo-prox');
+            if (el) el.innerText = Math.max(0, kmRestantes).toFixed(0) + ' km';
+            return kmRestantes;
+        }
+
+        function calcularGastoMensal() {
+            const agora = new Date();
+            const mesAtual = agora.getMonth();
+            const anoAtual = agora.getFullYear();
+            let gastoMes = 0;
+            state.veiculo.historico.forEach(h => {
+                const dataH = new Date(h.data);
+                if (dataH.getMonth() === mesAtual && dataH.getFullYear() === anoAtual) {
+                    if (h.tipo === 'abastecimento') gastoMes += h.total;
+                    else if (h.tipo === 'servico') gastoMes += h.valor;
+                }
+            });
+            const el = document.getElementById('veh-gasto-mensal');
+            if (el) el.innerText = 'R$ ' + gastoMes.toFixed(2);
+            return gastoMes;
+        }
+
+        function renderVehCharts() {
+            renderConsumoChart();
+            renderGastosChart();
+        }
+
+        function renderConsumoChart() {
+            const ctx = document.getElementById('veh-chart-consumo');
+            if (!ctx) return;
+            const fills = state.veiculo.historico.filter(h => h.tipo === 'abastecimento').sort((a, b) => new Date(a.data) - new Date(b.data));
+            const labels = fills.map(f => new Date(f.data).toLocaleDateString('pt-BR', {day: '2-digit', month: 'short'}));
+            const data = fills.map(f => f.media || 0);
+            if (window.consumoChartInstance) window.consumoChartInstance.destroy();
+            window.consumoChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'km/L',
+                        data: data,
+                        borderColor: '#f97316',
+                        backgroundColor: 'rgba(249, 115, 22, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#f97316'
+                    }, {
+                        label: 'Meta (29 km/L)',
+                        data: Array(labels.length).fill(29),
+                        borderColor: '#38bdf8',
+                        borderDash: [5, 5],
+                        borderWidth: 1,
+                        fill: false,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: { legend: { display: true, labels: { color: '#9ca3af', font: { size: 10 } } } },
+                    scales: {
+                        y: { beginAtZero: true, max: 40, ticks: { color: '#6b7280', font: { size: 9 } }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                        x: { ticks: { color: '#6b7280', font: { size: 9 } }, grid: { color: 'rgba(255,255,255,0.05)' } }
+                    }
+                }
+            });
+        }
+
+        function renderGastosChart() {
+            const ctx = document.getElementById('veh-chart-gastos');
+            if (!ctx) return;
+            let combustivel = 0, preventiva = 0, corretiva = 0;
+            state.veiculo.historico.forEach(h => {
+                if (h.tipo === 'abastecimento') combustivel += h.total;
+                else if (h.tipo === 'servico') {
+                    if (h.isOil) preventiva += h.valor;
+                    else corretiva += h.valor;
+                }
+            });
+            if (window.gastosChartInstance) window.gastosChartInstance.destroy();
+            window.gastosChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Combustível', 'Manutenção Preventiva', 'Manutenção Corretiva'],
+                    datasets: [{
+                        label: 'Gastos (R$)',
+                        data: [combustivel, preventiva, corretiva],
+                        backgroundColor: ['#f97316', '#34d399', '#fb7185'],
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { ticks: { color: '#6b7280', font: { size: 9 } }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                        y: { ticks: { color: '#6b7280', font: { size: 9 } }, grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        function updateHealthBars() {
+            const d = state.veiculo.hodometro - state.veiculo.oleoUltimaTrocaKM;
+            const oleoPerc = Math.max(0, 100 - (d / state.veiculo.oleoIntervalo * 100));
+            updateHealthBar('oleo', oleoPerc);
+            updateHealthBar('freio', 70);
+            updateHealthBar('corrente', 60);
+            updateHealthBar('pneus', 75);
+        }
+
+        function updateHealthBar(type, percentage) {
+            const bar = document.getElementById('veh-health-' + type + '-bar');
+            const perc = document.getElementById('veh-health-' + type + '-perc');
+            if (bar && perc) {
+                bar.style.width = percentage + '%';
+                perc.innerText = Math.round(percentage) + '%';
+                if (percentage < 60) bar.style.backgroundColor = '#34d399';
+                else if (percentage < 85) bar.style.backgroundColor = '#eab308';
+                else bar.style.backgroundColor = '#fb7185';
+            }
+        }
+
         window.onload = () => { 
             if(!state.isLoggedIn) { document.getElementById('login-screen').classList.remove('hidden'); }
             initializeAuthListener();
