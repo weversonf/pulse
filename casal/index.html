@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mu Finance Casal v02.6</title>
+    <title>Mu Finance Casal v03.1</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
 
@@ -16,730 +16,360 @@
         --bg-main: #121418;
         --bg-card: #1E2128;
         --accent-blue: #38bdf8;
-        --danger: #fb7185;
-        --success: #34d399;
     }
     
-    html, body { 
-        height: 100dvh; 
-        min-height: 100dvh; 
-        margin: 0; 
-        overflow: hidden; 
-        background-color: #000; 
-        color: white; 
-        font-family: 'Inter', sans-serif; 
-        -webkit-tap-highlight-color: transparent; 
-    }
-    
-    .app-container { 
-        background-color: var(--bg-main); 
-        width: 100%; 
-        height: 100%; 
-        position: relative; 
-        display: flex; 
-        flex-direction: column; 
-    }
-    
+    html, body { height: 100dvh; min-height: 100dvh; margin: 0; overflow: hidden; background-color: #000; color: white; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+    .app-container { background-color: var(--bg-main); width: 100%; height: 100%; position: relative; display: flex; flex-direction: column; }
     header { flex-shrink: 0; padding: 15px 20px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-    
-    main { 
-        flex: 1; 
-        overflow-y: auto; 
-        overflow-x: hidden; 
-        padding-bottom: calc(120px + env(safe-area-inset-bottom)); 
-        scroll-behavior: smooth; 
-    }
-	
+    main { flex: 1; overflow-y: auto; padding-bottom: calc(100px + env(safe-area-inset-bottom)); }
     .card { background-color: var(--bg-card); border: 1px solid rgba(255,255,255,0.05); }
     ::-webkit-scrollbar { display: none; }
     
     .fade-in { animation: fadeIn 0.3s ease-in-out; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-    .sensitive-value.blurred { filter: blur(10px); transition: filter 0.3s ease; }
+    /* Overlay de Login */
+    #login-screen { position: fixed; inset: 0; background: #121418; z-index: 200; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; }
     
-    .overlay { 
-        position: fixed; bottom: -100%; left: 0; width: 100%; height: 92%; 
-        background-color: var(--bg-card); border-top-left-radius: 32px; border-top-right-radius: 32px; 
-        z-index: 100; transition: bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
-        box-shadow: 0 -10px 40px rgba(0,0,0,0.8); border-top: 1px solid rgba(255,255,255,0.1); 
-        display: flex; flex-direction: column; 
-    }
+    .overlay { position: fixed; bottom: -100%; left: 0; width: 100%; height: 92%; background-color: var(--bg-card); border-top-left-radius: 32px; border-top-right-radius: 32px; z-index: 100; transition: bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 -10px 40px rgba(0,0,0,0.8); border-top: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; }
     .overlay.active { bottom: 0; }
     .overlay-content { flex: 1; overflow-y: auto; padding: 0 24px 40px 24px; }
-    
     .backdrop { position: fixed; inset: 0; background-color: rgba(0,0,0,0.7); z-index: 90; display: none; }
     .backdrop.active { display: block; }
 
-    nav { 
-        position: fixed; bottom: 0; left: 0; right: 0; width: 100%; 
-        background-color: #16181D; border-top-left-radius: 32px; border-top-right-radius: 32px;
-        display: flex; justify-content: space-between; align-items: center;
-        padding: 5px 15px calc(15px + env(safe-area-inset-bottom)) 15px; 
-        z-index: 80; box-shadow: 0 -10px 40px rgba(0,0,0,0.6);
-    }
-    
-    .nav-btn { 
-        position: relative; display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
-        color: #6b7280; border: none; background: none; cursor: pointer; flex: 1; transition: all 0.2s; padding-top: 15px;
-    }
+    nav { position: fixed; bottom: 0; left: 0; right: 0; background-color: #16181D; border-top-left-radius: 32px; border-top-right-radius: 32px; display: flex; justify-content: space-between; align-items: center; padding: 5px 15px calc(15px + env(safe-area-inset-bottom)) 15px; z-index: 80; box-shadow: 0 -10px 40px rgba(0,0,0,0.6); }
+    .nav-btn { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; color: #6b7280; border: none; background: none; cursor: pointer; flex: 1; transition: all 0.2s; padding-top: 15px; }
     .nav-btn.active { color: var(--accent-blue); }
     .nav-btn span { font-size: 10px; font-weight: 600; margin-top: 4px; }
-    
     .active-indicator { position: absolute; top: 0; width: 22px; height: 3px; background-color: var(--accent-blue); border-radius: 4px; opacity: 0; transform: scaleX(0); transition: all 0.3s; }
     .nav-btn.active .active-indicator { opacity: 1; transform: scaleX(1); }
-
-    .fab-container { position: relative; display: flex; justify-content: center; width: 70px; margin-top: -35px; }
-    .main-fab { 
-        background-color: var(--accent-blue); color: #000; width: 56px; height: 56px; 
-        border-radius: 50%; display: flex; justify-content: center; align-items: center; 
-        box-shadow: 0 5px 20px rgba(56,189,248,0.4); z-index: 85; border: 4px solid var(--bg-main);
-        transition: transform 0.2s;
-    }
-    .main-fab:active { transform: scale(0.9); }
-
-    @media (min-width: 768px) {
-        nav { top: 0; left: 0; width: 260px; height: 100%; flex-direction: column; border-radius: 0; border-right: 1px solid rgba(255,255,255,0.05); padding: 40px 16px; justify-content: flex-start; gap: 8px; }
-        header, main { margin-left: 260px; }
-        .nav-btn { flex: none; flex-direction: row; height: 48px; width: 100%; justify-content: flex-start; padding: 0 16px; border-radius: 12px; }
-        .nav-btn.active { background: rgba(56, 189, 248, 0.08); }
-        .nav-btn span { margin-top: 0; margin-left: 14px; font-size: 14px; }
-        .active-indicator { left: 0; top: 50%; transform: translateY(-50%) scaleY(0); width: 4px; height: 20px; border-radius: 0 4px 4px 0; }
-        .nav-btn.active .active-indicator { transform: translateY(-50%) scaleY(1); opacity: 1; }
-        
-        .fab-container {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            width: auto;
-            margin-top: 0;
-            display: flex;
-            z-index: 99;
-        }
-        .main-fab { width: 64px; height: 64px; }
-    }
+    .main-fab { background-color: var(--accent-blue); color: #000; width: 56px; height: 56px; border-radius: 50%; display: flex; justify-content: center; align-items: center; box-shadow: 0 5px 20px rgba(56,189,248,0.4); z-index: 85; border: 4px solid var(--bg-main); transform: translateY(-30px); }
 </style>
-
 </head>
 <body>
 
-    <div class="app-container">
+    <!-- TELA DE LOGIN -->
+    <div id="login-screen" class="fade-in">
+        <div class="w-20 h-20 bg-blue-500 rounded-3xl flex items-center justify-center text-black mb-8 shadow-2xl shadow-blue-500/20">
+            <i data-lucide="wallet" class="w-10 h-10"></i>
+        </div>
+        <h2 class="text-3xl font-black mb-2 tracking-tighter">MU FINANCE</h2>
+        <p class="text-gray-500 text-xs uppercase font-bold tracking-widest mb-12">Portal do Casal</p>
         
-        <header class="flex justify-between items-center shrink-0">
+        <div class="w-full space-y-4 max-w-sm">
+            <div class="bg-white/5 border border-white/10 rounded-2xl p-4">
+                <label class="text-[9px] text-gray-500 font-bold uppercase block mb-1">Utilizador</label>
+                <input type="text" id="login-user" placeholder="usuario" class="bg-transparent w-full outline-none font-bold text-white">
+            </div>
+            <div class="bg-white/5 border border-white/10 rounded-2xl p-4">
+                <label class="text-[9px] text-gray-500 font-bold uppercase block mb-1">Senha</label>
+                <input type="password" id="login-pass" placeholder="••••••" class="bg-transparent w-full outline-none font-bold text-white">
+            </div>
+            <button onclick="handleLogin()" id="btn-login" class="w-full py-5 bg-blue-500 text-black font-black rounded-3xl uppercase tracking-widest active:scale-95 transition-all">Entrar</button>
+        </div>
+        <p class="mt-12 text-[10px] text-gray-700 font-bold uppercase">v03.1</p>
+    </div>
+
+    <div id="app-content" class="app-container hidden">
+        <header class="flex justify-between items-center">
             <div>
-                <h1 class="text-2xl font-bold tracking-tight">Mu Finance <span class="text-blue-400">Casal</span></h1>
-                <p class="text-[10px] text-gray-500 uppercase font-bold tracking-widest mt-1">Gestão de <span id="header-couple-names">Nós</span></p>
+                <h1 class="text-xl font-bold tracking-tight">Mu Finance <span class="text-blue-400">Casal</span></h1>
+                <p class="text-[9px] text-gray-500 uppercase font-bold tracking-widest mt-0.5" id="header-subtitle">Carregando...</p>
             </div>
-            <button onclick="toggleOverlay('perfil')" class="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 p-[2px] active:scale-90 transition-transform">
-                <div class="w-full h-full rounded-full bg-[#1E2128] flex items-center justify-center text-[10px] font-bold overflow-hidden">NÓS</div>
-            </button>
-        </header>
-
-        <main id="main-scroll" class="px-6 py-4">
-            
-            <!-- SECÇÃO: FINANÇAS -->
-            <div id="page-financas" class="page-content space-y-6 fade-in">
-                <div class="card rounded-3xl p-6 shadow-sm relative overflow-hidden">
-                    <div class="absolute top-4 right-4 z-20 cursor-pointer p-1" onclick="toggleVisibility()">
-                        <i data-lucide="eye" class="w-5 h-5 text-gray-400 btn-eye"></i>
-                        <i data-lucide="eye-off" class="w-5 h-5 text-gray-400 btn-eye-off hidden"></i>
-                    </div>
-                    <div class="relative z-10">
-                        <span class="text-gray-400 text-sm">Saldo Combinado</span>
-                        <h2 class="text-4xl font-bold mt-1 mb-4 sensitive-value fin-total-saldo" data-value="R$ 0,00">R$ 0,00</h2>
-                        <div class="flex justify-between items-center mt-6 border-t border-white/5 pt-4">
-                            <div><span class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Entradas</span><span class="text-sm font-semibold text-green-400 sensitive-value fin-receita-mes" data-value="R$ 0,00">R$ 0,00</span></div>
-                            <div class="w-px h-8 bg-gray-700"></div>
-                            <div class="text-right"><span class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Saídas</span><span class="text-sm font-semibold text-red-400 sensitive-value fin-despesa-mes" data-value="R$ 0,00">R$ 0,00</span></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-3">
-                    <button onclick="navigate('nav-financas', 'page-cartoes', 'Cartões')" class="card p-4 rounded-2xl flex items-center space-x-3 active:scale-95 transition-transform">
-                        <i data-lucide="credit-card" class="w-6 h-6 text-purple-400"></i>
-                        <span class="text-[10px] font-bold uppercase">Cartões</span>
-                    </button>
-                    <button onclick="navigate('nav-financas', 'page-extrato', 'Extrato')" class="card p-4 rounded-2xl flex items-center space-x-3 active:scale-95 transition-transform">
-                        <i data-lucide="list" class="w-6 h-6 text-yellow-400"></i>
-                        <span class="text-[10px] font-bold uppercase">Extrato</span>
-                    </button>
-                </div>
-
-                <div class="card rounded-3xl p-5">
-                    <div class="flex justify-between items-center mb-3">
-                        <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Orçamento Mensal</h3>
-                        <span id="budget-perc" class="text-xs font-bold text-blue-400">0%</span>
-                    </div>
-                    <div class="w-full bg-black/40 h-2 rounded-full overflow-hidden">
-                        <div id="budget-bar" class="bg-blue-500 h-full transition-all duration-500" style="width: 0%"></div>
-                    </div>
-                </div>
-
-                <div class="space-y-4">
-                    <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest px-1">Atividades Recentes</h3>
-                    <div id="recent-trans-list" class="space-y-3"></div>
-                </div>
-            </div>
-
-            <!-- SECÇÃO: CARTÕES -->
-            <div id="page-cartoes" class="page-content hidden space-y-6 fade-in">
-                <div class="flex items-center space-x-4">
-                    <button onclick="navigate('nav-financas', 'page-financas', 'Finanças')" class="w-9 h-9 bg-white/5 rounded-full flex items-center justify-center"><i data-lucide="chevron-left" class="w-5 h-5"></i></button>
-                    <h2 class="text-xl font-bold">Nossos Cartões</h2>
-                </div>
-                <div id="cartoes-list" class="space-y-4"></div>
-            </div>
-
-            <!-- SECÇÃO: EXTRATO -->
-            <div id="page-extrato" class="page-content hidden space-y-6 fade-in">
-                <div class="flex items-center justify-between">
-                    <button onclick="navigate('nav-financas', 'page-financas', 'Finanças')" class="w-9 h-9 bg-white/5 rounded-full flex items-center justify-center"><i data-lucide="chevron-left" class="w-5 h-5"></i></button>
-                    <div class="flex items-center space-x-2 bg-white/5 rounded-xl px-2 py-1">
-                        <button onclick="changeExtratoMonth(-1)"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
-                        <span id="extrato-month-label" class="text-[10px] font-bold min-w-[120px] text-center uppercase">--</span>
-                        <button onclick="changeExtratoMonth(1)"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
-                    </div>
-                </div>
-                <div id="extrato-month-content" class="space-y-3 pb-20"></div>
-            </div>
-
-            <!-- SECÇÃO: VEÍCULO -->
-            <div id="page-veiculo" class="page-content hidden space-y-6 fade-in">
-                <div class="card rounded-3xl p-6 relative">
-                    <div class="flex justify-between items-start mb-6">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-12 h-12 bg-blue-500/10 rounded-2xl flex items-center justify-center text-blue-400">
-                                <i data-lucide="car" class="w-7 h-7"></i>
-                            </div>
-                            <div>
-                                <h2 class="text-2xl font-bold">Nosso Veículo</h2>
-                                <p class="text-[10px] text-gray-500 uppercase font-bold tracking-widest mt-1">Painel • <span id="veh-km-total">0</span> km</p>
-                            </div>
-                        </div>
-                        <button onclick="toggleOverlay('perfil')" class="w-9 h-9 bg-white/5 rounded-full flex items-center justify-center"><i data-lucide="settings" class="w-4 h-4"></i></button>
-                    </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="bg-black/30 p-4 rounded-2xl border border-white/5"><span class="text-[9px] text-gray-500 font-bold uppercase block mb-1">Manutenção em</span><span class="text-lg font-bold text-blue-400" id="veh-oleo-prox">--</span></div>
-                        <div class="bg-black/30 p-4 rounded-2xl border border-white/5"><span class="text-[9px] text-gray-500 font-bold uppercase block mb-1">Consumo km/L</span><span class="text-lg font-bold text-orange-400" id="veh-media-geral">29.0</span></div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-3">
-                    <button onclick="toggleOverlay('veh-manutencao')" class="card py-6 rounded-2xl flex flex-col items-center border border-white/5 active:scale-95 transition-transform">
-                        <i data-lucide="wrench" class="w-6 h-6 text-blue-500 mb-2"></i>
-                        <span class="text-[10px] font-bold uppercase">Manutenção</span>
-                    </button>
-                    <button onclick="toggleOverlay('veh-abastecer')" class="card py-6 rounded-2xl flex flex-col items-center border border-white/5 active:scale-95 transition-transform">
-                        <i data-lucide="fuel" class="w-6 h-6 text-orange-500 mb-2"></i>
-                        <span class="text-[10px] font-bold uppercase">Abastecer</span>
-                    </button>
-                </div>
-
-                <div class="space-y-4">
-                    <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest px-1">Histórico</h3>
-                    <div id="veh-timeline" class="space-y-3 pb-20"></div>
-                </div>
-            </div>
-
-        </main>
-
-        <nav id="main-nav">
-            <!-- LOGO PARA DESKTOP -->
-            <div class="hidden md:flex items-center space-x-3 px-4 mb-8 mt-4">
-                <div class="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center text-black shadow-lg shadow-blue-500/20">
-                    <i data-lucide="wallet" class="w-6 h-6"></i>
-                </div>
-                <div>
-                    <h2 class="text-sm font-black tracking-tighter leading-none">MU FINANCE</h2>
-                    <span class="text-[10px] text-blue-400 font-bold uppercase tracking-widest">Casal</span>
-                </div>
-            </div>
-
-            <button onclick="navigate('nav-financas', 'page-financas', 'Finanças')" id="nav-financas" class="nav-btn active">
-                <div class="active-indicator"></div>
-                <i data-lucide="dollar-sign" class="w-6 h-6"></i><span>Finanças</span>
-            </button>
-
-            <div class="fab-container">
-                <button onclick="toggleOverlay('transaction')" class="main-fab">
-                    <i data-lucide="plus" class="w-8 h-8 text-black"></i>
+            <div class="flex items-center space-x-3">
+                <div id="sync-status" class="w-2 h-2 rounded-full bg-gray-600"></div>
+                <button onclick="toggleOverlay('perfil')" class="w-10 h-10 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
+                    <span id="user-initials" class="text-[10px] font-black text-blue-400">--</span>
                 </button>
             </div>
+        </header>
 
-            <button onclick="navigate('nav-veiculo', 'page-veiculo', 'Veículo')" id="nav-veiculo" class="nav-btn">
-                <div class="active-indicator"></div>
-                <i data-lucide="car" class="w-6 h-6"></i><span>Veículo</span>
-            </button>
+        <main class="px-6 py-4">
+            <!-- DASHBOARD -->
+            <div id="page-financas" class="page-content space-y-6 fade-in">
+                <div class="card rounded-3xl p-6 relative overflow-hidden">
+                    <span class="text-gray-400 text-sm">Saldo Combinado</span>
+                    <h2 class="text-4xl font-black mt-1 mb-4" id="main-saldo">R$ 0,00</h2>
+                    <div class="flex justify-between border-t border-white/5 pt-4">
+                        <div><span class="text-[9px] text-gray-500 font-bold uppercase block">Receitas</span><span class="text-sm font-bold text-green-400" id="main-receita">R$ 0,00</span></div>
+                        <div class="text-right"><span class="text-[9px] text-gray-500 font-bold uppercase block">Despesas</span><span class="text-sm font-bold text-red-400" id="main-despesa">R$ 0,00</span></div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="navigate('page-extrato')" class="card p-4 rounded-2xl flex items-center space-x-3"><i data-lucide="list" class="w-5 h-5 text-yellow-400"></i><span class="text-[10px] font-bold uppercase">Extrato</span></button>
+                    <button onclick="navigate('page-veiculo')" class="card p-4 rounded-2xl flex items-center space-x-3"><i data-lucide="car" class="w-5 h-5 text-blue-400"></i><span class="text-[10px] font-bold uppercase">Moto</span></button>
+                </div>
+
+                <div class="space-y-4">
+                    <h3 class="text-[10px] font-bold text-gray-500 uppercase px-1">Recentes</h3>
+                    <div id="recent-list" class="space-y-3"></div>
+                </div>
+            </div>
+
+            <!-- EXTRATO -->
+            <div id="page-extrato" class="page-content hidden space-y-6 fade-in">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xl font-bold">Histórico</h2>
+                    <div class="bg-white/5 px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase" id="extrato-month">Mês Atual</div>
+                </div>
+                <div id="extrato-list" class="space-y-3"></div>
+            </div>
+
+            <!-- VEÍCULO -->
+            <div id="page-veiculo" class="page-content hidden space-y-6 fade-in">
+                <div class="card rounded-3xl p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-xl font-bold">Yamaha Fazer 250</h2>
+                        <i data-lucide="info" class="w-4 h-4 text-gray-500"></i>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-black/20 p-4 rounded-2xl"><span class="text-[9px] text-gray-500 uppercase block">Hodômetro</span><span class="text-lg font-bold" id="veh-km">0 km</span></div>
+                        <div class="bg-black/20 p-4 rounded-2xl"><span class="text-[9px] text-gray-500 uppercase block">Média</span><span class="text-lg font-bold text-orange-400">29 km/L</span></div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="toggleOverlay('veh-action')" class="card py-6 rounded-2xl flex flex-col items-center"><i data-lucide="fuel" class="w-6 h-6 text-orange-500 mb-2"></i><span class="text-[10px] font-bold uppercase">Abastecer</span></button>
+                    <button onclick="toggleOverlay('veh-action')" class="card py-6 rounded-2xl flex flex-col items-center"><i data-lucide="wrench" class="w-6 h-6 text-blue-500 mb-2"></i><span class="text-[10px] font-bold uppercase">Oficina</span></button>
+                </div>
+            </div>
+        </main>
+
+        <nav>
+            <button onclick="navigate('page-financas')" class="nav-btn active"><div class="active-indicator"></div><i data-lucide="layout-grid" class="w-6 h-6"></i><span>Home</span></button>
+            <button onclick="toggleOverlay('transaction')" class="main-fab"><i data-lucide="plus" class="w-8 h-8 text-black"></i></button>
+            <button onclick="navigate('page-veiculo')" class="nav-btn"><div class="active-indicator"></div><i data-lucide="car" class="w-6 h-6"></i><span>Moto</span></button>
         </nav>
 
-        <div id="backdrop" class="backdrop" onclick="closeAllOverlays()"></div>
+        <div id="backdrop" class="backdrop" onclick="closeOverlays()"></div>
 
-        <!-- OVERLAY: REGISTO FINANCEIRO -->
+        <!-- OVERLAY: NOVA TRANSAÇÃO -->
         <div id="overlay-transaction" class="overlay">
             <div class="w-12 h-1 bg-gray-800 rounded-full mx-auto mt-4 mb-4 shrink-0"></div>
-            <div class="px-6 flex justify-between items-center mb-6">
-                <h2 class="text-xl font-bold" id="trans-title">Novo Registo</h2>
-                <button onclick="closeAllOverlays()"><i data-lucide="x" class="w-6 h-6 text-gray-500"></i></button>
-            </div>
             <div class="overlay-content space-y-5">
-                <div class="flex bg-black/30 rounded-xl p-1 mb-2">
-                    <button onclick="setTransType('despesa')" id="btn-tt-despesa" class="flex-1 py-2 text-[10px] font-bold rounded-lg transition-all">Gasto</button>
-                    <button onclick="setTransType('receita')" id="btn-tt-receita" class="flex-1 py-2 text-[10px] font-bold rounded-lg transition-all">Ganho</button>
+                <h2 class="text-xl font-bold mb-4">Novo Lançamento</h2>
+                <div class="bg-black/30 p-8 rounded-3xl text-center border border-white/5">
+                    <span class="text-[10px] text-gray-500 uppercase font-bold">Valor do Registro</span>
+                    <input type="number" id="t-val" class="bg-transparent text-4xl font-black text-white w-full text-center outline-none mt-2" placeholder="0.00">
                 </div>
-                <div class="bg-black/30 p-8 rounded-3xl border border-white/5 text-center">
-                    <span class="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Valor</span>
-                    <div class="text-4xl font-bold mt-2 flex justify-center items-center">
-                        <span class="text-gray-600 mr-2 text-2xl">R$</span>
-                        <input type="number" id="trans-val" class="bg-transparent outline-none w-48 text-center text-white" placeholder="0.00" step="0.01">
+                <div class="space-y-4">
+                    <div class="bg-black/20 p-4 rounded-2xl"><label class="text-[9px] text-gray-500 uppercase block mb-1">Descrição</label><input type="text" id="t-desc" class="bg-transparent w-full outline-none font-bold" placeholder="Ex: Supermercado"></div>
+                    <div class="bg-black/20 p-4 rounded-2xl"><label class="text-[9px] text-gray-500 uppercase block mb-1">Categoria</label><select id="t-cat" class="bg-transparent w-full outline-none font-bold text-blue-400"></select></div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-black/20 p-4 rounded-2xl"><label class="text-[9px] text-gray-500 uppercase block mb-1">Tipo</label><select id="t-type" class="bg-transparent w-full outline-none font-bold"><option value="Saída">Saída</option><option value="Entrada">Entrada</option></select></div>
+                        <div class="bg-black/20 p-4 rounded-2xl"><label class="text-[9px] text-gray-500 uppercase block mb-1">Conta</label><select id="t-acc" class="bg-transparent w-full outline-none font-bold text-xs"><option>Nubank</option><option>Inter</option><option>Dinheiro</option><option>Pix</option></select></div>
                     </div>
                 </div>
-
-                <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
-                    <label class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Responsável</label>
-                    <select id="trans-resp" class="bg-transparent font-bold w-full outline-none text-sm text-blue-400"></select>
-                </div>
-
-                <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
-                    <label class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Categoria</label>
-                    <select id="trans-cat" class="bg-transparent font-bold w-full outline-none text-sm text-white"></select>
-                </div>
-
-                <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
-                    <label class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Descrição</label>
-                    <input type="text" id="trans-desc" placeholder="Ex: Supermercado" class="bg-transparent font-bold w-full outline-none text-sm">
-                </div>
-
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
-                        <label class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Data</label>
-                        <input type="date" id="trans-date" class="bg-transparent font-bold w-full outline-none text-xs text-white">
-                    </div>
-                    <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
-                        <label class="text-[9px] text-gray-500 uppercase font-bold block mb-1">Conta/Cartão</label>
-                        <select id="trans-acc" class="bg-transparent font-bold w-full outline-none text-xs text-white"></select>
-                    </div>
-                </div>
-
-                <button onclick="saveTransaction()" class="w-full py-5 rounded-3xl bg-blue-500 text-black font-bold text-lg mt-4 uppercase tracking-widest active:scale-95 transition-transform">Confirmar</button>
+                <button onclick="saveTransaction()" class="w-full py-5 bg-blue-500 text-black font-black rounded-3xl uppercase tracking-widest mt-4">Confirmar</button>
             </div>
         </div>
 
-        <!-- OVERLAY: CONFIGURAÇÕES -->
+        <!-- OVERLAY: PERFIL -->
         <div id="overlay-perfil" class="overlay">
             <div class="w-12 h-1 bg-gray-800 rounded-full mx-auto mt-4 mb-4 shrink-0"></div>
-            <div class="px-6 flex justify-between items-center mb-6">
-                <h2 class="text-xl font-bold">Configurações</h2>
-                <button onclick="closeAllOverlays()"><i data-lucide="x" class="w-6 h-6 text-gray-500"></i></button>
-            </div>
-            <div class="overlay-content space-y-8">
-                <section class="space-y-4">
-                    <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Perfis</h3>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="bg-black/20 p-4 rounded-2xl border border-white/5"><label class="text-[9px] text-gray-500 uppercase block mb-1">Nome Ele</label><input type="text" id="cfg-he" class="bg-transparent font-bold w-full outline-none"></div>
-                        <div class="bg-black/20 p-4 rounded-2xl border border-white/5"><label class="text-[9px] text-gray-500 uppercase block mb-1">Nome Ela</label><input type="text" id="cfg-she" class="bg-transparent font-bold w-full outline-none"></div>
+            <div class="overlay-content space-y-6">
+                <div class="text-center py-6">
+                    <div class="w-20 h-20 bg-blue-500/10 rounded-full mx-auto flex items-center justify-center mb-4">
+                        <i data-lucide="user" class="w-10 h-10 text-blue-400"></i>
                     </div>
-                </section>
-
-                <section class="space-y-4">
-                    <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Orçamento</h3>
-                    <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
-                        <label class="text-[9px] text-gray-500 uppercase block mb-1">Meta Mensal (R$)</label>
-                        <input type="number" id="cfg-budget" class="bg-transparent font-bold w-full outline-none">
-                    </div>
-                </section>
-
-                <section class="space-y-4">
-                    <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Sincronização</h3>
-                    <p class="text-[10px] text-gray-500 px-1 leading-relaxed">O banco de dados está configurado automaticamente para o Google Sheets.</p>
-                    <div class="flex space-x-2">
-                        <button onclick="syncSheet('push')" class="flex-1 py-4 rounded-2xl bg-white/5 text-white font-bold uppercase text-[10px] border border-white/5 active:bg-white/10">Push (Subir)</button>
-                        <button onclick="syncSheet('pull')" class="flex-1 py-4 rounded-2xl bg-green-500 text-black font-bold uppercase text-[10px] active:scale-95">Pull (Baixar)</button>
-                    </div>
-                </section>
-
-                <button onclick="saveGlobalConfigs()" class="w-full py-5 rounded-3xl bg-blue-500 text-black font-bold uppercase tracking-widest mt-2 active:scale-95 transition-transform">Gravar Tudo</button>
+                    <h2 class="text-2xl font-bold" id="profile-name">Usuário</h2>
+                    <p class="text-xs text-gray-500 uppercase font-bold tracking-widest" id="profile-couple">Casal --</p>
+                </div>
+                <div class="space-y-4">
+                    <button onclick="syncSheet('pull')" class="w-full py-4 bg-white/5 border border-white/10 rounded-2xl font-bold uppercase text-xs tracking-widest">Atualizar Dados</button>
+                    <button onclick="location.reload()" class="w-full py-4 bg-red-500/10 border border-red-500/20 text-red-400 rounded-2xl font-bold uppercase text-xs tracking-widest">Sair do App</button>
+                </div>
             </div>
         </div>
-
-        <!-- OVERLAY: VEÍCULO - MANUTENÇÃO -->
-        <div id="overlay-veh-manutencao" class="overlay">
-            <div class="w-12 h-1 bg-gray-800 rounded-full mx-auto mt-4 mb-4 shrink-0"></div>
-            <div class="px-6 flex justify-between items-center mb-6"><h2 class="text-xl font-bold">Manutenção</h2><button onclick="closeAllOverlays()"><i data-lucide="x" class="w-6 h-6 text-gray-500"></i></button></div>
-            <div class="overlay-content space-y-4">
-                <div class="bg-black/30 p-8 rounded-3xl border border-white/5 text-center">
-                    <label class="text-[10px] text-gray-500 uppercase font-bold mb-2 block">Custo (R$)</label>
-                    <input type="number" id="v-man-total" class="bg-transparent text-4xl font-black text-blue-400 w-full text-center outline-none" placeholder="0.00" step="0.01">
-                </div>
-                <div class="bg-black/20 p-4 rounded-2xl border border-white/5"><label class="text-[9px] text-gray-500 uppercase block mb-1">KM Atual</label><input type="number" id="v-man-km" class="bg-transparent font-bold w-full outline-none"></div>
-                <div class="bg-black/20 p-4 rounded-2xl border border-white/5"><label class="text-[9px] text-gray-500 uppercase block mb-1">Serviço</label><input type="text" id="v-man-desc" class="bg-transparent font-bold w-full outline-none" placeholder="Ex: Óleo, Filtros..."></div>
-                <button onclick="saveVehicleAction('manutencao')" class="w-full py-5 rounded-3xl bg-blue-500 text-black font-bold uppercase tracking-widest active:scale-95">Registar</button>
-            </div>
-        </div>
-
-        <!-- OVERLAY: VEÍCULO - ABASTECER -->
-        <div id="overlay-veh-abastecer" class="overlay">
-            <div class="w-12 h-1 bg-gray-800 rounded-full mx-auto mt-4 mb-4 shrink-0"></div>
-            <div class="px-6 flex justify-between items-center mb-6"><h2 class="text-xl font-bold">Abastecer</h2><button onclick="closeAllOverlays()"><i data-lucide="x" class="w-6 h-6 text-gray-500"></i></button></div>
-            <div class="overlay-content space-y-4">
-                <div class="bg-black/30 p-8 rounded-3xl border border-white/5 text-center">
-                    <label class="text-[10px] text-gray-500 uppercase font-bold mb-2 block">Total Pago (R$)</label>
-                    <input type="number" id="v-fuel-total" class="bg-transparent text-4xl font-black text-orange-400 w-full text-center outline-none" placeholder="0.00" step="0.01">
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-black/20 p-4 rounded-2xl border border-white/5"><label class="text-[9px] text-gray-500 uppercase block mb-1">KM Painel</label><input type="number" id="v-fuel-km" class="bg-transparent font-bold w-full outline-none"></div>
-                    <div class="bg-black/20 p-4 rounded-2xl border border-white/5"><label class="text-[9px] text-gray-500 uppercase block mb-1">Litros</label><input type="number" id="v-fuel-liters" class="bg-transparent font-bold w-full outline-none" step="0.01"></div>
-                </div>
-                <button onclick="saveVehicleAction('abastecer')" class="w-full py-5 rounded-3xl bg-orange-500 text-black font-bold uppercase tracking-widest active:scale-95">Confirmar</button>
-            </div>
-        </div>
-
     </div>
 
 <script>
-    // ESTADO DA APLICAÇÃO
-    let state = {
-        names: { he: 'Murilo', she: 'Ela' },
-        // URL HARDCODED PARA O BANCO DE DADOS
+    const CONFIG = {
         sheetUrl: 'https://script.google.com/macros/s/AKfycbznDMXn9aasu_WeaGT2sLlK16BthzYClzPJUZIO-44sTXzmSknH_MTsJRsdqY4rrmVKqw/exec',
-        blurred: false,
-        extratoMonth: new Date(),
-        budget: 4500,
-        accounts: ['Carteira', 'Conta Corrente', 'Cartão Comum'],
-        categories_expense: ['Alimentação', 'Moradia', 'Transporte', 'Lazer', 'Manutenção', 'Veículo', 'Saúde', 'Internet/TV', 'Outros'],
-        categories_income: ['Salário', 'Freelance', 'Investimento', 'Venda'],
-        cartoes: [
-            {id: 1, nome: 'Nubank Casal', cor: '#8b5cf6', limite: 5000, vencimento: 10}
-        ],
-        transacoes: [],
-        veiculo: {
-            hodometro: 12500,
-            oleoIntervalo: 3000,
-            oleoUltimaTrocaKM: 11000,
-            historico: []
-        },
-        temp: { type: 'despesa' }
+        cats: ['Alimentação', 'Moradia', 'Transporte', 'Lazer', 'Saúde', 'Extra', 'Contas Fixas', 'Educação', 'Outros']
     };
 
-    // INICIALIZAÇÃO NO CARREGAMENTO
-    window.onload = () => {
-        loadData();
-        updateUI();
-        setTimeout(() => { if(window.lucide) lucide.createIcons(); }, 300);
-    };
+    let session = { user: null, coupleId: null, userId: null, name: '' };
+    let db = { transacoes: [], veiculo: [], config: {} };
 
-    function loadData() {
-        const saved = localStorage.getItem('mu_finance_casal_v2_6');
-        if (saved) {
-            const parsed = JSON.parse(saved);
-            // Mantemos a URL fixa mesmo ao carregar dados salvos, a menos que queira permitir sobrescrever
-            const currentUrl = state.sheetUrl;
-            state = {...state, ...parsed};
-            state.sheetUrl = currentUrl; 
-            state.extratoMonth = new Date(state.extratoMonth);
+    // LOGIN
+    async function handleLogin() {
+        const user = document.getElementById('login-user').value.toLowerCase();
+        const pass = document.getElementById('login-pass').value;
+        const btn = document.getElementById('btn-login');
+
+        if(!user || !pass) return;
+        btn.innerText = "Autenticando...";
+        btn.disabled = true;
+
+        try {
+            const resp = await fetch(`${CONFIG.sheetUrl}?action=login&user=${user}&pass=${pass}`);
+            const data = await resp.json();
+
+            if(data.success) {
+                session = { user, coupleId: data.coupleId, userId: data.userId, name: data.name };
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('app-content').classList.remove('hidden');
+                initApp();
+            } else {
+                showToast("Acesso Negado!");
+                btn.innerText = "Entrar";
+                btn.disabled = false;
+            }
+        } catch(e) { 
+            showToast("Erro de conexão");
+            btn.innerText = "Entrar";
+            btn.disabled = false;
         }
     }
 
-    function saveData() {
-        localStorage.setItem('mu_finance_casal_v2_6', JSON.stringify(state));
+    function initApp() {
+        document.getElementById('header-subtitle').innerText = `Logado como ${session.name}`;
+        document.getElementById('user-initials').innerText = session.name.substring(0,2).toUpperCase();
+        document.getElementById('profile-name').innerText = session.name;
+        document.getElementById('profile-couple').innerText = `ID Casal: ${session.coupleId} • ID User: ${session.userId}`;
+        
+        const catSel = document.getElementById('t-cat');
+        catSel.innerHTML = CONFIG.cats.map(c => `<option value="${c}">${c}</option>`).join('');
+        
+        syncSheet('pull');
     }
 
-    // LÓGICA DE ACTUALIZAÇÃO DA INTERFACE
-    function updateUI() {
-        renderFinances();
-        renderExtrato();
-        renderVehicle();
-        renderCartoes();
-        document.getElementById('header-couple-names').innerText = `${state.names.he} & ${state.names.she}`;
-        saveData();
-        if(window.lucide) lucide.createIcons();
-    }
+    // FINANCEIRO
+    function saveTransaction() {
+        const val = parseFloat(document.getElementById('t-val').value);
+        const desc = document.getElementById('t-desc').value || 'Sem descrição';
+        const cat = document.getElementById('t-cat').value;
+        const type = document.getElementById('t-type').value;
+        const acc = document.getElementById('t-acc').value;
 
-    function renderFinances() {
-        let saldo = 0, recM = 0, desM = 0;
-        const now = new Date();
-        const m = now.getMonth(), y = now.getFullYear();
+        if(!val) return;
 
-        state.transacoes.forEach(t => {
-            const dt = new Date(t.data);
-            if (t.type === 'receita') {
-                saldo += t.valor;
-                if(dt.getMonth() === m && dt.getFullYear() === y) recM += t.valor;
-            } else {
-                saldo -= t.valor;
-                if(dt.getMonth() === m && dt.getFullYear() === y) desM += t.valor;
-            }
-        });
+        // Lógica de ID sugerida pelo Weverson: IDTrans_IDCasal_IDUser
+        const timestamp = Date.now().toString().slice(-4);
+        const compositeId = `${timestamp}_${session.coupleId}_${session.userId}`;
 
-        const setV = (sel, val) => {
-            const str = 'R$ ' + val.toLocaleString('pt-BR', {minimumFractionDigits: 2});
-            document.querySelectorAll(sel).forEach(el => {
-                el.setAttribute('data-value', str);
-                el.innerText = state.blurred ? 'R$ •••••' : str;
-            });
+        const newTrans = {
+            id: compositeId,
+            data: new Date().toISOString().split('T')[0],
+            valor: val,
+            desc: desc,
+            quem: session.userId,
+            cat: cat,
+            acc: acc,
+            tipo: type
         };
 
-        setV('.fin-total-saldo', saldo);
-        setV('.fin-receita-mes', recM);
-        setV('.fin-despesa-mes', desM);
-
-        const p = (desM / state.budget) * 100;
-        document.getElementById('budget-bar').style.width = Math.min(p, 100) + '%';
-        document.getElementById('budget-perc').innerText = Math.round(p) + '%';
-
-        renderRecent();
+        db.transacoes.unshift(newTrans);
+        updateUI();
+        closeOverlays();
+        syncSheet('push', newTrans);
     }
 
-    function renderRecent() {
-        const list = document.getElementById('recent-trans-list');
-        const sorted = [...state.transacoes].sort((a,b) => new Date(b.data) - new Date(a.data)).slice(0, 5);
-        list.innerHTML = sorted.map(t => `
-            <div class="card p-4 rounded-2xl flex justify-between items-center border border-white/5">
+    function updateUI() {
+        let saldo = 0, rec = 0, des = 0;
+        db.transacoes.forEach(t => {
+            if(t.tipo === 'Entrada') { saldo += t.valor; rec += t.valor; }
+            else { saldo -= t.valor; des += t.valor; }
+        });
+
+        document.getElementById('main-saldo').innerText = `R$ ${saldo.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+        document.getElementById('main-receita').innerText = `R$ ${rec.toFixed(2)}`;
+        document.getElementById('main-despesa').innerText = `R$ ${des.toFixed(2)}`;
+
+        const recentList = document.getElementById('recent-list');
+        recentList.innerHTML = db.transacoes.slice(0, 5).map(t => `
+            <div class="card p-4 rounded-2xl flex justify-between items-center">
                 <div class="flex items-center space-x-3 truncate">
-                    <div class="w-10 h-10 rounded-full ${t.type === 'receita' ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'} flex items-center justify-center shrink-0">
-                        <i data-lucide="${t.type === 'receita' ? 'trending-up' : 'trending-down'}" class="w-5 h-5"></i>
+                    <div class="w-10 h-10 rounded-full ${t.tipo === 'Entrada' ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'} flex items-center justify-center shrink-0">
+                        <i data-lucide="${t.tipo === 'Entrada' ? 'arrow-up-right' : 'arrow-down-left'}" class="w-5 h-5"></i>
                     </div>
                     <div class="truncate">
                         <span class="block text-sm font-bold truncate">${t.desc}</span>
-                        <span class="block text-[9px] text-gray-500 uppercase font-bold">${t.resp} • ${t.cat}</span>
+                        <span class="block text-[8px] text-gray-500 uppercase font-bold tracking-tighter">${t.id}</span>
                     </div>
-                </div>
-                <span class="text-sm font-bold ${t.type === 'receita' ? 'text-green-400' : 'text-red-400'}">R$ ${t.valor.toFixed(2)}</span>
-            </div>
-        `).join('') || '<p class="text-center py-6 text-gray-600 text-[10px] uppercase font-bold">Sem atividades</p>';
-    }
-
-    function renderVehicle() {
-        const v = state.veiculo;
-        document.getElementById('veh-km-total').innerText = v.hodometro.toLocaleString();
-        const dOleo = v.hodometro - v.oleoUltimaTrocaKM;
-        const prox = v.oleoIntervalo - dOleo;
-        document.getElementById('veh-oleo-prox').innerText = (prox > 0 ? prox : 0).toLocaleString() + ' km';
-        
-        document.getElementById('veh-timeline').innerHTML = v.historico.slice(0, 6).map(h => `
-            <div class="card p-4 rounded-2xl flex items-center space-x-4 border border-white/5">
-                <div class="w-10 h-10 rounded-full ${h.type === 'abastecer' ? 'bg-orange-500/10 text-orange-400' : 'bg-blue-500/10 text-blue-400'} flex items-center justify-center shrink-0">
-                    <i data-lucide="${h.type === 'abastecer' ? 'fuel' : 'wrench'}" class="w-5 h-5"></i>
-                </div>
-                <div class="flex-1">
-                    <div class="flex justify-between items-start">
-                        <span class="text-sm font-bold">${h.desc}</span>
-                        <span class="text-xs font-bold ${h.type === 'abastecer' ? 'text-orange-400' : 'text-blue-400'}">${h.valor ? 'R$ '+h.valor.toFixed(2) : ''}</span>
-                    </div>
-                    <span class="text-[9px] text-gray-500 font-bold uppercase mt-1 block">${h.data} • Hodómetro: ${h.km} km</span>
-                </div>
-            </div>
-        `).join('') || '<p class="text-center py-10 text-gray-600 text-[10px] uppercase font-bold">Sem registos</p>';
-    }
-
-    function renderCartoes() {
-        const list = document.getElementById('cartoes-list');
-        list.innerHTML = state.cartoes.map(c => {
-            let fatura = 0;
-            state.transacoes.forEach(t => { if(t.acc === c.nome) { if(t.type === 'receita') fatura -= t.valor; else fatura += t.valor; }});
-            return `
-                <div class="card rounded-3xl p-6 bg-gradient-to-br from-[#1E2128] to-[#121418] border border-gray-700">
-                    <div class="flex justify-between items-center mb-6">
-                        <div class="flex items-center space-x-2"><i data-lucide="credit-card" class="w-5 h-5" style="color: ${c.cor}"></i><span class="text-sm font-bold text-gray-300 uppercase">${c.nome}</span></div>
-                    </div>
-                    <div class="mb-4">
-                        <span class="text-[10px] text-gray-500 block mb-1 uppercase font-bold">Saldo em Aberto</span>
-                        <h2 class="text-3xl font-bold">R$ ${Math.max(0, fatura).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</h2>
-                    </div>
-                    <div class="w-full bg-white/5 h-1.5 rounded-full overflow-hidden">
-                        <div class="h-full bg-blue-500" style="width: ${Math.min((fatura/c.limite)*100, 100)}%"></div>
-                    </div>
-                </div>
-            `;
-        }).join('');
-    }
-
-    function renderExtrato() {
-        const m = state.extratoMonth.getMonth(), y = state.extratoMonth.getFullYear();
-        const labels = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-        document.getElementById('extrato-month-label').innerText = `${labels[m]} ${y}`;
-
-        const filtered = state.transacoes.filter(t => {
-            const d = new Date(t.data);
-            return d.getMonth() === m && d.getFullYear() === y;
-        }).sort((a,b) => new Date(b.data) - new Date(a.data));
-
-        document.getElementById('extrato-month-content').innerHTML = filtered.map(t => `
-            <div class="flex items-center gap-4 p-4 bg-black/20 rounded-2xl border border-white/5">
-                <div class="flex-1 truncate">
-                    <p class="text-sm font-bold truncate">${t.desc}</p>
-                    <p class="text-[9px] text-gray-500 font-bold uppercase">${t.cat} • ${t.resp} • ${t.data.split('-').reverse().join('/')}</p>
                 </div>
                 <div class="text-right">
-                    <p class="text-sm font-bold ${t.type==='receita' ? 'text-green-400' : 'text-red-400'}">R$ ${t.valor.toFixed(2)}</p>
-                    <button onclick="deleteTrans(${t.id})" class="text-gray-700 hover:text-red-500 p-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                    <span class="text-sm font-bold ${t.tipo === 'Entrada' ? 'text-green-400' : 'text-red-400'}">R$ ${t.valor.toFixed(2)}</span>
+                    <span class="block text-[8px] text-gray-600 font-bold uppercase">USER ${t.quem}</span>
                 </div>
             </div>
-        `).join('') || '<p class="text-center py-10 text-gray-600 text-[10px] uppercase font-bold tracking-widest">Mês vazio</p>';
+        `).join('') || '<p class="text-center py-10 text-gray-600 text-[10px] uppercase font-bold tracking-widest">Tudo limpo!</p>';
+
+        const extratoList = document.getElementById('extrato-list');
+        extratoList.innerHTML = db.transacoes.map(t => `
+            <div class="card p-4 rounded-2xl flex justify-between items-center">
+                <div class="flex-1 truncate">
+                    <span class="block text-sm font-bold truncate">${t.desc}</span>
+                    <span class="block text-[9px] text-gray-500 uppercase font-bold">${t.data} • ${t.cat}</span>
+                </div>
+                <span class="text-sm font-bold ${t.tipo === 'Entrada' ? 'text-green-400' : 'text-red-400'}">R$ ${t.valor.toFixed(2)}</span>
+            </div>
+        `).join('');
+
+        if(window.lucide) lucide.createIcons();
     }
 
-    // GESTÃO DE MODAIS E NAVEGAÇÃO
-    function toggleOverlay(id) {
-        const el = document.getElementById('overlay-' + id);
-        if (el.classList.contains('active')) { closeAllOverlays(); }
-        else { 
-            closeAllOverlays(); el.classList.add('active'); document.getElementById('backdrop').classList.add('active'); 
-            if(id === 'transaction') prepareTransModal();
-            if(id === 'perfil') preparePerfilModal();
+    // SINCRONIZAÇÃO
+    async function syncSheet(action, singleItem = null) {
+        const ind = document.getElementById('sync-status');
+        ind.className = 'w-2 h-2 rounded-full bg-blue-500 animate-pulse';
+
+        try {
+            if(action === 'push') {
+                // Envia apenas o novo registro para ser apendado na planilha (eficiência)
+                await fetch(CONFIG.sheetUrl, {
+                    method: 'POST', mode: 'no-cors',
+                    body: JSON.stringify({ action: 'append_trans', coupleId: session.coupleId, item: singleItem })
+                });
+                showToast("Nuvem Atualizada!");
+            } else {
+                const r = await fetch(`${CONFIG.sheetUrl}?action=pull&coupleId=${session.coupleId}`);
+                const data = await r.json();
+                db.transacoes = data.transacoes || [];
+                db.veiculo = data.veiculo || [];
+                updateUI();
+            }
+            ind.className = 'w-2 h-2 rounded-full bg-green-500';
+        } catch(e) {
+            ind.className = 'w-2 h-2 rounded-full bg-red-500';
+            showToast("Falha na Sincronia");
         }
+        setTimeout(() => ind.className = 'w-2 h-2 rounded-full bg-gray-600', 3000);
+    }
+
+    // NAVEGAÇÃO E UI
+    function navigate(id) {
+        document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
+        document.getElementById(id).classList.remove('hidden');
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        const btn = Array.from(document.querySelectorAll('.nav-btn')).find(b => b.innerText.toLowerCase().includes(id.split('-')[1]));
+        if(btn) btn.classList.add('active');
+        if(id === 'page-financas') updateUI();
         refreshIcons();
     }
 
-    function closeAllOverlays() { 
-        document.querySelectorAll('.overlay').forEach(o => o.classList.remove('active')); 
-        document.getElementById('backdrop').classList.remove('active'); 
+    function toggleOverlay(id) {
+        closeOverlays();
+        document.getElementById('overlay-'+id).classList.add('active');
+        document.getElementById('backdrop').classList.add('active');
+        refreshIcons();
     }
 
-    function navigate(navId, pageId, title) {
-        document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
-        document.getElementById(pageId).classList.remove('hidden');
-        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById(navId).classList.add('active');
-        closeAllOverlays();
-        updateUI();
+    function closeOverlays() {
+        document.querySelectorAll('.overlay').forEach(o => o.classList.remove('active'));
+        document.getElementById('backdrop').classList.remove('active');
     }
 
-    function prepareTransModal() {
-        const resp = document.getElementById('trans-resp');
-        resp.innerHTML = `<option value="${state.names.he}">${state.names.he}</option><option value="${state.names.she}">${state.names.she}</option><option value="Casal">Casal</option>`;
-        
-        const acc = document.getElementById('trans-acc');
-        let options = state.accounts.map(a => `<option value="${a}">${a}</option>`).join('');
-        options += state.cartoes.map(c => `<option value="${c.nome}">💳 ${c.nome}</option>`).join('');
-        acc.innerHTML = options;
-        
-        document.getElementById('trans-date').value = new Date().toISOString().split('T')[0];
-        setTransType(state.temp.type);
-    }
-
-    function setTransType(t) {
-        state.temp.type = t;
-        const catSelect = document.getElementById('trans-cat');
-        const cats = t === 'receita' ? state.categories_income : state.categories_expense;
-        catSelect.innerHTML = cats.map(c => `<option value="${c}">${c}</option>`).join('');
-
-        document.getElementById('btn-tt-despesa').className = t === 'despesa' ? 'flex-1 py-2 text-[10px] font-bold rounded-lg bg-red-500/20 text-red-400' : 'flex-1 py-2 text-[10px] font-bold text-gray-500';
-        document.getElementById('btn-tt-receita').className = t === 'receita' ? 'flex-1 py-2 text-[10px] font-bold rounded-lg bg-green-500/20 text-green-400' : 'flex-1 py-2 text-[10px] font-bold text-gray-500';
-    }
-
-    function saveTransaction() {
-        const val = parseFloat(document.getElementById('trans-val').value);
-        const desc = document.getElementById('trans-desc').value || 'Lançamento';
-        const date = document.getElementById('trans-date').value;
-        const resp = document.getElementById('trans-resp').value;
-        const acc = document.getElementById('trans-acc').value;
-        const cat = document.getElementById('trans-cat').value;
-
-        if (!val || !date) return;
-
-        state.transacoes.push({ id: Date.now(), valor: val, desc, data: date, resp, acc, cat, type: state.temp.type });
-        closeAllOverlays();
-        updateUI();
-        showToast("Registo salvo!");
-    }
-
-    function deleteTrans(id) {
-        state.transacoes = state.transacoes.filter(t => t.id !== id);
-        updateUI();
-    }
-
-    function saveVehicleAction(type) {
-        if(type === 'manutencao') {
-            const km = parseInt(document.getElementById('v-man-km').value);
-            const total = parseFloat(document.getElementById('v-man-total').value);
-            const desc = document.getElementById('v-man-desc').value || 'Manutenção';
-            if(!km || !total) return;
-            
-            state.veiculo.historico.unshift({ id: Date.now(), tipo: 'manutencao', desc, km, valor: total, data: new Date().toLocaleDateString('pt-BR') });
-            state.veiculo.hodometro = Math.max(state.veiculo.hodometro, km);
-            
-            if(desc.toLowerCase().includes('óleo')) state.veiculo.oleoUltimaTrocaKM = km;
-
-            state.transacoes.push({ id: Date.now()+1, valor: total, desc: `Manut.: ${desc}`, data: new Date().toISOString().split('T')[0], resp: state.names.he, acc: 'Carteira', cat: 'Manutenção', type: 'despesa' });
-        } else if (type === 'abastecer') {
-            const km = parseInt(document.getElementById('v-fuel-km').value);
-            const total = parseFloat(document.getElementById('v-fuel-total').value);
-            const litros = parseFloat(document.getElementById('v-fuel-liters').value);
-            if(!km || !total) return;
-            
-            state.veiculo.historico.unshift({ id: Date.now(), tipo: 'abastecer', desc: 'Abastecimento', km, valor: total, litros, data: new Date().toLocaleDateString('pt-BR') });
-            state.veiculo.hodometro = Math.max(state.veiculo.hodometro, km);
-            
-            state.transacoes.push({ id: Date.now()+1, valor: total, desc: 'Combustível Veículo', data: new Date().toISOString().split('T')[0], resp: state.names.he, acc: 'Carteira', cat: 'Veículo', type: 'despesa' });
-        }
-        closeAllOverlays();
-        updateUI();
-        showToast("Dados guardados!");
-    }
-
-    function preparePerfilModal() {
-        document.getElementById('cfg-he').value = state.names.he;
-        document.getElementById('cfg-she').value = state.names.she;
-        document.getElementById('cfg-budget').value = state.budget;
-    }
-
-    function saveGlobalConfigs() {
-        state.names.he = document.getElementById('cfg-he').value || 'Ele';
-        state.names.she = document.getElementById('cfg-she').value || 'Ela';
-        state.budget = parseFloat(document.getElementById('cfg-budget').value) || 4500;
-        // A URL é fixa, não é necessário ler do input
-        closeAllOverlays();
-        updateUI();
-        showToast("Perfil actualizado!");
-    }
-
-    // SINCRONIZAÇÃO COM GOOGLE SHEETS
-    async function syncSheet(action) {
-        if(!state.sheetUrl) { showToast("Erro: URL não configurada."); return; }
-        showToast(action === 'push' ? "A enviar..." : "A carregar...");
-        
-        try {
-            if(action === 'push') {
-                await fetch(state.sheetUrl, {
-                    method: 'POST', mode: 'no-cors', cache: 'no-cache',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(state)
-                });
-                showToast("Dados enviados (Push)");
-            } else {
-                const response = await fetch(state.sheetUrl);
-                const data = await response.json();
-                if(data) { 
-                    const currentUrl = state.sheetUrl; // Protegemos a URL fixa
-                    state = {...state, ...data}; 
-                    state.sheetUrl = currentUrl;
-                    state.extratoMonth = new Date(); 
-                    updateUI(); 
-                    showToast("Dados carregados (Pull)"); 
-                }
-            }
-        } catch (e) { showToast("Erro de rede."); }
-    }
-
-    function changeExtratoMonth(s) {
-        state.extratoMonth.setMonth(state.extratoMonth.getMonth() + s);
-        renderExtrato();
-    }
-
-    function toggleVisibility() {
-        state.blurred = !state.blurred;
-        updateUI();
-    }
-
-    function showToast(msg) {
+    function showToast(m) {
         const t = document.createElement('div');
-        t.className = 'fixed top-12 left-1/2 -translate-x-1/2 bg-black/95 text-white px-6 py-3 rounded-full text-[10px] font-bold uppercase z-[9999] border border-white/10 shadow-xl';
-        t.innerText = msg;
+        t.className = 'fixed top-10 left-1/2 -translate-x-1/2 bg-white text-black px-6 py-3 rounded-full text-[10px] font-bold uppercase z-[300] shadow-2xl';
+        t.innerText = m;
         document.body.appendChild(t);
         setTimeout(() => t.remove(), 2500);
     }
 
-    function refreshIcons() { if(window.lucide) lucide.createIcons(); }
+    function refreshIcons() { if(window.lucide) setTimeout(() => lucide.createIcons(), 50); }
 </script>
 </body>
 </html>
