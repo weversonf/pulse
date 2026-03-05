@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mu Finance v04.37</title>
+    <title>Mu Finance v04.39</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -243,7 +243,7 @@
         <header class="flex justify-between items-center shrink-0">
             <div>
                 <h1 id="header-title" class="text-2xl font-bold tracking-tight">Mu Finance</h1>
-                <p class="text-[10px] text-gray-500 uppercase font-bold tracking-widest mt-1" id="header-subtitle">Dashboard Geral v04.37</p>
+                <p class="text-[10px] text-gray-500 uppercase font-bold tracking-widest mt-1" id="header-subtitle">Dashboard Geral v04.39</p>
             </div>
             <div class="flex items-center space-x-3">
                 <button onclick="toggleOverlay('notificacoes')" class="relative w-10 h-10 flex items-center justify-center rounded-full bg-[#1E2128] border border-gray-800 active:scale-90 transition-transform">
@@ -1671,8 +1671,8 @@
             document.getElementById('header-title').innerText = title;
             document.getElementById('header-subtitle').innerText = title === 'Visão Geral' ? 'Dashboard Geral' : 'Controle de ' + title;
             closeAllOverlays(); updateUI();
-            if(pageId === 'page-cartoes') renderCards();
-            if(pageId === 'page-orcamento') renderOrcamento();
+            if(pageId === 'page-cartoes') { renderCards(); renderCartoesResumo(); }
+            if(pageId === 'page-orcamento') { renderOrcamento(); renderOrcamentos(); }
         }
 
         function toggleOverlay(id) {
@@ -2752,8 +2752,10 @@ function deleteTransaction(id) {
 
             renderCards(); if(document.getElementById('overlay-card-details').classList.contains('active')) renderCardDetails();
             renderExtrato(); renderRecentTrans(); renderVehTimeline(); renderCalendar(); renderNotifs(); renderMetasList(); refreshIcons();
-            try { renderCartoesResumo(); } catch(e) { console.log('renderCartoesResumo error:', e); }
-            try { renderOrcamentos(); } catch(e) { console.log('renderOrcamentos error:', e); }
+            console.log('Chamando renderCartoesResumo...');
+            renderCartoesResumo();
+            console.log('Chamando renderOrcamentos...');
+            renderOrcamentos();
             
             verificarPrevisaoDetran();
         }
