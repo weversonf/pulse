@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mu Finance v04.32</title>
+    <title>Mu Finance v04.31</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -243,7 +243,7 @@
         <header class="flex justify-between items-center shrink-0">
             <div>
                 <h1 id="header-title" class="text-2xl font-bold tracking-tight">Mu Finance</h1>
-                <p class="text-[10px] text-gray-500 uppercase font-bold tracking-widest mt-1" id="header-subtitle">Dashboard Geral v04.32</p>
+                <p class="text-[10px] text-gray-500 uppercase font-bold tracking-widest mt-1" id="header-subtitle">Dashboard Geral v04.31</p>
             </div>
             <div class="flex items-center space-x-3">
                 <button onclick="toggleOverlay('notificacoes')" class="relative w-10 h-10 flex items-center justify-center rounded-full bg-[#1E2128] border border-gray-800 active:scale-90 transition-transform">
@@ -2206,43 +2206,14 @@
         }
 
 
-        
         function renderOrcamento() {
             const list = document.getElementById('orcamento-list');
             if(!list) return;
             
-            // Se houver metas de orçamento, renderiza. Caso contrário, mostra placeholder.
-            if(!state.financas.orcamento || state.financas.orcamento.length === 0) {
-                // Vamos usar as metas como base para o orçamento se não houver um campo específico
-                if(state.financas.metas && state.financas.metas.length > 0) {
-                    list.innerHTML = state.financas.metas.map(m => {
-                        const perc = Math.min((m.reservado / m.alvo) * 100, 100);
-                        return `
-                            <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
-                                <div class="flex justify-between items-center mb-3">
-                                    <div class="flex items-center gap-2">
-                                        <i data-lucide="target" class="w-5 h-5 text-purple-400"></i>
-                                        <span class="font-bold text-sm">${m.nome}</span>
-                                    </div>
-                                    <span class="text-xs font-bold text-gray-500">R$ ${m.alvo.toLocaleString('pt-BR')}</span>
-                                </div>
-                                <div class="w-full bg-black/40 rounded-full h-2 overflow-hidden">
-                                    <div class="bg-purple-500 h-full" style="width: ${perc}%;"></div>
-                                </div>
-                                <div class="flex justify-between items-center mt-2 text-xs text-gray-500">
-                                    <span>R$ ${m.reservado.toLocaleString('pt-BR')} reservado</span>
-                                    <span>${perc.toFixed(0)}%</span>
-                                </div>
-                            </div>
-                        `;
-                    }).join('');
-                } else {
-                    list.innerHTML = '<p class="text-center text-gray-600 py-10 text-xs font-bold uppercase tracking-widest">Nenhum orçamento configurado</p>';
-                }
-            }
-            refreshIcons();
+            // Se houver lógica de orçamento no estado, use-a. Caso contrário, mantenha o placeholder ou limpe.
+            // Por enquanto, vamos apenas garantir que a função exista para não dar erro.
+            // Se o usuário quiser que seja dinâmico, precisaremos de uma estrutura no state.financas.orcamento
         }
-
 
         function renderMetasList() {
             const list = document.getElementById('metas-list');
@@ -2835,7 +2806,6 @@ function deleteTransaction(id) {
             verificarPrevisaoDetran();
         }
 
-        
         function renderCards() {
             const c = document.getElementById('card-carousel');
             const list = document.getElementById('cards-list');
@@ -2843,18 +2813,6 @@ function deleteTransaction(id) {
 
             const cardsHtml = state.financas.cartoes.map(x => {
                 let f = 0; state.financas.transacoes.forEach(t => { if(t.conta === x.nome && t.status === 'efetivada') { if (t.tipo === 'receita') f -= t.valor; else f += t.valor; } });
-                return `<div class="snap-center shrink-0 w-[85%] card rounded-3xl p-6 shadow-sm relative overflow-hidden bg-gradient-to-br from-[#1E2128] to-[#121418] border border-gray-700 cursor-pointer active:scale-[0.98] transition-transform" onclick="openCardDetails(${x.id})">
-                    <div class="flex justify-between items-center mb-6"><div class="flex items-center space-x-2"><i data-lucide="credit-card" class="w-5 h-5" style="color: ${x.cor || '#8b5cf6'}"></i><span class="text-sm font-medium text-gray-300">${x.nome}</span></div><span class="text-sm font-bold italic text-gray-400" style="color: ${x.cor || '#8b5cf6'}">${x.bandeira || 'MASTERCARD'}</span></div>
-                    <div class="mb-4"><span class="text-xs text-gray-400 block mb-1">Fatura Atual (Vence dia ${x.vencimento || 10})</span><span class="text-3xl font-bold sensitive-value text-white" data-value="R$ ${Math.max(0,f).toLocaleString('pt-BR', {minimumFractionDigits: 2})}">${state.blurred ? 'R$ •••••' : 'R$ ' + Math.max(0,f).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span></div>
-                    <div class="flex justify-between items-end mt-6"><div><span class="text-xs text-gray-500 block mb-1">Limite Disponível</span><span class="text-sm font-semibold text-green-400 sensitive-value" data-value="R$ ${(x.limite - f).toLocaleString('pt-BR', {minimumFractionDigits: 2})}">${state.blurred ? 'R$ •••••' : 'R$ ' + (x.limite - f).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span></div><span class="text-xs text-gray-500 font-mono tracking-widest">•••• 4321</span></div>
-                </div>`;
-            }).join('');
-
-            if(c) c.innerHTML = cardsHtml + `<div class="snap-center shrink-0 w-[30%] card rounded-3xl p-6 shadow-sm flex flex-col items-center justify-center border border-dashed border-gray-700 cursor-pointer hover:bg-gray-800 transition-colors" onclick="toggleOverlay('new-card')"><div class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 mb-2"><i data-lucide="plus" class="w-5 h-5"></i></div></div>`;
-            if(list) list.innerHTML = cardsHtml;
-            refreshIcons();
-        }
- });
                 return `<div class="snap-center shrink-0 w-[85%] card rounded-3xl p-6 shadow-sm relative overflow-hidden bg-gradient-to-br from-[#1E2128] to-[#121418] border border-gray-700 cursor-pointer active:scale-[0.98] transition-transform" onclick="openCardDetails(${x.id})">
                     <div class="flex justify-between items-center mb-6"><div class="flex items-center space-x-2"><i data-lucide="credit-card" class="w-5 h-5" style="color: ${x.cor || '#8b5cf6'}"></i><span class="text-sm font-medium text-gray-300">${x.nome}</span></div><span class="text-sm font-bold italic text-gray-400" style="color: ${x.cor || '#8b5cf6'}">${x.bandeira || 'MASTERCARD'}</span></div>
                     <div class="mb-4"><span class="text-xs text-gray-400 block mb-1">Fatura Atual (Vence dia ${x.vencimento || 10})</span><span class="text-3xl font-bold sensitive-value text-white" data-value="R$ ${Math.max(0,f).toLocaleString('pt-BR', {minimumFractionDigits: 2})}">${state.blurred ? 'R$ •••••' : 'R$ ' + Math.max(0,f).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span></div>
