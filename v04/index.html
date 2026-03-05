@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mu Finance v04.29</title>
+    <title>Mu Finance v04.30</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -243,7 +243,7 @@
         <header class="flex justify-between items-center shrink-0">
             <div>
                 <h1 id="header-title" class="text-2xl font-bold tracking-tight">Mu Finance</h1>
-                <p class="text-[10px] text-gray-500 uppercase font-bold tracking-widest mt-1" id="header-subtitle">Dashboard Geral v04.29</p>
+                <p class="text-[10px] text-gray-500 uppercase font-bold tracking-widest mt-1" id="header-subtitle">Dashboard Geral v04.30</p>
             </div>
             <div class="flex items-center space-x-3">
                 <button onclick="toggleOverlay('notificacoes')" class="relative w-10 h-10 flex items-center justify-center rounded-full bg-[#1E2128] border border-gray-800 active:scale-90 transition-transform">
@@ -630,15 +630,7 @@
                                 <div id="veh-health-oleo-bar" class="h-full bg-green-500 transition-all duration-700" style="width: 0%"></div>
                             </div>
                         </div>
-                        <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
-                            <div class="flex justify-between items-center mb-2">
-                                <span class="text-[9px] text-gray-400">Pastilhas de Freio</span>
-                                <span class="text-[9px] font-bold" id="veh-health-freio-perc">0%</span>
-                            </div>
-                            <div class="w-full bg-black/40 h-2 rounded-full overflow-hidden">
-                                <div id="veh-health-freio-bar" class="h-full bg-green-500 transition-all duration-700" style="width: 0%"></div>
-                            </div>
-                        </div>
+
                         <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
                             <div class="flex justify-between items-center mb-2">
                                 <span class="text-[9px] text-gray-400">Corrente/Relação</span>
@@ -1048,8 +1040,8 @@
 
                 <div class="flex items-center justify-between p-4 bg-orange-500/10 rounded-2xl border border-orange-500/20 mt-4">
                     <div>
-                        <span class="text-xs font-bold text-orange-400 block">Encheu o Tanque?</span>
-                        <span class="text-[9px] text-gray-500 font-bold uppercase">Ajuda a prever gastos futuros</span>
+                        <span class="text-xs font-bold text-orange-400 block">Completou o Tanque?</span>
+                        <span class="text-[9px] text-gray-500 font-bold uppercase">Cálculo de média real (estilo Drivvo)</span>
                     </div>
                     <input type="checkbox" id="input-fuel-full" class="w-6 h-6 accent-orange-500 rounded cursor-pointer">
                 </div>
@@ -1062,7 +1054,17 @@
             <div class="w-12 h-1 bg-gray-800 rounded-full mx-auto mt-4 mb-4 shrink-0"></div>
             <div class="px-6 flex justify-between items-center mb-6"><h2 class="text-xl font-bold" id="veh-svc-title">Manutenção</h2><button onclick="closeAllOverlays()"><i data-lucide="x" class="w-6 h-6 text-gray-500"></i></button></div>
             <div class="overlay-content space-y-4">
-                <div class="bg-black/20 p-4 rounded-2xl border border-white/5"><label class="text-[10px] text-gray-500 uppercase font-bold block mb-1">Descrição</label><input type="text" id="input-svc-name" class="bg-transparent font-bold w-full outline-none" placeholder="Troca de Pneus"></div>
+                                <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
+                    <label class="text-[10px] text-gray-500 uppercase font-bold block mb-1">Tipo de Manutenção</label>
+                    <select id="input-svc-type" class="bg-transparent font-bold w-full outline-none text-white text-xs" onchange="updateSvcDescription()">
+                        <option value="Geral" class="bg-[#1E2128]">Geral / Outros</option>
+                        <option value="Óleo" class="bg-[#1E2128]">Troca de Óleo</option>
+                        <option value="Pneus" class="bg-[#1E2128]">Troca de Pneus</option>
+                        <option value="Corrente" class="bg-[#1E2128]" id="opt-svc-corrente">Corrente / Relação</option>
+                        <option value="Filtros" class="bg-[#1E2128]">Filtros</option>
+                        <option value="Freios" class="bg-[#1E2128]">Sistema de Freios</option>
+                    </select>
+                </div><div class="bg-black/20 p-4 rounded-2xl border border-white/5"><label class="text-[10px] text-gray-500 uppercase font-bold block mb-1">Descrição</label><input type="text" id="input-svc-name" class="bg-transparent font-bold w-full outline-none" placeholder="Troca de Pneus"></div>
                 <div class="grid grid-cols-2 gap-4">
                     <div class="bg-black/20 p-4 rounded-2xl border border-white/5"><label class="text-[10px] text-gray-500 uppercase font-bold block mb-1">Data</label><input type="date" id="input-svc-data" class="bg-transparent font-bold w-full outline-none text-white"></div>
                     <div class="bg-black/20 p-4 rounded-2xl border border-white/5"><label class="text-[10px] text-gray-500 uppercase font-bold block mb-1">Hora</label><input type="time" id="input-svc-hora" class="bg-transparent font-bold w-full outline-none text-white"></div>
@@ -1547,7 +1549,7 @@
                 cartoes: [{id:1, nome:'Nubank', cor:'#8b5cf6', limite:5400, bandeira: 'MASTERCARD', vencimento: 10}], 
                 transacoes: [], metas: [], temp: {type:'despesa', status:'previsivel', fixa:false} 
             },
-            veiculo: { tipo: 'moto', nome: 'Fazer 250', hodometro: 12450, mediaGeral: 29.0, oleoIntervalo: 3000, oleoUltimaTrocaKM: 11000, placaFinal: '', historico: [] },
+            veiculo: { tipo: 'moto', nome: 'Fazer 250', hodometro: 12450, mediaGeral: 29.0, oleoIntervalo: 3000, oleoUltimaTrocaKM: 11000, pneusUltimaTrocaKM: 10000, pneusIntervalo: 15000, correnteUltimaTrocaKM: 10000, correnteIntervalo: 20000, placaFinal: '', historico: [] },
             notificacoes: []
         };
 
@@ -2453,6 +2455,19 @@ function deleteTransaction(id) {
             const accs = getFinSelectOptions('all'); document.getElementById('input-fuel-acc').innerHTML = accs; document.getElementById('input-svc-acc').innerHTML = accs;
         }
 
+        
+        function updateSvcDescription() {
+            const type = document.getElementById('input-svc-type').value;
+            const desc = document.getElementById('input-svc-name');
+            if (type !== 'Geral') desc.value = 'Troca de ' + type;
+        }
+
+        function populateSvcTypes() {
+            const isMoto = state.veiculo.tipo === 'moto';
+            const optCorrente = document.getElementById('opt-svc-corrente');
+            if (optCorrente) optCorrente.style.display = isMoto ? 'block' : 'none';
+        }
+
         function openVehModal(t, id = null) {
             state.editingVehId = id; populateVehAccSelects();
             if(t === 'abastecer') {
@@ -2472,7 +2487,7 @@ function deleteTransaction(id) {
             } else if (t === 'servico') {
                 if(id) { 
                     const h = state.veiculo.historico.find(x => x.id === id); 
-                    document.getElementById('input-svc-name').value = h.nome; document.getElementById('input-svc-val').value = h.valor; document.getElementById('input-svc-km').value = h.km; document.getElementById('input-svc-isoil').checked = h.isOil; if(h.conta) document.getElementById('input-svc-acc').value = h.conta;
+                    document.getElementById('input-svc-name').value = h.nome; document.getElementById('input-svc-type').value = h.svcType || 'Geral'; document.getElementById('input-svc-val').value = h.valor; document.getElementById('input-svc-km').value = h.km; document.getElementById('input-svc-isoil').checked = h.isOil; if(h.conta) document.getElementById('input-svc-acc').value = h.conta;
                     document.getElementById('input-svc-data').value = h.data || new Date().toISOString().split('T')[0];
                     document.getElementById('input-svc-hora').value = h.hora || new Date().toTimeString().slice(0, 5);
                 } else { 
@@ -2480,7 +2495,7 @@ function deleteTransaction(id) {
                     document.getElementById('input-svc-data').value = new Date().toISOString().split('T')[0];
                     document.getElementById('input-svc-hora').value = new Date().toTimeString().slice(0, 5);
                 }
-                toggleOverlay('veh-servico');
+                populateSvcTypes(); toggleOverlay('veh-servico');
 
         } else if (t === 'rota') {
                 if(id) {
@@ -2583,7 +2598,7 @@ function deleteTransaction(id) {
 
         function saveService() {
             try {
-                const n = document.getElementById('input-svc-name').value; const v = parseFloat(document.getElementById('input-svc-val').value) || 0; const kmInput = parseInt(document.getElementById('input-svc-km').value); const k = !isNaN(kmInput) ? kmInput : state.veiculo.hodometro; const o = document.getElementById('input-svc-isoil').checked; const acc = document.getElementById('input-svc-acc').value;
+                const n = document.getElementById('input-svc-name').value; const svcType = document.getElementById('input-svc-type').value; const v = parseFloat(document.getElementById('input-svc-val').value) || 0; const kmInput = parseInt(document.getElementById('input-svc-km').value); const k = !isNaN(kmInput) ? kmInput : state.veiculo.hodometro; const o = document.getElementById('input-svc-isoil').checked; const acc = document.getElementById('input-svc-acc').value;
                 const dataSvc = document.getElementById('input-svc-data').value || new Date().toISOString().split('T')[0];
                 const horaSvc = document.getElementById('input-svc-hora').value || new Date().toTimeString().slice(0, 5);
                 if(!n) { showToast("Preencha a descrição."); return; }
@@ -2598,6 +2613,10 @@ function deleteTransaction(id) {
                     state.veiculo.historico.unshift(item); state.financas.transacoes.push({ id: Date.now()+1, refId: newId, data: item.data, hora: item.hora, valor: v, tipo: 'despesa', status: 'efetivada', cat: 'Manutenção', conta: acc }); 
                 }
                 if(o) state.veiculo.oleoUltimaTrocaKM = k; state.veiculo.hodometro = Math.max(state.veiculo.hodometro, k);
+                if (svcType === 'Óleo') state.veiculo.oleoUltimaTrocaKM = k;
+                if (svcType === 'Pneus') state.veiculo.pneusUltimaTrocaKM = k;
+                if (svcType === 'Corrente') state.veiculo.correnteUltimaTrocaKM = k;
+
                 saveDataToCloud(); closeAllOverlays(); updateUI();
             } catch(e) { showToast("Erro ao salvar manutenção."); }
         }
@@ -3248,13 +3267,29 @@ function deleteTransaction(id) {
             });
         }
 
-        function updateHealthBars() {
-            const d = state.veiculo.hodometro - state.veiculo.oleoUltimaTrocaKM;
-            const oleoPerc = Math.max(0, 100 - (d / state.veiculo.oleoIntervalo * 100));
+                function updateHealthBars() {
+            const isMoto = state.veiculo.tipo === 'moto';
+            
+            // Óleo
+            const dOleo = state.veiculo.hodometro - (state.veiculo.oleoUltimaTrocaKM || 0);
+            const oleoPerc = Math.max(0, 100 - (dOleo / (state.veiculo.oleoIntervalo || 3000) * 100));
             updateHealthBar('oleo', oleoPerc);
-            updateHealthBar('freio', 70);
-            updateHealthBar('corrente', 60);
-            updateHealthBar('pneus', 75);
+            
+            // Pneus
+            const dPneus = state.veiculo.hodometro - (state.veiculo.pneusUltimaTrocaKM || 0);
+            const pneusPerc = Math.max(0, 100 - (dPneus / (state.veiculo.pneusIntervalo || 15000) * 100));
+            updateHealthBar('pneus', pneusPerc);
+            
+            // Corrente (Apenas Moto)
+            const correnteContainer = document.getElementById('veh-health-corrente-perc')?.parentElement?.parentElement;
+            if (isMoto) {
+                if (correnteContainer) correnteContainer.classList.remove('hidden');
+                const dCorr = state.veiculo.hodometro - (state.veiculo.correnteUltimaTrocaKM || 0);
+                const corrPerc = Math.max(0, 100 - (dCorr / (state.veiculo.correnteIntervalo || 20000) * 100));
+                updateHealthBar('corrente', corrPerc);
+            } else {
+                if (correnteContainer) correnteContainer.classList.add('hidden');
+            }
         }
 
         function updateHealthBar(type, percentage) {
