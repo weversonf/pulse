@@ -169,195 +169,257 @@
     </div>
 
 <script>
-    const CONFIG = {
-        sheetUrl: 'https://script.google.com/macros/s/AKfycbznDMXn9aasu_WeaGT2sLlK16BthzYClzPJUZIO-44sTXzmSknH_MTsJRsdqY4rrmVKqw/exec',
-        cats: ['Alimentação', 'Moradia', 'Transporte', 'Lazer', 'Saúde', 'Extra', 'Contas Fixas', 'Educação', 'Outros']
-    };
+    /**
+ * MU FINANCE CASAL - BACKEND v04
+ * Abas necessárias na planilha:
+ * Usuario
+ * Transações
+ * Veiculo
+ */
 
-    let session = { user: null, coupleId: null, userId: null, name: '' };
-    let db = { transacoes: [], veiculo: [] };
+const SS = SpreadsheetApp.getActiveSpreadsheet();
 
-    window.onload = () => { if(window.lucide) lucide.createIcons(); };
+function doGet(e) {
 
-    async function handleLogin() {
-        const userField = document.getElementById('login-user');
-        const passField = document.getElementById('login-pass');
-        const user = userField.value.trim();
-        const pass = passField.value.trim();
-        const btn = document.getElementById('btn-login');
+  try {
 
-        if(!user || !pass) return showToast("Insira utilizador e senha!");
-        btn.innerText = "A AUTENTICAR...";
-        btn.disabled = true;
+    const action = (e.parameter.action || "").toLowerCase();
 
-        try {
-            const url = `${CONFIG.sheetUrl}?action=login&user=${encodeURIComponent(user)}&pass=${encodeURIComponent(pass)}`;
-            const resp = await fetch(url);
-            const data = await resp.json();
-
-            if(data.success) {
-                session = { user, coupleId: data.coupleId, userId: data.userId, name: data.name };
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('app-content').classList.remove('hidden');
-                initApp();
-            } else {
-                showToast(data.message || "Acesso Negado!");
-                btn.innerText = "ENTRAR";
-                btn.disabled = false;
-            }
-        } catch(e) { 
-            console.error("Erro Login:", e);
-            showToast("Falha na ligação ao BD.");
-            btn.innerText = "ENTRAR";
-            btn.disabled = false;
-        }
+    if (action === "login") {
+      return login(e);
     }
 
-    function initApp() {
-        document.getElementById('header-subtitle').innerText = `Olá, ${session.name}`;
-        document.getElementById('user-initials').innerText = session.name.substring(0,2).toUpperCase();
-        document.getElementById('profile-name').innerText = session.name;
-        document.getElementById('profile-details').innerText = `ID Casal: ${session.coupleId} • User: ${session.userId}`;
-        
-        const catSel = document.getElementById('t-cat');
-        catSel.innerHTML = CONFIG.cats.map(c => `<option value="${c}">${c}</option>`).join('');
-        
-        syncSheet('pull');
+    if (action === "pull") {
+      return pullData(e);
     }
 
-    function saveTransaction() {
-        const val = parseFloat(document.getElementById('t-val').value);
-        const desc = document.getElementById('t-desc').value.trim() || 'Lançamento';
-        const cat = document.getElementById('t-cat').value;
-        const type = document.getElementById('t-type').value;
-        const acc = document.getElementById('t-acc').value;
+    return createResponse({ error: "Ação inválida" });
 
-        if(!val) return showToast("Insira o valor!");
+  } catch (err) {
 
-        // Lógica de ID sugerida pelo Weverson: IDTrans_IDCasal_IDUser
-        const timestamp = Date.now().toString().slice(-4);
-        const compositeId = `${timestamp}_${session.coupleId}_${session.userId}`;
+    return createResponse({
+      error: err.toString()
+    });
 
-        const newTrans = {
-            id: compositeId,
-            data: new Date().toISOString().split('T')[0],
-            valor: val,
-            desc: desc,
-            quem: session.userId,
-            cat: cat,
-            acc: acc,
-            tipo: type
-        };
+  }
 
-        db.transacoes.unshift(newTrans);
-        updateUI();
-        closeOverlays();
-        syncSheet('push', newTrans);
+}
+
+function doPost(e) {
+
+  try {
+
+    const payload = JSON.parse(e.postData.contents);
+
+    if (payload.action === "append_trans") {
+      return appendTrans(payload.item);
     }
 
-    function updateUI() {
-        let saldo = 0, rec = 0, des = 0;
-        db.transacoes.forEach(t => {
-            if(t.tipo === 'Entrada') { saldo += t.valor; rec += t.valor; }
-            else { saldo -= t.valor; des += t.valor; }
+    if (payload.action === "append_veh") {
+      return appendVeh(payload.item);
+    }
+
+    return createResponse({ error: "Ação POST inválida" });
+
+  } catch (err) {
+
+    return createResponse({
+      error: err.toString()
+    });
+
+  }
+
+}
+
+function login(e) {
+
+  const user = (e.parameter.user || "").toString().trim().toLowerCase();
+  const pass = (e.parameter.pass || "").toString().trim();
+
+  const sheet = SS.getSheetByName("Usuario");
+
+  if (!sheet) {
+    return createResponse({
+      success: false,
+      message: "Aba Usuario não encontrada"
+    });
+  }
+
+  const data = sheet.getDataRange().getValues();
+
+  for (let i = 1; i < data.length; i++) {
+
+    const sheetUser = (data[i][0] || "").toString().trim().toLowerCase();
+    const sheetPass = (data[i][1] || "").toString().trim();
+
+    if (sheetUser === user && sheetPass === pass) {
+
+      return createResponse({
+        success: true,
+        name: data[i][2],
+        userId: data[i][3],
+        coupleId: data[i][4]
+      });
+
+    }
+
+  }
+
+  return createResponse({
+    success: false,
+    message: "Login ou senha incorretos"
+  });
+
+}
+
+function pullData(e) {
+
+  const coupleId = (e.parameter.coupleId || "").toString();
+
+  const userSheet = SS.getSheetByName("Usuario");
+
+  if (!userSheet) {
+    return createResponse({ error: "Aba Usuario não encontrada" });
+  }
+
+  const usersData = userSheet.getDataRange().getValues();
+
+  const coupleUsers = usersData
+    .filter(r => r[4].toString() === coupleId)
+    .map(r => r[3].toString());
+
+  const transSheet = SS.getSheetByName("Transações");
+
+  const transacoes = [];
+
+  if (transSheet) {
+
+    const data = transSheet.getDataRange().getValues();
+
+    for (let i = 1; i < data.length; i++) {
+
+      const quem = (data[i][4] || "").toString();
+
+      if (coupleUsers.includes(quem)) {
+
+        transacoes.push({
+
+          id: data[i][0],
+
+          data: data[i][1] instanceof Date
+            ? Utilities.formatDate(data[i][1], "GMT-3", "yyyy-MM-dd")
+            : data[i][1],
+
+          valor: Number(data[i][2]),
+
+          desc: data[i][3],
+
+          quem: data[i][4],
+
+          cat: data[i][5],
+
+          acc: data[i][6],
+
+          tipo: data[i][7]
+
         });
 
-        document.getElementById('main-saldo').innerText = `R$ ${saldo.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
-        document.getElementById('main-receita').innerText = `R$ ${rec.toFixed(2)}`;
-        document.getElementById('main-despesa').innerText = `R$ ${des.toFixed(2)}`;
+      }
 
-        const list = document.getElementById('recent-list');
-        list.innerHTML = db.transacoes.slice(0, 5).map(t => `
-            <div class="card p-4 rounded-2xl flex justify-between items-center border border-white/5">
-                <div class="truncate">
-                    <span class="block text-sm font-bold truncate">${t.desc}</span>
-                    <span class="block text-[8px] text-gray-500 font-bold uppercase tracking-widest">${t.id}</span>
-                </div>
-                <div class="text-right">
-                    <span class="text-sm font-black ${t.tipo === 'Entrada' ? 'text-green-400' : 'text-red-400'}">R$ ${t.valor.toFixed(2)}</span>
-                    <span class="block text-[8px] text-gray-600 font-bold uppercase">User ${t.quem}</span>
-                </div>
-            </div>
-        `).join('') || '<p class="text-center py-10 text-gray-700 text-[10px] font-bold uppercase tracking-widest">Nenhum registro</p>';
-
-        const extrato = document.getElementById('extrato-list');
-        extrato.innerHTML = db.transacoes.map(t => `
-            <div class="card p-4 rounded-2xl flex justify-between items-center border border-white/5">
-                <div class="flex-1 truncate">
-                    <span class="block text-sm font-bold truncate">${t.desc}</span>
-                    <span class="block text-[9px] text-gray-500 font-bold uppercase tracking-tighter mt-0.5">${t.data} • ${t.cat}</span>
-                </div>
-                <span class="text-sm font-black ${t.tipo === 'Entrada' ? 'text-green-400' : 'text-red-400'}">R$ ${t.valor.toFixed(2)}</span>
-            </div>
-        `).join('');
-
-        if(db.veiculo && db.veiculo.length > 0) {
-            const last = db.veiculo[db.veiculo.length - 1];
-            document.getElementById('veh-km').innerText = `${parseInt(last.km).toLocaleString()} km`;
-        }
-        if(window.lucide) lucide.createIcons();
     }
 
-    async function syncSheet(action, singleItem = null) {
-        const ind = document.getElementById('sync-status');
-        ind.className = 'w-2 h-2 rounded-full bg-blue-500 animate-pulse';
+  }
 
-        try {
-            if(action === 'push') {
-                await fetch(CONFIG.sheetUrl, { 
-                    method: 'POST', 
-                    mode: 'no-cors', 
-                    body: JSON.stringify({ action: 'append_trans', coupleId: session.coupleId, item: singleItem }) 
-                });
-                showToast("Enviado!");
-            } else {
-                const r = await fetch(`${CONFIG.sheetUrl}?action=pull&coupleId=${session.coupleId}`);
-                const data = await r.json();
-                if(data.success || data.transacoes) {
-                    db.transacoes = data.transacoes || [];
-                    db.veiculo = data.veiculo || [];
-                    updateUI();
-                } else if (data.message) {
-                    showToast(data.message);
-                }
-            }
-            ind.className = 'w-2 h-2 rounded-full bg-green-500';
-        } catch(e) {
-            console.error("Erro Sincronia:", e);
-            ind.className = 'w-2 h-2 rounded-full bg-red-500';
-            showToast("Erro de rede");
-        }
-        setTimeout(() => { if(!ind.className.includes('bg-red')) ind.className = 'w-2 h-2 rounded-full bg-gray-600'; }, 3000);
+  const vehSheet = SS.getSheetByName("Veiculo");
+
+  const veiculo = [];
+
+  if (vehSheet) {
+
+    const data = vehSheet.getDataRange().getValues();
+
+    for (let i = 1; i < data.length; i++) {
+
+      veiculo.push({
+
+        data: data[i][0] instanceof Date
+          ? Utilities.formatDate(data[i][0], "GMT-3", "yyyy-MM-dd")
+          : data[i][0],
+
+        tipo: data[i][1],
+
+        km: Number(data[i][2]),
+
+        valor: Number(data[i][3]),
+
+        litros: Number(data[i][4]),
+
+        desc: data[i][5]
+
+      });
+
     }
 
-    function navigate(id) {
-        document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
-        document.getElementById(id).classList.remove('hidden');
-        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-        if(id === 'page-financas') document.getElementById('nav-home').classList.add('active');
-        if(id === 'page-veiculo') document.getElementById('nav-moto').classList.add('active');
-        if(window.lucide) lucide.createIcons();
-    }
+  }
 
-    function toggleOverlay(id) {
-        closeOverlays();
-        document.getElementById('overlay-'+id).classList.add('active');
-        document.getElementById('backdrop').classList.add('active');
-        if(window.lucide) lucide.createIcons();
-    }
+  return createResponse({
+    transacoes: transacoes,
+    veiculo: veiculo
+  });
 
-    function closeOverlays() {
-        document.querySelectorAll('.overlay').forEach(o => o.classList.remove('active'));
-        document.getElementById('backdrop').classList.remove('active');
-    }
+}
 
-    function showToast(m) {
-        const t = document.createElement('div');
-        t.className = 'fixed top-12 left-1/2 -translate-x-1/2 bg-white text-black px-6 py-3 rounded-full text-[10px] font-black uppercase z-[300] shadow-2xl tracking-widest';
-        t.innerText = m;
-        document.body.appendChild(t);
-        setTimeout(() => t.remove(), 2500);
-    }
+function appendTrans(item) {
+
+  const sheet = SS.getSheetByName("Transações");
+
+  if (!sheet) {
+    return createResponse({ error: "Aba Transações não encontrada" });
+  }
+
+  sheet.getRange(sheet.getLastRow() + 1, 1, 1, 8).setValues([[
+    item.id,
+    item.data,
+    Number(item.valor),
+    item.desc,
+    item.quem,
+    item.cat,
+    item.acc,
+    item.tipo
+  ]]);
+
+  return createResponse({ success: true });
+
+}
+
+function appendVeh(item) {
+
+  const sheet = SS.getSheetByName("Veiculo");
+
+  if (!sheet) {
+    return createResponse({ error: "Aba Veiculo não encontrada" });
+  }
+
+  sheet.getRange(sheet.getLastRow() + 1, 1, 1, 6).setValues([[
+    item.data,
+    item.tipo,
+    Number(item.km),
+    Number(item.valor),
+    Number(item.litros),
+    item.desc
+  ]]);
+
+  return createResponse({ success: true });
+
+}
+
+function createResponse(content) {
+
+  return ContentService
+    .createTextOutput(JSON.stringify(content))
+    .setMimeType(ContentService.MimeType.JSON);
+
+}
 </script>
 </body>
 </html>
