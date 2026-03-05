@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mu Finance v04.40</title>
+    <title>Mu Finance v04.41</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -243,7 +243,7 @@
         <header class="flex justify-between items-center shrink-0">
             <div>
                 <h1 id="header-title" class="text-2xl font-bold tracking-tight">Mu Finance</h1>
-                <p class="text-[10px] text-gray-500 uppercase font-bold tracking-widest mt-1" id="header-subtitle">Dashboard Geral v04.40</p>
+                <p class="text-[10px] text-gray-500 uppercase font-bold tracking-widest mt-1" id="header-subtitle">Dashboard Geral v04.41</p>
             </div>
             <div class="flex items-center space-x-3">
                 <button onclick="toggleOverlay('notificacoes')" class="relative w-10 h-10 flex items-center justify-center rounded-full bg-[#1E2128] border border-gray-800 active:scale-90 transition-transform">
@@ -426,6 +426,14 @@
                 
                 <div id="cartoes-carousel" class="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-2" style="scroll-behavior: smooth; -webkit-overflow-scrolling: touch;"></div>
                 
+                <div class="card rounded-3xl p-6 shadow-sm">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-gray-400 font-medium text-sm">Seus Cartões</h2>
+                        <button onclick="toggleOverlay('new-card')" class="text-[#38bdf8] text-xs font-bold hover:underline">+ Novo</button>
+                    </div>
+                    <div id="list-cartoes-page" class="space-y-3"></div>
+                </div>
+
                 <div class="card rounded-3xl p-6 shadow-sm">
                     <h2 class="text-gray-400 font-medium text-sm mb-4">Resumo de Gastos por Cartão</h2>
                     <div id="cartoes-resumo" class="space-y-4"></div>
@@ -3347,6 +3355,29 @@ function deleteTransaction(id) {
             
             carouselDiv.innerHTML = carouselHTML;
             resumoDiv.innerHTML = resumoHTML;
+
+            const pageList = document.getElementById('list-cartoes-page');
+            if (pageList) {
+                pageList.innerHTML = state.financas.cartoes.map(c => `
+                    <div class="flex justify-between items-center bg-black/20 p-4 rounded-2xl border border-white/5">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-3 h-3 rounded-full" style="background-color: ${c.cor || '#8b5cf6'}"></div>
+                            <div>
+                                <span class="text-sm font-bold block">${c.nome}</span>
+                                <span class="text-[10px] text-gray-500 uppercase tracking-widest font-bold block">${c.bandeira || 'MASTERCARD'} • Dia ${c.vencimento || 10}</span>
+                            </div>
+                        </div>
+                        <div class="flex space-x-3">
+                            <button onclick="editFinItem('cartao', '${c.id}')" class="p-2 bg-blue-500/10 rounded-xl active:scale-90 transition-all">
+                                <i data-lucide="edit-2" class="w-4 h-4 text-blue-400"></i>
+                            </button>
+                            <button onclick="deleteFinItem('cartao', '${c.id}')" class="p-2 bg-red-500/10 rounded-xl active:scale-90 transition-all">
+                                <i data-lucide="trash-2" class="w-4 h-4 text-red-500/50"></i>
+                            </button>
+                        </div>
+                    </div>`).join('');
+            }
+
             refreshIcons();
         }
 
@@ -3436,7 +3467,10 @@ function deleteTransaction(id) {
             if (existente) { existente.limite = limite; } else {
                 state.financas.orcamentos.push({ id: Date.now().toString(), categoria: categoria, limite: limite });
             }
-            saveDataToCloud(); closeAllOverlays(); updateUI(); showToast('Orçamento salvo com sucesso!');
+            saveDataToCloud(); 
+            closeAllOverlays(); 
+            updateUI(); 
+            showToast('Orçamento salvo com sucesso!');
         }
 
         function deleteOrcamento(id) {
