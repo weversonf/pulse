@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mu Finance v04.27</title>
+    <title>Mu Finance v04.28</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -220,7 +220,7 @@
             <div class="w-full max-w-md">
                 <div class="text-center mb-10">
                     <h1 class="text-4xl font-bold tracking-tight mb-2">Mu Finance</h1>
-                    <p class="text-[10px] text-gray-500 uppercase tracking-widest font-bold">v04.27</p>
+                    <p class="text-[10px] text-gray-500 uppercase tracking-widest font-bold">v04.26</p>
                 </div>
                 <div class="space-y-4">
                 <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
@@ -243,7 +243,7 @@
         <header class="flex justify-between items-center shrink-0">
             <div>
                 <h1 id="header-title" class="text-2xl font-bold tracking-tight">Mu Finance</h1>
-                <p class="text-[10px] text-gray-500 uppercase font-bold tracking-widest mt-1" id="header-subtitle">Dashboard Geral v04.27</p>
+                <p class="text-[10px] text-gray-500 uppercase font-bold tracking-widest mt-1" id="header-subtitle">Dashboard Geral v04.28</p>
             </div>
             <div class="flex items-center space-x-3">
                 <button onclick="toggleOverlay('notificacoes')" class="relative w-10 h-10 flex items-center justify-center rounded-full bg-[#1E2128] border border-gray-800 active:scale-90 transition-transform">
@@ -574,22 +574,23 @@
                         <div class="w-full bg-white/5 h-1.5 rounded-full overflow-hidden"><div id="veh-oleo-bar" class="h-full bg-blue-500 transition-all duration-700" style="width: 0%"></div></div>
                     </div>
                 </div>
-                <div class="flex gap-2 overflow-x-auto pb-2 -mx-6 px-6">
-                    <button onclick="switchVehTab('resumo')" id="veh-tab-resumo" class="px-4 py-2 rounded-lg text-[10px] font-bold uppercase whitespace-nowrap bg-white/20 text-white transition-all">Resumo</button>
-                    <button onclick="switchVehTab('relatorio')" id="veh-tab-relatorio" class="px-4 py-2 rounded-lg text-[10px] font-bold uppercase whitespace-nowrap text-gray-500 transition-all">Relatório</button>
-                    <button onclick="switchVehTab('historico')" id="veh-tab-historico" class="px-4 py-2 rounded-lg text-[10px] font-bold uppercase whitespace-nowrap text-gray-500 transition-all">Histórico</button>
-                </div>
 
-                <div class="grid grid-cols-3 gap-3">
+
+                <div id="veh-main-actions" class="grid grid-cols-2 gap-3">
                     <button onclick="openVehModal('rota')" class="card py-5 rounded-2xl flex flex-col items-center border border-white/5 active:bg-green-500/10 transition-colors"><i data-lucide="map-pin" class="w-6 h-6 text-green-500 mb-2"></i><span class="text-[10px] font-bold uppercase">Rota</span></button>
                     <button onclick="openVehModal('abastecer')" class="card py-5 rounded-2xl flex flex-col items-center border border-white/5 active:bg-orange-500/10 transition-colors"><i data-lucide="fuel" class="w-6 h-6 text-orange-500 mb-2"></i><span class="text-[10px] font-bold uppercase">Abastecer</span></button>
                     <button onclick="openVehModal('servico')" class="card py-5 rounded-2xl flex flex-col items-center border border-white/5 active:bg-blue-500/10 transition-colors"><i data-lucide="wrench" class="w-6 h-6 text-blue-500 mb-2"></i><span class="text-[10px] font-bold uppercase">Manutenção</span></button>
+                    <button onclick="switchVehTab('relatorio')" class="card py-5 rounded-2xl flex flex-col items-center border border-white/5 active:bg-purple-500/10 transition-colors"><i data-lucide="bar-chart-2" class="w-6 h-6 text-purple-500 mb-2"></i><span class="text-[10px] font-bold uppercase">Relatório</span></button>
                 </div>
                 <div class="space-y-4">
                     <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest px-1">Histórico</h3>
                     <div id="veh-timeline" class="space-y-3 pb-10"></div>
                 </div>
                 <div id="veh-relatorio" class="hidden space-y-6">
+                    <div class="flex items-center gap-3 mb-2">
+                        <button onclick="switchVehTab('resumo')" class="w-8 h-8 bg-white/5 rounded-full flex items-center justify-center"><i data-lucide="arrow-left" class="w-4 h-4"></i></button>
+                        <span class="text-sm font-bold uppercase tracking-widest text-gray-400">Relatório de Inteligência</span>
+                    </div>
                     <div class="grid grid-cols-2 gap-4">
                         <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
                             <span class="text-[9px] text-gray-500 font-bold uppercase block mb-1">Média Real</span>
@@ -1714,6 +1715,8 @@
             document.getElementById('header-title').innerText = title;
             document.getElementById('header-subtitle').innerText = title === 'Visão Geral' ? 'Dashboard Geral' : 'Controle de ' + title;
             closeAllOverlays(); updateUI();
+            if(pageId === 'page-cartoes') renderCards();
+            if(pageId === 'page-orcamento') renderOrcamento();
         }
 
         function toggleOverlay(id) {
@@ -2193,6 +2196,16 @@
             if(novoLimite && !isNaN(novoLimite)) { card.limite = parseFloat(novoLimite); saveDataToCloud(); renderCardDetails(); updateUI(); showToast("Limite atualizado!"); }
         }
 
+
+        function renderOrcamento() {
+            const list = document.getElementById('orcamento-list');
+            if(!list) return;
+            
+            // Se houver lógica de orçamento no estado, use-a. Caso contrário, mantenha o placeholder ou limpe.
+            // Por enquanto, vamos apenas garantir que a função exista para não dar erro.
+            // Se o usuário quiser que seja dinâmico, precisaremos de uma estrutura no state.financas.orcamento
+        }
+
         function renderMetasList() {
             const list = document.getElementById('metas-list');
             if(!state.financas.metas || state.financas.metas.length === 0) {
@@ -2631,7 +2644,7 @@ function deleteTransaction(id) {
 
         function renderProfileForm() {
             tempAvatar = state.usuario.avatarUrl || null; updateAvatarPreviewUI();
-            document.getElementById('prof-first-name').value = state.usuario.firstName; document.getElementById('prof-last-name').value = state.usuario.lastName; document.getElementById('prof-username').value = state.usuario.username; document.getElementById('prof-birth-date').value = state.usuario.birthDate; document.getElementById('prof-weight').value = state.usuario.peso; document.getElementById('prof-water-goal').value = state.saude.aguaMeta; document.getElementById('prof-caf-goal').value = state.saude.cafeinaMeta;
+            document.getElementById('prof-first-name').value = state.usuario.firstName; document.getElementById('prof-last-name').value = state.usuario.lastName; document.getElementById('prof-username').value = state.usuario.username; document.getElementById('prof-username').disabled = true; document.getElementById('prof-username').classList.add('opacity-50', 'cursor-not-allowed'); document.getElementById('prof-birth-date').value = state.usuario.birthDate; document.getElementById('prof-weight').value = state.usuario.peso; document.getElementById('prof-water-goal').value = state.saude.aguaMeta; document.getElementById('prof-caf-goal').value = state.saude.cafeinaMeta;
             renderFinSettings(); refreshIcons();
         }
 
@@ -2768,7 +2781,22 @@ function deleteTransaction(id) {
         }
 
         function renderCards() {
-            const c = document.getElementById('card-carousel'); if(!c) return;
+            const c = document.getElementById('card-carousel');
+            const list = document.getElementById('cards-list');
+            if(!c && !list) return;
+
+            const cardsHtml = state.financas.cartoes.map(x => {
+                let f = 0; state.financas.transacoes.forEach(t => { if(t.conta === x.nome && t.status === 'efetivada') { if (t.tipo === 'receita') f -= t.valor; else f += t.valor; } });
+                return `<div class="snap-center shrink-0 w-[85%] card rounded-3xl p-6 shadow-sm relative overflow-hidden bg-gradient-to-br from-[#1E2128] to-[#121418] border border-gray-700 cursor-pointer active:scale-[0.98] transition-transform" onclick="openCardDetails(${x.id})">
+                    <div class="flex justify-between items-center mb-6"><div class="flex items-center space-x-2"><i data-lucide="credit-card" class="w-5 h-5" style="color: ${x.cor || '#8b5cf6'}"></i><span class="text-sm font-medium text-gray-300">${x.nome}</span></div><span class="text-sm font-bold italic text-gray-400" style="color: ${x.cor || '#8b5cf6'}">${x.bandeira || 'MASTERCARD'}</span></div>
+                    <div class="mb-4"><span class="text-xs text-gray-400 block mb-1">Fatura Atual (Vence dia ${x.vencimento || 10})</span><span class="text-3xl font-bold sensitive-value text-white" data-value="R$ ${Math.max(0,f).toLocaleString('pt-BR', {minimumFractionDigits: 2})}">${state.blurred ? 'R$ •••••' : 'R$ ' + Math.max(0,f).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span></div>
+                    <div class="flex justify-between items-end mt-6"><div><span class="text-xs text-gray-500 block mb-1">Limite Disponível</span><span class="text-sm font-semibold text-green-400 sensitive-value" data-value="R$ ${(x.limite - f).toLocaleString('pt-BR', {minimumFractionDigits: 2})}">${state.blurred ? 'R$ •••••' : 'R$ ' + (x.limite - f).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span></div><span class="text-xs text-gray-500 font-mono tracking-widest">•••• 4321</span></div>
+                </div>`;
+            }).join('');
+
+            if(c) c.innerHTML = cardsHtml + `<div class="snap-center shrink-0 w-[30%] card rounded-3xl p-6 shadow-sm flex flex-col items-center justify-center border border-dashed border-gray-700 cursor-pointer hover:bg-gray-800 transition-colors" onclick="toggleOverlay('new-card')"><div class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 mb-2"><i data-lucide="plus" class="w-5 h-5"></i></div></div>`;
+            if(list) list.innerHTML = cardsHtml;
+            refreshIcons();
             c.innerHTML = state.financas.cartoes.map(x => {
                 let f = 0; state.financas.transacoes.forEach(t => { if(t.conta === x.nome && t.status === 'efetivada') { if (t.tipo === 'receita') f -= t.valor; else f += t.valor; } });
                 return `<div class="snap-center shrink-0 w-[85%] card rounded-3xl p-6 shadow-sm relative overflow-hidden bg-gradient-to-br from-[#1E2128] to-[#121418] border border-gray-700 cursor-pointer active:scale-[0.98] transition-transform" onclick="openCardDetails(${x.id})">
@@ -2786,7 +2814,7 @@ function deleteTransaction(id) {
             const catName = isTransf ? `Transf. p/ ${t.destino}` : (isPgto ? `Fatura ${t.destino}` : t.cat); const subtitle = isTransf ? `De ${t.conta}` : t.conta;
 
             return `<div class="flex justify-between items-center group card p-4 rounded-2xl border border-white/5">
-                <div class="flex items-center space-x-3 overflow-hidden"><div class="w-10 h-10 rounded-full ${bgClass} flex items-center justify-center shrink-0"><i data-lucide="${icon}" class="w-5 h-5"></i></div><div class="truncate"><span class="block text-sm font-medium truncate">${catName}</span><span class="block text-[10px] text-gray-500 uppercase tracking-wider truncate">${subtitle} <span class="text-blue-500 font-bold">• ${t.status === 'fatura_paga' ? 'Paga' : t.status}</span></span></div></div>
+                <div class="flex items-center space-x-3 overflow-hidden"><div class="w-10 h-10 rounded-full ${bgClass} flex items-center justify-center shrink-0"><i data-lucide="${icon}" class="w-5 h-5"></i></div><div class="truncate"><span class="block text-sm font-medium truncate">${catName}</span><span class="block text-[10px] text-gray-500 uppercase tracking-wider truncate">${subtitle} <span class="text-blue-500 font-bold">• ${t.status === 'fatura_paga' ? 'Paga' : t.status}</span> ${t.groupId ? '<i data-lucide="repeat" class="inline w-2.5 h-2.5 ml-1 text-blue-400"></i>' : ''}</span></div></div>
                 <div class="flex flex-col items-end shrink-0 ml-2"><span class="text-sm font-semibold ${colorClass}">${prefix} R$ ${t.valor.toLocaleString('pt-BR', {minimumFractionDigits:2})}</span><div class="flex space-x-3 mt-1.5 opacity-80">${(!isTransf && !isPgto && t.status !== 'fatura_paga') ? `<button class="text-gray-500 hover:text-white transition-colors" onclick="openTransactionModal('${t.tipo}', ${t.id})"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button>` : ''}<button class="text-gray-500 hover:text-red-400 transition-colors" onclick="deleteTransaction(${t.id})"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button></div></div>
             </div>`;
         }
@@ -2834,7 +2862,7 @@ function deleteTransaction(id) {
                         </div>
                         <div class="flex-1 min-w-0">
                             <p class="text-sm font-bold text-white truncate">${title}</p>
-                            <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">${banco} • ${statusLabel}</p>
+                            <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">${banco} • ${statusLabel} ${t.groupId ? '<i data-lucide="repeat" class="inline w-2.5 h-2.5 ml-1 text-blue-400"></i>' : ''}</p>
                         </div>
                         <div class="flex-shrink-0 text-right">
 
@@ -3044,34 +3072,24 @@ function deleteTransaction(id) {
         // ===== FUNÇÕES DE RELATÓRIO VEICULAR =====
         
         function switchVehTab(tab) {
-            const resumoDiv = document.querySelector('[id="veh-resumo"]');
+            const pageVeh = document.getElementById('page-veiculo');
             const relatorioDiv = document.getElementById('veh-relatorio');
-            const historicoDiv = document.querySelector('[id="veh-historico"]');
-            
-            if (resumoDiv) resumoDiv.classList.add('hidden');
-            if (relatorioDiv) relatorioDiv.classList.add('hidden');
-            if (historicoDiv) historicoDiv.classList.add('hidden');
-            
-            document.getElementById('veh-tab-resumo').classList.remove('bg-white/20', 'text-white');
-            document.getElementById('veh-tab-relatorio').classList.remove('bg-white/20', 'text-white');
-            document.getElementById('veh-tab-historico').classList.remove('bg-white/20', 'text-white');
-            document.getElementById('veh-tab-resumo').classList.add('text-gray-500');
-            document.getElementById('veh-tab-relatorio').classList.add('text-gray-500');
-            document.getElementById('veh-tab-historico').classList.add('text-gray-500');
-            
-            if (tab === 'resumo') {
-                if (resumoDiv) resumoDiv.classList.remove('hidden');
-                document.getElementById('veh-tab-resumo').classList.add('bg-white/20', 'text-white');
-                document.getElementById('veh-tab-resumo').classList.remove('text-gray-500');
-            } else if (tab === 'relatorio') {
-                if (relatorioDiv) relatorioDiv.classList.remove('hidden');
-                document.getElementById('veh-tab-relatorio').classList.add('bg-white/20', 'text-white');
-                document.getElementById('veh-tab-relatorio').classList.remove('text-gray-500');
-                setTimeout(() => renderVehRelatorio(), 100);
-            } else if (tab === 'historico') {
-                if (historicoDiv) historicoDiv.classList.remove('hidden');
-                document.getElementById('veh-tab-historico').classList.add('bg-white/20', 'text-white');
-                document.getElementById('veh-tab-historico').classList.remove('text-gray-500');
+            const timelineDiv = document.getElementById('veh-timeline').parentElement;
+            const mainActions = document.getElementById('veh-main-actions');
+            const resumoCard = pageVeh.querySelector('.card.rounded-3xl.p-6.relative');
+
+            if (tab === 'relatorio') {
+                resumoCard.classList.add('hidden');
+                mainActions.classList.add('hidden');
+                timelineDiv.classList.add('hidden');
+                relatorioDiv.classList.remove('hidden');
+                setTimeout(() => { renderVehRelatorio(); refreshIcons(); }, 100);
+            } else {
+                resumoCard.classList.remove('hidden');
+                mainActions.classList.remove('hidden');
+                timelineDiv.classList.remove('hidden');
+                relatorioDiv.classList.add('hidden');
+                refreshIcons();
             }
         }
 
