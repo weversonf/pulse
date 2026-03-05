@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mu Finance v04.31</title>
+    <title>Mu Finance v04.32</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -243,7 +243,7 @@
         <header class="flex justify-between items-center shrink-0">
             <div>
                 <h1 id="header-title" class="text-2xl font-bold tracking-tight">Mu Finance</h1>
-                <p class="text-[10px] text-gray-500 uppercase font-bold tracking-widest mt-1" id="header-subtitle">Dashboard Geral v04.31</p>
+                <p class="text-[10px] text-gray-500 uppercase font-bold tracking-widest mt-1" id="header-subtitle">Dashboard Geral v04.32</p>
             </div>
             <div class="flex items-center space-x-3">
                 <button onclick="toggleOverlay('notificacoes')" class="relative w-10 h-10 flex items-center justify-center rounded-full bg-[#1E2128] border border-gray-800 active:scale-90 transition-transform">
@@ -420,136 +420,63 @@
                 <div class="flex items-center justify-between">
                     <button onclick="navigate('nav-financas', 'page-financas', 'Finanças')" class="w-9 h-9 bg-white/5 rounded-full flex items-center justify-center"><i data-lucide="chevron-left" class="w-5 h-5"></i></button>
                     <h1 class="text-lg font-bold">Cartões de Crédito</h1>
-                    <div class="w-9"></div>
+                    <button onclick="toggleOverlay('new-card')" class="text-[#38bdf8] text-xs font-bold"><i data-lucide="plus" class="w-5 h-5"></i></button>
                 </div>
                 
-                <div class="card rounded-3xl p-6 shadow-sm">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-gray-400 font-medium text-sm">Seus Cartões</h2>
-                        <button class="text-[#38bdf8] text-xs font-bold hover:underline">+ Adicionar</button>
-                    </div>
-                    <div id="cartoes-list" class="space-y-3">
-                        <div class="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl p-4 text-white">
-                            <div class="flex justify-between items-start mb-8">
-                                <div>
-                                    <p class="text-xs opacity-75 uppercase tracking-widest">Cartão Principal</p>
-                                    <p class="text-sm font-bold mt-1">Visa</p>
-                                </div>
-                                <i data-lucide="credit-card" class="w-6 h-6"></i>
-                            </div>
-                            <p class="text-lg font-mono tracking-widest mb-4">•••• •••• •••• 1234</p>
-                            <div class="flex justify-between items-end text-xs">
-                                <div>
-                                    <p class="opacity-75">Titular</p>
-                                    <p class="font-bold">SEU NOME</p>
-                                </div>
-                                <div class="text-right">
-                                    <p class="opacity-75">Vencimento</p>
-                                    <p class="font-bold">12/26</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <div id="cartoes-carousel" class="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-2" style="scroll-behavior: smooth; -webkit-overflow-scrolling: touch;"></div>
                 
                 <div class="card rounded-3xl p-6 shadow-sm">
-                    <h2 class="text-gray-400 font-medium text-sm mb-4">Resumo de Gastos</h2>
-                    <div class="space-y-3">
-                        <div class="flex justify-between items-center p-3 bg-black/20 rounded-xl">
-                            <span class="text-xs font-bold">Limite Disponível</span>
-                            <span class="text-sm font-bold text-green-400">R$ 5.000,00</span>
-                        </div>
-                        <div class="flex justify-between items-center p-3 bg-black/20 rounded-xl">
-                            <span class="text-xs font-bold">Gasto Este Mês</span>
-                            <span class="text-sm font-bold text-orange-400">R$ 2.150,00</span>
-                        </div>
-                        <div class="flex justify-between items-center p-3 bg-black/20 rounded-xl">
-                            <span class="text-xs font-bold">Vencimento da Fatura</span>
-                            <span class="text-sm font-bold text-blue-400">15 de Março</span>
-                        </div>
-                    </div>
+                    <h2 class="text-gray-400 font-medium text-sm mb-4">Resumo de Gastos por Cartão</h2>
+                    <div id="cartoes-resumo" class="space-y-4"></div>
                 </div>
             </div>
             <div id="page-orcamento" class="page-content hidden space-y-6 fade-in">
                 <div class="flex items-center justify-between">
                     <button onclick="navigate('nav-financas', 'page-financas', 'Finanças')" class="w-9 h-9 bg-white/5 rounded-full flex items-center justify-center"><i data-lucide="chevron-left" class="w-5 h-5"></i></button>
                     <h1 class="text-lg font-bold">Orçamento</h1>
-                    <div class="w-9"></div>
+                    <button onclick="toggleOverlay('new-orcamento')" class="text-[#38bdf8] text-xs font-bold"><i data-lucide="plus" class="w-5 h-5"></i></button>
                 </div>
                 
                 <div class="card rounded-3xl p-6 shadow-sm">
                     <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-gray-400 font-medium text-sm">Orçamento Mensal</h2>
-                        <button class="text-[#38bdf8] text-xs font-bold hover:underline">+ Novo</button>
+                        <h2 class="text-gray-400 font-medium text-sm">Limite Total Mensal</h2>
+                        <button onclick="editLimiteMensalTotal()" class="text-[#38bdf8] text-xs font-bold"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
                     </div>
-                    <div id="orcamento-list" class="space-y-4">
-                        <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
-                            <div class="flex justify-between items-center mb-3">
-                                <div class="flex items-center gap-2">
-                                    <i data-lucide="shopping-cart" class="w-5 h-5 text-red-400"></i>
-                                    <span class="font-bold text-sm">Alimentação</span>
-                                </div>
-                                <span class="text-xs font-bold text-gray-500">R$ 600,00</span>
-                            </div>
-                            <div class="w-full bg-black/40 rounded-full h-2 overflow-hidden">
-                                <div class="bg-red-500 h-full" style="width: 65%;"></div>
-                            </div>
-                            <div class="flex justify-between items-center mt-2 text-xs text-gray-500">
-                                <span>R$ 390,00 gasto</span>
-                                <span>65%</span>
-                            </div>
+                    <div class="bg-black/30 p-6 rounded-2xl border border-white/5 text-center">
+                        <span class="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Orçamento Total</span>
+                        <div class="text-4xl font-bold mt-2 text-white" id="limite-total-display">R$ 5.000,00</div>
+                        <div class="w-full bg-black/40 rounded-full h-2 overflow-hidden mt-4">
+                            <div id="limite-total-bar" class="bg-blue-500 h-full transition-all duration-500" style="width: 0%;"></div>
                         </div>
-                        
-                        <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
-                            <div class="flex justify-between items-center mb-3">
-                                <div class="flex items-center gap-2">
-                                    <i data-lucide="zap" class="w-5 h-5 text-yellow-400"></i>
-                                    <span class="font-bold text-sm">Contas Fixas</span>
-                                </div>
-                                <span class="text-xs font-bold text-gray-500">R$ 1.500,00</span>
-                            </div>
-                            <div class="w-full bg-black/40 rounded-full h-2 overflow-hidden">
-                                <div class="bg-yellow-500 h-full" style="width: 100%;"></div>
-                            </div>
-                            <div class="flex justify-between items-center mt-2 text-xs text-gray-500">
-                                <span>R$ 1.500,00 gasto</span>
-                                <span>100%</span>
-                            </div>
-                        </div>
-                        
-                        <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
-                            <div class="flex justify-between items-center mb-3">
-                                <div class="flex items-center gap-2">
-                                    <i data-lucide="heart" class="w-5 h-5 text-pink-400"></i>
-                                    <span class="font-bold text-sm">Lazer</span>
-                                </div>
-                                <span class="text-xs font-bold text-gray-500">R$ 400,00</span>
-                            </div>
-                            <div class="w-full bg-black/40 rounded-full h-2 overflow-hidden">
-                                <div class="bg-pink-500 h-full" style="width: 30%;"></div>
-                            </div>
-                            <div class="flex justify-between items-center mt-2 text-xs text-gray-500">
-                                <span>R$ 120,00 gasto</span>
-                                <span>30%</span>
-                            </div>
+                        <div class="flex justify-between items-center mt-3 text-xs text-gray-500">
+                            <span id="limite-total-gasto">R$ 0,00 gasto</span>
+                            <span id="limite-total-perc">0%</span>
                         </div>
                     </div>
                 </div>
                 
                 <div class="card rounded-3xl p-6 shadow-sm">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-gray-400 font-medium text-sm">Orçamento por Categoria</h2>
+                        <button onclick="toggleOverlay('new-orcamento')" class="text-[#38bdf8] text-xs font-bold hover:underline">+ Novo</button>
+                    </div>
+                    <div id="orcamento-list" class="space-y-4"></div>
+                </div>
+                
+                <div class="card rounded-3xl p-6 shadow-sm">
                     <h2 class="text-gray-400 font-medium text-sm mb-4">Resumo Total</h2>
-                    <div class="space-y-2">
+                    <div class="space-y-3">
                         <div class="flex justify-between items-center text-sm">
                             <span class="text-gray-400">Orçado</span>
-                            <span class="font-bold">R$ 2.500,00</span>
+                            <span class="font-bold" id="resumo-orcado">R$ 0,00</span>
                         </div>
                         <div class="flex justify-between items-center text-sm">
                             <span class="text-gray-400">Gasto</span>
-                            <span class="font-bold text-orange-400">R$ 2.010,00</span>
+                            <span class="font-bold text-orange-400" id="resumo-gasto">R$ 0,00</span>
                         </div>
                         <div class="flex justify-between items-center text-sm pt-2 border-t border-white/10">
-                            <span class="text-gray-400">Disponível</span>
-                            <span class="font-bold text-green-400">R$ 490,00</span>
+                            <span class="text-gray-400">Disponível para Gastar</span>
+                            <span class="font-bold text-green-400" id="resumo-disponivel">R$ 0,00</span>
                         </div>
                     </div>
                 </div>
@@ -1547,7 +1474,7 @@
             saude: { aguaMeta: 3500, cafeinaMeta: 400, historico: {}, proposito: {ativo: false, nome: '', inicio: '', dias: 0, celebrado: false} },
             financas: { 
                 cartoes: [{id:1, nome:'Nubank', cor:'#8b5cf6', limite:5400, bandeira: 'MASTERCARD', vencimento: 10}], 
-                transacoes: [], metas: [], temp: {type:'despesa', status:'previsivel', fixa:false} 
+                transacoes: [], metas: [], orcamentos: [], limiteMensalTotal: 5000, temp: {type:'despesa', status:'previsivel', fixa:false} 
             },
             veiculo: { tipo: 'moto', nome: 'Fazer 250', hodometro: 12450, mediaGeral: 29.0, oleoIntervalo: 3000, oleoUltimaTrocaKM: 11000, pneusUltimaTrocaKM: 10000, pneusIntervalo: 15000, correnteUltimaTrocaKM: 10000, correnteIntervalo: 20000, placaFinal: '', historico: [] },
             notificacoes: []
@@ -1749,6 +1676,14 @@
                     document.getElementById('input-veh-name').value = state.veiculo.nome;
                     document.getElementById('input-veh-oil-interval').value = state.veiculo.oleoIntervalo;
                     document.getElementById('input-veh-plate').value = state.veiculo.placaFinal || '';
+                }
+                if(id === 'new-orcamento') {
+                    const selectCat = document.getElementById('orcamento-categoria-select');
+                    if (selectCat) {
+                        selectCat.innerHTML = state.usuario.categorias_despesa.map(cat => `<option value="${cat.nome}">${cat.nome}</option>`).join('');
+                    }
+                    document.getElementById('orcamento-limite-input').value = '';
+                    document.getElementById('new-orcamento-title').innerText = 'Novo Orçamento';
                 }
                 if(id === 'proposito-config') {
                     if(state.saude.proposito && state.saude.proposito.ativo) {
@@ -2207,12 +2142,7 @@
 
 
         function renderOrcamento() {
-            const list = document.getElementById('orcamento-list');
-            if(!list) return;
-            
-            // Se houver lógica de orçamento no estado, use-a. Caso contrário, mantenha o placeholder ou limpe.
-            // Por enquanto, vamos apenas garantir que a função exista para não dar erro.
-            // Se o usuário quiser que seja dinâmico, precisaremos de uma estrutura no state.financas.orcamento
+            renderOrcamentos();
         }
 
         function renderMetasList() {
@@ -2801,6 +2731,7 @@ function deleteTransaction(id) {
             document.getElementById('veh-media-geral').innerText = mg.toFixed(1); document.getElementById('home-veh-media').innerText = mg.toFixed(1);
 
             renderCards(); if(document.getElementById('overlay-card-details').classList.contains('active')) renderCardDetails();
+            renderCartoesResumo(); renderOrcamentos();
             renderExtrato(); renderRecentTrans(); renderVehTimeline(); renderCalendar(); renderNotifs(); renderMetasList(); refreshIcons();
             
             verificarPrevisaoDetran();
@@ -3332,7 +3263,209 @@ function deleteTransaction(id) {
             // Pequeno delay para verificar manutenções críticas após carregar dados
             setTimeout(() => { if(state.isLoggedIn) checkCriticalMaintenance(); }, 3000);
         };
+
+        // ===== FUNÇÕES DE CARTÕES COM BARRAS DE PROGRESSO =====
+        function renderCartoesResumo() {
+            const resumoDiv = document.getElementById('cartoes-resumo');
+            if (!resumoDiv) return;
+            const carouselDiv = document.getElementById('cartoes-carousel');
+            if (!carouselDiv) return;
+
+            const carouselHTML = state.financas.cartoes.map(card => {
+                let fatura = 0;
+                state.financas.transacoes.forEach(t => {
+                    if (t.conta === card.nome && t.status === 'efetivada') {
+                        if (t.tipo === 'receita') fatura -= t.valor;
+                        else fatura += t.valor;
+                    }
+                });
+                const percentualUso = (Math.max(0, fatura) / card.limite) * 100;
+                let corBarra = '#34d399';
+                if (percentualUso > 70) corBarra = '#fb7185';
+                else if (percentualUso > 50) corBarra = '#f97316';
+                return `<div class="snap-center shrink-0 w-[85%] card rounded-3xl p-6 shadow-sm relative overflow-hidden bg-gradient-to-br from-[#1E2128] to-[#121418] border border-gray-700 cursor-pointer active:scale-[0.98] transition-transform" onclick="openCardDetails(${card.id})">
+                    <div class="flex justify-between items-center mb-6">
+                        <div class="flex items-center space-x-2">
+                            <i data-lucide="credit-card" class="w-5 h-5" style="color: ${card.cor || '#8b5cf6'}"></i>
+                            <span class="text-sm font-medium text-gray-300">${card.nome}</span>
+                        </div>
+                        <span class="text-sm font-bold italic text-gray-400" style="color: ${card.cor || '#8b5cf6'}">${card.bandeira || 'MASTERCARD'}</span>
+                    </div>
+                    <div class="mb-4">
+                        <span class="text-xs text-gray-400 block mb-1">Fatura Atual (Vence dia ${card.vencimento || 10})</span>
+                        <span class="text-3xl font-bold sensitive-value text-white" data-value="R$ ${Math.max(0,fatura).toLocaleString('pt-BR', {minimumFractionDigits: 2})}">${state.blurred ? 'R$ •••••' : 'R$ ' + Math.max(0,fatura).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                    </div>
+                    <div class="w-full bg-black/40 rounded-full h-2 overflow-hidden mb-2">
+                        <div class="h-full transition-all duration-500" style="width: ${Math.min(percentualUso, 100)}%; background-color: ${corBarra};"></div>
+                    </div>
+                    <div class="flex justify-between items-end">
+                        <div>
+                            <span class="text-xs text-gray-500 block mb-1">Limite Disponível</span>
+                            <span class="text-sm font-semibold text-green-400 sensitive-value" data-value="R$ ${(card.limite - fatura).toLocaleString('pt-BR', {minimumFractionDigits: 2})}">${state.blurred ? 'R$ •••••' : 'R$ ' + (card.limite - fatura).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                        </div>
+                        <span class="text-xs text-gray-500 font-mono tracking-widest">${Math.round(percentualUso)}%</span>
+                    </div>
+                </div>`;
+            }).join('');
+            carouselDiv.innerHTML = carouselHTML + `<div class="snap-center shrink-0 w-[30%] card rounded-3xl p-6 shadow-sm flex flex-col items-center justify-center border border-dashed border-gray-700 cursor-pointer hover:bg-gray-800 transition-colors" onclick="toggleOverlay('new-card')"><div class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 mb-2"><i data-lucide="plus" class="w-5 h-5"></i></div></div>`;
+
+            const resumoHTML = state.financas.cartoes.map(card => {
+                let fatura = 0;
+                state.financas.transacoes.forEach(t => {
+                    if (t.conta === card.nome && t.status === 'efetivada') {
+                        if (t.tipo === 'receita') fatura -= t.valor;
+                        else fatura += t.valor;
+                    }
+                });
+                const percentualUso = (Math.max(0, fatura) / card.limite) * 100;
+                let corBarra = '#34d399';
+                if (percentualUso > 70) corBarra = '#fb7185';
+                else if (percentualUso > 50) corBarra = '#f97316';
+                return `<div class="bg-black/20 p-4 rounded-2xl border border-white/5">
+                    <div class="flex justify-between items-center mb-3">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="credit-card" class="w-5 h-5" style="color: ${card.cor || '#8b5cf6'}"></i>
+                            <span class="font-bold text-sm">${card.nome}</span>
+                        </div>
+                        <span class="text-xs font-bold text-gray-500">R$ ${card.limite.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                    </div>
+                    <div class="w-full bg-black/40 rounded-full h-2 overflow-hidden">
+                        <div class="h-full transition-all duration-500" style="width: ${Math.min(percentualUso, 100)}%; background-color: ${corBarra};"></div>
+                    </div>
+                    <div class="flex justify-between items-center mt-2 text-xs text-gray-500">
+                        <span>R$ ${Math.max(0, fatura).toLocaleString('pt-BR', {minimumFractionDigits: 2})} gasto</span>
+                        <span>${Math.round(percentualUso)}%</span>
+                    </div>
+                </div>`;
+            }).join('');
+            resumoDiv.innerHTML = resumoHTML;
+            refreshIcons();
+        }
+
+        function renderOrcamentos() {
+            const orcamentoList = document.getElementById('orcamento-list');
+            if (!orcamentoList) return;
+            const agora = new Date();
+            const mesAtual = agora.getMonth();
+            const anoAtual = agora.getFullYear();
+            const gastosPorCategoria = {};
+            state.usuario.categorias_despesa.forEach(cat => { gastosPorCategoria[cat.nome] = 0; });
+            state.financas.transacoes.forEach(t => {
+                const dataTrans = new Date(t.data);
+                if (dataTrans.getMonth() === mesAtual && dataTrans.getFullYear() === anoAtual && t.tipo === 'despesa' && (t.status === 'efetivada' || t.status === 'fatura_paga')) {
+                    if (gastosPorCategoria.hasOwnProperty(t.cat)) gastosPorCategoria[t.cat] += t.valor;
+                }
+            });
+            const orcamentosHTML = state.financas.orcamentos.map(orc => {
+                const gasto = gastosPorCategoria[orc.categoria] || 0;
+                const percentual = (gasto / orc.limite) * 100;
+                let corBarra = '#34d399';
+                if (percentual > 80) corBarra = '#fb7185';
+                else if (percentual > 50) corBarra = '#eab308';
+                return `<div class="bg-black/20 p-4 rounded-2xl border border-white/5">
+                    <div class="flex justify-between items-center mb-3">
+                        <div class="flex items-center gap-2 flex-1">
+                            <span class="font-bold text-sm">${orc.categoria}</span>
+                        </div>
+                        <span class="text-xs font-bold text-gray-500">R$ ${orc.limite.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                        <button onclick="deleteOrcamento('${orc.id}')" class="ml-2 text-red-500 hover:text-red-400"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                    </div>
+                    <div class="w-full bg-black/40 rounded-full h-2 overflow-hidden">
+                        <div class="h-full transition-all duration-500" style="width: ${Math.min(percentual, 100)}%; background-color: ${corBarra};"></div>
+                    </div>
+                    <div class="flex justify-between items-center mt-2 text-xs text-gray-500">
+                        <span>R$ ${gasto.toLocaleString('pt-BR', {minimumFractionDigits: 2})} gasto</span>
+                        <span>${Math.round(percentual)}%</span>
+                    </div>
+                </div>`;
+            }).join('');
+            orcamentoList.innerHTML = orcamentosHTML || '<p class="text-center text-gray-600 py-10 text-xs font-bold uppercase tracking-widest">Nenhum orçamento definido</p>';
+            const totalOrcado = state.financas.orcamentos.reduce((sum, orc) => sum + orc.limite, 0);
+            const totalGasto = Object.values(gastosPorCategoria).reduce((sum, gasto) => sum + gasto, 0);
+            const disponivel = totalOrcado - totalGasto;
+            const resumoOrcado = document.getElementById('resumo-orcado');
+            const resumoGasto = document.getElementById('resumo-gasto');
+            const resumoDisponivel = document.getElementById('resumo-disponivel');
+            if (resumoOrcado) resumoOrcado.innerText = 'R$ ' + totalOrcado.toLocaleString('pt-BR', {minimumFractionDigits: 2});
+            if (resumoGasto) resumoGasto.innerText = 'R$ ' + totalGasto.toLocaleString('pt-BR', {minimumFractionDigits: 2});
+            if (resumoDisponivel) resumoDisponivel.innerText = 'R$ ' + Math.max(0, disponivel).toLocaleString('pt-BR', {minimumFractionDigits: 2});
+            const limiteTotalDisplay = document.getElementById('limite-total-display');
+            const limiteTotalBar = document.getElementById('limite-total-bar');
+            const limiteTotalGasto = document.getElementById('limite-total-gasto');
+            const limiteTotalPerc = document.getElementById('limite-total-perc');
+            if (limiteTotalDisplay) {
+                limiteTotalDisplay.innerText = 'R$ ' + state.financas.limiteMensalTotal.toLocaleString('pt-BR', {minimumFractionDigits: 2});
+                const percentualTotal = (totalGasto / state.financas.limiteMensalTotal) * 100;
+                if (limiteTotalBar) limiteTotalBar.style.width = Math.min(percentualTotal, 100) + '%';
+                if (limiteTotalGasto) limiteTotalGasto.innerText = 'R$ ' + totalGasto.toLocaleString('pt-BR', {minimumFractionDigits: 2}) + ' gasto';
+                if (limiteTotalPerc) limiteTotalPerc.innerText = Math.round(percentualTotal) + '%';
+            }
+            refreshIcons();
+        }
+
+        function editLimiteMensalTotal() {
+            document.getElementById('input-limite-mensal').value = state.financas.limiteMensalTotal;
+            toggleOverlay('edit-limite');
+        }
+
+        function saveLimiteMensalTotal() {
+            const novoLimite = parseFloat(document.getElementById('input-limite-mensal').value);
+            if (!novoLimite || novoLimite <= 0) { showToast('Informe um limite válido.'); return; }
+            state.financas.limiteMensalTotal = novoLimite;
+            saveDataToCloud(); closeAllOverlays(); updateUI(); showToast('Limite mensal atualizado!');
+        }
+
+        function saveOrcamento() {
+            const categoria = document.getElementById('orcamento-categoria-select').value;
+            const limite = parseFloat(document.getElementById('orcamento-limite-input').value);
+            if (!categoria || !limite || limite <= 0) { showToast('Preencha todos os campos.'); return; }
+            const existente = state.financas.orcamentos.find(o => o.categoria === categoria);
+            if (existente) { existente.limite = limite; } else {
+                state.financas.orcamentos.push({ id: Date.now().toString(), categoria: categoria, limite: limite });
+            }
+            saveDataToCloud(); closeAllOverlays(); updateUI(); showToast('Orçamento salvo com sucesso!');
+        }
+
+        function deleteOrcamento(id) {
+            state.financas.orcamentos = state.financas.orcamentos.filter(o => o.id !== id);
+            saveDataToCloud(); updateUI(); showToast('Orçamento removido!');
+        }
     </script>
     
+
+        <div id="overlay-edit-limite" class="overlay">
+            <div class="w-12 h-1 bg-gray-800 rounded-full mx-auto mt-4 mb-4 shrink-0"></div>
+            <div class="px-6 flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold">Editar Limite Mensal</h2>
+                <button onclick="closeAllOverlays()"><i data-lucide="x" class="w-6 h-6 text-gray-500"></i></button>
+            </div>
+            <div class="overlay-content space-y-4">
+                <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
+                    <label class="text-[9px] text-gray-500 uppercase font-bold block mb-2">Limite Total Mensal (R$)</label>
+                    <input type="number" id="input-limite-mensal" class="bg-transparent font-bold w-full outline-none text-2xl text-blue-400" placeholder="0.00">
+                </div>
+                <button onclick="saveLimiteMensalTotal()" class="w-full py-5 rounded-3xl bg-blue-500 text-black font-bold uppercase tracking-widest mt-4 active:scale-95 transition-transform">Salvar</button>
+            </div>
+        </div>
+
+        <div id="overlay-new-orcamento" class="overlay">
+            <div class="w-12 h-1 bg-gray-800 rounded-full mx-auto mt-4 mb-4 shrink-0"></div>
+            <div class="px-6 flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold" id="new-orcamento-title">Novo Orçamento</h2>
+                <button onclick="closeAllOverlays()"><i data-lucide="x" class="w-6 h-6 text-gray-500"></i></button>
+            </div>
+            <div class="overlay-content space-y-4">
+                <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
+                    <label class="text-[9px] text-gray-500 uppercase font-bold block mb-2">Categoria</label>
+                    <select id="orcamento-categoria-select" class="bg-transparent font-bold w-full outline-none text-white text-sm"></select>
+                </div>
+                <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
+                    <label class="text-[9px] text-gray-500 uppercase font-bold block mb-2">Limite (R$)</label>
+                    <input type="number" id="orcamento-limite-input" class="bg-transparent font-bold w-full outline-none text-white" placeholder="0.00">
+                </div>
+                <button onclick="saveOrcamento()" class="w-full py-5 rounded-3xl bg-green-500 text-black font-bold uppercase tracking-widest mt-4 active:scale-95 transition-transform">Salvar Orçamento</button>
+            </div>
+        </div>
+
 </body>
 </html>
