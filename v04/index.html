@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mu Finance v04.43</title>
+    <title>Mu Finance v04.44</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -81,6 +81,48 @@
     ::-webkit-scrollbar { display: none; }
     .fade-in { animation: fadeIn 0.3s ease-in-out; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    .bubbles {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        pointer-events: none;
+    }
+    .bubbles::before,
+    .bubbles::after {
+        content: "";
+        position: absolute;
+        bottom: -50%;
+        width: 200%;
+        height: 200%;
+        background-repeat: repeat;
+        animation: bubbleRise linear infinite;
+        opacity: 0.25;
+    }
+    .bubbles::before {
+        animation-duration: 6s;
+        background-image:
+            radial-gradient(circle at 20% 80%, white 6px, transparent 7px),
+            radial-gradient(circle at 60% 70%, white 8px, transparent 9px),
+            radial-gradient(circle at 40% 90%, white 5px, transparent 6px),
+            radial-gradient(circle at 80% 85%, white 7px, transparent 8px);
+    }
+    .bubbles::after {
+        animation-duration: 9s;
+        opacity: 0.15;
+        background-image:
+            radial-gradient(circle at 30% 85%, white 5px, transparent 6px),
+            radial-gradient(circle at 70% 75%, white 7px, transparent 8px),
+            radial-gradient(circle at 50% 95%, white 6px, transparent 7px);
+    }
+    @keyframes bubbleRise {
+        from { transform: translateY(0); }
+        to { transform: translateY(-50%); }
+    }
+    .progress-fill {
+        position: relative;
+        overflow: hidden;
+    }
     .sensitive-value.blurred { filter: blur(10px); transition: filter 0.3s ease; }
     
     /* OVERLAYS & BACKDROP */
@@ -243,7 +285,7 @@
         <header class="flex justify-between items-center shrink-0">
             <div>
                 <h1 id="header-title" class="text-2xl font-bold tracking-tight">Mu Finance</h1>
-                <p class="text-[10px] text-gray-500 uppercase font-bold tracking-widest mt-1" id="header-subtitle">Dashboard Geral v04.43</p>
+                <p class="text-[10px] text-gray-500 uppercase font-bold tracking-widest mt-1" id="header-subtitle">Dashboard Geral v04.44</p>
             </div>
             <div class="flex items-center space-x-3">
                 <button onclick="toggleOverlay('notificacoes')" class="relative w-10 h-10 flex items-center justify-center rounded-full bg-[#1E2128] border border-gray-800 active:scale-90 transition-transform">
@@ -287,7 +329,7 @@
                         <button onclick="toggleOverlay('proposito-config')" class="p-1"><i data-lucide="settings" class="w-4 h-4 text-gray-500 hover:text-white transition-colors"></i></button>
                     </div>
                     <div class="w-full bg-gray-800 h-2.5 rounded-full overflow-hidden mt-4">
-                        <div class="bg-[#34d399] h-full transition-all duration-1000 ui-prop-bar" style="width: 0%"></div>
+                        <div class="bg-[#34d399] h-full transition-all duration-1000 ui-prop-bar progress-fill" style="width: 0%"><div class="bubbles"></div></div>
                     </div>
                     <div class="flex justify-between mt-2 text-[9px] font-bold text-gray-500 uppercase tracking-widest">
                         <span class="ui-prop-days-passed">0 dias</span>
@@ -322,7 +364,7 @@
                             <div class="w-full space-y-1">
                                 <div class="flex justify-between text-[8px] font-bold uppercase text-gray-500"><span>Saúde do Óleo</span><span id="home-veh-oleo-perc">0%</span></div>
                                 <div class="w-full bg-black/40 rounded-full h-1.5 overflow-hidden">
-                                    <div id="home-veh-oleo-bar" class="bg-blue-500 h-full transition-all duration-500" style="width: 0%;"></div>
+                                    <div id="home-veh-oleo-bar" class="bg-blue-500 h-full transition-all duration-500 progress-fill" style="width: 0%;"><div class="bubbles"></div></div>
                                 </div>
                             </div>
                         </div>
@@ -466,7 +508,7 @@
                         <span class="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Orçamento Total</span>
                         <div class="text-4xl font-bold mt-2 text-white" id="limite-total-display">R$ 5.000,00</div>
                         <div class="w-full bg-black/40 rounded-full h-2 overflow-hidden mt-4">
-                            <div id="limite-total-bar" class="bg-blue-500 h-full transition-all duration-500" style="width: 0%;"></div>
+                            <div id="limite-total-bar" class="bg-blue-500 h-full transition-all duration-500 progress-fill" style="width: 0%;"><div class="bubbles"></div></div>
                         </div>
                         <div class="flex justify-between items-center mt-3 text-xs text-gray-500">
                             <span id="limite-total-gasto">R$ 0,00 gasto</span>
@@ -517,7 +559,7 @@
                     </div>
                     <div class="mt-6 space-y-1.5">
                         <div class="flex justify-between text-[8px] font-bold uppercase text-gray-500"><span>Saúde do Óleo</span><span id="veh-oleo-perc">0%</span></div>
-                        <div class="w-full bg-white/5 h-1.5 rounded-full overflow-hidden"><div id="veh-oleo-bar" class="h-full bg-blue-500 transition-all duration-700" style="width: 0%"></div></div>
+                        <div class="w-full bg-white/5 h-1.5 rounded-full overflow-hidden"><div id="veh-oleo-bar" class="h-full bg-blue-500 transition-all duration-700 progress-fill" style="width: 0%"><div class="bubbles"></div></div></div>
                     </div>
                 </div>
 
@@ -573,7 +615,7 @@
                                 <span class="text-[9px] font-bold" id="veh-health-oleo-perc">0%</span>
                             </div>
                             <div class="w-full bg-black/40 h-2 rounded-full overflow-hidden">
-                                <div id="veh-health-oleo-bar" class="h-full bg-green-500 transition-all duration-700" style="width: 0%"></div>
+                                <div id="veh-health-oleo-bar" class="h-full bg-green-500 transition-all duration-700 progress-fill" style="width: 0%"><div class="bubbles"></div></div>
                             </div>
                         </div>
 
@@ -583,7 +625,7 @@
                                 <span class="text-[9px] font-bold" id="veh-health-corrente-perc">0%</span>
                             </div>
                             <div class="w-full bg-black/40 h-2 rounded-full overflow-hidden">
-                                <div id="veh-health-corrente-bar" class="h-full bg-green-500 transition-all duration-700" style="width: 0%"></div>
+                                <div id="veh-health-corrente-bar" class="h-full bg-green-500 transition-all duration-700 progress-fill" style="width: 0%"><div class="bubbles"></div></div>
                             </div>
                         </div>
                         <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
@@ -592,7 +634,7 @@
                                 <span class="text-[9px] font-bold" id="veh-health-pneus-perc">0%</span>
                             </div>
                             <div class="w-full bg-black/40 h-2 rounded-full overflow-hidden">
-                                <div id="veh-health-pneus-bar" class="h-full bg-green-500 transition-all duration-700" style="width: 0%"></div>
+                                <div id="veh-health-pneus-bar" class="h-full bg-green-500 transition-all duration-700 progress-fill" style="width: 0%"><div class="bubbles"></div></div>
                             </div>
                         </div>
                     </div>
@@ -2194,7 +2236,7 @@
                 return `<div class="card p-4 rounded-2xl border border-white/5 cursor-pointer hover:border-purple-500/30 transition-all active:scale-95" onclick="openMetaAddModal(${m.id})">
                     <div class="flex justify-between items-center mb-2"><span class="text-sm font-bold text-white">${m.nome}</span>${isComplete ? '<span class="text-[9px] bg-green-500 text-black px-2 py-0.5 rounded-full font-bold uppercase">Atingida</span>' : `<span class="text-xs text-purple-400 font-bold">${perc.toFixed(0)}%</span>`}</div>
                     <div class="flex justify-between items-end mb-2"><div><span class="text-[9px] text-gray-500 font-bold uppercase block">Guardado</span><span class="text-sm font-bold">R$ ${m.reservado.toLocaleString('pt-BR', {minimumFractionDigits:2})}</span></div><div class="text-right"><span class="text-[9px] text-gray-500 font-bold uppercase block">Alvo</span><span class="text-xs font-bold text-gray-400">R$ ${m.alvo.toLocaleString('pt-BR', {minimumFractionDigits:2})}</span></div></div>
-                    <div class="w-full bg-gray-800 h-1.5 rounded-full overflow-hidden"><div class="${isComplete ? 'bg-green-500' : 'bg-purple-500'} h-full transition-all duration-700" style="width: ${perc}%"></div></div>
+                    <div class="w-full bg-gray-800 h-1.5 rounded-full overflow-hidden"><div class="${isComplete ? 'bg-green-500' : 'bg-purple-500'} h-full transition-all duration-700 progress-fill" style="width: ${perc}%"><div class="bubbles"></div></div></div>
                 </div>`;
             }).join('');
         }
@@ -3355,8 +3397,8 @@ function deleteTransaction(id) {
                         <span class="font-bold text-sm">${card.nome}</span>
                         <span class="text-xs text-gray-500">R$ ${card.limite.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
                     </div>
-                    <div class="w-full bg-black/40 rounded-full h-2" style="overflow: hidden;">
-                        <div class="h-full" style="width: ${Math.min(percentualUso, 100)}%; background-color: ${corBarra};"></div>
+                    <div class="w-full bg-black/40 rounded-full h-2 overflow-hidden">
+                        <div class="h-full progress-fill" style="width: ${Math.min(percentualUso, 100)}%; background-color: ${corBarra};"><div class="bubbles"></div></div>
                     </div>
                     <div class="flex justify-between items-center mt-2 text-xs text-gray-500">
                         <span>R$ ${Math.max(0, fatura).toLocaleString('pt-BR', {minimumFractionDigits: 2})} gasto</span>
@@ -3406,7 +3448,7 @@ function deleteTransaction(id) {
                             <button onclick="deleteOrcamento('${orc.id}')" class="ml-2 text-red-500 hover:text-red-400"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                         </div>
                         <div class="w-full bg-black/40 rounded-full h-2 overflow-hidden">
-                            <div class="h-full transition-all duration-500" style="width: ${Math.min(percentual, 100)}%; background-color: ${corBarra};"></div>
+                            <div class="h-full transition-all duration-500 progress-fill" style="width: ${Math.min(percentual, 100)}%; background-color: ${corBarra};"><div class="bubbles"></div></div>
                         </div>
                         <div class="flex justify-between items-center mt-2 text-xs text-gray-500">
                             <span>R$ ${gasto.toLocaleString('pt-BR', {minimumFractionDigits: 2})} gasto</span>
