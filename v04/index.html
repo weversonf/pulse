@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mu Finance v04.42</title>
+    <title>Mu Finance v04.43</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -243,7 +243,7 @@
         <header class="flex justify-between items-center shrink-0">
             <div>
                 <h1 id="header-title" class="text-2xl font-bold tracking-tight">Mu Finance</h1>
-                <p class="text-[10px] text-gray-500 uppercase font-bold tracking-widest mt-1" id="header-subtitle">Dashboard Geral v04.42</p>
+                <p class="text-[10px] text-gray-500 uppercase font-bold tracking-widest mt-1" id="header-subtitle">Dashboard Geral v04.43</p>
             </div>
             <div class="flex items-center space-x-3">
                 <button onclick="toggleOverlay('notificacoes')" class="relative w-10 h-10 flex items-center justify-center rounded-full bg-[#1E2128] border border-gray-800 active:scale-90 transition-transform">
@@ -316,13 +316,15 @@
                 <div onclick="navigate('nav-veiculo', 'page-veiculo', 'Veículo')" class="card rounded-3xl p-5 flex items-center justify-between cursor-pointer active:scale-[0.98] transition-all">
                     <div class="flex items-center space-x-4">
                         <div id="home-veh-icon" class="w-12 h-12 rounded-2xl bg-orange-500/10 flex items-center justify-center text-orange-500"><i data-lucide="bike" id="icon-home-veh"></i></div>
-                        <div>
+                        <div class="flex-1">
                             <h3 class="font-bold veh-name-text">Fazer 250</h3>
-                            <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest"><span id="home-veh-media">29</span> km/l • <span id="home-veh-km">0</span> km</p>
-							<div class="flex justify-between text-[8px] font-bold uppercase text-gray-500"><span>Saúde do Óleo</span><span id="veh-oleo-perc">0%</span></div>
-							<div class="w-full bg-white/5 h-1.5 rounded-full overflow-hidden">
-								<div id="veh-oleo-bar" class="h-full bg-blue-500 transition-all duration-700" style="width: 0%"></div>
-							</div>
+                            <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-2"><span id="home-veh-media">29</span> km/l • <span id="home-veh-km">0</span> km</p>
+                            <div class="w-full space-y-1">
+                                <div class="flex justify-between text-[8px] font-bold uppercase text-gray-500"><span>Saúde do Óleo</span><span id="home-veh-oleo-perc">0%</span></div>
+                                <div class="w-full bg-black/40 rounded-full h-1.5 overflow-hidden">
+                                    <div id="home-veh-oleo-bar" class="bg-blue-500 h-full transition-all duration-500" style="width: 0%;"></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <i data-lucide="chevron-right" class="w-5 h-5 text-gray-700"></i>
@@ -445,8 +447,14 @@
             <div id="page-orcamento" class="page-content hidden space-y-6 fade-in">
                 <div class="flex items-center justify-between">
                     <button onclick="navigate('nav-financas', 'page-financas', 'Finanças')" class="w-9 h-9 bg-white/5 rounded-full flex items-center justify-center"><i data-lucide="chevron-left" class="w-5 h-5"></i></button>
-                    <h1 class="text-lg font-bold">Orçamento</h1>
-                    <button onclick="toggleOverlay('new-orcamento')" class="text-[#38bdf8] text-xs font-bold"><i data-lucide="plus" class="w-5 h-5"></i></button>
+                    
+                    <div class="flex items-center space-x-2 bg-white/5 rounded-xl px-2 py-1">
+                        <button onclick="changeOrcamentoMonth(-1)"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
+                        <span id="orcamento-month-label" class="text-[10px] font-bold min-w-[100px] text-center uppercase">--</span>
+                        <button onclick="changeOrcamentoMonth(1)"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+                    </div>
+
+                    <button onclick="toggleOverlay('new-orcamento')" class="w-9 h-9 bg-white/5 rounded-full flex items-center justify-center"><i data-lucide="plus" class="w-5 h-5 text-[#38bdf8]"></i></button>
                 </div>
                 
                 <div class="card rounded-3xl p-6 shadow-sm">
@@ -1467,7 +1475,7 @@
         ];
 
         let state = {
-            isLoggedIn: false, userId: null, viewDate: new Date(), extratoDate: new Date(), recentTransDate: new Date(), blurred: false, editingId: null, editingVehId: null,
+            isLoggedIn: false, userId: null, viewDate: new Date(), extratoDate: new Date(), recentTransDate: new Date(), orcamentoDate: new Date(), blurred: false, editingId: null, editingVehId: null,
             usuario: { 
                 firstName: "Murilo", lastName: "Finance", username: "mufinance", birthDate: "1996-02-26", peso: 100, idade: 30, avatarUrl: null,
                 contas: [
@@ -2757,6 +2765,8 @@ function deleteTransaction(id) {
             document.querySelectorAll('.veh-name-text').forEach(el => el.innerText = state.veiculo.nome); document.getElementById('veh-km-total').innerText = state.veiculo.hodometro.toLocaleString(); document.getElementById('home-veh-km').innerText = state.veiculo.hodometro.toLocaleString();
             const d = state.veiculo.hodometro - state.veiculo.oleoUltimaTrocaKM; const op = Math.max(0, 100 - (d/state.veiculo.oleoIntervalo*100));
             document.getElementById('veh-oleo-perc').innerText = Math.round(op) + '%'; document.getElementById('veh-oleo-bar').style.width = op + '%'; document.getElementById('veh-oleo-km').innerText = (state.veiculo.oleoUltimaTrocaKM + state.veiculo.oleoIntervalo).toLocaleString() + ' km';
+            const homeOleoPerc = document.getElementById('home-veh-oleo-perc'); if(homeOleoPerc) homeOleoPerc.innerText = Math.round(op) + '%';
+            const homeOleoBar = document.getElementById('home-veh-oleo-bar'); if(homeOleoBar) homeOleoBar.style.width = op + '%';
 
             const fills = state.veiculo.historico.filter(h => h.tipo === 'abastecimento' && h.media > 0); const mg = fills.length ? fills.reduce((acc,curr)=>acc+curr.media,0)/fills.length : 29.0;
             document.getElementById('veh-media-geral').innerText = mg.toFixed(1); document.getElementById('home-veh-media').innerText = mg.toFixed(1);
@@ -3028,6 +3038,7 @@ function deleteTransaction(id) {
         function changeMonth(s) { state.viewDate.setMonth(state.viewDate.getMonth()+s); renderCalendar(); }
         function changeExtratoMonth(s) { state.extratoDate.setMonth(state.extratoDate.getMonth()+s); renderExtrato(); }
         function changeRecentTransMonth(s) { state.recentTransDate.setMonth(state.recentTransDate.getMonth()+s); renderRecentTrans(); }
+        function changeOrcamentoMonth(s) { state.orcamentoDate.setMonth(state.orcamentoDate.getMonth()+s); renderOrcamentos(); }
         
         function toggleVisibility() { 
             state.blurred = !state.blurred; 
@@ -3363,50 +3374,59 @@ function deleteTransaction(id) {
                 const orcamentoList = document.getElementById('orcamento-list');
                 if (!orcamentoList) return;
                 if (!state || !state.financas || !state.financas.orcamentos) return;
-                const agora = new Date();
-                const mesAtual = agora.getMonth();
-            const anoAtual = agora.getFullYear();
-            const gastosPorCategoria = {};
-            state.usuario.categorias_despesa.forEach(cat => { gastosPorCategoria[cat.nome] = 0; });
-            state.financas.transacoes.forEach(t => {
-                const dataTrans = new Date(t.data);
-                if (dataTrans.getMonth() === mesAtual && dataTrans.getFullYear() === anoAtual && t.tipo === 'despesa' && (t.status === 'efetivada' || t.status === 'fatura_paga')) {
-                    if (gastosPorCategoria.hasOwnProperty(t.cat)) gastosPorCategoria[t.cat] += t.valor;
-                }
-            });
-            const orcamentosHTML = state.financas.orcamentos.map(orc => {
-                const gasto = gastosPorCategoria[orc.categoria] || 0;
-                const percentual = (gasto / orc.limite) * 100;
-                let corBarra = '#34d399';
-                if (percentual > 80) corBarra = '#fb7185';
-                else if (percentual > 50) corBarra = '#eab308';
-                return `<div class="bg-black/20 p-4 rounded-2xl border border-white/5">
-                    <div class="flex justify-between items-center mb-3">
-                        <div class="flex items-center gap-2 flex-1">
-                            <span class="font-bold text-sm">${orc.categoria}</span>
+                
+                const m = state.orcamentoDate.getMonth(), y = state.orcamentoDate.getFullYear();
+                const monthNames = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+                const lbl = document.getElementById('orcamento-month-label');
+                if(lbl) lbl.innerText = `${monthNames[m]} ${y}`;
+
+                const gastosPorCategoria = {};
+                state.usuario.categorias_despesa.forEach(cat => { gastosPorCategoria[cat.nome] = 0; });
+                state.financas.transacoes.forEach(t => {
+                    const dataTrans = new Date(t.data);
+                    if (dataTrans.getMonth() === m && dataTrans.getFullYear() === y && t.tipo === 'despesa' && (t.status === 'efetivada' || t.status === 'fatura_paga')) {
+                        if (gastosPorCategoria.hasOwnProperty(t.cat)) gastosPorCategoria[t.cat] += t.valor;
+                    }
+                });
+
+                const orcamentosMes = state.financas.orcamentos.filter(o => o.mes === m && o.ano === y);
+
+                const orcamentosHTML = orcamentosMes.map(orc => {
+                    const gasto = gastosPorCategoria[orc.categoria] || 0;
+                    const percentual = (gasto / orc.limite) * 100;
+                    let corBarra = '#34d399';
+                    if (percentual > 80) corBarra = '#fb7185';
+                    else if (percentual > 50) corBarra = '#eab308';
+                    return `<div class="bg-black/20 p-4 rounded-2xl border border-white/5">
+                        <div class="flex justify-between items-center mb-3">
+                            <div class="flex items-center gap-2 flex-1">
+                                <span class="font-bold text-sm">${orc.categoria}</span>
+                            </div>
+                            <span class="text-xs font-bold text-gray-500">R$ ${orc.limite.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                            <button onclick="deleteOrcamento('${orc.id}')" class="ml-2 text-red-500 hover:text-red-400"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                         </div>
-                        <span class="text-xs font-bold text-gray-500">R$ ${orc.limite.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
-                        <button onclick="deleteOrcamento('${orc.id}')" class="ml-2 text-red-500 hover:text-red-400"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                    </div>
-                    <div class="w-full bg-black/40 rounded-full h-2 overflow-hidden">
-                        <div class="h-full transition-all duration-500" style="width: ${Math.min(percentual, 100)}%; background-color: ${corBarra};"></div>
-                    </div>
-                    <div class="flex justify-between items-center mt-2 text-xs text-gray-500">
-                        <span>R$ ${gasto.toLocaleString('pt-BR', {minimumFractionDigits: 2})} gasto</span>
-                        <span>${Math.round(percentual)}%</span>
-                    </div>
-                </div>`;
-            }).join('');
-            orcamentoList.innerHTML = orcamentosHTML || '<p class="text-center text-gray-600 py-10 text-xs font-bold uppercase tracking-widest">Nenhum orçamento definido</p>';
-            const totalOrcado = state.financas.orcamentos.reduce((sum, orc) => sum + orc.limite, 0);
-            const totalGasto = Object.values(gastosPorCategoria).reduce((sum, gasto) => sum + gasto, 0);
-            const disponivel = totalOrcado - totalGasto;
-            const resumoOrcado = document.getElementById('resumo-orcado');
-            const resumoGasto = document.getElementById('resumo-gasto');
-            const resumoDisponivel = document.getElementById('resumo-disponivel');
-            if (resumoOrcado) resumoOrcado.innerText = 'R$ ' + totalOrcado.toLocaleString('pt-BR', {minimumFractionDigits: 2});
-            if (resumoGasto) resumoGasto.innerText = 'R$ ' + totalGasto.toLocaleString('pt-BR', {minimumFractionDigits: 2});
-            if (resumoDisponivel) resumoDisponivel.innerText = 'R$ ' + Math.max(0, disponivel).toLocaleString('pt-BR', {minimumFractionDigits: 2});
+                        <div class="w-full bg-black/40 rounded-full h-2 overflow-hidden">
+                            <div class="h-full transition-all duration-500" style="width: ${Math.min(percentual, 100)}%; background-color: ${corBarra};"></div>
+                        </div>
+                        <div class="flex justify-between items-center mt-2 text-xs text-gray-500">
+                            <span>R$ ${gasto.toLocaleString('pt-BR', {minimumFractionDigits: 2})} gasto</span>
+                            <span>${Math.round(percentual)}%</span>
+                        </div>
+                    </div>`;
+                }).join('');
+
+                orcamentoList.innerHTML = orcamentosHTML || '<p class="text-center text-gray-600 py-10 text-xs font-bold uppercase tracking-widest">Nenhum orçamento para este mês</p>';
+                
+                const totalOrcado = orcamentosMes.reduce((sum, orc) => sum + orc.limite, 0);
+                const totalGasto = Object.values(gastosPorCategoria).reduce((sum, gasto) => sum + gasto, 0);
+                const disponivel = totalOrcado - totalGasto;
+                
+                const resumoOrcado = document.getElementById('resumo-orcado');
+                const resumoGasto = document.getElementById('resumo-gasto');
+                const resumoDisponivel = document.getElementById('resumo-disponivel');
+                if (resumoOrcado) resumoOrcado.innerText = 'R$ ' + totalOrcado.toLocaleString('pt-BR', {minimumFractionDigits: 2});
+                if (resumoGasto) resumoGasto.innerText = 'R$ ' + totalGasto.toLocaleString('pt-BR', {minimumFractionDigits: 2});
+                if (resumoDisponivel) resumoDisponivel.innerText = 'R$ ' + Math.max(0, disponivel).toLocaleString('pt-BR', {minimumFractionDigits: 2});
             const limiteTotalDisplay = document.getElementById('limite-total-display');
             const limiteTotalBar = document.getElementById('limite-total-bar');
             const limiteTotalGasto = document.getElementById('limite-total-gasto');
@@ -3440,6 +3460,8 @@ function deleteTransaction(id) {
             const selectCat = document.getElementById('orcamento-categoria-select');
             const categoria = selectCat.value;
             const limite = parseFloat(document.getElementById('orcamento-limite-input').value);
+            const mes = state.orcamentoDate.getMonth();
+            const ano = state.orcamentoDate.getFullYear();
             
             if (!categoria || isNaN(limite) || limite <= 0) { 
                 showToast('Preencha todos os campos corretamente.'); 
@@ -3448,14 +3470,16 @@ function deleteTransaction(id) {
             
             if (!state.financas.orcamentos) state.financas.orcamentos = [];
             
-            const existente = state.financas.orcamentos.find(o => o.categoria === categoria);
+            const existente = state.financas.orcamentos.find(o => o.categoria === categoria && o.mes === mes && o.ano === ano);
             if (existente) { 
                 existente.limite = limite; 
             } else {
                 state.financas.orcamentos.push({ 
                     id: Date.now().toString(), 
                     categoria: categoria, 
-                    limite: limite 
+                    limite: limite,
+                    mes: mes,
+                    ano: ano
                 });
             }
             
