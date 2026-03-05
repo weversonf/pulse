@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mu Finance v04.36</title>
+    <title>Mu Finance v04.37</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -243,7 +243,7 @@
         <header class="flex justify-between items-center shrink-0">
             <div>
                 <h1 id="header-title" class="text-2xl font-bold tracking-tight">Mu Finance</h1>
-                <p class="text-[10px] text-gray-500 uppercase font-bold tracking-widest mt-1" id="header-subtitle">Dashboard Geral v04.36</p>
+                <p class="text-[10px] text-gray-500 uppercase font-bold tracking-widest mt-1" id="header-subtitle">Dashboard Geral v04.37</p>
             </div>
             <div class="flex items-center space-x-3">
                 <button onclick="toggleOverlay('notificacoes')" class="relative w-10 h-10 flex items-center justify-center rounded-full bg-[#1E2128] border border-gray-800 active:scale-90 transition-transform">
@@ -1473,8 +1473,28 @@
             },
             saude: { aguaMeta: 3500, cafeinaMeta: 400, historico: {}, proposito: {ativo: false, nome: '', inicio: '', dias: 0, celebrado: false} },
             financas: { 
-                cartoes: [{id:1, nome:'Nubank', cor:'#8b5cf6', limite:5400, bandeira: 'MASTERCARD', vencimento: 10}], 
-                transacoes: [], metas: [], orcamentos: [], limiteMensalTotal: 5000, temp: {type:'despesa', status:'previsivel', fixa:false} 
+                cartoes: [
+                    {id:1, nome:'Nubank', cor:'#8b5cf6', limite:5400, bandeira: 'MASTERCARD', vencimento: 10},
+                    {id:2, nome:'Itaú', cor:'#ff6b35', limite:8000, bandeira: 'VISA', vencimento: 15},
+                    {id:3, nome:'Bradesco', cor:'#cc0000', limite:3000, bandeira: 'ELO', vencimento: 20}
+                ], 
+                transacoes: [
+                    {id:1, tipo:'despesa', cat:'Alimentação', valor:150, conta:'Nubank', data:'2026-03-01', status:'efetivada', desc:'Supermercado'},
+                    {id:2, tipo:'despesa', cat:'Combustível', valor:200, conta:'Nubank', data:'2026-03-02', status:'efetivada', desc:'Gasolina'},
+                    {id:3, tipo:'despesa', cat:'Lazer', valor:80, conta:'Itaú', data:'2026-03-03', status:'efetivada', desc:'Cinema'},
+                    {id:4, tipo:'despesa', cat:'Alimentação', valor:120, conta:'Itaú', data:'2026-03-04', status:'efetivada', desc:'Restaurante'},
+                    {id:5, tipo:'despesa', cat:'Manutenção', valor:300, conta:'Bradesco', data:'2026-03-05', status:'efetivada', desc:'Mecânico'},
+                    {id:6, tipo:'receita', cat:'Salário', valor:5000, conta:'Carteira', data:'2026-03-01', status:'efetivada', desc:'Salário mensal'}
+                ], 
+                metas: [], 
+                orcamentos: [
+                    {id:'orc1', categoria:'Alimentação', limite:500},
+                    {id:'orc2', categoria:'Combustível', limite:400},
+                    {id:'orc3', categoria:'Lazer', limite:300},
+                    {id:'orc4', categoria:'Manutenção', limite:600}
+                ], 
+                limiteMensalTotal: 5000, 
+                temp: {type:'despesa', status:'previsivel', fixa:false} 
             },
             veiculo: { tipo: 'moto', nome: 'Fazer 250', hodometro: 12450, mediaGeral: 29.0, oleoIntervalo: 3000, oleoUltimaTrocaKM: 11000, pneusUltimaTrocaKM: 10000, pneusIntervalo: 15000, correnteUltimaTrocaKM: 10000, correnteIntervalo: 20000, placaFinal: '', historico: [] },
             notificacoes: []
@@ -2941,7 +2961,6 @@ function deleteTransaction(id) {
                 const filterValue = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0'); document.getElementById('filter-cat-chart').value = filterValue;
                 const cbContainer = document.getElementById('month-checkboxes');
                 if(cbContainer) {
-
                     const monthNames = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
                     cbContainer.innerHTML = monthNames.map((m, i) => `<label class="flex items-center space-x-1.5 bg-black/20 p-1.5 rounded-lg cursor-pointer border border-white/5 hover:bg-white/5 transition-colors"><input type="checkbox" value="${i}" class="month-cb accent-blue-500 w-3 h-3" ${i <= now.getMonth() ? 'checked' : ''}><span class="text-gray-300 font-bold text-[9px] uppercase">${m}</span></label>`).join('');
                 }
@@ -3143,7 +3162,6 @@ function deleteTransaction(id) {
                         pointRadius: 4,
                         pointBackgroundColor: '#f97316'
                     }, {
-
                         label: 'Meta (29 km/L)',
                         data: Array(labels.length).fill(29),
                         borderColor: '#38bdf8',
