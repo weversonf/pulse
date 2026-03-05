@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mu Finance v04.41</title>
+    <title>Mu Finance v04.42</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -243,7 +243,7 @@
         <header class="flex justify-between items-center shrink-0">
             <div>
                 <h1 id="header-title" class="text-2xl font-bold tracking-tight">Mu Finance</h1>
-                <p class="text-[10px] text-gray-500 uppercase font-bold tracking-widest mt-1" id="header-subtitle">Dashboard Geral v04.41</p>
+                <p class="text-[10px] text-gray-500 uppercase font-bold tracking-widest mt-1" id="header-subtitle">Dashboard Geral v04.42</p>
             </div>
             <div class="flex items-center space-x-3">
                 <button onclick="toggleOverlay('notificacoes')" class="relative w-10 h-10 flex items-center justify-center rounded-full bg-[#1E2128] border border-gray-800 active:scale-90 transition-transform">
@@ -396,7 +396,14 @@
                 <div class="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-2 -mx-6 px-6 relative mt-6 hide-scroll" id="card-carousel"></div>
 
                 <div class="card rounded-3xl p-6 shadow-sm mt-6">
-                    <div class="flex justify-between items-center mb-4"><h2 class="text-gray-400 font-medium text-sm">Transações Recentes</h2><span class="text-xs text-[#38bdf8] font-bold cursor-pointer hover:underline" onclick="navigate('nav-financas', 'page-extrato', 'Extrato')">Ver tudo</span></div>
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-gray-400 font-medium text-sm">Transações Recentes</h2>
+                        <div class="flex items-center space-x-2 bg-white/5 rounded-xl px-2 py-1">
+                            <button onclick="changeRecentTransMonth(-1)"><i data-lucide="chevron-left" class="w-3 h-3"></i></button>
+                            <span id="recent-trans-month-label" class="text-[9px] font-bold min-w-[80px] text-center uppercase">--</span>
+                            <button onclick="changeRecentTransMonth(1)"><i data-lucide="chevron-right" class="w-3 h-3"></i></button>
+                        </div>
+                    </div>
                     <div id="recent-trans-list" class="space-y-4"></div>
                 </div>
             </div>
@@ -1456,7 +1463,7 @@
         ];
 
         let state = {
-            isLoggedIn: false, userId: null, viewDate: new Date(), extratoDate: new Date(), blurred: false, editingId: null, editingVehId: null,
+            isLoggedIn: false, userId: null, viewDate: new Date(), extratoDate: new Date(), recentTransDate: new Date(), blurred: false, editingId: null, editingVehId: null,
             usuario: { 
                 firstName: "Murilo", lastName: "Finance", username: "mufinance", birthDate: "1996-02-26", peso: 100, idade: 30, avatarUrl: null,
                 contas: [
@@ -2858,8 +2865,21 @@ function deleteTransaction(id) {
         }
 
         function renderRecentTrans() {
-            const sorted = [...state.financas.transacoes].sort((a,b) => new Date(b.data) - new Date(a.data)).slice(0, 3);
-            document.getElementById('recent-trans-list').innerHTML = sorted.length ? sorted.map(t => renderTransItem(t)).join('') : '<p class="text-center text-gray-600 py-4 text-xs font-bold uppercase tracking-widest">Nenhuma atividade recente</p>';
+            const m = state.recentTransDate.getMonth(), y = state.recentTransDate.getFullYear();
+            const monthNames = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+            const lbl = document.getElementById('recent-trans-month-label');
+            if(lbl) lbl.innerText = `${monthNames[m]} ${y}`;
+
+            const filtered = state.financas.transacoes.filter(t => {
+                const d = new Date(t.data);
+                return d.getMonth() === m && d.getFullYear() === y;
+            }).sort((a,b) => new Date(b.data) - new Date(a.data));
+
+            const list = document.getElementById('recent-trans-list');
+            if(!list) return;
+
+            list.innerHTML = filtered.length ? filtered.map(t => renderTransItem(t)).join('') : '<p class="text-center text-gray-600 py-4 text-xs font-bold uppercase tracking-widest">Nenhuma atividade no mês</p>';
+            refreshIcons();
         }
 
         function renderVehTimeline() {
@@ -3003,6 +3023,7 @@ function deleteTransaction(id) {
 
         function changeMonth(s) { state.viewDate.setMonth(state.viewDate.getMonth()+s); renderCalendar(); }
         function changeExtratoMonth(s) { state.extratoDate.setMonth(state.extratoDate.getMonth()+s); renderExtrato(); }
+        function changeRecentTransMonth(s) { state.recentTransDate.setMonth(state.recentTransDate.getMonth()+s); renderRecentTrans(); }
         
         function toggleVisibility() { 
             state.blurred = !state.blurred; 
