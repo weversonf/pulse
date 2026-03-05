@@ -351,10 +351,7 @@
 
                 <section class="space-y-4">
                     <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Sincronização</h3>
-                    <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
-                        <label class="text-[9px] text-gray-500 uppercase block mb-1">Webhook URL (Google Sheets)</label>
-                        <input type="text" id="cfg-sheet-url" placeholder="https://script.google.com/..." class="bg-transparent font-bold w-full outline-none text-[10px] text-blue-400">
-                    </div>
+                    <p class="text-[10px] text-gray-500 px-1 leading-relaxed">O banco de dados está configurado automaticamente para o Google Sheets.</p>
                     <div class="flex space-x-2">
                         <button onclick="syncSheet('push')" class="flex-1 py-4 rounded-2xl bg-white/5 text-white font-bold uppercase text-[10px] border border-white/5 active:bg-white/10">Push (Subir)</button>
                         <button onclick="syncSheet('pull')" class="flex-1 py-4 rounded-2xl bg-green-500 text-black font-bold uppercase text-[10px] active:scale-95">Pull (Baixar)</button>
@@ -403,7 +400,8 @@
     // ESTADO DA APLICAÇÃO
     let state = {
         names: { he: 'Murilo', she: 'Ela' },
-        sheetUrl: '', // COLOQUE SUA URL AQUI PARA FICAR FIXA: 'https://script.google.com/...'
+        // URL HARDCODED PARA O BANCO DE DADOS
+        sheetUrl: 'https://script.google.com/macros/s/AKfycbznDMXn9aasu_WeaGT2sLlK16BthzYClzPJUZIO-44sTXzmSknH_MTsJRsdqY4rrmVKqw/exec',
         blurred: false,
         extratoMonth: new Date(),
         budget: 4500,
@@ -434,7 +432,10 @@
         const saved = localStorage.getItem('mu_finance_casal_v2_6');
         if (saved) {
             const parsed = JSON.parse(saved);
+            // Mantemos a URL fixa mesmo ao carregar dados salvos, a menos que queira permitir sobrescrever
+            const currentUrl = state.sheetUrl;
             state = {...state, ...parsed};
+            state.sheetUrl = currentUrl; 
             state.extratoMonth = new Date(state.extratoMonth);
         }
     }
@@ -679,7 +680,6 @@
     function preparePerfilModal() {
         document.getElementById('cfg-he').value = state.names.he;
         document.getElementById('cfg-she').value = state.names.she;
-        document.getElementById('cfg-sheet-url').value = state.sheetUrl;
         document.getElementById('cfg-budget').value = state.budget;
     }
 
@@ -687,7 +687,7 @@
         state.names.he = document.getElementById('cfg-he').value || 'Ele';
         state.names.she = document.getElementById('cfg-she').value || 'Ela';
         state.budget = parseFloat(document.getElementById('cfg-budget').value) || 4500;
-        state.sheetUrl = document.getElementById('cfg-sheet-url').value;
+        // A URL é fixa, não é necessário ler do input
         closeAllOverlays();
         updateUI();
         showToast("Perfil actualizado!");
@@ -695,7 +695,7 @@
 
     // SINCRONIZAÇÃO COM GOOGLE SHEETS
     async function syncSheet(action) {
-        if(!state.sheetUrl) { showToast("URL do Webhook ausente!"); return; }
+        if(!state.sheetUrl) { showToast("Erro: URL não configurada."); return; }
         showToast(action === 'push' ? "A enviar..." : "A carregar...");
         
         try {
@@ -710,7 +710,9 @@
                 const response = await fetch(state.sheetUrl);
                 const data = await response.json();
                 if(data) { 
+                    const currentUrl = state.sheetUrl; // Protegemos a URL fixa
                     state = {...state, ...data}; 
+                    state.sheetUrl = currentUrl;
                     state.extratoMonth = new Date(); 
                     updateUI(); 
                     showToast("Dados carregados (Pull)"); 
