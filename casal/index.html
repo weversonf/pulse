@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mu Finance Casal v03.5</title>
+    <title>Mu Finance Casal v03.6</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
 
@@ -169,257 +169,279 @@
     </div>
 
 <script>
-    /**
- * MU FINANCE CASAL - BACKEND v04
- * Abas necessárias na planilha:
- * Usuario
- * Transações
- * Veiculo
- */
 
-const SS = SpreadsheetApp.getActiveSpreadsheet();
+const CONFIG = {
+    sheetUrl: 'https://script.google.com/macros/s/AKfycbznDMXn9aasu_WeaGT2sLlK16BthzYClzPJUZIO-44sTXzmSknH_MTsJRsdqY4rrmVKqw/exec',
+    cats: ['Alimentação','Moradia','Transporte','Lazer','Saúde','Extra','Contas Fixas','Educação','Outros']
+};
 
-function doGet(e) {
+let session = { user:null, coupleId:null, userId:null, name:'' };
 
-  try {
+let db = {
+    transacoes: [],
+    veiculo: []
+};
 
-    const action = (e.parameter.action || "").toLowerCase();
+window.onload = () => {
+    if(window.lucide) lucide.createIcons();
+};
 
-    if (action === "login") {
-      return login(e);
+async function handleLogin(){
+
+    const user = document.getElementById('login-user').value.trim();
+    const pass = document.getElementById('login-pass').value.trim();
+    const btn = document.getElementById('btn-login');
+
+    if(!user || !pass){
+        showToast("Insira utilizador e senha");
+        return;
     }
 
-    if (action === "pull") {
-      return pullData(e);
+    btn.innerText = "AUTENTICANDO...";
+    btn.disabled = true;
+
+    try{
+
+        const resp = await fetch(`${CONFIG.sheetUrl}?action=login&user=${encodeURIComponent(user)}&pass=${encodeURIComponent(pass)}`);
+        const data = await resp.json();
+
+        if(data.success){
+
+            session = {
+                user,
+                coupleId:data.coupleId,
+                userId:data.userId,
+                name:data.name
+            };
+
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('app-content').classList.remove('hidden');
+
+            initApp();
+
+        }else{
+
+            showToast(data.message || "Acesso negado");
+            btn.innerText = "ENTRAR";
+            btn.disabled = false;
+
+        }
+
+    }catch(e){
+
+        console.error(e);
+        showToast("Erro ao conectar com Google Script");
+        btn.innerText = "ENTRAR";
+        btn.disabled = false;
+
     }
 
-    return createResponse({ error: "Ação inválida" });
+}
 
-  } catch (err) {
+function initApp(){
 
-    return createResponse({
-      error: err.toString()
+    document.getElementById('header-subtitle').innerText = `Olá, ${session.name}`;
+    document.getElementById('user-initials').innerText = session.name.substring(0,2).toUpperCase();
+    document.getElementById('profile-name').innerText = session.name;
+
+    const catSel = document.getElementById('t-cat');
+
+    catSel.innerHTML = CONFIG.cats.map(c=>`<option value="${c}">${c}</option>`).join('');
+
+    syncSheet('pull');
+
+}
+
+function saveTransaction(){
+
+    const val = parseFloat(document.getElementById('t-val').value);
+    const desc = document.getElementById('t-desc').value.trim() || "Lançamento";
+    const cat = document.getElementById('t-cat').value;
+    const type = document.getElementById('t-type').value;
+    const acc = document.getElementById('t-acc').value;
+
+    if(!val){
+        showToast("Informe o valor");
+        return;
+    }
+
+    const compositeId = `${Date.now().toString().slice(-4)}_${session.coupleId}_${session.userId}`;
+
+    const newTrans = {
+
+        id:compositeId,
+        data:new Date().toISOString().split('T')[0],
+        valor:val,
+        desc:desc,
+        quem:session.userId,
+        cat:cat,
+        acc:acc,
+        tipo:type
+
+    };
+
+    db.transacoes.unshift(newTrans);
+
+    updateUI();
+
+    closeOverlays();
+
+    syncSheet('push', newTrans);
+
+}
+
+function updateUI(){
+
+    let saldo = 0;
+    let rec = 0;
+    let des = 0;
+
+    db.transacoes.forEach(t=>{
+
+        const valor = Number(t.valor);
+
+        if(t.tipo === "Entrada"){
+
+            saldo += valor;
+            rec += valor;
+
+        }else{
+
+            saldo -= valor;
+            des += valor;
+
+        }
+
     });
 
-  }
+    document.getElementById('main-saldo').innerText =
+        `R$ ${saldo.toLocaleString('pt-BR',{minimumFractionDigits:2})}`;
+
+    document.getElementById('main-receita').innerText =
+        `R$ ${rec.toLocaleString('pt-BR',{minimumFractionDigits:2})}`;
+
+    document.getElementById('main-despesa').innerText =
+        `R$ ${des.toLocaleString('pt-BR',{minimumFractionDigits:2})}`;
+
+    const list = document.getElementById('recent-list');
+
+    list.innerHTML = db.transacoes.slice(0,5).map(t=>`
+
+        <div class="card p-4 rounded-2xl flex justify-between items-center">
+
+            <div class="truncate">
+                <span class="block text-sm font-bold truncate">${t.desc}</span>
+                <span class="block text-[8px] text-gray-500 font-bold uppercase">${t.id}</span>
+            </div>
+
+            <span class="text-sm font-black ${t.tipo === 'Entrada' ? 'text-green-400':'text-red-400'}">
+                R$ ${Number(t.valor).toFixed(2)}
+            </span>
+
+        </div>
+
+    `).join('') || `
+        <p class="text-center py-6 text-gray-700 text-[10px] font-bold uppercase">
+        Vazio
+        </p>
+    `;
+
+    const extrato = document.getElementById('extrato-list');
+
+    extrato.innerHTML = db.transacoes.map(t=>`
+
+        <div class="card p-4 rounded-2xl flex justify-between items-center">
+
+            <div class="flex-1 truncate">
+                <span class="block text-sm font-bold truncate">${t.desc}</span>
+                <span class="block text-[9px] text-gray-500 font-bold uppercase">
+                    ${t.data} • ${t.cat}
+                </span>
+            </div>
+
+            <span class="text-sm font-black ${t.tipo === 'Entrada' ? 'text-green-400':'text-red-400'}">
+                R$ ${Number(t.valor).toFixed(2)}
+            </span>
+
+        </div>
+
+    `).join('');
 
 }
 
-function doPost(e) {
+function navigate(page){
 
-  try {
+    document.querySelectorAll('.page-content').forEach(p=>p.classList.add('hidden'));
 
-    const payload = JSON.parse(e.postData.contents);
+    document.getElementById(page).classList.remove('hidden');
 
-    if (payload.action === "append_trans") {
-      return appendTrans(payload.item);
-    }
+    document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
 
-    if (payload.action === "append_veh") {
-      return appendVeh(payload.item);
-    }
-
-    return createResponse({ error: "Ação POST inválida" });
-
-  } catch (err) {
-
-    return createResponse({
-      error: err.toString()
-    });
-
-  }
+    if(page === 'page-financas') document.getElementById('nav-home').classList.add('active');
+    if(page === 'page-veiculo') document.getElementById('nav-moto').classList.add('active');
 
 }
 
-function login(e) {
+function toggleOverlay(name){
 
-  const user = (e.parameter.user || "").toString().trim().toLowerCase();
-  const pass = (e.parameter.pass || "").toString().trim();
-
-  const sheet = SS.getSheetByName("Usuario");
-
-  if (!sheet) {
-    return createResponse({
-      success: false,
-      message: "Aba Usuario não encontrada"
-    });
-  }
-
-  const data = sheet.getDataRange().getValues();
-
-  for (let i = 1; i < data.length; i++) {
-
-    const sheetUser = (data[i][0] || "").toString().trim().toLowerCase();
-    const sheetPass = (data[i][1] || "").toString().trim();
-
-    if (sheetUser === user && sheetPass === pass) {
-
-      return createResponse({
-        success: true,
-        name: data[i][2],
-        userId: data[i][3],
-        coupleId: data[i][4]
-      });
-
-    }
-
-  }
-
-  return createResponse({
-    success: false,
-    message: "Login ou senha incorretos"
-  });
+    document.getElementById('overlay-'+name).classList.add('active');
+    document.getElementById('backdrop').classList.add('active');
 
 }
 
-function pullData(e) {
+function closeOverlays(){
 
-  const coupleId = (e.parameter.coupleId || "").toString();
+    document.querySelectorAll('.overlay').forEach(o=>o.classList.remove('active'));
+    document.getElementById('backdrop').classList.remove('active');
 
-  const userSheet = SS.getSheetByName("Usuario");
+}
 
-  if (!userSheet) {
-    return createResponse({ error: "Aba Usuario não encontrada" });
-  }
+function showToast(msg){
 
-  const usersData = userSheet.getDataRange().getValues();
+    alert(msg);
 
-  const coupleUsers = usersData
-    .filter(r => r[4].toString() === coupleId)
-    .map(r => r[3].toString());
+}
 
-  const transSheet = SS.getSheetByName("Transações");
+async function syncSheet(mode, payload=null){
 
-  const transacoes = [];
+    try{
 
-  if (transSheet) {
+        if(mode === 'pull'){
 
-    const data = transSheet.getDataRange().getValues();
+            const resp = await fetch(`${CONFIG.sheetUrl}?action=list&coupleId=${session.coupleId}`);
+            const data = await resp.json();
 
-    for (let i = 1; i < data.length; i++) {
+            if(data.success){
 
-      const quem = (data[i][4] || "").toString();
+                db.transacoes = data.transacoes || [];
 
-      if (coupleUsers.includes(quem)) {
+                updateUI();
 
-        transacoes.push({
+            }
 
-          id: data[i][0],
+        }
 
-          data: data[i][1] instanceof Date
-            ? Utilities.formatDate(data[i][1], "GMT-3", "yyyy-MM-dd")
-            : data[i][1],
+        if(mode === 'push'){
 
-          valor: Number(data[i][2]),
+            fetch(CONFIG.sheetUrl,{
+                method:'POST',
+                body:JSON.stringify({
+                    action:'add',
+                    coupleId:session.coupleId,
+                    transacao:payload
+                })
+            });
 
-          desc: data[i][3],
+        }
 
-          quem: data[i][4],
+    }catch(e){
 
-          cat: data[i][5],
-
-          acc: data[i][6],
-
-          tipo: data[i][7]
-
-        });
-
-      }
-
-    }
-
-  }
-
-  const vehSheet = SS.getSheetByName("Veiculo");
-
-  const veiculo = [];
-
-  if (vehSheet) {
-
-    const data = vehSheet.getDataRange().getValues();
-
-    for (let i = 1; i < data.length; i++) {
-
-      veiculo.push({
-
-        data: data[i][0] instanceof Date
-          ? Utilities.formatDate(data[i][0], "GMT-3", "yyyy-MM-dd")
-          : data[i][0],
-
-        tipo: data[i][1],
-
-        km: Number(data[i][2]),
-
-        valor: Number(data[i][3]),
-
-        litros: Number(data[i][4]),
-
-        desc: data[i][5]
-
-      });
+        console.error("Erro sync", e);
 
     }
 
-  }
-
-  return createResponse({
-    transacoes: transacoes,
-    veiculo: veiculo
-  });
-
 }
 
-function appendTrans(item) {
-
-  const sheet = SS.getSheetByName("Transações");
-
-  if (!sheet) {
-    return createResponse({ error: "Aba Transações não encontrada" });
-  }
-
-  sheet.getRange(sheet.getLastRow() + 1, 1, 1, 8).setValues([[
-    item.id,
-    item.data,
-    Number(item.valor),
-    item.desc,
-    item.quem,
-    item.cat,
-    item.acc,
-    item.tipo
-  ]]);
-
-  return createResponse({ success: true });
-
-}
-
-function appendVeh(item) {
-
-  const sheet = SS.getSheetByName("Veiculo");
-
-  if (!sheet) {
-    return createResponse({ error: "Aba Veiculo não encontrada" });
-  }
-
-  sheet.getRange(sheet.getLastRow() + 1, 1, 1, 6).setValues([[
-    item.data,
-    item.tipo,
-    Number(item.km),
-    Number(item.valor),
-    Number(item.litros),
-    item.desc
-  ]]);
-
-  return createResponse({ success: true });
-
-}
-
-function createResponse(content) {
-
-  return ContentService
-    .createTextOutput(JSON.stringify(content))
-    .setMimeType(ContentService.MimeType.JSON);
-
-}
 </script>
 </body>
 </html>
