@@ -239,8 +239,52 @@ function buildData(snapshot: FinanceSnapshot | null): Omit<FinanceDataValue, "sn
   const accountTypeColorMap: Record<string, string> = { checking: "bg-blue-500", savings: "bg-emerald-500", digital: "bg-violet-500", investment: "bg-indigo-500", crypto: "bg-orange-500", wallet: "bg-slate-500" }
   const validAccountTypes = ["checking", "savings", "digital", "investment", "crypto", "wallet"]
   const bankAccounts: BankAccount[] = visibleAccounts.map((account, index) => ({ id: account.id, name: String(account.name ?? "Conta"), type: validAccountTypes.includes(String(account.type)) ? String(account.type) as BankAccount["type"] : "checking", institution: String(account.institution ?? "Conta manual"), institutionLogo: "/icon.svg", accountNumber: String(account.accountNumber ?? ""), balance: numberValue(account.balance), currency: "BRL", change: 0, changePercent: 0, lastActivity: "", color: accountTypeColorMap[String(account.type)] ?? ["bg-primary", "bg-emerald-500", "bg-violet-500", "bg-orange-500"][index % 4] }))
-  const cardsData: CardData[] = cards.map((card) => ({ id: card.id, name: String(card.name ?? "Cartão"), type: "physical", last4: String(card.last4 ?? ""), cardNumber: `**** **** **** ${String(card.last4 ?? "")}`, holder: "", expiry: "", cvv: "", network: String(card.brand ?? "Visa").toLowerCase() === "mastercard" ? "mastercard" : "visa", frozen: false, dailyLimit: 0, monthlySpend: 0, monthlyLimit: numberValue(card.limit), color: "bg-primary text-primary-foreground" }))
-  const savingsGoals: SavingsGoal[] = goals.map((goal) => ({ id: goal.id, name: String(goal.name ?? "Meta"), targetAmount: numberValue(goal.targetAmount), currentAmount: numberValue(goal.currentAmount), deadline: String(goal.dueDate ?? ""), iconName: "target", monthlyContribution: 0 }))
+  const cardsData: CardData[] = cards.map((card) => {
+    const cardSpend = transactions
+      .filter(t => t.accountId === card.id && t.type === "expense" && String(t.date ?? "").startsWith(currentMonth))
+      .reduce((sum, t) => sum + numberValue(t.amount), 0)
+
+    return { 
+      id: card.id, 
+      name: String(card.name ?? "Cartão"), 
+      type: "physical", 
+      last4: String(card.last4 ?? ""), 
+      cardNumber: `**** **** **** ${String(card.last4 ?? "")}`, 
+      holder: "", 
+      expiry: "", 
+      cvv: "", 
+      network: String(card.brand ?? "Visa").toLowerCase() === "mastercard" ? "mastercard" : "visa", 
+      frozen: false, 
+      dailyLimit: 0, 
+      monthlySpend: cardSpend, 
+      monthlyLimit: numberValue(card.limit), 
+      color: "bg-primary text-primary-foreground" 
+    }
+  })
+  const savingsGoals: SavingsGoal[] = goals.map((goal) => {
+    const targetAmount = numberValue(goal.targetAmount)
+    const currentAmount = numberValue(goal.currentAmount)
+    const dueDateStr = String(goal.dueDate ?? "")
+    
+    let monthlyContribution = 0
+    if (dueDateStr && targetAmount > currentAmount) {
+      const dueDate = new Date(dueDateStr)
+      const now = new Date()
+      let monthsRemaining = (dueDate.getFullYear() - now.getFullYear()) * 12 + (dueDate.getMonth() - now.getMonth())
+      if (monthsRemaining < 1) monthsRemaining = 1
+      monthlyContribution = (targetAmount - currentAmount) / monthsRemaining
+    }
+
+    return { 
+      id: goal.id, 
+      name: String(goal.name ?? "Meta"), 
+      targetAmount, 
+      currentAmount, 
+      deadline: dueDateStr, 
+      iconName: "target", 
+      monthlyContribution 
+    }
+  })
 
   return {
     contacts: [],

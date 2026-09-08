@@ -22,6 +22,33 @@ function timestamp() {
   return new Date().toISOString();
 }
 
+function guessCategory(payee: string, originalCategory?: string): string {
+  if (originalCategory && originalCategory.trim().toLowerCase() !== "outros") return originalCategory.trim().slice(0, 80);
+  
+  const text = payee.toLowerCase();
+  
+  const foodKeywords = ["ifood", "uber eats", "rappi", "mcdonalds", "burger king", "restaurante", "padaria", "supermercado", "mercado", "carrefour", "pão de açúcar", "atacadao", "assai", "extra"];
+  if (foodKeywords.some(k => text.includes(k))) return "Alimentação";
+
+  const transportKeywords = ["uber", "99", "cabify", "posto", "gasolina", "estacionamento", "pedágio", "concessionaria", "oficina"];
+  if (transportKeywords.some(k => text.includes(k))) return "Transporte";
+  
+  const homeKeywords = ["conta de luz", "enel", "sabesp", "copasa", "energia", "água", "internet", "claro", "vivo", "tim", "aluguel", "condominio"];
+  if (homeKeywords.some(k => text.includes(k))) return "Moradia";
+  
+  const healthKeywords = ["farmácia", "drogaria", "pague menos", "drogasil", "raia", "hospital", "clínica", "médico", "dentista", "unimed", "amil"];
+  if (healthKeywords.some(k => text.includes(k))) return "Saúde";
+
+  const entertainmentKeywords = ["netflix", "spotify", "amazon prime", "hbo", "disney", "cinema", "ingresso", "sympla"];
+  if (entertainmentKeywords.some(k => text.includes(k))) return "Lazer";
+
+  const educationKeywords = ["faculdade", "universidade", "escola", "colegio", "curso", "udemy", "alura"];
+  if (educationKeywords.some(k => text.includes(k))) return "Educação";
+
+  return "Outros";
+}
+
+
 /**
  * Retorna o valor numérico preservando o sinal (negativo = débito).
  * O Math.abs() só é aplicado na gravação, não aqui.
@@ -97,11 +124,10 @@ export async function importTransactions(rows: ImportTransactionRow[]) {
         errors.push(`Linha ${index + 1}: accountId obrigatório.`);
         continue;
       }
-
       const candidate = {
         date,
         payee,
-        category: String(row.category ?? "Outros").trim().slice(0, 80),
+        category: guessCategory(payee, row.category),
         accountId,
         amount,
         type: txType,
@@ -109,6 +135,7 @@ export async function importTransactions(rows: ImportTransactionRow[]) {
         sourceType: "account" as const,
         notes: String(row.notes ?? "Importado por CSV/OFX").trim().slice(0, 1000),
       };
+
 
       const parsed = transactionInputSchema.safeParse(candidate);
       if (!parsed.success) {

@@ -1,11 +1,14 @@
 "use client"
 
+import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
 import { Slider } from "@/components/ui/slider"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import type { CardData } from "@/data/seed"
+import { PayBillDialog } from "@/components/cards/pay-bill-dialog"
 
 interface CardControlsProps {
   card: CardData
@@ -31,6 +34,7 @@ export function CardControls({
   dailyLimit,
   onDailyLimitChange,
 }: CardControlsProps) {
+  const [payBillOpen, setPayBillOpen] = useState(false)
   const spendPercent =
     card.monthlyLimit > 0
       ? Math.round((card.monthlySpend / card.monthlyLimit) * 100)
@@ -42,7 +46,7 @@ export function CardControls({
         <CardTitle>Card Controls</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* ── Freeze Toggle ── */}
+        {/* ❄️ Freeze Toggle ❄️ */}
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
             <p className="text-sm font-medium">Card Status</p>
@@ -63,7 +67,7 @@ export function CardControls({
           />
         </div>
 
-        {/* ── Daily Limit ── */}
+        {/* 💸 Daily Limit 💸 */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <p className="text-sm font-medium">Daily Limit</p>
@@ -87,12 +91,12 @@ export function CardControls({
           </div>
         </div>
 
-        {/* ── Monthly Usage ── */}
-        <div className="space-y-2">
+        {/* 📊 Monthly Usage 📊 */}
+        <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <p className="text-sm font-medium">Monthly Usage</p>
+            <p className="text-sm font-medium">Fatura Atual</p>
             <span className="text-xs text-muted-foreground tabular-nums">
-              {spendPercent}%
+              {spendPercent}% do limite
             </span>
           </div>
           <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
@@ -112,9 +116,17 @@ export function CardControls({
             <span>{formatCurrency(card.monthlySpend)}</span>
             <span>{formatCurrency(card.monthlyLimit)}</span>
           </div>
+          <Button 
+            className="w-full mt-2" 
+            variant="secondary" 
+            disabled={card.monthlySpend <= 0}
+            onClick={() => setPayBillOpen(true)}
+          >
+            Pagar Fatura
+          </Button>
         </div>
 
-        {/* ── Card Info ── */}
+        {/* 🏷️ Card Info 🏷️ */}
         <div className="space-y-2">
           <p className="text-sm font-medium">Card Info</p>
           <div className="flex flex-wrap items-center gap-2">
@@ -130,6 +142,12 @@ export function CardControls({
           </div>
         </div>
       </CardContent>
+
+      <PayBillDialog 
+        open={payBillOpen} 
+        onOpenChange={setPayBillOpen} 
+        card={card} 
+      />
     </Card>
   )
 }

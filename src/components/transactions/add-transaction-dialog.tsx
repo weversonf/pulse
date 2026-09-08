@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { useFinanceData } from "@/components/finance/finance-provider"
 
 export function AddTransactionDialog({ open, onOpenChange, onSaved }: { open: boolean; onOpenChange: (open: boolean) => void; onSaved: () => Promise<void> | void }) {
-  const { bankAccounts } = useFinanceData()
+  const { bankAccounts, cardsData } = useFinanceData()
   const [payee, setPayee] = useState("")
   const [category, setCategory] = useState("Geral")
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10))
@@ -59,6 +59,8 @@ export function AddTransactionDialog({ open, onOpenChange, onSaved }: { open: bo
       const promises = []
       let currentDate = new Date(date)
 
+      const isCreditCard = cardsData.some(c => c.id === accountId)
+
       for (let i = 0; i < count; i++) {
         // Formata data YYYY-MM-DD
         const year = currentDate.getUTCFullYear()
@@ -77,7 +79,7 @@ export function AddTransactionDialog({ open, onOpenChange, onSaved }: { open: bo
           amount: numericAmount, // Assume que o valor digitado é o valor da parcela ou valor fixo
           type,
           status: i === 0 ? status : "planned", // As próximas sempre caem como planejadas
-          sourceType: "account",
+          sourceType: isCreditCard ? "credit-card" : "account",
           notes: notes || undefined
         }
 
@@ -141,9 +143,16 @@ export function AddTransactionDialog({ open, onOpenChange, onSaved }: { open: bo
             Conta {type === "transfer" ? "de Origem" : ""}
             <select value={accountId} onChange={(event) => setAccountId(event.target.value)} required className="h-9 rounded-md border bg-background px-3 text-sm">
               <option value="" disabled>Selecione...</option>
-              {bankAccounts.map(acc => (
-                <option key={acc.id} value={acc.id}>{acc.name} ({new Intl.NumberFormat('pt-BR', {style:'currency', currency:'BRL'}).format(acc.balance)})</option>
-              ))}
+              <optgroup label="Contas Bancárias">
+                {bankAccounts.map(acc => (
+                  <option key={acc.id} value={acc.id}>{acc.name} ({new Intl.NumberFormat('pt-BR', {style:'currency', currency:'BRL'}).format(acc.balance)})</option>
+                ))}
+              </optgroup>
+              <optgroup label="Cartões de Crédito">
+                {cardsData.map(card => (
+                  <option key={card.id} value={card.id}>{card.name} (Crédito)</option>
+                ))}
+              </optgroup>
             </select>
           </label>
 
@@ -152,9 +161,11 @@ export function AddTransactionDialog({ open, onOpenChange, onSaved }: { open: bo
               Conta de Destino
               <select value={destinationAccountId} onChange={(event) => setDestinationAccountId(event.target.value)} required className="h-9 rounded-md border bg-background px-3 text-sm">
                 <option value="" disabled>Selecione...</option>
-                {bankAccounts.map(acc => (
-                  <option key={acc.id} value={acc.id} disabled={acc.id === accountId}>{acc.name}</option>
-                ))}
+                <optgroup label="Contas Bancárias">
+                  {bankAccounts.map(acc => (
+                    <option key={acc.id} value={acc.id} disabled={acc.id === accountId}>{acc.name}</option>
+                  ))}
+                </optgroup>
               </select>
             </label>
           ) : (
